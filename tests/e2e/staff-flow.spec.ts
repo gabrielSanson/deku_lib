@@ -11,15 +11,15 @@ async function login(page: Page, email: string, next = '/staff') {
 	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
 }
 
-test('cashier sells at the counter and the kitchen completes it', async ({ page, browser }) => {
+test('admin sells at the counter and the kitchen completes it', async ({ page, browser }) => {
 	await login(page, 'admin@burger.local', '/staff/pos');
 
 	await page.getByRole('button', { name: /Bacon Cheddar/ }).click();
 	const sheet = page.getByRole('dialog');
 	await expect(sheet.getByRole('button', { name: /Escolha Ponto/ })).toBeDisabled();
 	await sheet.getByRole('button', { name: 'Ao ponto' }).click();
-	await sheet.getByRole('button', { name: /Bacon/ }).click();
-	await sheet.getByRole('button', { name: 'Sem cebola' }).click();
+	await sheet.getByRole('button', { name: /Bacon.*R\$/ }).click();
+	await sheet.getByRole('button', { name: 'Cebola caramelizada' }).click();
 	await sheet.getByRole('button', { name: /Adicionar/ }).click();
 	await page.getByRole('button', { name: /Batata frita/ }).click();
 	await page.getByLabel('Nome ou mesa').fill('Ana');
@@ -55,14 +55,14 @@ test('cashier sells at the counter and the kitchen completes it', async ({ page,
 		kitchen.locator('section', { hasText: 'Prontos' }).locator('article', { hasText: orderNumber })
 	).toBeVisible();
 
-	// The cashier's order list picks up the kitchen's change without a reload.
+	// The admin's order list picks up the kitchen's change without a reload.
 	await page.goto('/staff/orders?status=ready');
 	await expect(page.getByRole('link', { name: orderNumber })).toBeVisible();
 	await kitchenCtx.close();
 });
 
-test('kitchen staff cannot open the POS', async ({ page }) => {
+test('kitchen staff only get the kitchen screen', async ({ page }) => {
 	await login(page, 'cozinha@burger.local');
-	const res = await page.goto('/staff/pos');
-	expect(res?.status()).toBe(403);
+	await page.goto('/staff/pos');
+	await expect(page).toHaveURL(/\/kitchen$/);
 });
