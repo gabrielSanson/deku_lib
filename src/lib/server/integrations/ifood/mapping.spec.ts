@@ -2,16 +2,26 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { mapIfoodOrder, outboundAction, statusForEvent, type IfoodOrder } from './mapping';
 
-const fixture = JSON.parse(readFileSync('tests/fixtures/ifood/order-delivery.json', 'utf8')) as IfoodOrder;
+const fixture = JSON.parse(
+	readFileSync('tests/fixtures/ifood/order-delivery.json', 'utf8')
+) as IfoodOrder;
 const known = new Set(['BRG-CLASSICO', 'ACP-FRITAS']);
-const lookup = (code: string) => (known.has(code) ? { sku: code, categoryName: 'Lanches', prepStation: 'grill' } : null);
+const lookup = (code: string) =>
+	known.has(code) ? { sku: code, categoryName: 'Lanches', prepStation: 'grill' } : null;
 
 describe('mapIfoodOrder', () => {
 	const m = mapIfoodOrder(fixture, lookup);
 
 	it('converts reais to centavos and keeps line totals consistent', () => {
-		expect(m.cart.lines[0]).toMatchObject({ productSku: 'BRG-CLASSICO', quantity: 2, unitPriceCents: 2890, modifiersUnitCents: 400, lineTotalCents: 6580 });
-		for (const l of m.cart.lines) expect(l.lineTotalCents).toBe(l.quantity * (l.unitPriceCents + l.modifiersUnitCents));
+		expect(m.cart.lines[0]).toMatchObject({
+			productSku: 'BRG-CLASSICO',
+			quantity: 2,
+			unitPriceCents: 2890,
+			modifiersUnitCents: 400,
+			lineTotalCents: 6580
+		});
+		for (const l of m.cart.lines)
+			expect(l.lineTotalCents).toBe(l.quantity * (l.unitPriceCents + l.modifiersUnitCents));
 		expect(m.cart.subtotalCents).toBe(8570);
 	});
 
@@ -32,7 +42,12 @@ describe('mapIfoodOrder', () => {
 		expect(m.paymentStatus).toBe('paid');
 		expect(m.isTest).toBe(true);
 		expect(m.displayId).toBe('7F3A');
-		expect(m.address).toMatchObject({ cep: '01304000', street: 'Rua Augusta', number: '100', instructions: 'Portão azul' });
+		expect(m.address).toMatchObject({
+			cep: '01304000',
+			street: 'Rua Augusta',
+			number: '100',
+			instructions: 'Portão azul'
+		});
 		expect(m.cart.lines[0].allergyFlag).toBe(true);
 	});
 

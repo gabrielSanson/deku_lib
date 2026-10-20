@@ -29,7 +29,11 @@ const sql = postgres(DATABASE_URL, { max: 1, onnotice: () => {} });
 try {
 	for (const s of staff) {
 		let id: string | undefined;
-		const created = await admin.auth.admin.createUser({ email: s.email, password, email_confirm: true });
+		const created = await admin.auth.admin.createUser({
+			email: s.email,
+			password,
+			email_confirm: true
+		});
 		if (created.data.user) id = created.data.user.id;
 		else {
 			const [row] = await sql<{ id: string }[]>`select id from auth.users where email = ${s.email}`;

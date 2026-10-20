@@ -8,12 +8,18 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, fetch }) => {
 	const c = config();
-	if (c.PAYMENT_PROVIDER !== 'local_stub' || c.NODE_ENV === 'production') error(404, 'Não encontrado.');
+	if (c.PAYMENT_PROVIDER !== 'local_stub' || c.NODE_ENV === 'production')
+		error(404, 'Não encontrado.');
 	const [t] = await db()<{ provider_reference: string }[]>`
 		select t.provider_reference from tenders t join orders o on o.id = t.order_id
 		where o.public_token = ${params.token} and t.provider = 'local_stub' order by t.created_at desc limit 1`;
 	if (!t) error(404, 'Pagamento não encontrado.');
-	const body = JSON.stringify({ id: `evt_${randomUUID()}`, type: 'payment.updated', payment_id: t.provider_reference, status: 'paid' });
+	const body = JSON.stringify({
+		id: `evt_${randomUUID()}`,
+		type: 'payment.updated',
+		payment_id: t.provider_reference,
+		status: 'paid'
+	});
 	const res = await fetch('/api/v1/payments/webhooks/local_stub', {
 		method: 'POST',
 		body,

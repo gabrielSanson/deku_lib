@@ -1,6 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { overview, peakHours, previousRange, reconciliation, resolveRange, salesByDay } from '#lib/server/analytics/queries.ts';
+import {
+	overview,
+	peakHours,
+	previousRange,
+	reconciliation,
+	resolveRange,
+	salesByDay
+} from '#lib/server/analytics/queries.ts';
 import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { createOrder, transitionOrder } from '#lib/server/orders/service.ts';
@@ -10,7 +17,10 @@ import { classic, makeStaff } from './helpers.ts';
 let cashier: Awaited<ReturnType<typeof makeStaff>>;
 let manager: Awaited<ReturnType<typeof makeStaff>>;
 
-async function orderAt(createdAtUtc: string, opts: { cancel?: boolean; complete?: boolean; pay?: boolean } = {}) {
+async function orderAt(
+	createdAtUtc: string,
+	opts: { cancel?: boolean; complete?: boolean; pay?: boolean } = {}
+) {
 	const o = await createOrder({
 		channel: 'counter',
 		sourceMode: 'staff_pos',
@@ -21,14 +31,21 @@ async function orderAt(createdAtUtc: string, opts: { cancel?: boolean; complete?
 		actor: cashier
 	});
 	if (opts.pay) {
-		await recordManualTender({ orderId: o.id, method: 'cash', amountCents: o.totalCents, idempotencyKey: randomUUID(), actor: cashier });
+		await recordManualTender({
+			orderId: o.id,
+			method: 'cash',
+			amountCents: o.totalCents,
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
 	}
 	if (opts.complete) {
 		await transitionOrder({ orderId: o.id, to: 'preparing', actor: cashier });
 		await transitionOrder({ orderId: o.id, to: 'ready', actor: cashier });
 		await transitionOrder({ orderId: o.id, to: 'completed', actor: cashier });
 	}
-	if (opts.cancel) await transitionOrder({ orderId: o.id, to: 'cancelled', actor: manager, reason: 'teste' });
+	if (opts.cancel)
+		await transitionOrder({ orderId: o.id, to: 'cancelled', actor: manager, reason: 'teste' });
 	const at = new Date(createdAtUtc);
 	await db()`
 		update orders set created_at = ${at}, accepted_at = ${at},
@@ -93,14 +110,25 @@ describe('analytics', () => {
 	it('flags unpaid and cancelled-but-paid orders in reconciliation', async () => {
 		const rec = await reconciliation('2025-03-10');
 		expect(rec.issues).toHaveLength(0);
-		expect(rec.byMethod.find((m) => m.method === 'cash' && m.status === 'paid')?.amountCents).toBe(2 * 2890);
+		expect(rec.byMethod.find((m) => m.method === 'cash' && m.status === 'paid')?.amountCents).toBe(
+			2 * 2890
+		);
 	});
 
 	it('resolves presets and previous periods', () => {
 		const now = new Date('2025-03-11T02:30:00Z'); // 23:30 on the 10th, local
-		expect(resolveRange('today', null, null, now)).toEqual({ from: '2025-03-10', to: '2025-03-10' });
+		expect(resolveRange('today', null, null, now)).toEqual({
+			from: '2025-03-10',
+			to: '2025-03-10'
+		});
 		expect(resolveRange('7d', null, null, now)).toEqual({ from: '2025-03-04', to: '2025-03-10' });
-		expect(resolveRange('month', null, null, now)).toEqual({ from: '2025-03-01', to: '2025-03-10' });
-		expect(previousRange({ from: '2025-03-04', to: '2025-03-10' })).toEqual({ from: '2025-02-25', to: '2025-03-03' });
+		expect(resolveRange('month', null, null, now)).toEqual({
+			from: '2025-03-01',
+			to: '2025-03-10'
+		});
+		expect(previousRange({ from: '2025-03-04', to: '2025-03-10' })).toEqual({
+			from: '2025-02-25',
+			to: '2025-03-03'
+		});
 	});
 });

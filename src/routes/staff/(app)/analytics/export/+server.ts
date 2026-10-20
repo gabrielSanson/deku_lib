@@ -7,7 +7,9 @@ import type { RequestHandler } from './$types';
 
 const csv = (v: unknown) => {
 	const s = v === null || v === undefined ? '' : String(v);
-	return /[",\n;]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"` : s;
+	return /[",\n;]/.test(s) || /^[=+\-@]/.test(s)
+		? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"`
+		: s;
 };
 
 export const GET: RequestHandler = async (event) => {
@@ -24,9 +26,15 @@ export const GET: RequestHandler = async (event) => {
 			and created_at < ((${range.to + ' 00:00:00'}::timestamp + interval '1 day') at time zone ${a.SHOP_TZ})
 		order by created_at
 		limit 50000`;
-	await audit(db(), { type: 'staff', id: staff.id }, 'analytics.export', 'orders', null, { range, rows: rows.length });
+	await audit(db(), { type: 'staff', id: staff.id }, 'analytics.export', 'orders', null, {
+		range,
+		rows: rows.length
+	});
 	const header = Object.keys(rows[0] ?? { order_number: '' });
-	const body = [header.join(','), ...rows.map((r) => header.map((h) => csv((r as Record<string, unknown>)[h])).join(','))].join('\n');
+	const body = [
+		header.join(','),
+		...rows.map((r) => header.map((h) => csv((r as Record<string, unknown>)[h])).join(','))
+	].join('\n');
 	return new Response('﻿' + body, {
 		headers: {
 			'content-type': 'text/csv; charset=utf-8',

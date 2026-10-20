@@ -3,8 +3,17 @@
 	import FormError from '#lib/components/FormError.svelte';
 
 	let { data, form } = $props();
-	const roleLabel: Record<string, string> = { owner: 'Dono', manager: 'Gerente', cashier: 'Caixa', kitchen: 'Cozinha' };
-	const assignable = $derived(data.staff.role === 'owner' ? ['owner', 'manager', 'cashier', 'kitchen'] : ['cashier', 'kitchen']);
+	const roleLabel: Record<string, string> = {
+		owner: 'Dono',
+		manager: 'Gerente',
+		cashier: 'Caixa',
+		kitchen: 'Cozinha'
+	};
+	const assignable = $derived(
+		data.staff.role === 'owner'
+			? ['owner', 'manager', 'cashier', 'kitchen']
+			: ['cashier', 'kitchen']
+	);
 </script>
 
 <svelte:head><title>Equipe · Configurações</title></svelte:head>
@@ -14,7 +23,7 @@
 	<FormError message={form?.error} />
 	{#if form?.added}<p class="alert-ok">{form.added} adicionado(a).</p>{/if}
 
-	<div class="card divide-y divide-line">
+	<div class="divide-y divide-line card">
 		{#each data.people as p (p.id)}
 			<div class="flex flex-wrap items-center gap-3 p-3 {p.active ? '' : 'opacity-60'}">
 				<div class="flex-1">
@@ -23,7 +32,14 @@
 				</div>
 				<form method="POST" action="?/update" use:enhance class="flex items-center gap-2">
 					<input type="hidden" name="id" value={p.id} />
-					<select class="field w-36" name="role" value={p.role} aria-label="Perfil de {p.displayName}" disabled={!assignable.includes(p.role)} onchange={(e) => e.currentTarget.form?.requestSubmit()}>
+					<select
+						class="field w-36"
+						name="role"
+						value={p.role}
+						aria-label="Perfil de {p.displayName}"
+						disabled={!assignable.includes(p.role)}
+						onchange={(e) => e.currentTarget.form?.requestSubmit()}
+					>
 						{#each Object.entries(roleLabel) as [value, label] (value)}
 							<option {value} disabled={!assignable.includes(value)}>{label}</option>
 						{/each}
@@ -33,18 +49,37 @@
 					<form method="POST" action="?/update" use:enhance>
 						<input type="hidden" name="id" value={p.id} />
 						<input type="hidden" name="active" value={p.active ? '0' : '1'} />
-						<button class="btn-secondary min-h-9 text-sm {p.active ? 'text-bad' : ''}">{p.active ? 'Desativar' : 'Reativar'}</button>
+						<button class="btn-secondary min-h-9 text-sm {p.active ? 'text-bad' : ''}"
+							>{p.active ? 'Desativar' : 'Reativar'}</button
+						>
 					</form>
 				{/if}
 			</div>
 		{/each}
 	</div>
-	<p class="text-sm text-muted">Desativar uma pessoa encerra o acesso imediatamente, em todos os aparelhos.</p>
+	<p class="text-sm text-muted">
+		Desativar uma pessoa encerra o acesso imediatamente, em todos os aparelhos.
+	</p>
 
-	<form method="POST" action="?/add" use:enhance class="card grid gap-3 p-4 sm:grid-cols-2">
+	<form method="POST" action="?/add" use:enhance class="grid gap-3 card p-4 sm:grid-cols-2">
 		<h2 class="font-semibold sm:col-span-2">Adicionar pessoa</h2>
-		<div><label class="label" for="dn">Nome</label><input class="field" id="dn" name="displayName" required /></div>
-		<div><label class="label" for="em">E-mail</label><input class="field" id="em" name="email" type="email" required /></div>
+		<div>
+			<label class="label" for="dn">Nome</label><input
+				class="field"
+				id="dn"
+				name="displayName"
+				required
+			/>
+		</div>
+		<div>
+			<label class="label" for="em">E-mail</label><input
+				class="field"
+				id="em"
+				name="email"
+				type="email"
+				required
+			/>
+		</div>
 		<div>
 			<label class="label" for="ro">Perfil</label>
 			<select class="field" id="ro" name="role">
@@ -52,7 +87,16 @@
 			</select>
 		</div>
 		{#if data.canCreate}
-			<div><label class="label" for="pw">Senha inicial (mín. 10)</label><input class="field" id="pw" name="password" type="password" minlength="10" autocomplete="new-password" /></div>
+			<div>
+				<label class="label" for="pw">Senha inicial (mín. 10)</label><input
+					class="field"
+					id="pw"
+					name="password"
+					type="password"
+					minlength="10"
+					autocomplete="new-password"
+				/>
+			</div>
 		{/if}
 		<p class="text-sm text-muted sm:col-span-2">
 			{data.canCreate

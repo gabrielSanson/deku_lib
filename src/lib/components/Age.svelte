@@ -14,7 +14,15 @@
 		return () => clearInterval(t);
 	});
 	const minutes = $derived(Math.max(0, Math.floor((now - new Date(since).getTime()) / 60_000)));
-	const tone = $derived(minutes >= lateAfter ? 'text-bad font-bold' : minutes >= warnAfter ? 'text-warn font-semibold' : 'text-muted');
+	const tone = $derived(
+		minutes >= lateAfter
+			? 'text-bad font-bold'
+			: minutes >= warnAfter
+				? 'text-warn font-semibold'
+				: 'text-muted'
+	);
 </script>
 
-<span class="tabular-nums {tone}" title={new Date(since).toLocaleString('pt-BR')}>{minutes} min</span>
+<span class="tabular-nums {tone}" title={new Date(since).toLocaleString('pt-BR')}
+	>{minutes} min</span
+>

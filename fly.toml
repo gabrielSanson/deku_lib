@@ -1,0 +1,41 @@
+# Fly.io deploy (region gru = São Paulo, next to Supabase sa-east-1).
+# One image, two process groups: the web app and the background worker.
+#   fly launch --no-deploy --copy-config --name <app>
+#   fly secrets set DATABASE_URL=… PUBLIC_SUPABASE_ANON_KEY=… SUPABASE_SERVICE_ROLE_KEY=… …
+#   fly deploy --build-arg PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
+app = 'deku-burger'
+primary_region = 'gru'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+  SHOP_TIMEZONE = 'America/Sao_Paulo'
+  PAYMENT_PROVIDER = 'none'
+  IFOOD_ENABLED = 'false'
+
+[processes]
+  web = 'node build'
+  worker = 'node --import tsx scripts/worker.ts'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # Keep one web machine warm: staff screens and webhooks must not wait for a cold start.
+  auto_stop_machines = 'off'
+  min_machines_running = 1
+  processes = ['web']
+
+  [[http_service.checks]]
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '20s'
+    method = 'GET'
+    path = '/health/ready'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'
+  processes = ['web', 'worker']

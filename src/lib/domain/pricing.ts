@@ -156,11 +156,7 @@ export function normalizeCep(cep: string): string {
 }
 
 function normalizeText(s: string): string {
-	return s
-		.normalize('NFD')
-		.replace(/[̀-ͯ]/g, '')
-		.trim()
-		.toLowerCase();
+	return s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 }
 
 /** Picks the delivery rule for an address: lowest priority number wins, CEP prefix before neighborhood. */

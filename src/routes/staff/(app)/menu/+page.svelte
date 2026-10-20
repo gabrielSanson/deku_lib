@@ -7,9 +7,13 @@
 	let { data, form } = $props();
 	const out = $derived(new Map(data.overrides.map((o) => [o.sku, o])));
 	const optionSkus = $derived(
-		[...new Map(data.catalog.products.flatMap((p) => p.modifierGroups.flatMap((g) => g.options)).map((o) => [o.sku, o])).values()].filter(
-			(o) => o.priceCents > 0
-		)
+		[
+			...new Map(
+				data.catalog.products
+					.flatMap((p) => p.modifierGroups.flatMap((g) => g.options))
+					.map((o) => [o.sku, o])
+			).values()
+		].filter((o) => o.priceCents > 0)
 	);
 </script>
 
@@ -19,18 +23,25 @@
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<h1 class="text-xl font-bold">Disponibilidade do cardápio</h1>
 		{#if data.cmsUrl}
-			<a class="btn-secondary" href={data.cmsUrl} target="_blank" rel="noopener">Editar cardápio no CMS ↗</a>
+			<a class="btn-secondary" href={data.cmsUrl} target="_blank" rel="noopener"
+				>Editar cardápio no CMS ↗</a
+			>
 		{:else}
-			<span class="text-sm text-muted">Usando o cardápio de demonstração (CMS não configurado).</span>
+			<span class="text-sm text-muted"
+				>Usando o cardápio de demonstração (CMS não configurado).</span
+			>
 		{/if}
 	</div>
-	<p class="text-sm text-muted">Marcar como esgotado vale na hora para o caixa, o site e (quando ativo) o iFood. Não altera o CMS.</p>
+	<p class="text-sm text-muted">
+		Marcar como esgotado vale na hora para o caixa, o site e (quando ativo) o iFood. Não altera o
+		CMS.
+	</p>
 	<FormError message={form?.error} />
 
 	{#each data.catalog.categories as c (c.id)}
 		<section>
 			<h2 class="mb-2 font-semibold">{c.name}</h2>
-			<div class="card divide-y divide-line">
+			<div class="divide-y divide-line card">
 				{#each data.catalog.products.filter((p) => p.categoryId === c.id) as p (p.sku)}
 					{@const o = out.get(p.sku)}
 					<form method="POST" action="?/toggle" use:enhance class="flex items-center gap-3 p-3">
@@ -41,7 +52,9 @@
 							{#if o}<p class="text-xs text-bad">Esgotado desde {formatTime(o.updated_at)}</p>{/if}
 						</div>
 						<Money cents={p.priceCents} class="text-sm text-muted" />
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}">{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button>
+						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}"
+							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
+						>
 					</form>
 				{/each}
 			</div>
@@ -51,14 +64,16 @@
 	{#if optionSkus.length}
 		<section>
 			<h2 class="mb-2 font-semibold">Adicionais</h2>
-			<div class="card divide-y divide-line">
+			<div class="divide-y divide-line card">
 				{#each optionSkus as opt (opt.sku)}
 					{@const o = out.get(opt.sku)}
 					<form method="POST" action="?/toggle" use:enhance class="flex items-center gap-3 p-3">
 						<input type="hidden" name="sku" value={opt.sku} />
 						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
 						<p class="flex-1 font-medium">{opt.name}</p>
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}">{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button>
+						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}"
+							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
+						>
 					</form>
 				{/each}
 			</div>

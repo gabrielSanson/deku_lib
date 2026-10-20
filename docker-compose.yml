@@ -1,0 +1,48 @@
+# Self-hosted alternative (one VPS): web app, worker and Directus.
+# The database is still your Supabase project (auth + realtime live there).
+# Put a TLS reverse proxy (Caddy, Traefik, nginx) in front of ports 3000 and 8055.
+#   cp .env.example .env   # fill in production values
+#   docker compose up -d --build
+services:
+  web:
+    build:
+      context: .
+      args:
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+        ORIGIN: ${ORIGIN:-}
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    ports: ['3000:3000']
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      args:
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    command: ['node', '--import', 'tsx', 'scripts/worker.ts']
+    restart: unless-stopped
+
+  directus:
+    image: directus/directus:11.12.0
+    environment:
+      SECRET: ${DIRECTUS_SECRET:?set DIRECTUS_SECRET}
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:?set DIRECTUS_PUBLIC_URL}
+      DB_CLIENT: pg
+      DB_CONNECTION_STRING: ${DIRECTUS_DATABASE_URL:?set DIRECTUS_DATABASE_URL}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL:?set DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:?set DIRECTUS_ADMIN_PASSWORD}
+      TELEMETRY: 'false'
+      # The menu-cache Flow calls the web container on the private network.
+      IMPORT_IP_DENY_LIST: 169.254.169.254
+    volumes:
+      - directus-uploads:/directus/uploads
+    ports: ['8055:8055']
+    restart: unless-stopped
+
+volumes:
+  directus-uploads:

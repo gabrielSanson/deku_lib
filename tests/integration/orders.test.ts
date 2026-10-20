@@ -52,7 +52,9 @@ describe('order creation', () => {
 		const key = randomUUID();
 		const [a, b, c] = await Promise.all([counterOrder(key), counterOrder(key), counterOrder(key)]);
 		expect(new Set([a.id, b.id, c.id]).size).toBe(1);
-		const [{ n }] = await db()<{ n: number }[]>`select count(*)::int n from orders where idempotency_key = ${key}`;
+		const [{ n }] = await db()<
+			{ n: number }[]
+		>`select count(*)::int n from orders where idempotency_key = ${key}`;
 		expect(n).toBe(1);
 	});
 
@@ -119,9 +121,9 @@ describe('transitions', () => {
 		await expect(
 			transitionOrder({ orderId: order.id, to: 'cancelled', actor: cashier, reason: 'x' })
 		).rejects.toThrow(/perfil/);
-		await expect(transitionOrder({ orderId: order.id, to: 'cancelled', actor: manager })).rejects.toThrow(
-			/motivo/
-		);
+		await expect(
+			transitionOrder({ orderId: order.id, to: 'cancelled', actor: manager })
+		).rejects.toThrow(/motivo/);
 		await expect(
 			transitionOrder({ orderId: order.id, to: 'ready', actor: kitchen, expectedVersion: 1 })
 		).rejects.toThrow(/atualizado/);
@@ -132,7 +134,9 @@ describe('transitions', () => {
 			reason: 'Cliente desistiu'
 		});
 		expect(res.changed).toBe(true);
-		await expect(transitionOrder({ orderId: order.id, to: 'ready', actor: kitchen })).rejects.toThrow();
+		await expect(
+			transitionOrder({ orderId: order.id, to: 'ready', actor: kitchen })
+		).rejects.toThrow();
 	});
 });
 

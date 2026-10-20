@@ -14,6 +14,10 @@
 	};
 </script>
 
-<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 {tone[status]}">
+<span
+	class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 {tone[
+		status
+	]}"
+>
 	{STATUS_LABEL_PT[status]}
 </span>

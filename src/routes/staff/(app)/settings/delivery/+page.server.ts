@@ -3,7 +3,11 @@ import { parseBRL } from '#lib/domain/money.ts';
 import { matchDeliveryRule } from '#lib/domain/pricing.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
 import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
-import { deleteDeliveryRule, listDeliveryRules, saveDeliveryRule } from '#lib/server/settings/service.ts';
+import {
+	deleteDeliveryRule,
+	listDeliveryRules,
+	saveDeliveryRule
+} from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -11,7 +15,8 @@ export const load: PageServerLoad = async (event) => {
 	const rules = await listDeliveryRules();
 	const cep = event.url.searchParams.get('cep') ?? '';
 	const hood = event.url.searchParams.get('bairro') ?? '';
-	const preview = cep || hood ? { cep, hood, rule: matchDeliveryRule(rules, { cep, neighborhood: hood }) } : null;
+	const preview =
+		cep || hood ? { cep, hood, rule: matchDeliveryRule(rules, { cep, neighborhood: hood }) } : null;
 	return { rules, preview };
 };
 
@@ -20,7 +25,8 @@ export const actions: Actions = {
 		const staff = requireStaff(event, MANAGERS);
 		const d = await event.request.formData();
 		const kind = formString(d, 'matchKind');
-		if (kind !== 'cep_prefix' && kind !== 'neighborhood') return fail(400, { error: 'Tipo inválido.' });
+		if (kind !== 'cep_prefix' && kind !== 'neighborhood')
+			return fail(400, { error: 'Tipo inválido.' });
 		const fee = parseBRL(formString(d, 'fee'));
 		const min = parseBRL(formString(d, 'minOrder') || '0');
 		const value = formString(d, 'matchValue');

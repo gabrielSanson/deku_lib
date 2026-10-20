@@ -15,7 +15,11 @@
 			clearInterval(tick);
 		};
 	});
-	const remaining = $derived(data.expiresAt ? Math.max(0, Math.floor((new Date(data.expiresAt).getTime() - now) / 1000)) : null);
+	const remaining = $derived(
+		data.expiresAt
+			? Math.max(0, Math.floor((new Date(data.expiresAt).getTime() - now) / 1000))
+			: null
+	);
 	async function copy() {
 		if (!data.pixCode) return;
 		await navigator.clipboard.writeText(data.pixCode);
@@ -37,19 +41,30 @@
 		<p class="text-muted">Abra o app do seu banco e pague com Pix. A confirmação é automática.</p>
 		<div class="mx-auto w-60 rounded-xl bg-white p-2">
 			<!-- QR generated on our server from the provider's Pix payload -->
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- SVG built on our server by the qrcode library -->
 			{@html data.pixSvg}
 		</div>
-		<button class="btn-secondary w-full" onclick={copy}>{copied ? 'Código copiado!' : 'Copiar código Pix (copia e cola)'}</button>
+		<button class="btn-secondary w-full" onclick={copy}
+			>{copied ? 'Código copiado!' : 'Copiar código Pix (copia e cola)'}</button
+		>
 		{#if remaining !== null}
-			<p class="text-sm text-muted" aria-live="polite">Expira em {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}</p>
+			<p class="text-sm text-muted" aria-live="polite">
+				Expira em {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}
+			</p>
 		{/if}
-		<p class="flex items-center justify-center gap-2 text-sm text-muted"><span class="size-2 animate-pulse rounded-full bg-brand-500"></span> Aguardando confirmação do pagamento…</p>
+		<p class="flex items-center justify-center gap-2 text-sm text-muted">
+			<span class="size-2 animate-pulse rounded-full bg-brand-500"></span> Aguardando confirmação do pagamento…
+		</p>
 	{:else if data.redirectUrl}
 		<a class="btn-primary w-full" href={data.redirectUrl}>Ir para o pagamento com cartão</a>
 	{/if}
 
 	{#if data.devApproveUrl}
-		<form method="POST" action={data.devApproveUrl} class="rounded-lg border border-dashed border-amber-400 p-3 text-sm">
+		<form
+			method="POST"
+			action={data.devApproveUrl}
+			class="rounded-lg border border-dashed border-amber-400 p-3 text-sm"
+		>
 			<p class="mb-2 text-warn">Ambiente de desenvolvimento: simular o webhook do provedor.</p>
 			<button class="btn-secondary">Simular pagamento aprovado</button>
 		</form>

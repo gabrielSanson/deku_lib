@@ -32,11 +32,19 @@ const productSchema = z.object({
 	category: z.union([z.string(), z.number()]).nullable(),
 	price_cents: z.number().int().min(0),
 	prep_station: z.string().nullable().optional(),
-	channels: z.array(z.enum(['counter', 'web', 'ifood'])).nullable().optional(),
+	channels: z
+		.array(z.enum(['counter', 'web', 'ifood']))
+		.nullable()
+		.optional(),
 	allergens: z.array(z.string()).nullable().optional(),
 	sort: z.number().nullable().optional(),
 	modifier_groups: z
-		.array(z.object({ sort: z.number().nullable().optional(), menu_modifier_groups_id: groupSchema.nullable() }))
+		.array(
+			z.object({
+				sort: z.number().nullable().optional(),
+				menu_modifier_groups_id: groupSchema.nullable()
+			})
+		)
 		.nullable()
 		.optional()
 });
@@ -90,7 +98,9 @@ export async function fetchDirectusCatalog(baseUrl: string, token?: string): Pro
 				slug: p.slug,
 				name: p.name,
 				description: p.description ?? '',
-				imageUrl: p.image ? new URL(`/assets/${p.image}?width=640&format=webp`, baseUrl).toString() : null,
+				imageUrl: p.image
+					? new URL(`/assets/${p.image}?width=640&format=webp`, baseUrl).toString()
+					: null,
 				categoryId: String(p.category),
 				priceCents: p.price_cents,
 				prepStation: p.prep_station || 'grill',

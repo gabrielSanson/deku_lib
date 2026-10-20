@@ -16,7 +16,8 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const email = formString(data, 'email');
 		const password = formString(data, 'password');
-		if (!locals.supabase) return fail(503, { email, error: 'Login indisponível: Supabase não configurado.' });
+		if (!locals.supabase)
+			return fail(503, { email, error: 'Login indisponível: Supabase não configurado.' });
 		if (!email || !password) return fail(400, { email, error: 'Informe e-mail e senha.' });
 		const { error } = await locals.supabase.auth.signInWithPassword({ email, password });
 		if (error) return fail(400, { email, error: 'E-mail ou senha incorretos.' });

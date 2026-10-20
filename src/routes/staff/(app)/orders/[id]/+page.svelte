@@ -48,16 +48,25 @@
 			<PaymentBadge status={o.paymentStatus} />
 		</div>
 		<p class="text-sm text-muted">
-			{o.channel === 'ifood' ? `iFood ${o.channelDisplayId ?? ''}` : o.channel === 'web' ? 'Site' : 'Balcão'} ·
-			{o.fulfillmentType === 'delivery' ? 'Entrega' : o.fulfillmentType === 'pickup' ? 'Retirada' : 'Balcão'}
-			{o.fulfillmentProvider === 'ifood_courier' ? '(entregador iFood)' : ''} · criado {formatDateTime(o.createdAt)} ·
-			prometido {formatTime(o.promisedAt)}
+			{o.channel === 'ifood'
+				? `iFood ${o.channelDisplayId ?? ''}`
+				: o.channel === 'web'
+					? 'Site'
+					: 'Balcão'} ·
+			{o.fulfillmentType === 'delivery'
+				? 'Entrega'
+				: o.fulfillmentType === 'pickup'
+					? 'Retirada'
+					: 'Balcão'}
+			{o.fulfillmentProvider === 'ifood_courier' ? '(entregador iFood)' : ''} · criado {formatDateTime(
+				o.createdAt
+			)} · prometido {formatTime(o.promisedAt)}
 		</p>
 		{#if o.customerLabel}<p class="text-lg font-semibold">{o.customerLabel}</p>{/if}
 		{#if o.notes}<p class="alert-warn">{o.notes}</p>{/if}
 		{#if o.cancelReason}<p class="alert-error">Motivo: {o.cancelReason}</p>{/if}
 
-		<div class="card divide-y divide-line">
+		<div class="divide-y divide-line card">
 			{#each o.items as item (item.id)}
 				<div class="p-3">
 					<div class="flex justify-between gap-2 font-semibold">
@@ -74,10 +83,22 @@
 				</div>
 			{/each}
 			<dl class="space-y-1 p-3 text-sm">
-				<div class="flex justify-between"><dt>Subtotal</dt><dd><Money cents={o.subtotalCents} /></dd></div>
-				{#if o.discountCents}<div class="flex justify-between"><dt>Desconto</dt><dd>−<Money cents={o.discountCents} /></dd></div>{/if}
-				{#if o.deliveryFeeCents}<div class="flex justify-between"><dt>Entrega</dt><dd><Money cents={o.deliveryFeeCents} /></dd></div>{/if}
-				<div class="flex justify-between text-base font-bold"><dt>Total</dt><dd><Money cents={o.totalCents} /></dd></div>
+				<div class="flex justify-between">
+					<dt>Subtotal</dt>
+					<dd><Money cents={o.subtotalCents} /></dd>
+				</div>
+				{#if o.discountCents}<div class="flex justify-between">
+						<dt>Desconto</dt>
+						<dd>−<Money cents={o.discountCents} /></dd>
+					</div>{/if}
+				{#if o.deliveryFeeCents}<div class="flex justify-between">
+						<dt>Entrega</dt>
+						<dd><Money cents={o.deliveryFeeCents} /></dd>
+					</div>{/if}
+				<div class="flex justify-between text-base font-bold">
+					<dt>Total</dt>
+					<dd><Money cents={o.totalCents} /></dd>
+				</div>
 			</dl>
 		</div>
 
@@ -85,7 +106,10 @@
 			<div class="card p-3 text-sm">
 				<h2 class="mb-1 font-semibold">Endereço</h2>
 				<p>{o.address.recipient}</p>
-				<p>{o.address.street}, {o.address.number} {o.address.complement ?? ''} · {o.address.neighborhood}</p>
+				<p>
+					{o.address.street}, {o.address.number}
+					{o.address.complement ?? ''} · {o.address.neighborhood}
+				</p>
 				<p>{o.address.city}/{o.address.state} · CEP {o.address.cep}</p>
 				{#if o.address.instructions}<p class="text-muted">{o.address.instructions}</p>{/if}
 			</div>
@@ -96,9 +120,15 @@
 			<ol class="space-y-1 text-sm">
 				{#each o.history as h, i (i)}
 					<li class="flex justify-between gap-2">
-						<span>{h.fromStatus ? `${STATUS_LABEL_PT[h.fromStatus]} → ` : ''}<strong>{STATUS_LABEL_PT[h.toStatus]}</strong>
-							{h.reason ? `· ${h.reason}` : ''}</span>
-						<span class="text-muted whitespace-nowrap">{h.actorName ?? h.actorType} · {formatTime(h.occurredAt)}</span>
+						<span
+							>{h.fromStatus ? `${STATUS_LABEL_PT[h.fromStatus]} → ` : ''}<strong
+								>{STATUS_LABEL_PT[h.toStatus]}</strong
+							>
+							{h.reason ? `· ${h.reason}` : ''}</span
+						>
+						<span class="whitespace-nowrap text-muted"
+							>{h.actorName ?? h.actorType} · {formatTime(h.occurredAt)}</span
+						>
 					</li>
 				{/each}
 			</ol>
@@ -106,23 +136,38 @@
 	</section>
 
 	<aside class="space-y-4">
-		<div class="card space-y-2 p-3">
+		<div class="space-y-2 card p-3">
 			<h2 class="font-semibold">Ações</h2>
 			<FormError message={form?.error} />
 			{#each next as to (to)}
 				{#if requiresReason(to)}
 					{#if reasonFor === to}
-						<form method="POST" action="?/transition" use:enhance={() => async ({ update }) => { await update(); reasonFor = null; }} class="space-y-2">
+						<form
+							method="POST"
+							action="?/transition"
+							use:enhance={() =>
+								async ({ update }) => {
+									await update();
+									reasonFor = null;
+								}}
+							class="space-y-2"
+						>
 							<input type="hidden" name="to" value={to} />
 							<input type="hidden" name="version" value={o.version} />
 							<input class="field" name="reason" placeholder="Motivo (obrigatório)" required />
 							<div class="flex gap-2">
-								<button type="button" class="btn-secondary flex-1" onclick={() => (reasonFor = null)}>Voltar</button>
+								<button
+									type="button"
+									class="btn-secondary flex-1"
+									onclick={() => (reasonFor = null)}>Voltar</button
+								>
 								<button class="btn-danger flex-1">{actionLabel[to]}</button>
 							</div>
 						</form>
 					{:else}
-						<button class="btn-secondary w-full text-bad" onclick={() => (reasonFor = to)}>{actionLabel[to]}</button>
+						<button class="btn-secondary w-full text-bad" onclick={() => (reasonFor = to)}
+							>{actionLabel[to]}</button
+						>
 					{/if}
 				{:else}
 					<form method="POST" action="?/transition" use:enhance>
@@ -136,24 +181,40 @@
 			{/each}
 		</div>
 
-		<div class="card space-y-2 p-3">
+		<div class="space-y-2 card p-3">
 			<h2 class="font-semibold">Pagamentos</h2>
 			{#each o.tenders as t (t.id)}
 				<div class="text-sm">
-					<div class="flex justify-between"><span>{METHOD_LABEL_PT[t.method as keyof typeof METHOD_LABEL_PT] ?? t.method}</span><Money cents={t.amountCents} /></div>
+					<div class="flex justify-between">
+						<span>{METHOD_LABEL_PT[t.method as keyof typeof METHOD_LABEL_PT] ?? t.method}</span
+						><Money cents={t.amountCents} />
+					</div>
 					<div class="flex justify-between text-xs text-muted">
-						<span>{t.providerReference ?? ''} {t.recordedByName ? `· ${t.recordedByName}` : ''}</span>
+						<span
+							>{t.providerReference ?? ''} {t.recordedByName ? `· ${t.recordedByName}` : ''}</span
+						>
 						<PaymentBadge status={t.status} />
 					</div>
 					{#if manager && t.status === 'paid' && t.provider === 'manual'}
 						{#if refunding === t.id}
-							<form method="POST" action="?/refund" use:enhance={() => async ({ update }) => { await update(); refunding = null; }} class="mt-1 space-y-1">
+							<form
+								method="POST"
+								action="?/refund"
+								use:enhance={() =>
+									async ({ update }) => {
+										await update();
+										refunding = null;
+									}}
+								class="mt-1 space-y-1"
+							>
 								<input type="hidden" name="tenderId" value={t.id} />
 								<input class="field" name="reason" placeholder="Motivo do estorno" required />
 								<button class="btn-danger min-h-9 w-full text-sm">Confirmar estorno</button>
 							</form>
 						{:else}
-							<button class="btn-ghost min-h-8 text-xs text-bad" onclick={() => (refunding = t.id)}>Estornar</button>
+							<button class="btn-ghost min-h-8 text-xs text-bad" onclick={() => (refunding = t.id)}
+								>Estornar</button
+							>
 						{/if}
 					{/if}
 				</div>

@@ -19,7 +19,12 @@ export const actions: Actions = {
 		const staff = requireStaff(event, FRONT_OF_HOUSE);
 		const d = await event.request.formData();
 		return attempt(async () => {
-			await setSoldOut(formString(d, 'sku'), formString(d, 'soldOut') === '1', staffActor(staff), formString(d, 'reason') || undefined);
+			await setSoldOut(
+				formString(d, 'sku'),
+				formString(d, 'soldOut') === '1',
+				staffActor(staff),
+				formString(d, 'reason') || undefined
+			);
 			return { ok: true };
 		});
 	}

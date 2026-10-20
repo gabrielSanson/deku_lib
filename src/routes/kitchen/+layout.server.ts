@@ -7,6 +7,9 @@ export const load: LayoutServerLoad = async (event) => {
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	return {
 		staff,
-		live: { supabaseUrl: PUBLIC_SUPABASE_URL ?? null, supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY ?? null }
+		live: {
+			supabaseUrl: PUBLIC_SUPABASE_URL ?? null,
+			supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY ?? null
+		}
 	};
 };

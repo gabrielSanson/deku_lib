@@ -4,14 +4,20 @@ import { attempt, formString } from '#lib/server/actions.ts';
 import { FRONT_OF_HOUSE, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
-import { MANUAL_METHODS, recordManualTender, type ManualMethod } from '#lib/server/payments/tenders.ts';
+import {
+	MANUAL_METHODS,
+	recordManualTender,
+	type ManualMethod
+} from '#lib/server/payments/tenders.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, FRONT_OF_HOUSE);
 	const order = await getOrderDetail(event.params.id);
 	if (!order) error(404, 'Pedido não encontrado.');
-	const paidCents = order.tenders.filter((t) => t.status === 'paid').reduce((n, t) => n + t.amountCents, 0);
+	const paidCents = order.tenders
+		.filter((t) => t.status === 'paid')
+		.reduce((n, t) => n + t.amountCents, 0);
 	return { order, paidCents, remainingCents: Math.max(0, order.totalCents - paidCents) };
 };
 
@@ -20,7 +26,8 @@ export const actions: Actions = {
 		const staff = requireStaff(event, FRONT_OF_HOUSE);
 		const data = await event.request.formData();
 		const method = formString(data, 'method') as ManualMethod;
-		if (!MANUAL_METHODS.includes(method)) return fail(400, { error: 'Forma de pagamento inválida.' });
+		if (!MANUAL_METHODS.includes(method))
+			return fail(400, { error: 'Forma de pagamento inválida.' });
 		const amountCents = parseBRL(formString(data, 'amount'));
 		if (!amountCents) return fail(400, { error: 'Informe o valor.' });
 		const received = formString(data, 'received');

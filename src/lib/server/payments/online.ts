@@ -5,7 +5,12 @@ import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { transitionOrder } from '../orders/service';
-import { paymentProvider, providerByName, type OnlineMethod, type ProviderPaymentStatus } from './provider';
+import {
+	paymentProvider,
+	providerByName,
+	type OnlineMethod,
+	type ProviderPaymentStatus
+} from './provider';
 import { refreshPaymentStatus } from './tenders';
 
 export async function startOnlinePayment(input: {
@@ -16,19 +21,42 @@ export async function startOnlinePayment(input: {
 }) {
 	const provider = paymentProvider();
 	if (!provider || !provider.methods.includes(input.method)) {
-		throw new DomainError('Pagamento online indisponível. Escolha pagar na retirada.', 'no_provider', 503);
+		throw new DomainError(
+			'Pagamento online indisponível. Escolha pagar na retirada.',
+			'no_provider',
+			503
+		);
 	}
 	const sql = db();
-	const [existing] = await sql<{ id: string; provider_reference: string; provider_payload: { pixCode?: string; redirectUrl?: string } | null; expires_at: Date; status: string }[]>`
+	const [existing] = await sql<
+		{
+			id: string;
+			provider_reference: string;
+			provider_payload: { pixCode?: string; redirectUrl?: string } | null;
+			expires_at: Date;
+			status: string;
+		}[]
+	>`
 		select id, provider_reference, provider_payload, expires_at, status from tenders
 		where idempotency_key = ${input.idempotencyKey}`;
-	if (existing) return { tenderId: existing.id, ...existing.provider_payload, expiresAt: existing.expires_at };
+	if (existing)
+		return { tenderId: existing.id, ...existing.provider_payload, expiresAt: existing.expires_at };
 
-	const [order] = await sql<{ order_number: number; total_cents: number; status: string; payment_status: string; customer_label: string | null }[]>`
+	const [order] = await sql<
+		{
+			order_number: number;
+			total_cents: number;
+			status: string;
+			payment_status: string;
+			customer_label: string | null;
+		}[]
+	>`
 		select order_number, total_cents, status, payment_status, customer_label from orders where id = ${input.orderId}`;
 	if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
-	if (order.payment_status === 'paid') throw new DomainError('Este pedido já está pago.', 'paid', 409);
-	if (order.status === 'cancelled' || order.status === 'rejected') throw new DomainError('Pedido cancelado.', 'cancelled', 409);
+	if (order.payment_status === 'paid')
+		throw new DomainError('Este pedido já está pago.', 'paid', 409);
+	if (order.status === 'cancelled' || order.status === 'rejected')
+		throw new DomainError('Pedido cancelado.', 'cancelled', 409);
 
 	const checkout = await provider.createCheckout({
 		orderId: input.orderId,
@@ -52,12 +80,18 @@ export async function startOnlinePayment(input: {
 }
 
 /** Webhook receiver: verify on raw bytes, store once, enqueue, answer fast. */
-export async function receivePaymentWebhook(providerName: string, rawBody: Uint8Array, headers: Headers) {
+export async function receivePaymentWebhook(
+	providerName: string,
+	rawBody: Uint8Array,
+	headers: Headers
+) {
 	const provider = providerByName(providerName);
 	if (!provider) return { status: 404 };
 	const valid = await provider.verifyWebhook(rawBody, headers);
 	if (!valid) {
-		console.warn(JSON.stringify({ msg: 'payment webhook signature rejected', provider: providerName }));
+		console.warn(
+			JSON.stringify({ msg: 'payment webhook signature rejected', provider: providerName })
+		);
 		return { status: 401 };
 	}
 	const event = provider.parseWebhook(rawBody);
@@ -75,7 +109,13 @@ export async function receivePaymentWebhook(providerName: string, rawBody: Uint8
 /** Worker: apply one stored provider event. Safe to run more than once. */
 export async function processPaymentEvent(paymentEventId: string) {
 	await db().begin(async (tx) => {
-		const [ev] = await tx<{ provider: string; payload: { providerPaymentId: string; status: ProviderPaymentStatus }; processing_status: string }[]>`
+		const [ev] = await tx<
+			{
+				provider: string;
+				payload: { providerPaymentId: string; status: ProviderPaymentStatus };
+				processing_status: string;
+			}[]
+		>`
 			select provider, payload, processing_status from payment_events where id = ${paymentEventId} for update`;
 		if (!ev || ev.processing_status === 'processed') return;
 		await applyProviderStatus(tx, ev.provider, ev.payload.providerPaymentId, ev.payload.status);
@@ -84,25 +124,44 @@ export async function processPaymentEvent(paymentEventId: string) {
 	});
 }
 
-export async function applyProviderStatus(tx: Tx, provider: string, providerPaymentId: string, status: ProviderPaymentStatus) {
+export async function applyProviderStatus(
+	tx: Tx,
+	provider: string,
+	providerPaymentId: string,
+	status: ProviderPaymentStatus
+) {
 	const [tender] = await tx<{ id: string; order_id: string; status: string }[]>`
 		select id, order_id, status from tenders where provider = ${provider} and provider_reference = ${providerPaymentId} for update`;
 	if (!tender) return;
 	// Never move backwards from a settled state on a late or replayed event.
 	const settled = ['paid', 'refunded'];
-	if (tender.status === status || (settled.includes(tender.status) && status !== 'refunded')) return;
+	if (tender.status === status || (settled.includes(tender.status) && status !== 'refunded'))
+		return;
 	await tx`
 		update tenders set status = ${status},
 			confirmed_at = case when ${status} = 'paid' then now() else confirmed_at end,
 			refunded_at = case when ${status} = 'refunded' then now() else refunded_at end
 		where id = ${tender.id}`;
-	await audit(tx, { type: 'integration', id: null }, `tender.${status}`, 'order', tender.order_id, { provider, providerPaymentId });
+	await audit(tx, { type: 'integration', id: null }, `tender.${status}`, 'order', tender.order_id, {
+		provider,
+		providerPaymentId
+	});
 	const paymentStatus = await refreshPaymentStatus(tx, tender.order_id);
 	if (paymentStatus === 'paid') {
-		const [o] = await tx<{ status: string; payment_plan: string }[]>`select status, payment_plan from orders where id = ${tender.order_id}`;
+		const [o] = await tx<
+			{ status: string; payment_plan: string }[]
+		>`select status, payment_plan from orders where id = ${tender.order_id}`;
 		// Paid online orders go straight to the kitchen.
 		if (o.status === 'new' && o.payment_plan === 'online') {
-			await transitionOrder({ orderId: tender.order_id, to: 'confirmed', actor: SYSTEM, reason: 'Pagamento online confirmado' }, tx);
+			await transitionOrder(
+				{
+					orderId: tender.order_id,
+					to: 'confirmed',
+					actor: SYSTEM,
+					reason: 'Pagamento online confirmado'
+				},
+				tx
+			);
 		}
 	}
 }
@@ -110,7 +169,9 @@ export async function applyProviderStatus(tx: Tx, provider: string, providerPaym
 /** Worker: cancel online-only orders whose checkout expired unpaid. */
 export async function expireUnpaidCheckouts() {
 	const sql = db();
-	const stale = await sql<{ order_id: string; id: string; provider: string; provider_reference: string }[]>`
+	const stale = await sql<
+		{ order_id: string; id: string; provider: string; provider_reference: string }[]
+	>`
 		select t.order_id, t.id, t.provider, t.provider_reference from tenders t join orders o on o.id = t.order_id
 		where t.status = 'pending' and t.expires_at < now() - interval '2 minutes'
 			and o.payment_plan = 'online' and o.status = 'new'
@@ -126,7 +187,15 @@ export async function expireUnpaidCheckouts() {
 			}
 			await tx`update tenders set status = 'cancelled' where id = ${t.id} and status = 'pending'`;
 			await refreshPaymentStatus(tx, t.order_id);
-			await transitionOrder({ orderId: t.order_id, to: 'cancelled', actor: SYSTEM, reason: 'Pagamento não concluído a tempo' }, tx);
+			await transitionOrder(
+				{
+					orderId: t.order_id,
+					to: 'cancelled',
+					actor: SYSTEM,
+					reason: 'Pagamento não concluído a tempo'
+				},
+				tx
+			);
 		});
 	}
 	return stale.length;

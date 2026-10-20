@@ -11,7 +11,9 @@ export default defineConfig(({ mode }) => {
 	}
 	// https: and wss: already cover hosted Supabase; a plain-http local Supabase must be listed.
 	const supabase = process.env.PUBLIC_SUPABASE_URL ?? '';
-	const localSupabase = supabase.startsWith('http://') ? [supabase, supabase.replace(/^http/, 'ws')] : [];
+	const localSupabase = supabase.startsWith('http://')
+		? [supabase, supabase.replace(/^http/, 'ws')]
+		: [];
 	return {
 		plugins: [
 			tailwindcss(),
@@ -35,7 +37,12 @@ export default defineConfig(({ mode }) => {
 						'img-src': ['self', 'data:', 'blob:', 'https:'],
 						'font-src': ['self'],
 						// Supabase Realtime (wss) and Auth for the staff screens.
-						'connect-src': ['self', 'https:', 'wss:', ...(localSupabase as `http://localhost:${number}`[])],
+						'connect-src': [
+							'self',
+							'https:',
+							'wss:',
+							...(localSupabase as `http://localhost:${number}`[])
+						],
 						'worker-src': ['self'],
 						'manifest-src': ['self'],
 						'frame-ancestors': ['none'],

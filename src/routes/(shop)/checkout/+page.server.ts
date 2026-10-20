@@ -64,9 +64,12 @@ export const actions: Actions = {
 			let deliveryFeeCents = 0;
 			let deliveryError: string | null = null;
 			if (input.fulfillmentType === 'delivery') {
-				const rule = input.address ? matchDeliveryRule(await listDeliveryRules(sql), input.address) : null;
+				const rule = input.address
+					? matchDeliveryRule(await listDeliveryRules(sql), input.address)
+					: null;
 				if (!rule) deliveryError = 'Ainda não entregamos neste endereço.';
-				else if (cart.subtotalCents < rule.minOrderCents) deliveryError = `Pedido mínimo para este endereço: R$ ${(rule.minOrderCents / 100).toFixed(2).replace('.', ',')}.`;
+				else if (cart.subtotalCents < rule.minOrderCents)
+					deliveryError = `Pedido mínimo para este endereço: R$ ${(rule.minOrderCents / 100).toFixed(2).replace('.', ',')}.`;
 				else deliveryFeeCents = rule.feeCents;
 			}
 			return {
@@ -75,7 +78,12 @@ export const actions: Actions = {
 					deliveryFeeCents,
 					totalCents: cart.subtotalCents + deliveryFeeCents,
 					deliveryError,
-					lines: cart.lines.map((l) => ({ sku: l.productSku, name: l.productName, quantity: l.quantity, lineTotalCents: l.lineTotalCents }))
+					lines: cart.lines.map((l) => ({
+						sku: l.productSku,
+						name: l.productName,
+						quantity: l.quantity,
+						lineTotalCents: l.lineTotalCents
+					}))
 				}
 			};
 		});
@@ -93,7 +101,8 @@ export const actions: Actions = {
 		const input = parsed.data;
 		const phone = normalizeBrPhone(input.phone);
 		if (!phone) return fail(400, { error: 'Telefone inválido. Use DDD + número.' });
-		if (input.fulfillmentType === 'delivery' && !input.address) return fail(400, { error: 'Informe o endereço de entrega.' });
+		if (input.fulfillmentType === 'delivery' && !input.address)
+			return fail(400, { error: 'Informe o endereço de entrega.' });
 
 		const settings = await getStoreSettings();
 		if (input.payment === 'on_fulfillment' && !settings.payOnFulfillmentEnabled) {
@@ -116,7 +125,12 @@ export const actions: Actions = {
 				lines: input.lines,
 				fulfillmentType: input.fulfillmentType,
 				fulfillmentProvider: input.fulfillmentType === 'delivery' ? 'own_driver' : 'shop',
-				customer: { name: input.name, phoneE164: phone, email: input.email || null, marketingConsent: input.marketingConsent },
+				customer: {
+					name: input.name,
+					phoneE164: phone,
+					email: input.email || null,
+					marketingConsent: input.marketingConsent
+				},
 				address: input.address
 					? { ...input.address, recipient: input.name, cep: input.address.cep.replace(/\D/g, '') }
 					: undefined,

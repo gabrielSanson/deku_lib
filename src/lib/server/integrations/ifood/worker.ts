@@ -16,7 +16,10 @@ export async function ifoodHandlers() {
 	};
 	if (!c.IFOOD_ENABLED) {
 		// Still drain sync jobs so they are recorded as skipped, but never call iFood.
-		return { [QUEUES.ifoodSync]: handlers[QUEUES.ifoodSync] } as Record<string, (d: never) => Promise<unknown>>;
+		return { [QUEUES.ifoodSync]: handlers[QUEUES.ifoodSync] } as Record<
+			string,
+			(d: never) => Promise<unknown>
+		>;
 	}
 	let running = false;
 	const tick = async () => {
@@ -26,7 +29,9 @@ export async function ifoodHandlers() {
 			const sql = db();
 			const reserved = await sql.reserve();
 			try {
-				const [{ locked }] = await reserved<{ locked: boolean }[]>`select pg_try_advisory_lock(${POLL_LOCK}) as locked`;
+				const [{ locked }] = await reserved<
+					{ locked: boolean }[]
+				>`select pg_try_advisory_lock(${POLL_LOCK}) as locked`;
 				if (!locked) return;
 				try {
 					const r = await pollIfoodOnce();

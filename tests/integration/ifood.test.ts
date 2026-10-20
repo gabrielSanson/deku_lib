@@ -4,13 +4,24 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { resetConfigForTests } from '#lib/server/config.ts';
 import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
-import { IfoodApiError, type IfoodClient, type IfoodEvent } from '#lib/server/integrations/ifood/api.ts';
+import {
+	IfoodApiError,
+	type IfoodClient,
+	type IfoodEvent
+} from '#lib/server/integrations/ifood/api.ts';
 import type { IfoodOrder } from '#lib/server/integrations/ifood/mapping.ts';
-import { pollIfoodOnce, processIfoodEvent, receiveIfoodWebhook, syncOrderToIfood } from '#lib/server/integrations/ifood/service.ts';
+import {
+	pollIfoodOnce,
+	processIfoodEvent,
+	receiveIfoodWebhook,
+	syncOrderToIfood
+} from '#lib/server/integrations/ifood/service.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { makeStaff } from './helpers.ts';
 
-const fixture = JSON.parse(readFileSync('tests/fixtures/ifood/order-delivery.json', 'utf8')) as IfoodOrder;
+const fixture = JSON.parse(
+	readFileSync('tests/fixtures/ifood/order-delivery.json', 'utf8')
+) as IfoodOrder;
 
 function fakeClient(orders: Record<string, IfoodOrder>, queue: IfoodEvent[] = []) {
 	const calls: { kind: string; arg: unknown }[] = [];
@@ -71,10 +82,26 @@ describe('iFood polling and order creation', () => {
 
 		expect(await processIfoodEvent(stored.id, client)).toBe('created');
 		expect(await processIfoodEvent(stored.id, client)).toBe('skipped');
-		const rows = await db()<{ status: string; payment_status: string; total_cents: number; channel_display_id: string; fulfillment_provider: string; is_test: boolean }[]>`
+		const rows = await db()<
+			{
+				status: string;
+				payment_status: string;
+				total_cents: number;
+				channel_display_id: string;
+				fulfillment_provider: string;
+				is_test: boolean;
+			}[]
+		>`
 			select status, payment_status, total_cents, channel_display_id, fulfillment_provider, is_test from orders where channel_order_id = ${orderId}`;
 		expect(rows).toHaveLength(1);
-		expect(rows[0]).toMatchObject({ status: 'new', payment_status: 'paid', total_cents: 8468, channel_display_id: '7F3A', fulfillment_provider: 'ifood_courier', is_test: true });
+		expect(rows[0]).toMatchObject({
+			status: 'new',
+			payment_status: 'paid',
+			total_cents: 8468,
+			channel_display_id: '7F3A',
+			fulfillment_provider: 'ifood_courier',
+			is_test: true
+		});
 	});
 
 	it('walks forward through statuses on later iFood events', async () => {
@@ -111,7 +138,10 @@ async function receiveSigned(ev: IfoodEvent) {
 describe('iFood webhook', () => {
 	it('rejects a bad signature without storing anything', async () => {
 		const ev = { id: randomUUID(), code: 'PLC', orderId: randomUUID() };
-		const r = await receiveIfoodWebhook(new TextEncoder().encode(JSON.stringify(ev)), new Headers({ 'x-ifood-signature': 'deadbeef' }));
+		const r = await receiveIfoodWebhook(
+			new TextEncoder().encode(JSON.stringify(ev)),
+			new Headers({ 'x-ifood-signature': 'deadbeef' })
+		);
 		expect(r.status).toBe(401);
 		expect(await eventId(ev.id)).toBeUndefined();
 	});
@@ -124,7 +154,9 @@ describe('mirroring our changes to iFood', () => {
 		const ev = { id: randomUUID(), code: 'PLC', orderId };
 		await receiveSigned(ev);
 		await processIfoodEvent((await eventId(ev.id)).id, client);
-		const [o] = await db()<{ id: string }[]>`select id from orders where channel_order_id = ${orderId}`;
+		const [o] = await db()<
+			{ id: string }[]
+		>`select id from orders where channel_order_id = ${orderId}`;
 		const manager = await makeStaff('manager');
 		await transitionOrder({ orderId: o.id, to: 'confirmed', actor: manager });
 

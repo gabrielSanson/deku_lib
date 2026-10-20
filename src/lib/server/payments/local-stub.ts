@@ -26,7 +26,11 @@ export const localStubProvider: PaymentProvider = {
 				pixCode: `00020126580014BR.GOV.BCB.PIX0136${id.slice(5, 41)}520400005303986540${amount.length}${amount}5802BR5913DEKU BURGER6009SAO PAULO62070503***6304TEST`
 			};
 		}
-		return { providerPaymentId: id, expiresAt, redirectUrl: `/dev/payments/card?payment=${id}&return=${encodeURIComponent(req.returnUrl)}` };
+		return {
+			providerPaymentId: id,
+			expiresAt,
+			redirectUrl: `/dev/payments/card?payment=${id}&return=${encodeURIComponent(req.returnUrl)}`
+		};
 	},
 	async getStatus(id) {
 		return statuses.get(id) ?? 'pending';
@@ -34,7 +38,9 @@ export const localStubProvider: PaymentProvider = {
 	async verifyWebhook(rawBody, headers) {
 		const given = headers.get('x-stub-signature') ?? '';
 		const expected = signStub(new TextDecoder().decode(rawBody));
-		return given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+		return (
+			given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected))
+		);
 	},
 	parseWebhook(rawBody) {
 		const body = JSON.parse(new TextDecoder().decode(rawBody)) as {
@@ -44,7 +50,12 @@ export const localStubProvider: PaymentProvider = {
 			status: ProviderPaymentStatus;
 		};
 		statuses.set(body.payment_id, body.status);
-		return { eventId: body.id, eventType: body.type, providerPaymentId: body.payment_id, status: body.status };
+		return {
+			eventId: body.id,
+			eventType: body.type,
+			providerPaymentId: body.payment_id,
+			status: body.status
+		};
 	},
 	async refund(id) {
 		statuses.set(id, 'refunded');

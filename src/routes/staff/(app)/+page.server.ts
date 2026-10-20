@@ -7,7 +7,9 @@ export const load: PageServerLoad = async (event) => {
 	requireStaff(event);
 	event.depends('app:orders');
 	const sql = db();
-	const [counts] = await sql<{ new: number; open: number; ready: number; today: number; unpaid: number; dead: number }[]>`
+	const [counts] = await sql<
+		{ new: number; open: number; ready: number; today: number; unpaid: number; dead: number }[]
+	>`
 		select
 			count(*) filter (where status = 'new')::int as new,
 			count(*) filter (where status in ('confirmed','preparing'))::int as open,

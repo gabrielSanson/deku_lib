@@ -9,8 +9,22 @@ import { config } from '../../config';
 import { db } from '../../db';
 import { enqueue, QUEUES } from '../../jobs';
 import { createOrder, transitionOrder } from '../../orders/service';
-import { IFOOD_PATHS, ifoodClient, IfoodApiError, verifyIfoodSignature, type IfoodClient, type IfoodEvent } from './api';
-import { isPlaced, mapIfoodOrder, outboundAction, statusForEvent, type IfoodOrder, type ProductInfo } from './mapping';
+import {
+	IFOOD_PATHS,
+	ifoodClient,
+	IfoodApiError,
+	verifyIfoodSignature,
+	type IfoodClient,
+	type IfoodEvent
+} from './api';
+import {
+	isPlaced,
+	mapIfoodOrder,
+	outboundAction,
+	statusForEvent,
+	type IfoodOrder,
+	type ProductInfo
+} from './mapping';
 
 const IFOOD: Actor = { type: 'integration', id: null };
 const FORWARD: OrderStatus[] = ['new', 'confirmed', 'preparing', 'ready', 'completed'];
@@ -19,7 +33,11 @@ export function ifoodEnabled() {
 	return config().IFOOD_ENABLED;
 }
 
-async function storeEvents(events: IfoodEvent[], method: 'webhook' | 'polling', signatureValid: boolean | null) {
+async function storeEvents(
+	events: IfoodEvent[],
+	method: 'webhook' | 'polling',
+	signatureValid: boolean | null
+) {
 	let stored = 0;
 	await db().begin(async (tx) => {
 		for (const e of events) {
@@ -31,7 +49,12 @@ async function storeEvents(events: IfoodEvent[], method: 'webhook' | 'polling', 
 				returning id`;
 			if (inserted.length) {
 				stored++;
-				await enqueue(tx, QUEUES.ifoodEvent, { channelEventId: inserted[0].id }, { singletonKey: `ifood-event:${inserted[0].id}` });
+				await enqueue(
+					tx,
+					QUEUES.ifoodEvent,
+					{ channelEventId: inserted[0].id },
+					{ singletonKey: `ifood-event:${inserted[0].id}` }
+				);
 			}
 		}
 	});
@@ -73,7 +96,9 @@ export async function pollIfoodOnce(client: IfoodClient = ifoodClient()) {
 
 async function productLookup(): Promise<(code: string) => ProductInfo | null> {
 	const sql = db();
-	const mappings = await sql<{ internal_sku: string; external_code: string | null; external_id: string }[]>`
+	const mappings = await sql<
+		{ internal_sku: string; external_code: string | null; external_id: string }[]
+	>`
 		select internal_sku, external_code, external_id from integration_mappings where channel = 'ifood' and entity_type = 'product'`;
 	const byCode = new Map<string, string>();
 	for (const m of mappings) {
@@ -90,23 +115,43 @@ async function productLookup(): Promise<(code: string) => ProductInfo | null> {
 		const sku = byCode.get(code) ?? code;
 		const p = catalog?.products.find((x) => x.sku === sku);
 		if (!p) return null;
-		return { sku: p.sku, prepStation: p.prepStation, categoryName: catalog!.categories.find((c) => c.id === p.categoryId)?.name ?? null };
+		return {
+			sku: p.sku,
+			prepStation: p.prepStation,
+			categoryName: catalog!.categories.find((c) => c.id === p.categoryId)?.name ?? null
+		};
 	};
 }
 
-async function markEvent(id: string, status: 'processed' | 'ignored' | 'failed' | 'dead', error: string | null = null) {
+async function markEvent(
+	id: string,
+	status: 'processed' | 'ignored' | 'failed' | 'dead',
+	error: string | null = null
+) {
 	await db()`update channel_events set processing_status = ${status}, error = ${error},
 		processed_at = case when ${status} in ('processed','ignored') then now() else processed_at end
 		where id = ${id}`;
 }
 
 /** Worker: apply one stored iFood event. */
-export async function processIfoodEvent(channelEventId: string, client: IfoodClient = ifoodClient()) {
+export async function processIfoodEvent(
+	channelEventId: string,
+	client: IfoodClient = ifoodClient()
+) {
 	const sql = db();
-	const [ev] = await sql<{ id: string; event_type: string; channel_order_id: string | null; processing_status: string; attempts: number }[]>`
+	const [ev] = await sql<
+		{
+			id: string;
+			event_type: string;
+			channel_order_id: string | null;
+			processing_status: string;
+			attempts: number;
+		}[]
+	>`
 		update channel_events set attempts = attempts + 1 where id = ${channelEventId}
 		returning id, event_type, channel_order_id, processing_status, attempts`;
-	if (!ev || ev.processing_status === 'processed' || ev.processing_status === 'ignored') return 'skipped';
+	if (!ev || ev.processing_status === 'processed' || ev.processing_status === 'ignored')
+		return 'skipped';
 	if (!ev.channel_order_id) {
 		await markEvent(ev.id, 'ignored', 'event without orderId');
 		return 'ignored';
@@ -121,7 +166,11 @@ export async function processIfoodEvent(channelEventId: string, client: IfoodCli
 				channel: 'ifood',
 				sourceMode: 'ifood_api',
 				lines: [],
-				externalPricing: { cart: mapped.cart, deliveryFeeCents: mapped.deliveryFeeCents, discountCents: mapped.discountCents },
+				externalPricing: {
+					cart: mapped.cart,
+					deliveryFeeCents: mapped.deliveryFeeCents,
+					discountCents: mapped.discountCents
+				},
 				fulfillmentType: mapped.fulfillmentType,
 				fulfillmentProvider: mapped.fulfillmentProvider,
 				customer: mapped.customer,
@@ -137,7 +186,10 @@ export async function processIfoodEvent(channelEventId: string, client: IfoodCli
 				paymentPlan: 'channel',
 				actor: IFOOD
 			});
-			if (order.created && (mapped.unmappedCodes.length || order.totalCents !== mapped.channelTotalCents)) {
+			if (
+				order.created &&
+				(mapped.unmappedCodes.length || order.totalCents !== mapped.channelTotalCents)
+			) {
 				await audit(sql, IFOOD, 'ifood.mapping_warning', 'order', order.id, {
 					unmappedCodes: mapped.unmappedCodes,
 					ourTotalCents: order.totalCents,
@@ -171,11 +223,22 @@ export async function processIfoodEvent(channelEventId: string, client: IfoodCli
 	}
 }
 
-async function applyStatus(orderId: string, current: OrderStatus, target: OrderStatus, eventId: string) {
+async function applyStatus(
+	orderId: string,
+	current: OrderStatus,
+	target: OrderStatus,
+	eventId: string
+) {
 	if (current === target) return;
 	if (target === 'cancelled') {
 		if (canTransition(current, 'cancelled')) {
-			await transitionOrder({ orderId, to: 'cancelled', actor: IFOOD, reason: 'Cancelado pelo iFood', sourceEventId: eventId });
+			await transitionOrder({
+				orderId,
+				to: 'cancelled',
+				actor: IFOOD,
+				reason: 'Cancelado pelo iFood',
+				sourceEventId: eventId
+			});
 		}
 		return;
 	}
@@ -184,21 +247,41 @@ async function applyStatus(orderId: string, current: OrderStatus, target: OrderS
 	const to = FORWARD.indexOf(target);
 	if (from < 0 || to <= from) return;
 	for (const step of FORWARD.slice(from + 1, to + 1)) {
-		await transitionOrder({ orderId, to: step, actor: IFOOD, reason: 'Atualizado pelo iFood', sourceEventId: eventId });
+		await transitionOrder({
+			orderId,
+			to: step,
+			actor: IFOOD,
+			reason: 'Atualizado pelo iFood',
+			sourceEventId: eventId
+		});
 	}
 }
 
 /** Worker: tell iFood about a status change made in our system. */
-export async function syncOrderToIfood(data: { orderId: string; to: OrderStatus; reason?: string | null }, client: IfoodClient = ifoodClient()) {
+export async function syncOrderToIfood(
+	data: { orderId: string; to: OrderStatus; reason?: string | null },
+	client: IfoodClient = ifoodClient()
+) {
 	const sql = db();
-	const [o] = await sql<{ channel_order_id: string | null; fulfillment_type: string; fulfillment_provider: string; is_test: boolean }[]>`
+	const [o] = await sql<
+		{
+			channel_order_id: string | null;
+			fulfillment_type: string;
+			fulfillment_provider: string;
+			is_test: boolean;
+		}[]
+	>`
 		select channel_order_id, fulfillment_type, fulfillment_provider, is_test from orders where id = ${data.orderId} and channel = 'ifood'`;
 	if (!o?.channel_order_id) return 'skipped';
-	const action = outboundAction(data.to, { type: o.fulfillment_type, provider: o.fulfillment_provider });
+	const action = outboundAction(data.to, {
+		type: o.fulfillment_type,
+		provider: o.fulfillment_provider
+	});
 	if (!action) return 'skipped';
-	const body = action === 'requestCancellation'
-		? { reason: data.reason || 'Cancelado pela loja', cancellationCode: '501' } // UNVERIFIED: pick the code from iFood's cancellationReasons
-		: undefined;
+	const body =
+		action === 'requestCancellation'
+			? { reason: data.reason || 'Cancelado pela loja', cancellationCode: '501' } // UNVERIFIED: pick the code from iFood's cancellationReasons
+			: undefined;
 	const [row] = await sql<{ id: string; status: string }[]>`
 		insert into channel_outbound (channel, order_id, action, request, status)
 		values ('ifood', ${data.orderId}, ${action}, ${body ? sql.json(body) : null}, ${ifoodEnabled() ? 'pending' : 'skipped'})
@@ -233,15 +316,35 @@ export async function retryOutbound(id: string, actor: Actor) {
 		const [row] = await tx<{ order_id: string; action: string }[]>`
 			update channel_outbound set status = 'pending' where id = ${id} and status = 'failed' returning order_id, action`;
 		if (!row) return;
-		const to: OrderStatus = ({ confirm: 'confirmed', startPreparation: 'preparing', readyToPickup: 'ready', dispatch: 'ready', requestCancellation: 'cancelled' } as const)[row.action as 'confirm'] ?? 'confirmed';
+		const to: OrderStatus =
+			(
+				{
+					confirm: 'confirmed',
+					startPreparation: 'preparing',
+					readyToPickup: 'ready',
+					dispatch: 'ready',
+					requestCancellation: 'cancelled'
+				} as const
+			)[row.action as 'confirm'] ?? 'confirmed';
 		await enqueue(tx, QUEUES.ifoodSync, { orderId: row.order_id, to });
-		await audit(tx, actor, 'channel_outbound.retried', 'order', row.order_id, { action: row.action });
+		await audit(tx, actor, 'channel_outbound.retried', 'order', row.order_id, {
+			action: row.action
+		});
 	});
 }
 
 export async function integrationHealth() {
 	const sql = db();
-	const [summary] = await sql<{ last_event: Date | null; last_poll_event: Date | null; failed: number; dead: number; today: number; waiting: number }[]>`
+	const [summary] = await sql<
+		{
+			last_event: Date | null;
+			last_poll_event: Date | null;
+			failed: number;
+			dead: number;
+			today: number;
+			waiting: number;
+		}[]
+	>`
 		select
 			(select max(received_at) from channel_events where channel = 'ifood') as last_event,
 			(select max(received_at) from channel_events where channel = 'ifood' and delivery_method = 'polling') as last_poll_event,
@@ -249,10 +352,32 @@ export async function integrationHealth() {
 			(select count(*)::int from channel_events where channel = 'ifood' and processing_status = 'dead') as dead,
 			(select count(*)::int from channel_events where channel = 'ifood' and received_at > now() - interval '24 hours') as today,
 			(select count(*)::int from orders where channel = 'ifood' and status = 'new') as waiting`;
-	const events = await sql<{ id: string; event_type: string; channel_order_id: string | null; delivery_method: string; processing_status: string; attempts: number; error: string | null; received_at: Date }[]>`
+	const events = await sql<
+		{
+			id: string;
+			event_type: string;
+			channel_order_id: string | null;
+			delivery_method: string;
+			processing_status: string;
+			attempts: number;
+			error: string | null;
+			received_at: Date;
+		}[]
+	>`
 		select id, event_type, channel_order_id, delivery_method, processing_status, attempts, error, received_at
 		from channel_events where channel = 'ifood' order by received_at desc limit 50`;
-	const outbound = await sql<{ id: string; order_id: string; order_number: number; action: string; status: string; attempts: number; last_error: string | null; created_at: Date }[]>`
+	const outbound = await sql<
+		{
+			id: string;
+			order_id: string;
+			order_number: number;
+			action: string;
+			status: string;
+			attempts: number;
+			last_error: string | null;
+			created_at: Date;
+		}[]
+	>`
 		select c.id, c.order_id, o.order_number, c.action, c.status, c.attempts, c.last_error, c.created_at
 		from channel_outbound c join orders o on o.id = c.order_id
 		order by (c.status = 'failed') desc, c.created_at desc limit 30`;

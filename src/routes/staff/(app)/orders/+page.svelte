@@ -27,13 +27,18 @@
 		['ifood', 'iFood']
 	];
 	function setFilter(key: string, value: string) {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- short-lived local, not state
 		const u = new URLSearchParams(location.search);
 		if (value) u.set(key, value);
 		else u.delete(key);
 		goto(`?${u}`, { replace: true });
 	}
 	const channelLabel: Record<string, string> = { counter: 'Balcão', web: 'Site', ifood: 'iFood' };
-	const fulfillmentLabel: Record<string, string> = { counter: 'Balcão', pickup: 'Retirada', delivery: 'Entrega' };
+	const fulfillmentLabel: Record<string, string> = {
+		counter: 'Balcão',
+		pickup: 'Retirada',
+		delivery: 'Entrega'
+	};
 </script>
 
 <svelte:head><title>Pedidos · Equipe</title></svelte:head>
@@ -43,26 +48,41 @@
 	<div class="flex flex-wrap items-center gap-2">
 		<div class="flex gap-1 overflow-x-auto">
 			{#each tabs as [key, label] (key)}
-				<button class="btn min-h-9 text-sm {data.status === key ? 'bg-ink text-white' : 'btn-secondary'}" onclick={() => setFilter('status', key)}>{label}</button>
+				<button
+					class="btn min-h-9 text-sm {data.status === key ? 'bg-ink text-white' : 'btn-secondary'}"
+					onclick={() => setFilter('status', key)}>{label}</button
+				>
 			{/each}
 		</div>
-		<select class="field max-w-48" value={data.channel} onchange={(e) => setFilter('channel', e.currentTarget.value)} aria-label="Canal">
+		<select
+			class="field max-w-48"
+			value={data.channel}
+			onchange={(e) => setFilter('channel', e.currentTarget.value)}
+			aria-label="Canal"
+		>
 			{#each channels as [v, l] (v)}<option value={v}>{l}</option>{/each}
 		</select>
 	</div>
 
-	<div class="card overflow-x-auto">
+	<div class="overflow-x-auto card">
 		<table class="w-full text-sm">
 			<thead class="bg-stone-50 text-left text-xs text-muted uppercase">
 				<tr>
-					<th class="p-3">Nº</th><th class="p-3">Status</th><th class="p-3">Canal</th><th class="p-3">Cliente</th>
-					<th class="p-3">Itens</th><th class="p-3">Pagamento</th><th class="p-3 text-right">Total</th>
+					<th class="p-3">Nº</th><th class="p-3">Status</th><th class="p-3">Canal</th><th
+						class="p-3">Cliente</th
+					>
+					<th class="p-3">Itens</th><th class="p-3">Pagamento</th><th class="p-3 text-right"
+						>Total</th
+					>
 					<th class="p-3">Prometido</th><th class="p-3">Idade</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-line">
 				{#each data.orders as o (o.id)}
-					<tr class="cursor-pointer hover:bg-stone-50" onclick={() => goto(`/staff/orders/${o.id}`)}>
+					<tr
+						class="cursor-pointer hover:bg-stone-50"
+						onclick={() => goto(`/staff/orders/${o.id}`)}
+					>
 						<td class="p-3 font-bold"><a href="/staff/orders/{o.id}">#{o.orderNumber}</a></td>
 						<td class="p-3"><StatusBadge status={o.status} /></td>
 						<td class="p-3">{channelLabel[o.channel]} · {fulfillmentLabel[o.fulfillmentType]}</td>
@@ -73,12 +93,19 @@
 						<td class="p-3">{formatTime(o.promisedAt)}</td>
 						<td class="p-3">
 							{#if ['new', 'confirmed', 'preparing', 'ready'].includes(o.status)}
-								<Age since={o.createdAt} warnAfter={o.status === 'new' ? 3 : 15} lateAfter={o.status === 'new' ? 6 : 25} />
+								<Age
+									since={o.createdAt}
+									warnAfter={o.status === 'new' ? 3 : 15}
+									lateAfter={o.status === 'new' ? 6 : 25}
+								/>
 							{:else}—{/if}
 						</td>
 					</tr>
 				{:else}
-					<tr><td colspan="9" class="p-10 text-center text-muted">Nenhum pedido neste filtro.</td></tr>
+					<tr
+						><td colspan="9" class="p-10 text-center text-muted">Nenhum pedido neste filtro.</td
+						></tr
+					>
 				{/each}
 			</tbody>
 		</table>

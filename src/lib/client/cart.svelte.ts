@@ -58,18 +58,33 @@ class Cart {
 	}
 
 	add(product: Product, quantity: number, options: StoredOption[], note: string) {
-		const unitCents = product.priceCents + options.reduce((n, o) => n + o.priceCents * o.quantity, 0);
+		const unitCents =
+			product.priceCents + options.reduce((n, o) => n + o.priceCents * o.quantity, 0);
 		const same = this.lines.find(
-			(l) => l.sku === product.sku && l.note === note && JSON.stringify(l.options) === JSON.stringify(options)
+			(l) =>
+				l.sku === product.sku &&
+				l.note === note &&
+				JSON.stringify(l.options) === JSON.stringify(options)
 		);
 		if (same) same.quantity = Math.min(50, same.quantity + quantity);
 		else
-			this.lines.push({ key: crypto.randomUUID(), sku: product.sku, name: product.name, unitCents, quantity, options, note });
+			this.lines.push({
+				key: crypto.randomUUID(),
+				sku: product.sku,
+				name: product.name,
+				unitCents,
+				quantity,
+				options,
+				note
+			});
 		this.save();
 	}
 
 	setQuantity(key: string, quantity: number) {
-		this.lines = quantity <= 0 ? this.lines.filter((l) => l.key !== key) : this.lines.map((l) => (l.key === key ? { ...l, quantity } : l));
+		this.lines =
+			quantity <= 0
+				? this.lines.filter((l) => l.key !== key)
+				: this.lines.map((l) => (l.key === key ? { ...l, quantity } : l));
 		this.save();
 	}
 

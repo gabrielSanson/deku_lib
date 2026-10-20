@@ -39,7 +39,11 @@ export const actions: Actions = {
 		const staff = requireStaff(event);
 		const data = await event.request.formData();
 		return attempt(async () => {
-			await refundTender(formString(data, 'tenderId'), formString(data, 'reason'), staffActor(staff));
+			await refundTender(
+				formString(data, 'tenderId'),
+				formString(data, 'reason'),
+				staffActor(staff)
+			);
 			return { ok: true };
 		});
 	}

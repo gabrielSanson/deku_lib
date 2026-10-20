@@ -2,7 +2,11 @@ import { fail } from '@sveltejs/kit';
 import { attempt, formString } from '#lib/server/actions.ts';
 import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { config } from '#lib/server/config.ts';
-import { integrationHealth, replayChannelEvent, retryOutbound } from '#lib/server/integrations/ifood/service.ts';
+import {
+	integrationHealth,
+	replayChannelEvent,
+	retryOutbound
+} from '#lib/server/integrations/ifood/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {

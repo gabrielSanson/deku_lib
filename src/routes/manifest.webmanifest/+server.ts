@@ -19,6 +19,11 @@ export const GET: RequestHandler = () => {
 				{ src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
 			]
 		}),
-		{ headers: { 'content-type': 'application/manifest+json', 'cache-control': 'public, max-age=3600' } }
+		{
+			headers: {
+				'content-type': 'application/manifest+json',
+				'cache-control': 'public, max-age=3600'
+			}
+		}
 	);
 };

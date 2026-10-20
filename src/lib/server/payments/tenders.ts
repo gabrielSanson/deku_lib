@@ -8,11 +8,7 @@ import { DomainError } from '../errors';
 
 export const MANUAL_METHODS = ['cash', 'external_pix', 'terminal_card', 'softpos_nfc'] as const;
 export type ManualMethod = (typeof MANUAL_METHODS)[number];
-export type TenderMethod =
-	| ManualMethod
-	| 'pix'
-	| 'online_card'
-	| 'ifood_collected';
+export type TenderMethod = ManualMethod | 'pix' | 'online_card' | 'ifood_collected';
 
 export { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 
@@ -27,7 +23,8 @@ export interface ManualTenderInput {
 }
 
 export async function recordManualTender(input: ManualTenderInput) {
-	if (input.actor.role === 'kitchen') throw new DomainError('Seu perfil não permite receber pagamentos.', 'forbidden', 403);
+	if (input.actor.role === 'kitchen')
+		throw new DomainError('Seu perfil não permite receber pagamentos.', 'forbidden', 403);
 	if (input.amountCents <= 0) throw new DomainError('Valor inválido.');
 	let change: number | null = null;
 	if (input.method === 'cash') {
@@ -74,7 +71,11 @@ export async function recordManualTender(input: ManualTenderInput) {
 	});
 }
 
-export async function refundTender(tenderId: string, reason: string, actor: Actor & { role: StaffRole }) {
+export async function refundTender(
+	tenderId: string,
+	reason: string,
+	actor: Actor & { role: StaffRole }
+) {
 	if (actor.role !== 'owner' && actor.role !== 'manager') {
 		throw new DomainError('Somente gerente ou dono pode estornar.', 'forbidden', 403);
 	}
@@ -83,9 +84,13 @@ export async function refundTender(tenderId: string, reason: string, actor: Acto
 		const [t] = await tx<{ order_id: string; status: string; provider: string }[]>`
 			select order_id, status, provider from tenders where id = ${tenderId} for update`;
 		if (!t) throw new DomainError('Pagamento não encontrado.', 'not_found', 404);
-		if (t.status !== 'paid') throw new DomainError('Só pagamentos confirmados podem ser estornados.');
+		if (t.status !== 'paid')
+			throw new DomainError('Só pagamentos confirmados podem ser estornados.');
 		if (t.provider !== 'manual') {
-			throw new DomainError('Estorno online deve ser feito pelo provedor de pagamento.', 'provider_refund');
+			throw new DomainError(
+				'Estorno online deve ser feito pelo provedor de pagamento.',
+				'provider_refund'
+			);
 		}
 		await tx`update tenders set status = 'refunded', refunded_at = now(), refund_reason = ${reason} where id = ${tenderId}`;
 		await audit(tx, actor, 'tender.refunded', 'order', t.order_id, { tender_id: tenderId, reason });

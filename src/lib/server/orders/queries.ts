@@ -87,7 +87,13 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 	const itemIds = items.map((i) => i.id);
 	const mods = itemIds.length
 		? await sql<
-				{ order_item_id: string; group_name: string; option_name: string; quantity: number; unit_price_cents: number }[]
+				{
+					order_item_id: string;
+					group_name: string;
+					option_name: string;
+					quantity: number;
+					unit_price_cents: number;
+				}[]
 			>`select order_item_id, group_name, option_name, quantity, unit_price_cents
 				from order_item_modifiers where order_item_id = any(${itemIds}::uuid[])`
 		: [];
@@ -143,7 +149,10 @@ export interface OrderFilter {
 	limit?: number;
 }
 
-export async function listOrders(filter: OrderFilter = {}, sql: Db = db()): Promise<OrderSummary[]> {
+export async function listOrders(
+	filter: OrderFilter = {},
+	sql: Db = db()
+): Promise<OrderSummary[]> {
 	const statuses = filter.statuses ?? null;
 	const rows = await sql<OrderRow[]>`
 		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, fulfillment_type,
@@ -228,12 +237,29 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 		select recipient, cep, street, number, complement, neighborhood, city, state, instructions
 		from order_addresses where order_id = ${id}`;
 	const history = await sql<
-		{ from_status: OrderStatus | null; to_status: OrderStatus; actor_type: string; actor_name: string | null; reason: string | null; occurred_at: Date }[]
+		{
+			from_status: OrderStatus | null;
+			to_status: OrderStatus;
+			actor_type: string;
+			actor_name: string | null;
+			reason: string | null;
+			occurred_at: Date;
+		}[]
 	>`select h.from_status, h.to_status, h.actor_type, s.display_name as actor_name, h.reason, h.occurred_at
 		from order_status_history h left join staff_users s on s.id = h.actor_id
 		where h.order_id = ${id} order by h.occurred_at, h.id`;
 	const tenders = await sql<
-		{ id: string; method: string; provider: string; provider_reference: string | null; amount_cents: number; change_cents: number | null; status: PaymentStatus; created_at: Date; recorded_by_name: string | null }[]
+		{
+			id: string;
+			method: string;
+			provider: string;
+			provider_reference: string | null;
+			amount_cents: number;
+			change_cents: number | null;
+			status: PaymentStatus;
+			created_at: Date;
+			recorded_by_name: string | null;
+		}[]
 	>`select t.id, t.method, t.provider, t.provider_reference, t.amount_cents, t.change_cents, t.status, t.created_at,
 			s.display_name as recorded_by_name
 		from tenders t left join staff_users s on s.id = t.recorded_by

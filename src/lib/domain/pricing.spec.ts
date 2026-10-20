@@ -111,9 +111,9 @@ describe('matchDeliveryRule', () => {
 			rule({ matchKind: 'neighborhood', matchValue: 'Consolação', feeCents: 800 })
 		];
 		expect(matchDeliveryRule(rules, { cep: '01310-100', neighborhood: 'x' })?.feeCents).toBe(600);
-		expect(matchDeliveryRule(rules, { cep: '99999-000', neighborhood: 'consolacao' })?.feeCents).toBe(
-			800
-		);
+		expect(
+			matchDeliveryRule(rules, { cep: '99999-000', neighborhood: 'consolacao' })?.feeCents
+		).toBe(800);
 		expect(matchDeliveryRule(rules, { cep: '99999-000', neighborhood: 'outro' })).toBeNull();
 	});
 

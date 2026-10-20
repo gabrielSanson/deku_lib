@@ -1,7 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import type { StaffRole } from '#lib/domain/order-status.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { createStaffAccount, linkExistingUser, listStaff, updateStaff } from '#lib/server/auth/admin.ts';
+import {
+	createStaffAccount,
+	linkExistingUser,
+	listStaff,
+	updateStaff
+} from '#lib/server/auth/admin.ts';
 import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
 import type { Actions, PageServerLoad } from './$types';
 

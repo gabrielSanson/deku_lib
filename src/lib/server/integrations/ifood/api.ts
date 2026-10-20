@@ -17,7 +17,8 @@ export const IFOOD_PATHS = {
 	startPreparation: (id: string) => `/order/v1.0/orders/${encodeURIComponent(id)}/startPreparation`,
 	readyToPickup: (id: string) => `/order/v1.0/orders/${encodeURIComponent(id)}/readyToPickup`,
 	dispatch: (id: string) => `/order/v1.0/orders/${encodeURIComponent(id)}/dispatch`,
-	requestCancellation: (id: string) => `/order/v1.0/orders/${encodeURIComponent(id)}/requestCancellation`
+	requestCancellation: (id: string) =>
+		`/order/v1.0/orders/${encodeURIComponent(id)}/requestCancellation`
 } as const;
 
 export class IfoodApiError extends Error {
@@ -51,9 +52,16 @@ export function resetIfoodTokenForTests() {
 function credentials() {
 	const c = config();
 	if (!c.IFOOD_CLIENT_ID || !c.IFOOD_CLIENT_SECRET || !c.IFOOD_MERCHANT_ID) {
-		throw new Error('iFood credentials are not configured (IFOOD_CLIENT_ID, IFOOD_CLIENT_SECRET, IFOOD_MERCHANT_ID)');
+		throw new Error(
+			'iFood credentials are not configured (IFOOD_CLIENT_ID, IFOOD_CLIENT_SECRET, IFOOD_MERCHANT_ID)'
+		);
 	}
-	return { base: c.IFOOD_API_BASE, clientId: c.IFOOD_CLIENT_ID, clientSecret: c.IFOOD_CLIENT_SECRET, merchantId: c.IFOOD_MERCHANT_ID };
+	return {
+		base: c.IFOOD_API_BASE,
+		clientId: c.IFOOD_CLIENT_ID,
+		clientSecret: c.IFOOD_CLIENT_SECRET,
+		merchantId: c.IFOOD_MERCHANT_ID
+	};
 }
 
 async function accessToken(f: Fetch): Promise<string> {
@@ -72,12 +80,19 @@ async function accessToken(f: Fetch): Promise<string> {
 	return token.value;
 }
 
-async function call(f: Fetch, path: string, init: RequestInit = {}): Promise<{ status: number; body: string }> {
+async function call(
+	f: Fetch,
+	path: string,
+	init: RequestInit = {}
+): Promise<{ status: number; body: string }> {
 	const { base } = credentials();
 	const send = async () =>
 		f(base + path, {
 			...init,
-			headers: { ...(init.headers as Record<string, string>), authorization: `Bearer ${await accessToken(f)}` },
+			headers: {
+				...(init.headers as Record<string, string>),
+				authorization: `Bearer ${await accessToken(f)}`
+			},
 			signal: AbortSignal.timeout(10_000)
 		});
 	let res = await send();
@@ -86,14 +101,17 @@ async function call(f: Fetch, path: string, init: RequestInit = {}): Promise<{ s
 		res = await send();
 	}
 	const body = await res.text();
-	if (!res.ok && res.status !== 204) throw new IfoodApiError(`iFood ${init.method ?? 'GET'} ${path} failed`, res.status, body);
+	if (!res.ok && res.status !== 204)
+		throw new IfoodApiError(`iFood ${init.method ?? 'GET'} ${path} failed`, res.status, body);
 	return { status: res.status, body };
 }
 
 export function ifoodClient(f: Fetch = fetch) {
 	return {
 		async poll(): Promise<IfoodEvent[]> {
-			const res = await call(f, IFOOD_PATHS.polling, { headers: { 'x-polling-merchants': credentials().merchantId } });
+			const res = await call(f, IFOOD_PATHS.polling, {
+				headers: { 'x-polling-merchants': credentials().merchantId }
+			});
 			return res.status === 204 || !res.body ? [] : (JSON.parse(res.body) as IfoodEvent[]);
 		},
 		async acknowledge(ids: string[]) {
@@ -120,9 +138,15 @@ export function ifoodClient(f: Fetch = fetch) {
 export type IfoodClient = ReturnType<typeof ifoodClient>;
 
 /** HMAC-SHA256 of the raw body with the client secret, hex encoded (UNVERIFIED scheme). */
-export function verifyIfoodSignature(rawBody: Uint8Array, signature: string | null, secret = config().IFOOD_CLIENT_SECRET) {
+export function verifyIfoodSignature(
+	rawBody: Uint8Array,
+	signature: string | null,
+	secret = config().IFOOD_CLIENT_SECRET
+) {
 	if (!signature || !secret) return false;
 	const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
 	const given = signature.trim().toLowerCase();
-	return given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+	return (
+		given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected))
+	);
 }

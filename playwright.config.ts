@@ -9,7 +9,9 @@ export default defineConfig({
 		baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5173',
 		locale: 'pt-BR',
 		timezoneId: 'America/Sao_Paulo',
-		launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {}
+		launchOptions: process.env.PW_CHROMIUM_PATH
+			? { executablePath: process.env.PW_CHROMIUM_PATH }
+			: {}
 	},
 	webServer: process.env.E2E_BASE_URL
 		? undefined

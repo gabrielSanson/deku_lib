@@ -42,9 +42,18 @@ test('cashier sells at the counter and the kitchen completes it', async ({ page,
 	const card = kitchen.locator('article', { hasText: orderNumber });
 	await expect(card).toContainText('Sem cebola');
 	await card.getByRole('button', { name: 'Iniciar' }).click();
-	await expect(kitchen.locator('section', { hasText: 'Em preparo' }).locator('article', { hasText: orderNumber })).toBeVisible();
-	await kitchen.locator('article', { hasText: orderNumber }).getByRole('button', { name: 'Pronto' }).click();
-	await expect(kitchen.locator('section', { hasText: 'Prontos' }).locator('article', { hasText: orderNumber })).toBeVisible();
+	await expect(
+		kitchen
+			.locator('section', { hasText: 'Em preparo' })
+			.locator('article', { hasText: orderNumber })
+	).toBeVisible();
+	await kitchen
+		.locator('article', { hasText: orderNumber })
+		.getByRole('button', { name: 'Pronto' })
+		.click();
+	await expect(
+		kitchen.locator('section', { hasText: 'Prontos' }).locator('article', { hasText: orderNumber })
+	).toBeVisible();
 
 	// The cashier's order list picks up the kitchen's change without a reload.
 	await page.goto('/staff/orders?status=ready');

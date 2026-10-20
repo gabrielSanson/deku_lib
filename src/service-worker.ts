@@ -13,7 +13,12 @@ const CACHE = `static-${version}`;
 const ASSETS = [...immutable, ...assets].map((a) => `/${a.path.replace(/^\//, '')}`);
 
 sw.addEventListener('install', (event) => {
-	event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => sw.skipWaiting()));
+	event.waitUntil(
+		caches
+			.open(CACHE)
+			.then((c) => c.addAll(ASSETS))
+			.then(() => sw.skipWaiting())
+	);
 });
 
 sw.addEventListener('activate', (event) => {
@@ -36,6 +41,8 @@ sw.addEventListener('fetch', (event) => {
 		return;
 	}
 	if (request.mode === 'navigate') {
-		event.respondWith(fetch(request).catch(async () => (await caches.match('/offline.html')) ?? Response.error()));
+		event.respondWith(
+			fetch(request).catch(async () => (await caches.match('/offline.html')) ?? Response.error())
+		);
 	}
 });

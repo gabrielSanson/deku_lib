@@ -8,7 +8,11 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
 	const secret = config().CMS_WEBHOOK_SECRET;
 	const given = request.headers.get('x-cms-secret') ?? '';
-	if (!secret || given.length !== secret.length || !timingSafeEqual(Buffer.from(given), Buffer.from(secret))) {
+	if (
+		!secret ||
+		given.length !== secret.length ||
+		!timingSafeEqual(Buffer.from(given), Buffer.from(secret))
+	) {
 		return new Response(null, { status: 401 });
 	}
 	invalidateCatalog();

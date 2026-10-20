@@ -46,7 +46,8 @@ export const actions: Actions = {
 		// Fallback while the iFood API is not live: staff re-key the iFood order here.
 		// iFood has already collected the payment, so the order is recorded as paid by the channel.
 		const ifood = parsed.fulfillmentType === 'ifood';
-		if (ifood && !parsed.ifoodCode) return fail(400, { error: 'Informe o código do pedido no iFood.' });
+		if (ifood && !parsed.ifoodCode)
+			return fail(400, { error: 'Informe o código do pedido no iFood.' });
 		const result = await attempt(() =>
 			createOrder({
 				channel: ifood ? 'ifood' : 'counter',
@@ -65,7 +66,8 @@ export const actions: Actions = {
 				actor: staffActor(staff)
 			})
 		);
-		if ('id' in result) redirect(303, ifood ? `/staff/orders/${result.id}` : `/staff/pos/${result.id}/payment`);
+		if ('id' in result)
+			redirect(303, ifood ? `/staff/orders/${result.id}` : `/staff/pos/${result.id}/payment`);
 		return result;
 	}
 };

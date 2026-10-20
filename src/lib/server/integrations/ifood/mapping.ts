@@ -35,8 +35,18 @@ export interface IfoodOrder {
 	extraInfo?: string;
 	customer?: { name?: string; phone?: { number?: string; localizer?: string } };
 	items: IfoodOrderItem[];
-	total: { subTotal: number; deliveryFee?: number; additionalFees?: number; benefits?: number; orderAmount: number };
-	payments?: { prepaid?: number; pending?: number; methods?: { method?: string; type?: 'ONLINE' | 'OFFLINE' | string; value?: number }[] };
+	total: {
+		subTotal: number;
+		deliveryFee?: number;
+		additionalFees?: number;
+		benefits?: number;
+		orderAmount: number;
+	};
+	payments?: {
+		prepaid?: number;
+		pending?: number;
+		methods?: { method?: string; type?: 'ONLINE' | 'OFFLINE' | string; value?: number }[];
+	};
 	delivery?: {
 		deliveredBy?: 'IFOOD' | 'MERCHANT' | string;
 		deliveryAddress?: {
@@ -72,17 +82,19 @@ export interface MappedIfoodOrder {
 	fulfillmentProvider: 'ifood_courier' | 'own_driver' | 'shop';
 	customer: { name: string } | undefined;
 	customerLabel: string;
-	address: {
-		recipient: string;
-		cep: string;
-		street: string;
-		number: string;
-		complement: string | null;
-		neighborhood: string;
-		city: string;
-		state: string;
-		instructions: string | null;
-	} | undefined;
+	address:
+		| {
+				recipient: string;
+				cep: string;
+				street: string;
+				number: string;
+				complement: string | null;
+				neighborhood: string;
+				city: string;
+				state: string;
+				instructions: string | null;
+		  }
+		| undefined;
 	paymentStatus: PaymentStatus;
 	notes: string | null;
 	isTest: boolean;
@@ -93,7 +105,10 @@ export interface MappedIfoodOrder {
  * @param lookup resolves an iFood externalCode to our product. By convention the
  * externalCode registered in the iFood menu is our SKU; integration_mappings can override.
  */
-export function mapIfoodOrder(order: IfoodOrder, lookup: (code: string) => ProductInfo | null): MappedIfoodOrder {
+export function mapIfoodOrder(
+	order: IfoodOrder,
+	lookup: (code: string) => ProductInfo | null
+): MappedIfoodOrder {
 	const unmapped: string[] = [];
 	const lines: PricedLine[] = order.items.map((item, index) => {
 		const code = item.externalCode?.trim() || '';
@@ -141,7 +156,11 @@ export function mapIfoodOrder(order: IfoodOrder, lookup: (code: string) => Produ
 		discountCents: Math.min(cents(order.total.benefits), subtotalCents),
 		channelTotalCents,
 		fulfillmentType: delivery ? 'delivery' : 'pickup',
-		fulfillmentProvider: delivery ? (order.delivery?.deliveredBy === 'MERCHANT' ? 'own_driver' : 'ifood_courier') : 'shop',
+		fulfillmentProvider: delivery
+			? order.delivery?.deliveredBy === 'MERCHANT'
+				? 'own_driver'
+				: 'ifood_courier'
+			: 'shop',
 		customer: order.customer?.name ? { name } : undefined,
 		customerLabel: order.displayId ? `${name} · iFood ${order.displayId}` : name,
 		address:
@@ -214,7 +233,8 @@ export function outboundAction(
 		case 'preparing':
 			return 'startPreparation';
 		case 'ready':
-			if (fulfillment.type === 'delivery' && fulfillment.provider === 'own_driver') return 'dispatch';
+			if (fulfillment.type === 'delivery' && fulfillment.provider === 'own_driver')
+				return 'dispatch';
 			return 'readyToPickup';
 		case 'rejected':
 		case 'cancelled':

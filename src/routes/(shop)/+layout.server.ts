@@ -6,7 +6,11 @@ import { getStoreSettings } from '#lib/server/settings/service.ts';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ setHeaders }) => {
-	const [catalog, settings, soldOut] = await Promise.all([getCatalog(), getStoreSettings(), soldOutSkus(db(), 'web')]);
+	const [catalog, settings, soldOut] = await Promise.all([
+		getCatalog(),
+		getStoreSettings(),
+		soldOutSkus(db(), 'web')
+	]);
 	setHeaders({ 'cache-control': 'no-store' });
 	return {
 		shopName: config().SHOP_NAME,

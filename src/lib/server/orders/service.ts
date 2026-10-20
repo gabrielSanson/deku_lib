@@ -10,7 +10,12 @@ import {
 	type PaymentStatus,
 	type StaffRole
 } from '#lib/domain/order-status.ts';
-import { priceCart, type CartLineInput, type DeliveryRule, type PricedCart } from '#lib/domain/pricing.ts';
+import {
+	priceCart,
+	type CartLineInput,
+	type DeliveryRule,
+	type PricedCart
+} from '#lib/domain/pricing.ts';
 import { audit, type Actor } from '../audit';
 import { getCatalogForPricing, soldOutSkus } from '../catalog/service';
 import { db, type Db, type Tx } from '../db';
@@ -45,7 +50,12 @@ export interface CreateOrderInput {
 	fulfillmentType: FulfillmentType;
 	fulfillmentProvider?: FulfillmentProvider;
 	customerLabel?: string | null;
-	customer?: { name: string; phoneE164?: string | null; email?: string | null; marketingConsent?: boolean };
+	customer?: {
+		name: string;
+		phoneE164?: string | null;
+		email?: string | null;
+		marketingConsent?: boolean;
+	};
 	address?: AddressInput;
 	deliveryRule?: DeliveryRule | null;
 	notes?: string | null;
@@ -85,7 +95,11 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		const settings = await getStoreSettings(tx);
 		if (input.channel === 'web') {
 			if (!settings.acceptingOrders || !settings.webOrderingEnabled) {
-				throw new DomainError(settings.pauseReason || 'A loja não está aceitando pedidos agora.', 'paused', 409);
+				throw new DomainError(
+					settings.pauseReason || 'A loja não está aceitando pedidos agora.',
+					'paused',
+					409
+				);
 			}
 			if (input.fulfillmentType === 'delivery' && !settings.deliveryEnabled) {
 				throw new DomainError('Entrega indisponível no momento.', 'delivery_off', 409);
@@ -97,7 +111,11 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				const [{ open }] = await tx<{ open: number }[]>`
 					select count(*)::int as open from orders where status in ('new','confirmed','preparing')`;
 				if (open >= settings.maxOpenOrders) {
-					throw new DomainError('Cozinha lotada. Tente novamente em alguns minutos.', 'capacity', 409);
+					throw new DomainError(
+						'Cozinha lotada. Tente novamente em alguns minutos.',
+						'capacity',
+						409
+					);
 				}
 			}
 		}
@@ -122,7 +140,10 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				throw new DomainError('Pedido abaixo do mínimo para entrega neste endereço.', 'min_order');
 			}
 		}
-		const discount = Math.min(external?.discountCents ?? input.discountCents ?? 0, cart.subtotalCents);
+		const discount = Math.min(
+			external?.discountCents ?? input.discountCents ?? 0,
+			cart.subtotalCents
+		);
 		const total = cart.subtotalCents - discount + deliveryFee;
 		const status: OrderStatus = input.initialStatus ?? 'new';
 		const now = new Date();
@@ -207,7 +228,12 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			total_cents: total,
 			discount_cents: discount
 		});
-		await enqueue(tx, QUEUES.orderPlaced, { orderId: order.id }, { singletonKey: `placed:${order.id}` });
+		await enqueue(
+			tx,
+			QUEUES.orderPlaced,
+			{ orderId: order.id },
+			{ singletonKey: `placed:${order.id}` }
+		);
 
 		return {
 			id: order.id,
@@ -222,7 +248,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 
 async function findByIdempotencyKey(sql: Db, key: string): Promise<CreatedOrder | null> {
 	const [row] = await sql<
-		{ id: string; order_number: number; public_token: string; total_cents: number; status: OrderStatus }[]
+		{
+			id: string;
+			order_number: number;
+			public_token: string;
+			total_cents: number;
+			status: OrderStatus;
+		}[]
 	>`select id, order_number, public_token, total_cents, status from orders where idempotency_key = ${key}`;
 	return row
 		? {
@@ -264,10 +296,18 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			return { changed: false, from: order.status, to: input.to, version: order.version };
 		}
 		if (input.expectedVersion !== undefined && input.expectedVersion !== order.version) {
-			throw new DomainError('O pedido foi atualizado por outra pessoa. Recarregue e tente de novo.', 'stale', 409);
+			throw new DomainError(
+				'O pedido foi atualizado por outra pessoa. Recarregue e tente de novo.',
+				'stale',
+				409
+			);
 		}
 		if (!canTransition(order.status, input.to)) {
-			throw new DomainError(`Não é possível mudar de ${order.status} para ${input.to}.`, 'bad_transition', 409);
+			throw new DomainError(
+				`Não é possível mudar de ${order.status} para ${input.to}.`,
+				'bad_transition',
+				409
+			);
 		}
 		if (input.actor.type === 'staff') {
 			if (!input.actor.role || !roleMayTransition(input.actor.role, order.status, input.to)) {
@@ -296,10 +336,18 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			insert into order_status_history (order_id, from_status, to_status, actor_type, actor_id, reason, source_event_id)
 			values (${input.orderId}, ${order.status}, ${input.to}, ${input.actor.type}, ${input.actor.id},
 				${reason}, ${input.sourceEventId ?? null})`;
-		await audit(t, input.actor, `order.${input.to}`, 'order', input.orderId, { from: order.status, reason });
+		await audit(t, input.actor, `order.${input.to}`, 'order', input.orderId, {
+			from: order.status,
+			reason
+		});
 		// Changes made here are mirrored to iFood; changes that came from iFood are not echoed back.
 		if (order.channel === 'ifood' && input.actor.type !== 'integration') {
-			await enqueue(t, QUEUES.ifoodSync, { orderId: input.orderId, to: input.to, reason }, { singletonKey: `ifood:${input.orderId}:${input.to}` });
+			await enqueue(
+				t,
+				QUEUES.ifoodSync,
+				{ orderId: input.orderId, to: input.to, reason },
+				{ singletonKey: `ifood:${input.orderId}:${input.to}` }
+			);
 		}
 		return { changed: true, from: order.status, to: input.to, version: updated.version };
 	};

@@ -16,8 +16,10 @@ export const actions: Actions = {
 		const prep = Number(formString(d, 'prepTimeMinutes'));
 		const maxRaw = formString(d, 'maxOpenOrders');
 		const max = maxRaw ? Number(maxRaw) : null;
-		if (!Number.isInteger(prep) || prep < 1 || prep > 240) return fail(400, { error: 'Tempo de preparo inválido.' });
-		if (max !== null && (!Number.isInteger(max) || max < 1)) return fail(400, { error: 'Capacidade inválida.' });
+		if (!Number.isInteger(prep) || prep < 1 || prep > 240)
+			return fail(400, { error: 'Tempo de preparo inválido.' });
+		if (max !== null && (!Number.isInteger(max) || max < 1))
+			return fail(400, { error: 'Capacidade inválida.' });
 		return attempt(async () => {
 			await updateStoreSettings(
 				{
@@ -42,7 +44,10 @@ export const actions: Actions = {
 		const open = formString(d, 'open') === '1';
 		return attempt(async () => {
 			await updateStoreSettings(
-				{ acceptingOrders: open, pauseReason: open ? null : formString(d, 'pauseReason') || 'Pausado pela equipe' },
+				{
+					acceptingOrders: open,
+					pauseReason: open ? null : formString(d, 'pauseReason') || 'Pausado pela equipe'
+				},
 				staffActor(staff)
 			);
 			return { ok: true };

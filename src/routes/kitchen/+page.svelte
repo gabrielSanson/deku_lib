@@ -43,26 +43,55 @@
 
 	const live = useLiveOrders(() => data.live);
 
-	const stations = $derived(['all', ...new Set(data.orders.flatMap((o) => o.items.map((i) => i.prepStation)))]);
-	const stationLabel: Record<string, string> = { all: 'Todas', grill: 'Chapa', fryer: 'Fritadeira', counter: 'Balcão' };
+	const stations = $derived([
+		'all',
+		...new Set(data.orders.flatMap((o) => o.items.map((i) => i.prepStation)))
+	]);
+	const stationLabel: Record<string, string> = {
+		all: 'Todas',
+		grill: 'Chapa',
+		fryer: 'Fritadeira',
+		counter: 'Balcão'
+	};
 	const visible = (o: OrderSummary) => ({
 		...o,
 		items: station === 'all' ? o.items : o.items.filter((i) => i.prepStation === station)
 	});
 	const lanes = $derived([
-		{ key: 'confirmed', title: 'Novos', orders: data.orders.filter((o) => o.status === 'confirmed').map(visible) },
-		{ key: 'preparing', title: 'Em preparo', orders: data.orders.filter((o) => o.status === 'preparing').map(visible) },
-		{ key: 'ready', title: 'Prontos', orders: data.orders.filter((o) => o.status === 'ready').map(visible) }
+		{
+			key: 'confirmed',
+			title: 'Novos',
+			orders: data.orders.filter((o) => o.status === 'confirmed').map(visible)
+		},
+		{
+			key: 'preparing',
+			title: 'Em preparo',
+			orders: data.orders.filter((o) => o.status === 'preparing').map(visible)
+		},
+		{
+			key: 'ready',
+			title: 'Prontos',
+			orders: data.orders.filter((o) => o.status === 'ready').map(visible)
+		}
 	]);
 	const nextAction: Record<string, { to: string; label: string } | undefined> = {
 		confirmed: { to: 'preparing', label: 'Iniciar' },
 		preparing: { to: 'ready', label: 'Pronto' },
 		ready: { to: 'completed', label: 'Entregue' }
 	};
-	const fulfillment: Record<string, string> = { counter: 'BALCÃO', pickup: 'VIAGEM', delivery: 'ENTREGA' };
+	const fulfillment: Record<string, string> = {
+		counter: 'BALCÃO',
+		pickup: 'VIAGEM',
+		delivery: 'ENTREGA'
+	};
 </script>
 
-<svelte:head><title>Cozinha</title><link rel="manifest" href="/kitchen.webmanifest" /><meta name="theme-color" content="#0c0a09" /></svelte:head>
+<svelte:head
+	><title>Cozinha</title><link rel="manifest" href="/kitchen.webmanifest" /><meta
+		name="theme-color"
+		content="#0c0a09"
+	/></svelte:head
+>
 
 <div class="min-h-dvh bg-stone-950 text-stone-50">
 	<LiveBanner {live} />
@@ -72,7 +101,9 @@
 		<div class="flex gap-1" role="radiogroup" aria-label="Estação">
 			{#each stations as s (s)}
 				<button
-					class="rounded-md px-3 py-2 text-sm font-semibold {station === s ? 'bg-orange-500 text-black' : 'bg-stone-800'}"
+					class="rounded-md px-3 py-2 text-sm font-semibold {station === s
+						? 'bg-orange-500 text-black'
+						: 'bg-stone-800'}"
 					aria-pressed={station === s}
 					onclick={() => (station = s)}>{stationLabel[s] ?? s}</button
 				>
@@ -94,7 +125,7 @@
 		{#each lanes as lane (lane.key)}
 			<section aria-labelledby="lane-{lane.key}">
 				<h2 id="lane-{lane.key}" class="mb-2 flex justify-between text-lg font-bold">
-					{lane.title}<span class="tabular-nums text-stone-400">{lane.orders.length}</span>
+					{lane.title}<span class="text-stone-400 tabular-nums">{lane.orders.length}</span>
 				</h2>
 				<div class="space-y-3">
 					{#each lane.orders as o (o.id)}
@@ -107,21 +138,37 @@
 								<header class="mb-2 flex items-baseline justify-between gap-2">
 									<span class="text-3xl font-black tabular-nums">#{o.orderNumber}</span>
 									<span class="text-xs font-bold tracking-wider text-orange-300">
-										{o.channel === 'ifood' ? `IFOOD ${o.channelDisplayId ?? ''} · ` : o.channel === 'web' ? 'SITE · ' : ''}{fulfillment[o.fulfillmentType]}
+										{o.channel === 'ifood'
+											? `IFOOD ${o.channelDisplayId ?? ''} · `
+											: o.channel === 'web'
+												? 'SITE · '
+												: ''}{fulfillment[o.fulfillmentType]}
 									</span>
-									<span class="text-lg"><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span>
+									<span class="text-lg"
+										><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span
+									>
 								</header>
-								{#if o.customerLabel}<p class="mb-1 text-sm text-stone-300">{o.customerLabel}</p>{/if}
+								{#if o.customerLabel}<p class="mb-1 text-sm text-stone-300">
+										{o.customerLabel}
+									</p>{/if}
 								<ul class="space-y-1.5">
 									{#each o.items as item (item.id)}
 										<li>
-											<p class="text-lg font-bold leading-tight">{item.quantity}× {item.productName}</p>
+											<p class="text-lg leading-tight font-bold">
+												{item.quantity}× {item.productName}
+											</p>
 											{#each item.modifiers as m, i (i)}
-												<p class="pl-4 text-base {m.optionName.startsWith('Sem ') ? 'font-semibold text-red-300' : 'text-stone-200'}">
+												<p
+													class="pl-4 text-base {m.optionName.startsWith('Sem ')
+														? 'font-semibold text-red-300'
+														: 'text-stone-200'}"
+												>
 													{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
 												</p>
 											{/each}
-											{#if item.allergyFlag}<p class="pl-4 font-black text-red-400">⚠ ALERGIA</p>{/if}
+											{#if item.allergyFlag}<p class="pl-4 font-black text-red-400">
+													⚠ ALERGIA
+												</p>{/if}
 											{#if item.note}<p class="pl-4 text-yellow-200 italic">“{item.note}”</p>{/if}
 										</li>
 									{/each}
@@ -131,24 +178,34 @@
 									{#if lane.key === 'confirmed' && !o.kitchenSeenAt}
 										<form method="POST" action="?/seen" use:enhance class="flex-1">
 											<input type="hidden" name="orderId" value={o.id} />
-											<button class="min-h-12 w-full rounded-lg bg-stone-700 font-bold">Visto</button>
+											<button class="min-h-12 w-full rounded-lg bg-stone-700 font-bold"
+												>Visto</button
+											>
 										</form>
 									{/if}
 									{#if nextAction[lane.key]}
 										<form method="POST" action="?/move" use:enhance class="flex-1">
 											<input type="hidden" name="orderId" value={o.id} />
 											<input type="hidden" name="to" value={nextAction[lane.key]?.to} />
-											<button class="min-h-12 w-full rounded-lg bg-orange-500 text-lg font-black text-black">
+											<button
+												class="min-h-12 w-full rounded-lg bg-orange-500 text-lg font-black text-black"
+											>
 												{nextAction[lane.key]?.label}
 											</button>
 										</form>
 									{/if}
 								</footer>
-								{#if o.promisedAt}<p class="mt-1 text-right text-xs text-stone-400">Prometido {formatTime(o.promisedAt)}</p>{/if}
+								{#if o.promisedAt}<p class="mt-1 text-right text-xs text-stone-400">
+										Prometido {formatTime(o.promisedAt)}
+									</p>{/if}
 							</article>
 						{/if}
 					{:else}
-						<p class="rounded-xl border border-dashed border-stone-700 p-6 text-center text-stone-500">Vazio</p>
+						<p
+							class="rounded-xl border border-dashed border-stone-700 p-6 text-center text-stone-500"
+						>
+							Vazio
+						</p>
 					{/each}
 				</div>
 			</section>

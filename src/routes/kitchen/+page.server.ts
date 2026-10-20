@@ -22,7 +22,8 @@ export const actions: Actions = {
 		const staff = requireStaff(event);
 		const data = await event.request.formData();
 		const to = formString(data, 'to');
-		if (to !== 'preparing' && to !== 'ready' && to !== 'completed') return fail(400, { error: 'Ação inválida.' });
+		if (to !== 'preparing' && to !== 'ready' && to !== 'completed')
+			return fail(400, { error: 'Ação inválida.' });
 		return attempt(async () => {
 			await transitionOrder({ orderId: formString(data, 'orderId'), to, actor: staffActor(staff) });
 			return { ok: true };

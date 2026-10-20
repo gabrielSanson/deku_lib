@@ -9,15 +9,19 @@ export const METRIC_DEFINITIONS = {
 	placed: 'Pedidos criados no período (exceto testes), pela data de criação no horário da loja.',
 	cancelled: 'Pedidos do período que terminaram cancelados ou recusados.',
 	completed: 'Pedidos do período que chegaram a “Concluído”.',
-	gross: 'Soma de itens + taxa de entrega dos pedidos do período que não foram cancelados/recusados, antes de descontos.',
+	gross:
+		'Soma de itens + taxa de entrega dos pedidos do período que não foram cancelados/recusados, antes de descontos.',
 	discounts: 'Descontos concedidos nesses mesmos pedidos.',
 	refunds: 'Estornos confirmados no período (pela data do estorno).',
 	net: 'Vendas brutas − descontos − estornos. Valor operacional; não é receita contábil.',
-	collected: 'Pagamentos confirmados no período (pela data de confirmação). Pendentes e desconhecidos ficam de fora. Pedidos pagos no iFood aparecem à parte.',
+	collected:
+		'Pagamentos confirmados no período (pela data de confirmação). Pendentes e desconhecidos ficam de fora. Pedidos pagos no iFood aparecem à parte.',
 	aov: 'Ticket médio: (vendas brutas − descontos) dos pedidos concluídos ÷ número de pedidos concluídos.',
 	cancellationRate: 'Cancelados ou recusados ÷ pedidos criados no período.',
-	prepTime: 'Tempo de preparo: de “Confirmado” até “Pronto”. Mostra mediana e p90 e quantos pedidos entraram no cálculo.',
-	onTime: 'Pedidos concluídos com horário prometido em que “Pronto” ocorreu até o horário prometido ÷ pedidos concluídos com os dois horários.',
+	prepTime:
+		'Tempo de preparo: de “Confirmado” até “Pronto”. Mostra mediana e p90 e quantos pedidos entraram no cálculo.',
+	onTime:
+		'Pedidos concluídos com horário prometido em que “Pronto” ocorreu até o horário prometido ÷ pedidos concluídos com os dois horários.',
 	peakHour: 'Hora local (America/Sao_Paulo) da criação do pedido.'
 } as const;
 
@@ -44,7 +48,12 @@ export function todayLocal(now = new Date()): string {
 }
 
 /** Resolves presets into a local-date range. */
-export function resolveRange(preset: string | null, from?: string | null, to?: string | null, now = new Date()): Range {
+export function resolveRange(
+	preset: string | null,
+	from?: string | null,
+	to?: string | null,
+	now = new Date()
+): Range {
 	const today = todayLocal(now);
 	const shift = (d: string, days: number) =>
 		new Date(new Date(`${d}T00:00:00Z`).getTime() + days * 86400_000).toISOString().slice(0, 10);
@@ -95,7 +104,11 @@ export interface Overview {
 	paymentExceptions: number;
 }
 
-export async function overview(range: Range, filters: Filters = {}, sql: Db = db()): Promise<Overview> {
+export async function overview(
+	range: Range,
+	filters: Filters = {},
+	sql: Db = db()
+): Promise<Overview> {
 	const { start, end } = bounds(range);
 	const channel = filters.channel || null;
 	const [o] = await sql<
@@ -180,7 +193,11 @@ export interface DailyPoint {
 	grossCents: number;
 }
 
-export async function salesByDay(range: Range, filters: Filters = {}, sql: Db = db()): Promise<DailyPoint[]> {
+export async function salesByDay(
+	range: Range,
+	filters: Filters = {},
+	sql: Db = db()
+): Promise<DailyPoint[]> {
 	const { start, end } = bounds(range);
 	const channel = filters.channel || null;
 	const rows = await sql<{ day: string; orders: number; gross: number }[]>`
@@ -230,7 +247,12 @@ export async function collectedByMethod(range: Range, sql: Db = db()) {
 			and t.created_at >= (${start}::timestamp at time zone ${SHOP_TZ})
 			and t.created_at < ((${end}::timestamp + interval '1 day') at time zone ${SHOP_TZ})
 		group by 1, 2 order by 1, 2`;
-	return rows.map((r) => ({ method: r.method, status: r.status, count: r.n, amountCents: Number(r.amount) }));
+	return rows.map((r) => ({
+		method: r.method,
+		status: r.status,
+		count: r.n,
+		amountCents: Number(r.amount)
+	}));
 }
 
 /** Orders by local weekday (0 = Sunday) and hour. */
@@ -252,7 +274,9 @@ export async function peakHours(range: Range, filters: Filters = {}, sql: Db = d
 export async function topProducts(range: Range, filters: Filters = {}, sql: Db = db()) {
 	const { start, end } = bounds(range);
 	const channel = filters.channel || null;
-	const rows = await sql<{ sku: string; name: string; units: number; sales: number; orders: number }[]>`
+	const rows = await sql<
+		{ sku: string; name: string; units: number; sales: number; orders: number }[]
+	>`
 		select i.product_sku as sku, max(i.product_name) as name, sum(i.quantity)::int as units,
 			sum(i.line_total_cents)::bigint as sales, count(distinct i.order_id)::int as orders
 		from order_items i join orders o on o.id = i.order_id
@@ -282,7 +306,15 @@ export async function reconciliation(day: string, sql: Db = db()) {
 	const { start, end } = bounds(r);
 	const byMethod = await collectedByMethod(r, sql);
 	const issues = await sql<
-		{ id: string; order_number: number; channel: string; status: string; payment_status: string; total_cents: number; paid: number }[]
+		{
+			id: string;
+			order_number: number;
+			channel: string;
+			status: string;
+			payment_status: string;
+			total_cents: number;
+			paid: number;
+		}[]
 	>`
 		select o.id, o.order_number, o.channel, o.status, o.payment_status, o.total_cents,
 			coalesce(sum(t.amount_cents) filter (where t.status = 'paid'), 0)::int as paid

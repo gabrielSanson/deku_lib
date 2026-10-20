@@ -11,8 +11,10 @@ export async function attempt<T>(fn: () => Promise<T>) {
 	} catch (err) {
 		if (err instanceof DomainError) return fail(err.status, { error: err.message, code: err.code });
 		if (err instanceof PricingError) return fail(400, { error: err.message, code: 'pricing' });
-		if (err instanceof CatalogUnavailableError) return fail(503, { error: err.message, code: 'catalog' });
-		if (err instanceof ZodError) return fail(400, { error: 'Dados inválidos.', code: 'validation' });
+		if (err instanceof CatalogUnavailableError)
+			return fail(503, { error: err.message, code: 'catalog' });
+		if (err instanceof ZodError)
+			return fail(400, { error: 'Dados inválidos.', code: 'validation' });
 		throw err;
 	}
 }

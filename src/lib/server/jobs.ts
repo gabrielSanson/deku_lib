@@ -23,7 +23,9 @@ export async function getBoss(): Promise<PgBoss> {
 	if (boss) return boss;
 	starting ??= (async () => {
 		const instance = new PgBoss({ connectionString: config().DATABASE_URL, schema: 'pgboss' });
-		instance.on('error', (err) => console.error(JSON.stringify({ msg: 'pg-boss error', err: String(err) })));
+		instance.on('error', (err) =>
+			console.error(JSON.stringify({ msg: 'pg-boss error', err: String(err) }))
+		);
 		await instance.start();
 		for (const name of Object.values(QUEUES)) {
 			await instance.createQueue(name, { retryLimit: 8, retryBackoff: true, retryDelay: 5 });

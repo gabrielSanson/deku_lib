@@ -31,12 +31,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const { data } = await supabase.auth.getClaims();
 		const claims = data?.claims;
 		if (claims?.sub) {
-			event.locals.staff = await loadStaff(claims.sub, (claims.email as string | undefined) ?? null);
+			event.locals.staff = await loadStaff(
+				claims.sub,
+				(claims.email as string | undefined) ?? null
+			);
 		}
 	}
 
 	const response = await resolve(event, {
-		filterSerializedResponseHeaders: (name) => name === 'content-range' || name === 'x-supabase-api-version'
+		filterSerializedResponseHeaders: (name) =>
+			name === 'content-range' || name === 'x-supabase-api-version'
 	});
 	response.headers.set('x-request-id', event.locals.requestId);
 	response.headers.set('x-content-type-options', 'nosniff');
@@ -54,7 +58,12 @@ export const handleError: HandleServerError = (caught) => {
 	if (caught.kind !== 'unknown') return;
 	const requestId = caught.event.locals.requestId;
 	console.error(
-		JSON.stringify({ level: 'error', requestId, path: caught.event.url.pathname, err: String(caught.error) })
+		JSON.stringify({
+			level: 'error',
+			requestId,
+			path: caught.event.url.pathname,
+			err: String(caught.error)
+		})
 	);
 	return { message: 'Erro inesperado. Tente novamente.', code: requestId };
 };

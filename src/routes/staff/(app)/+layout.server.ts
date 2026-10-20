@@ -11,6 +11,9 @@ export const load: LayoutServerLoad = async (event) => {
 		staff,
 		shopName: SHOP_NAME,
 		settings: await getStoreSettings(),
-		live: { supabaseUrl: PUBLIC_SUPABASE_URL ?? null, supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY ?? null }
+		live: {
+			supabaseUrl: PUBLIC_SUPABASE_URL ?? null,
+			supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY ?? null
+		}
 	};
 };

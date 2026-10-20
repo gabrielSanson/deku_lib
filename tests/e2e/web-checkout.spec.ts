@@ -1,10 +1,15 @@
 import { expect, test } from '@playwright/test';
 
 // Needs PAYMENT_PROVIDER=local_stub on the dev server and `pnpm worker` running.
-test('customer orders on the site, pays with Pix and the order reaches the kitchen @phone', async ({ page }) => {
+test('customer orders on the site, pays with Pix and the order reaches the kitchen @phone', async ({
+	page
+}) => {
 	await page.goto('/');
 	await page.waitForLoadState('networkidle');
-	await page.getByRole('link', { name: /Clássico/ }).first().click();
+	await page
+		.getByRole('link', { name: /Clássico/ })
+		.first()
+		.click();
 	await page.waitForURL(/\/menu\//);
 	await page.waitForLoadState('networkidle');
 	await page.getByRole('button', { name: 'Ao ponto' }).click();

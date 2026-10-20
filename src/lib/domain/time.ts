@@ -1,6 +1,10 @@
 export const SHOP_TZ = 'America/Sao_Paulo';
 
-const timeFmt = new Intl.DateTimeFormat('pt-BR', { timeZone: SHOP_TZ, hour: '2-digit', minute: '2-digit' });
+const timeFmt = new Intl.DateTimeFormat('pt-BR', {
+	timeZone: SHOP_TZ,
+	hour: '2-digit',
+	minute: '2-digit'
+});
 const dateTimeFmt = new Intl.DateTimeFormat('pt-BR', {
 	timeZone: SHOP_TZ,
 	day: '2-digit',

@@ -24,9 +24,13 @@
 		<div class="flex items-center gap-3 px-3 py-2">
 			<a href="/staff" class="font-bold text-brand-700">{data.shopName}</a>
 			{#if data.settings.acceptingOrders}
-				<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">Aberto</span>
+				<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
+					>Aberto</span
+				>
 			{:else}
-				<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">Pausado</span>
+				<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800"
+					>Pausado</span
+				>
 			{/if}
 			<nav class="flex flex-1 gap-1 overflow-x-auto" aria-label="Principal">
 				{#each nav as item (item.href)}

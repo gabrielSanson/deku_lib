@@ -49,7 +49,11 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 
 export type StoreSettingsPatch = Partial<Omit<StoreSettings, 'updatedAt' | 'version'>>;
 
-export async function updateStoreSettings(patch: StoreSettingsPatch, actor: Actor, expectedVersion?: number) {
+export async function updateStoreSettings(
+	patch: StoreSettingsPatch,
+	actor: Actor,
+	expectedVersion?: number
+) {
 	return db().begin(async (tx) => {
 		const current = await getStoreSettings(tx);
 		if (expectedVersion !== undefined && expectedVersion !== current.version) {
@@ -100,7 +104,10 @@ export async function listDeliveryRules(sql: Db = db()): Promise<DeliveryRule[]>
 	}));
 }
 
-export async function saveDeliveryRule(rule: Omit<DeliveryRule, 'id'> & { id?: string }, actor: Actor) {
+export async function saveDeliveryRule(
+	rule: Omit<DeliveryRule, 'id'> & { id?: string },
+	actor: Actor
+) {
 	return db().begin(async (tx) => {
 		const [row] = rule.id
 			? await tx<{ id: string }[]>`
@@ -115,7 +122,14 @@ export async function saveDeliveryRule(rule: Omit<DeliveryRule, 'id'> & { id?: s
 					${rule.minOrderCents}, ${rule.enabled}, ${rule.priority}, ${actor.id})
 				returning id`;
 		if (!row) throw new DomainError('Regra não encontrada.', 'not_found', 404);
-		await audit(tx, actor, rule.id ? 'delivery_rule.updated' : 'delivery_rule.created', 'delivery_rule', row.id, rule);
+		await audit(
+			tx,
+			actor,
+			rule.id ? 'delivery_rule.updated' : 'delivery_rule.created',
+			'delivery_rule',
+			row.id,
+			rule
+		);
 		return row.id;
 	});
 }
@@ -138,6 +152,8 @@ export async function setSoldOut(sku: string, soldOut: boolean, actor: Actor, re
 		} else {
 			await tx`delete from product_availability_overrides where sku = ${sku} and channel = 'all'`;
 		}
-		await audit(tx, actor, soldOut ? 'product.sold_out' : 'product.back_in_stock', 'product', sku, { reason });
+		await audit(tx, actor, soldOut ? 'product.sold_out' : 'product.back_in_stock', 'product', sku, {
+			reason
+		});
 	});
 }

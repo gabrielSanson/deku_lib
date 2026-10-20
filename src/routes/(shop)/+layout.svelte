@@ -6,7 +6,12 @@
 
 	let { data, children } = $props();
 	onMount(() => cart.init());
-	const showCartBar = $derived(cart.count > 0 && !page.url.pathname.startsWith('/cart') && !page.url.pathname.startsWith('/checkout') && !page.url.pathname.startsWith('/orders'));
+	const showCartBar = $derived(
+		cart.count > 0 &&
+			!page.url.pathname.startsWith('/cart') &&
+			!page.url.pathname.startsWith('/checkout') &&
+			!page.url.pathname.startsWith('/orders')
+	);
 </script>
 
 <svelte:head>
@@ -18,7 +23,11 @@
 	<header class="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
 		<div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
 			<a href="/" class="text-xl font-black text-brand-700">{data.shopName}</a>
-			<a href="/cart" class="btn-secondary min-h-10 px-3 text-sm" aria-label="Carrinho, {cart.count} itens">
+			<a
+				href="/cart"
+				class="btn-secondary min-h-10 px-3 text-sm"
+				aria-label="Carrinho, {cart.count} itens"
+			>
 				🛒 <span class="tabular-nums">{cart.count}</span>
 			</a>
 		</div>
@@ -33,11 +42,16 @@
 	</div>
 	<footer class="border-t border-line py-6 text-center text-sm text-muted">
 		<nav class="flex justify-center gap-4">
-			<a href="/p/sobre">Sobre</a><a href="/p/alergenicos">Alergênicos</a><a href="/p/privacidade">Privacidade</a><a href="/p/entrega">Entrega e trocas</a>
+			<a href="/p/sobre">Sobre</a><a href="/p/alergenicos">Alergênicos</a><a href="/p/privacidade"
+				>Privacidade</a
+			><a href="/p/entrega">Entrega e trocas</a>
 		</nav>
 	</footer>
 	{#if showCartBar}
-		<a href="/cart" class="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-2xl bg-brand-600 px-5 py-4 font-bold text-white shadow-lg">
+		<a
+			href="/cart"
+			class="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-2xl bg-brand-600 px-5 py-4 font-bold text-white shadow-lg"
+		>
 			<span>Ver carrinho · {cart.count} {cart.count === 1 ? 'item' : 'itens'}</span>
 			<Money cents={cart.subtotalCents} />
 		</a>

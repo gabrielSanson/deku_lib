@@ -14,6 +14,8 @@ export function useLiveOrders(
 	getConfig: () => { supabaseUrl: string | null; supabaseAnonKey: string | null },
 	onChange?: () => void
 ): LiveState {
+	// lastRefresh is replaced, never mutated, so a plain Date is reactive enough.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
 	const state = $state<LiveState>({ connected: false, lastRefresh: new Date() });
 
 	onMount(() => {
@@ -22,6 +24,7 @@ export function useLiveOrders(
 		let stopped = false;
 		const refresh = async () => {
 			await invalidate('app:orders');
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity
 			state.lastRefresh = new Date();
 			onChange?.();
 		};
@@ -41,9 +44,15 @@ export function useLiveOrders(
 		const supabase = createBrowserClient(config.supabaseUrl, config.supabaseAnonKey);
 		const channel = supabase
 			.channel('staff-orders')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => void refresh())
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'store_runtime_settings' }, () =>
-				void invalidate('app:settings')
+			.on(
+				'postgres_changes',
+				{ event: '*', schema: 'public', table: 'orders' },
+				() => void refresh()
+			)
+			.on(
+				'postgres_changes',
+				{ event: '*', schema: 'public', table: 'store_runtime_settings' },
+				() => void invalidate('app:settings')
 			)
 			.subscribe((status) => {
 				if (stopped) return;

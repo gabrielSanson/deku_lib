@@ -20,14 +20,25 @@
 <section class="py-6">
 	<h1 class="text-3xl font-black">Cardápio</h1>
 	<p class="text-muted">
-		{data.store.open ? `Pronto em cerca de ${data.store.prepTimeMinutes} min.` : 'Pedidos online pausados no momento.'}
-		{data.store.pickup ? 'Retirada' : ''}{data.store.pickup && data.store.delivery ? ' e ' : ''}{data.store.delivery ? 'entrega' : ''}.
+		{data.store.open
+			? `Pronto em cerca de ${data.store.prepTimeMinutes} min.`
+			: 'Pedidos online pausados no momento.'}
+		{data.store.pickup ? 'Retirada' : ''}{data.store.pickup && data.store.delivery
+			? ' e '
+			: ''}{data.store.delivery ? 'entrega' : ''}.
 	</p>
 </section>
 
-<nav class="sticky top-[57px] z-10 -mx-4 mb-4 flex gap-2 overflow-x-auto bg-canvas px-4 py-2" aria-label="Categorias">
+<nav
+	class="sticky top-[57px] z-10 -mx-4 mb-4 flex gap-2 overflow-x-auto bg-canvas px-4 py-2"
+	aria-label="Categorias"
+>
 	{#each sections as s (s.id)}
-		<a href="#{s.slug}" class="rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium whitespace-nowrap">{s.name}</a>
+		<a
+			href="#{s.slug}"
+			class="rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium whitespace-nowrap"
+			>{s.name}</a
+		>
 	{/each}
 </nav>
 
@@ -38,14 +49,31 @@
 			{#each s.products as p (p.sku)}
 				{@const out = soldOut.has(p.sku)}
 				<li>
-					<a href="/menu/{p.slug}" class="card flex gap-3 p-3 {out ? 'pointer-events-none opacity-50' : 'hover:border-brand-500'}" aria-disabled={out}>
+					<a
+						href="/menu/{p.slug}"
+						class="flex gap-3 card p-3 {out
+							? 'pointer-events-none opacity-50'
+							: 'hover:border-brand-500'}"
+						aria-disabled={out}
+					>
 						<div class="flex-1">
 							<h3 class="font-semibold">{p.name}</h3>
 							<p class="line-clamp-2 text-sm text-muted">{p.description}</p>
-							<p class="mt-1 font-bold"><Money cents={p.priceCents} />{#if out}<span class="ml-2 text-xs text-bad">Esgotado</span>{/if}</p>
+							<p class="mt-1 font-bold">
+								<Money cents={p.priceCents} />{#if out}<span class="ml-2 text-xs text-bad"
+										>Esgotado</span
+									>{/if}
+							</p>
 						</div>
 						{#if p.imageUrl}
-							<img src={p.imageUrl} alt="" class="size-24 rounded-lg object-cover" loading="lazy" width="96" height="96" />
+							<img
+								src={p.imageUrl}
+								alt=""
+								class="size-24 rounded-lg object-cover"
+								loading="lazy"
+								width="96"
+								height="96"
+							/>
 						{/if}
 					</a>
 				</li>

@@ -17,26 +17,44 @@
 			<a href="/" class="btn-primary">Ver cardápio</a>
 		</div>
 	{:else}
-		<ul class="card divide-y divide-line">
+		<ul class="divide-y divide-line card">
 			{#each cart.lines as l (l.key)}
 				<li class="flex gap-3 p-3">
 					<div class="flex-1">
 						<p class="font-semibold">{l.name}</p>
-						{#if l.options.length}<p class="text-sm text-muted">{l.options.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name)).join(', ')}</p>{/if}
-						{#if l.note}<p class="text-sm italic text-muted">“{l.note}”</p>{/if}
+						{#if l.options.length}<p class="text-sm text-muted">
+								{l.options
+									.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name))
+									.join(', ')}
+							</p>{/if}
+						{#if l.note}<p class="text-sm text-muted italic">“{l.note}”</p>{/if}
 						<div class="mt-2 flex items-center gap-1">
-							<button class="btn-secondary min-h-9 px-3" onclick={() => cart.setQuantity(l.key, l.quantity - 1)} aria-label="Remover um {l.name}">−</button>
+							<button
+								class="btn-secondary min-h-9 px-3"
+								onclick={() => cart.setQuantity(l.key, l.quantity - 1)}
+								aria-label="Remover um {l.name}">−</button
+							>
 							<span class="w-8 text-center tabular-nums">{l.quantity}</span>
-							<button class="btn-secondary min-h-9 px-3" onclick={() => cart.setQuantity(l.key, Math.min(50, l.quantity + 1))} aria-label="Adicionar um {l.name}">+</button>
+							<button
+								class="btn-secondary min-h-9 px-3"
+								onclick={() => cart.setQuantity(l.key, Math.min(50, l.quantity + 1))}
+								aria-label="Adicionar um {l.name}">+</button
+							>
 						</div>
 					</div>
 					<Money cents={l.unitCents * l.quantity} class="font-semibold" />
 				</li>
 			{/each}
 		</ul>
-		<div class="flex justify-between text-lg font-bold"><span>Subtotal</span><Money cents={cart.subtotalCents} /></div>
+		<div class="flex justify-between text-lg font-bold">
+			<span>Subtotal</span><Money cents={cart.subtotalCents} />
+		</div>
 		<p class="text-sm text-muted">Taxa de entrega e total final são calculados na próxima etapa.</p>
-		<a href="/checkout" class="btn-primary w-full text-lg {data.store.open ? '' : 'pointer-events-none opacity-50'}" aria-disabled={!data.store.open}>Continuar</a>
+		<a
+			href="/checkout"
+			class="btn-primary w-full text-lg {data.store.open ? '' : 'pointer-events-none opacity-50'}"
+			aria-disabled={!data.store.open}>Continuar</a
+		>
 		<a href="/" class="btn-ghost w-full">Adicionar mais itens</a>
 	{/if}
 </section>

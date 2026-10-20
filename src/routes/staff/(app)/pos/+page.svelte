@@ -79,8 +79,17 @@
 <div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:grid-cols-[1fr_380px]">
 	<section class="flex min-h-0 flex-col">
 		<div class="flex gap-2 overflow-x-auto border-b border-line bg-surface p-2">
-			<input class="field max-w-48" type="search" placeholder="Buscar" bind:value={search} aria-label="Buscar produto" />
-			<button class="btn {category === null ? 'bg-ink text-white' : 'btn-secondary'}" onclick={() => (category = null)}>Tudo</button>
+			<input
+				class="field max-w-48"
+				type="search"
+				placeholder="Buscar"
+				bind:value={search}
+				aria-label="Buscar produto"
+			/>
+			<button
+				class="btn {category === null ? 'bg-ink text-white' : 'btn-secondary'}"
+				onclick={() => (category = null)}>Tudo</button
+			>
 			{#each data.catalog.categories as c (c.id)}
 				<button
 					class="btn whitespace-nowrap {category === c.id ? 'bg-ink text-white' : 'btn-secondary'}"
@@ -88,17 +97,19 @@
 				>
 			{/each}
 		</div>
-		<div class="grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2 sm:grid-cols-3 xl:grid-cols-4">
+		<div
+			class="grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2 sm:grid-cols-3 xl:grid-cols-4"
+		>
 			{#each products as p (p.sku)}
 				{@const out = soldOut.has(p.sku)}
 				<button
-					class="card flex min-h-28 flex-col items-start justify-between p-3 text-left active:scale-[0.98] {out
+					class="flex min-h-28 flex-col items-start justify-between card p-3 text-left active:scale-[0.98] {out
 						? 'opacity-50'
 						: 'hover:border-brand-500'}"
 					disabled={out}
 					onclick={() => pick(p)}
 				>
-					<span class="font-semibold leading-tight">{p.name}</span>
+					<span class="leading-tight font-semibold">{p.name}</span>
 					<span class="flex w-full items-end justify-between">
 						<Money cents={p.priceCents} class="text-lg font-bold" />
 						{#if out}<span class="text-xs font-semibold text-bad">Esgotado</span>{/if}
@@ -125,7 +136,9 @@
 						</div>
 						{#if line.options.length}
 							<p class="text-xs text-muted">
-								{line.options.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name)).join(', ')}
+								{line.options
+									.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name))
+									.join(', ')}
 							</p>
 						{/if}
 						{#if line.note || line.allergy}
@@ -134,9 +147,17 @@
 							</p>
 						{/if}
 						<div class="mt-1 flex items-center gap-1">
-							<button class="btn-secondary min-h-9 px-3" onclick={() => change(line, -1)} aria-label="Remover um">−</button>
+							<button
+								class="btn-secondary min-h-9 px-3"
+								onclick={() => change(line, -1)}
+								aria-label="Remover um">−</button
+							>
 							<span class="w-8 text-center tabular-nums">{line.quantity}</span>
-							<button class="btn-secondary min-h-9 px-3" onclick={() => change(line, 1)} aria-label="Adicionar um">+</button>
+							<button
+								class="btn-secondary min-h-9 px-3"
+								onclick={() => change(line, 1)}
+								aria-label="Adicionar um">+</button
+							>
 						</div>
 					</li>
 				{/each}
@@ -156,24 +177,75 @@
 		>
 			<input type="hidden" name="payload" value={payload} />
 			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
-				<button type="button" class="btn {fulfillmentType === 'counter' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'counter'} onclick={() => (fulfillmentType = 'counter')}>Balcão</button>
-				<button type="button" class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'pickup'} onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button>
-				<button type="button" class="btn {fulfillmentType === 'ifood' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'ifood'} onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button>
+				<button
+					type="button"
+					class="btn {fulfillmentType === 'counter' ? 'bg-ink text-white' : 'btn-secondary'}"
+					aria-pressed={fulfillmentType === 'counter'}
+					onclick={() => (fulfillmentType = 'counter')}>Balcão</button
+				>
+				<button
+					type="button"
+					class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-white' : 'btn-secondary'}"
+					aria-pressed={fulfillmentType === 'pickup'}
+					onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button
+				>
+				<button
+					type="button"
+					class="btn {fulfillmentType === 'ifood' ? 'bg-ink text-white' : 'btn-secondary'}"
+					aria-pressed={fulfillmentType === 'ifood'}
+					onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button
+				>
 			</div>
 			{#if fulfillmentType === 'ifood'}
-				<input class="field" placeholder="Código do pedido no iFood" maxlength="20" bind:value={ifoodCode} aria-label="Código do pedido no iFood" required />
-				<p class="text-xs text-muted">Já pago no iFood. Confirme e atualize o pedido também no app do iFood.</p>
+				<input
+					class="field"
+					placeholder="Código do pedido no iFood"
+					maxlength="20"
+					bind:value={ifoodCode}
+					aria-label="Código do pedido no iFood"
+					required
+				/>
+				<p class="text-xs text-muted">
+					Já pago no iFood. Confirme e atualize o pedido também no app do iFood.
+				</p>
 			{/if}
-			<input class="field" placeholder="Nome ou mesa (opcional)" maxlength="60" bind:value={customerLabel} aria-label="Nome ou mesa" />
-			<input class="field" placeholder="Observação do pedido" maxlength="300" bind:value={notes} aria-label="Observação do pedido" />
+			<input
+				class="field"
+				placeholder="Nome ou mesa (opcional)"
+				maxlength="60"
+				bind:value={customerLabel}
+				aria-label="Nome ou mesa"
+			/>
+			<input
+				class="field"
+				placeholder="Observação do pedido"
+				maxlength="300"
+				bind:value={notes}
+				aria-label="Observação do pedido"
+			/>
 			{#if canDiscount}
-				<input class="field" inputmode="decimal" placeholder="Desconto (R$)" bind:value={discountText} aria-label="Desconto em reais" />
+				<input
+					class="field"
+					inputmode="decimal"
+					placeholder="Desconto (R$)"
+					bind:value={discountText}
+					aria-label="Desconto em reais"
+				/>
 			{/if}
 			<FormError message={form?.error} />
 			<dl class="space-y-1 text-sm">
-				<div class="flex justify-between"><dt>Subtotal</dt><dd><Money cents={subtotal} /></dd></div>
-				{#if discount}<div class="flex justify-between text-ok"><dt>Desconto</dt><dd>−<Money cents={discount} /></dd></div>{/if}
-				<div class="flex justify-between text-lg font-bold"><dt>Total</dt><dd><Money cents={total} /></dd></div>
+				<div class="flex justify-between">
+					<dt>Subtotal</dt>
+					<dd><Money cents={subtotal} /></dd>
+				</div>
+				{#if discount}<div class="flex justify-between text-ok">
+						<dt>Desconto</dt>
+						<dd>−<Money cents={discount} /></dd>
+					</div>{/if}
+				<div class="flex justify-between text-lg font-bold">
+					<dt>Total</dt>
+					<dd><Money cents={total} /></dd>
+				</div>
 			</dl>
 			<div class="flex gap-2">
 				<button
