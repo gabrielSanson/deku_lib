@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import FormError from '#lib/components/FormError.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
 
@@ -75,6 +76,13 @@
 			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} /> Comer no
 			local (o cliente pede pelo celular na mesa)</label
 		>
+		{#if s.dineInEnabled}
+			<p class="-mt-2 pl-8 text-sm text-muted">
+				Cole em cada mesa um QR Code com o link <code class="rounded bg-stone-100 px-1"
+					>{page.url.origin}/?mesa=7</code
+				> (troque o 7 pelo número da mesa). O pedido já chega com a mesa preenchida.
+			</p>
+		{/if}
 		<label class="flex min-h-11 items-center gap-3"
 			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} /> Para viagem
 			/ retirada no balcão</label
