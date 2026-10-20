@@ -1,11 +1,28 @@
-import { requireStaff } from '#lib/server/auth/staff.ts';
+import { overview, salesByDay, todayLocal, topProducts } from '#lib/server/analytics/queries.ts';
+import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
 import type { PageServerLoad } from './$types';
 
+const shift = (day: string, days: number) =>
+	new Date(new Date(`${day}T00:00:00Z`).getTime() + days * 86400_000).toISOString().slice(0, 10);
+
+/** Today's money for owners and managers, next to the same weekday last week. */
+async function salesToday() {
+	const today = todayLocal();
+	const lastWeek = shift(today, -7);
+	const [now, before, week, top] = await Promise.all([
+		overview({ from: today, to: today }),
+		overview({ from: lastWeek, to: lastWeek }),
+		salesByDay({ from: shift(today, -13), to: today }),
+		topProducts({ from: today, to: today })
+	]);
+	return { today, now, before, week, top: top.products.slice(0, 5) };
+}
+
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event);
+	const staff = requireStaff(event);
 	event.depends('app:orders');
 	const sql = db();
 	const [counts] = await sql<
@@ -25,5 +42,6 @@ export const load: PageServerLoad = async (event) => {
 		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
 		return [] as string[];
 	});
-	return { counts, urgent, ifoodAlerts };
+	const sales = MANAGERS.includes(staff.role) ? await salesToday() : null;
+	return { counts, urgent, ifoodAlerts, sales };
 };
