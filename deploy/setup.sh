@@ -1,0 +1,41 @@
+#!/bin/sh
+# First-time setup on the shop's server. Creates deploy/supabase/.env with fresh
+# secrets and the shop's domain. Run once; it refuses to overwrite an existing .env.
+#   sh deploy/setup.sh pedido.dekuburger.com.br "Deku Burger"
+set -e
+DOMAIN="$1"
+NAME="${2:-Deku Burger}"
+[ -n "$DOMAIN" ] || { echo "Usage: sh deploy/setup.sh <domain> [shop name]"; exit 1; }
+cd "$(dirname "$0")/supabase"
+[ ! -f .env ] || { echo "deploy/supabase/.env already exists; not overwriting it."; exit 1; }
+
+cp .env.example .env
+sh utils/generate-keys.sh --update-env >/dev/null
+rm -f .env.old
+
+URL="https://$DOMAIN"
+sed -i \
+  -e "s|^SUPABASE_PUBLIC_URL=.*$|SUPABASE_PUBLIC_URL=$URL|" \
+  -e "s|^API_EXTERNAL_URL=.*$|API_EXTERNAL_URL=$URL/auth/v1|" \
+  -e "s|^SITE_URL=.*$|SITE_URL=$URL|" \
+  -e "s|^DISABLE_SIGNUP=.*$|DISABLE_SIGNUP=true|" \
+  -e "s|^ENABLE_PHONE_SIGNUP=.*$|ENABLE_PHONE_SIGNUP=false|" \
+  -e "s|^ENABLE_ANONYMOUS_USERS=.*$|ENABLE_ANONYMOUS_USERS=false|" \
+  .env
+
+cat >> .env <<ENV
+
+############
+# Shop (deploy/compose.shop.yml)
+############
+SHOP_DOMAIN=$DOMAIN
+SHOP_NAME=$NAME
+PAYMENT_PROVIDER=none
+IFOOD_ENABLED=false
+IFOOD_CLIENT_ID=
+IFOOD_CLIENT_SECRET=
+IFOOD_MERCHANT_ID=
+ENV
+chmod 600 .env
+echo "Wrote deploy/supabase/.env for $URL."
+echo "Next: deploy/shop.sh up -d --build, then deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts"

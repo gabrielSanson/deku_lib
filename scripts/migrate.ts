@@ -1,5 +1,6 @@
-// Applies supabase/migrations to a plain PostgreSQL database (local dev without
-// Docker, CI and tests). Against a real Supabase project use `supabase db push`.
+// Applies supabase/migrations in order and records them in public.local_migrations.
+// Plain PostgreSQL (CI, tests): the shim first adds Supabase's auth schema and roles.
+// Self-hosted Supabase: run with --no-shim (the deploy stack does this on every start).
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import postgres from 'postgres';
@@ -32,5 +33,6 @@ export async function migrate(databaseUrl: string, { shim = true } = {}) {
 if (import.meta.url === `file://${process.argv[1]}`) {
 	const url = process.env.DATABASE_URL;
 	if (!url) throw new Error('DATABASE_URL is required');
-	await migrate(url);
+	// --no-shim: the target is a real Supabase (self-hosted or hosted) that already has auth and roles.
+	await migrate(url, { shim: !process.argv.includes('--no-shim') });
 }

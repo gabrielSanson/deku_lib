@@ -6,7 +6,7 @@ import type { StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
 import { db } from '../db';
 import { DomainError } from '../errors';
-import { config } from '../config';
+import { supabaseServerUrl } from '../config';
 import type { StaffSession } from './staff';
 
 export interface StaffRow {
@@ -85,7 +85,7 @@ export async function createStaffAccount(
 	if (input.password.length < 10)
 		throw new DomainError('A senha precisa ter pelo menos 10 caracteres.');
 	const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-	const url = config().PUBLIC_SUPABASE_URL;
+	const url = supabaseServerUrl();
 	if (!key || !url) {
 		throw new DomainError(
 			'Crie a conta no painel do Supabase e depois atribua o perfil aqui.',

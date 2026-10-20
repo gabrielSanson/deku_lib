@@ -21,9 +21,13 @@ const staff = [
 	{ email: 'cozinha@burger.local', name: 'Cozinha', role: 'kitchen' }
 ];
 
-const admin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-	auth: { persistSession: false, autoRefreshToken: false }
-});
+const admin = createClient(
+	process.env.SUPABASE_INTERNAL_URL || PUBLIC_SUPABASE_URL,
+	SUPABASE_SERVICE_ROLE_KEY,
+	{
+		auth: { persistSession: false, autoRefreshToken: false }
+	}
+);
 const sql = postgres(DATABASE_URL, { max: 1, onnotice: () => {} });
 
 try {

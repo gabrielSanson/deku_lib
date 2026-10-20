@@ -2,7 +2,8 @@ import { createServerClient } from '@supabase/ssr';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { randomUUID } from 'node:crypto';
 import { loadStaff } from '#lib/server/auth/staff.ts';
-import { config } from '#lib/server/config.ts';
+import { config, supabaseServerUrl } from '#lib/server/config.ts';
+import { SUPABASE_COOKIE_OPTIONS } from '#lib/supabase-cookie.ts';
 
 const STAFF_PREFIXES = ['/staff', '/kitchen'];
 
@@ -16,16 +17,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const needsSession = STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
 
 	if (needsSession && PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY) {
-		const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-			cookies: {
-				getAll: () => event.cookies.getAll(),
-				setAll: (cookies) => {
-					for (const { name, value, options } of cookies) {
-						event.cookies.set(name, value, { ...options, path: '/' });
+		const supabase = createServerClient(
+			supabaseServerUrl() ?? PUBLIC_SUPABASE_URL,
+			PUBLIC_SUPABASE_ANON_KEY,
+			{
+				cookieOptions: SUPABASE_COOKIE_OPTIONS,
+				cookies: {
+					getAll: () => event.cookies.getAll(),
+					setAll: (cookies) => {
+						for (const { name, value, options } of cookies) {
+							event.cookies.set(name, value, { ...options, path: '/' });
+						}
 					}
 				}
 			}
-		});
+		);
 		event.locals.supabase = supabase;
 		// getClaims verifies the JWT signature; never trust an unverified session cookie.
 		const { data } = await supabase.auth.getClaims();

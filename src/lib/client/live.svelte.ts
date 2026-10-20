@@ -1,6 +1,7 @@
 // Keeps staff screens current. Supabase Realtime only says "orders changed";
 // we then re-run the page's server load, which is the source of truth. If the
 // realtime channel drops, we poll every 8 s and show the screen as possibly stale.
+import { SUPABASE_COOKIE_OPTIONS } from '#lib/supabase-cookie.ts';
 import { createBrowserClient } from '@supabase/ssr';
 import { invalidate } from '$app/navigation';
 import { onMount } from 'svelte';
@@ -41,29 +42,43 @@ export function useLiveOrders(
 			return stopPolling;
 		}
 
-		const supabase = createBrowserClient(config.supabaseUrl, config.supabaseAnonKey);
-		const channel = supabase
-			.channel('staff-orders')
-			.on(
-				'postgres_changes',
-				{ event: '*', schema: 'public', table: 'orders' },
-				() => void refresh()
-			)
-			.on(
-				'postgres_changes',
-				{ event: '*', schema: 'public', table: 'store_runtime_settings' },
-				() => void invalidate('app:settings')
-			)
-			.subscribe((status) => {
-				if (stopped) return;
-				state.connected = status === 'SUBSCRIBED';
-				if (state.connected) {
-					stopPolling();
-					void refresh(); // catch anything missed while disconnected
-				} else {
-					startPolling();
-				}
-			});
+		const supabase = createBrowserClient(config.supabaseUrl, config.supabaseAnonKey, {
+			cookieOptions: SUPABASE_COOKIE_OPTIONS
+		});
+		let channel: ReturnType<typeof supabase.channel> | undefined;
+		// Join with the staff member's token: RLS hides order changes from anonymous
+		// sockets, and an anonymous channel would look "connected" while staying silent.
+		void (async () => {
+			const { data } = await supabase.auth.getSession();
+			if (stopped) return;
+			if (!data.session) {
+				startPolling();
+				return;
+			}
+			await supabase.realtime.setAuth(data.session.access_token);
+			channel = supabase
+				.channel('staff-orders')
+				.on(
+					'postgres_changes',
+					{ event: '*', schema: 'public', table: 'orders' },
+					() => void refresh()
+				)
+				.on(
+					'postgres_changes',
+					{ event: '*', schema: 'public', table: 'store_runtime_settings' },
+					() => void invalidate('app:settings')
+				)
+				.subscribe((status) => {
+					if (stopped) return;
+					state.connected = status === 'SUBSCRIBED';
+					if (state.connected) {
+						stopPolling();
+						void refresh(); // catch anything missed while disconnected
+					} else {
+						startPolling();
+					}
+				});
+		})();
 
 		const onVisible = () => document.visibilityState === 'visible' && void refresh();
 		const onOnline = () => void refresh();
@@ -76,7 +91,7 @@ export function useLiveOrders(
 			stopPolling();
 			document.removeEventListener('visibilitychange', onVisible);
 			window.removeEventListener('online', onOnline);
-			void supabase.removeChannel(channel);
+			if (channel) void supabase.removeChannel(channel);
 		};
 	});
 

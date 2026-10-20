@@ -12,6 +12,8 @@ const schema = z.object({
 	DATABASE_URL: z.string().min(1),
 	PUBLIC_SUPABASE_URL: z.string().url().optional(),
 	PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+	// Self-hosted: how the server reaches the Supabase gateway on the private network.
+	SUPABASE_INTERNAL_URL: z.string().url().optional(),
 	SHOP_NAME: z.string().default('Deku Burger'),
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
 	DIRECTUS_URL: z.string().url().optional(),
@@ -44,4 +46,10 @@ export function config(): Config {
 
 export function resetConfigForTests() {
 	cached = undefined;
+}
+
+/** URL the server uses for Supabase: the private gateway when self-hosted, else the public one. */
+export function supabaseServerUrl(): string | undefined {
+	const c = config();
+	return c.SUPABASE_INTERNAL_URL ?? c.PUBLIC_SUPABASE_URL;
 }
