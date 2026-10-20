@@ -275,3 +275,41 @@ describe('dine-in', () => {
 		expect(detail?.tableLabel).toBe('7');
 	});
 });
+
+describe('opening hours', () => {
+	it('refuses web orders outside the schedule and accepts them inside', async () => {
+		const { saveSchedule } = await import('#lib/server/settings/hours.ts');
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true },
+			manager
+		);
+		const webOrder = () =>
+			createOrder({
+				channel: 'web',
+				sourceMode: 'web',
+				lines: [classic],
+				fulfillmentType: 'pickup',
+				customer: { name: 'Bia', phoneE164: '+5511977776666' },
+				idempotencyKey: randomUUID(),
+				paymentPlan: 'on_fulfillment',
+				actor: { type: 'customer', id: null }
+			});
+		try {
+			// Open every day, but today is a closed date.
+			const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(
+				new Date()
+			);
+			const allDay = [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
+				weekday,
+				opens: '00:00',
+				closes: '00:00'
+			}));
+			await saveSchedule({ enabled: true, days: allDay, closures: [{ day: today }] }, manager);
+			await expect(webOrder()).rejects.toThrow(/horário/);
+			await saveSchedule({ enabled: true, days: allDay, closures: [] }, manager);
+			await expect(webOrder()).resolves.toHaveProperty('id');
+		} finally {
+			await saveSchedule({ enabled: false, days: [], closures: [] }, manager);
+		}
+	});
+});

@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { requireStaff } from '#lib/server/auth/staff.ts';
 import { config } from '#lib/server/config.ts';
+import { inHoursNow } from '#lib/server/settings/hours.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings } from '#lib/server/settings/service.ts';
 import type { LayoutServerLoad } from './$types';
@@ -17,6 +18,7 @@ export const load: LayoutServerLoad = async (event) => {
 		shopName: profile.displayName,
 		setupDone: Boolean(profile.setupCompletedAt),
 		settings: await getStoreSettings(),
+		inHours: await inHoursNow(),
 		live: {
 			supabaseUrl: PUBLIC_SUPABASE_URL ?? null,
 			supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY ?? null

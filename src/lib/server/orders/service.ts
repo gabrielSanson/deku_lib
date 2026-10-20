@@ -21,6 +21,7 @@ import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalo
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
+import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 
 export type SourceMode = 'staff_pos' | 'web' | 'kiosk' | 'ifood_api' | 'ifood_manual';
@@ -102,6 +103,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 					'paused',
 					409
 				);
+			}
+			if (!(await inHoursNow(tx))) {
+				throw new DomainError('A loja está fora do horário de funcionamento.', 'closed_hours', 409);
 			}
 			if (input.fulfillmentType === 'delivery' && !settings.deliveryEnabled) {
 				throw new DomainError('Entrega indisponível no momento.', 'delivery_off', 409);

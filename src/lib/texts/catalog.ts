@@ -68,6 +68,11 @@ export const TEXTS = {
 		label: 'Botão do carrinho (leitor de tela)',
 		default: 'Carrinho, {count} {items}'
 	},
+	'header.closedUntil': {
+		group: 'header',
+		label: 'Aviso fora do horário',
+		default: 'Estamos fechados agora. Abrimos {when}.'
+	},
 	'header.closed': {
 		group: 'header',
 		label: 'Aviso de loja fechada',

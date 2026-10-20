@@ -19,7 +19,13 @@
 {/snippet}
 
 {#snippet status()}
-	{#if data.settings.acceptingOrders}
+	{#if data.settings.acceptingOrders && !data.inHours}
+		<a
+			href="/staff/settings/hours"
+			class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"
+			>Fora do horário</a
+		>
+	{:else if data.settings.acceptingOrders}
 		<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
 			>Aberto</span
 		>

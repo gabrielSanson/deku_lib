@@ -44,7 +44,8 @@ export const NAV: NavGroup[] = [
 	{
 		label: 'Loja',
 		links: [
-			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'clock' },
+			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
+			{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
 			{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
 			{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
 			{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },

@@ -125,7 +125,10 @@
 		</div>
 		{#if !data.store.open}
 			<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-				{data.store.pauseReason ?? t('header.closed')}
+				{data.store.pauseReason ??
+					(data.store.outOfHours
+						? t('header.closedUntil', { when: data.store.outOfHours })
+						: t('header.closed'))}
 			</p>
 		{/if}
 	</header>
