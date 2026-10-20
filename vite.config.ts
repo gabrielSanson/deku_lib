@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => {
 	if (mode !== 'test') {
 		for (const [k, v] of Object.entries(loadEnv(mode, process.cwd(), ''))) process.env[k] ??= v;
 	}
+	// https: and wss: already cover hosted Supabase; a plain-http local Supabase must be listed.
+	const supabase = process.env.PUBLIC_SUPABASE_URL ?? '';
+	const localSupabase = supabase.startsWith('http://') ? [supabase, supabase.replace(/^http/, 'ws')] : [];
 	return {
 		plugins: [
 			tailwindcss(),
@@ -18,7 +21,29 @@ export default defineConfig(({ mode }) => {
 					runes: ({ filename }) =>
 						filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 				},
-				adapter: adapter()
+				adapter: adapter(),
+				// Set ORIGIN at build time when the app is not served over https behind a proxy.
+				paths: { origin: process.env.ORIGIN || undefined },
+				csp: {
+					mode: 'auto',
+					directives: {
+						'default-src': ['self'],
+						'script-src': ['self'],
+						// Svelte writes inline style attributes for transitions.
+						'style-src': ['self', 'unsafe-inline'],
+						// Menu images come from Directus; QR codes are inline SVG.
+						'img-src': ['self', 'data:', 'blob:', 'https:'],
+						'font-src': ['self'],
+						// Supabase Realtime (wss) and Auth for the staff screens.
+						'connect-src': ['self', 'https:', 'wss:', ...(localSupabase as `http://localhost:${number}`[])],
+						'worker-src': ['self'],
+						'manifest-src': ['self'],
+						'frame-ancestors': ['none'],
+						'base-uri': ['self'],
+						'form-action': ['self'],
+						'object-src': ['none']
+					}
+				}
 			})
 		],
 		test: {

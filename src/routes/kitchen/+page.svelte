@@ -62,7 +62,7 @@
 	const fulfillment: Record<string, string> = { counter: 'BALCÃO', pickup: 'VIAGEM', delivery: 'ENTREGA' };
 </script>
 
-<svelte:head><title>Cozinha</title></svelte:head>
+<svelte:head><title>Cozinha</title><link rel="manifest" href="/kitchen.webmanifest" /><meta name="theme-color" content="#0c0a09" /></svelte:head>
 
 <div class="min-h-dvh bg-stone-950 text-stone-50">
 	<LiveBanner {live} />

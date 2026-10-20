@@ -16,6 +16,7 @@ const schema = z.object({
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
 	DIRECTUS_URL: z.string().url().optional(),
 	DIRECTUS_TOKEN: z.string().optional(),
+	CMS_WEBHOOK_SECRET: z.string().min(16).optional(),
 	PAYMENT_PROVIDER: z.enum(['none', 'local_stub']).default('none'),
 	IFOOD_ENABLED: flag,
 	IFOOD_CLIENT_ID: z.string().optional(),
