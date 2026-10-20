@@ -6,7 +6,7 @@ import { createOrder, transitionOrder } from '#lib/server/orders/service.ts';
 import { getOrderDetail, getPublicOrder, listKitchenOrders } from '#lib/server/orders/queries.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
 import { setSoldOut, updateStoreSettings } from '#lib/server/settings/service.ts';
-import { classic, makeStaff } from './helpers';
+import { classic, makeStaff } from './helpers.ts';
 
 let cashier: Awaited<ReturnType<typeof makeStaff>>;
 let kitchen: Awaited<ReturnType<typeof makeStaff>>;
