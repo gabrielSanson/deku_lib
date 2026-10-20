@@ -10,6 +10,7 @@
 	const t = useTexts();
 	const logo = $derived(data.branding.images.logo);
 	const soldOut = $derived(new Set(data.soldOut));
+	const missingIngredients = $derived(new Set(data.missingIngredients));
 	const sections = $derived(
 		data.catalog.categories
 			.slice()
@@ -203,7 +204,9 @@
 						<ul class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 							{#each s.products as p (p.sku)}
 								{@const out = soldOut.has(p.sku)}
-								{@const needsChoice = p.modifierGroups.length > 0}
+								{@const needsChoice =
+									p.modifierGroups.length > 0 ||
+									p.ingredients.some((i) => i.removable && missingIngredients.has(i.id))}
 								<li
 									class="flex flex-col overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition-shadow hover:shadow-lg {out
 										? 'opacity-60'

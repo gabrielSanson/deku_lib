@@ -11,7 +11,7 @@ export const load: PageServerLoad = async (event) => {
 	requireStaff(event, MANAGERS);
 	const sql = db();
 	const isNew = event.params.sku === 'novo';
-	const [categories, groups, rows, links] = await Promise.all([
+	const [categories, groups, rows, links, ingredients, used] = await Promise.all([
 		sql<
 			{ id: string; name: string }[]
 		>`select id, name from menu_categories order by position, name`,
@@ -37,7 +37,14 @@ export const load: PageServerLoad = async (event) => {
 		isNew
 			? Promise.resolve([])
 			: sql<{ group_id: string }[]>`
-				select group_id from menu_product_groups where product_sku = ${event.params.sku} order by position`
+				select group_id from menu_product_groups where product_sku = ${event.params.sku} order by position`,
+		sql<{ id: string; name: string; allergens: string[] }[]>`
+			select id, name, allergens from menu_ingredients order by position, name`,
+		isNew
+			? Promise.resolve([])
+			: sql<{ ingredient_id: string; removable: boolean }[]>`
+				select ingredient_id, removable from menu_product_ingredients
+				where product_sku = ${event.params.sku} order by position`
 	]);
 	if (!categories.length) redirect(303, '/staff/menu/edit');
 	const p = rows[0];
@@ -47,6 +54,7 @@ export const load: PageServerLoad = async (event) => {
 		categories,
 		groups,
 		stations: PREP_STATIONS,
+		ingredients,
 		product: p
 			? {
 					sku: p.sku,
@@ -60,7 +68,8 @@ export const load: PageServerLoad = async (event) => {
 					position: p.position,
 					active: p.active,
 					imageUrl: menuImageUrl(p.image_path),
-					groupIds: links.map((l) => l.group_id)
+					groupIds: links.map((l) => l.group_id),
+					ingredients: used.map((u) => ({ id: u.ingredient_id, removable: u.removable }))
 				}
 			: {
 					sku: '',
@@ -74,7 +83,8 @@ export const load: PageServerLoad = async (event) => {
 					position: 0,
 					active: true,
 					imageUrl: null,
-					groupIds: [] as string[]
+					groupIds: [] as string[],
+					ingredients: [] as { id: string; removable: boolean }[]
 				}
 	};
 };
@@ -108,6 +118,10 @@ export const actions: Actions = {
 						.map((a) => a.trim().toLowerCase())
 						.filter(Boolean),
 					groupIds: d.getAll('groupIds').map(String),
+					ingredients: d
+						.getAll('ingredientIds')
+						.map(String)
+						.map((id) => ({ id, removable: d.getAll('removable').includes(id) })),
 					position: Number(formString(d, 'position') || 0),
 					active: d.get('active') === 'on',
 					imagePath

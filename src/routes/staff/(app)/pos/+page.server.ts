@@ -3,20 +3,27 @@ import { z } from 'zod';
 import { cartLineInput } from '#lib/domain/pricing.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
 import { FRONT_OF_HOUSE, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
-import { getCatalog, soldOutSkus } from '#lib/server/catalog/service.ts';
+import { unavailableReason } from '#lib/domain/catalog.ts';
+import { getCatalog, missingIngredients, soldOutSkus } from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, FRONT_OF_HOUSE);
-	const [catalog, soldOut] = await Promise.all([getCatalog(), soldOutSkus(db(), 'counter')]);
+	const [catalog, soldOut, missing] = await Promise.all([
+		getCatalog(),
+		soldOutSkus(db(), 'counter'),
+		missingIngredients(db())
+	]);
+	for (const p of catalog.products) if (unavailableReason(p, soldOut, missing)) soldOut.add(p.sku);
 	return {
 		catalog: {
 			...catalog,
 			products: catalog.products.filter((p) => p.channels.includes('counter'))
 		},
-		soldOut: [...soldOut]
+		soldOut: [...soldOut],
+		missingIngredients: [...missing]
 	};
 };
 

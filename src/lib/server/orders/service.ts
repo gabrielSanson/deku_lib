@@ -17,7 +17,7 @@ import {
 	type PricedCart
 } from '#lib/domain/pricing.ts';
 import { audit, type Actor } from '../audit';
-import { getCatalogForPricing, soldOutSkus } from '../catalog/service';
+import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalog/service';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
@@ -125,7 +125,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			external?.cart ??
 			priceCart(catalog!, input.lines, {
 				channel: input.channel,
-				soldOut: await soldOutSkus(tx, input.channel)
+				soldOut: await soldOutSkus(tx, input.channel),
+				missingIngredients: await missingIngredients(tx)
 			});
 		const deliveryFee = external
 			? external.deliveryFeeCents

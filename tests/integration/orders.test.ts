@@ -222,3 +222,29 @@ describe('public order view', () => {
 		expect(await getPublicOrder('nope')).toBeNull();
 	});
 });
+
+describe('ingredients', () => {
+	it('stores removed ingredients and enforces ones that ran out', async () => {
+		const { setIngredientAvailable } = await import('#lib/server/catalog/editor.ts');
+		await setIngredientAvailable('tomate', false, manager);
+		try {
+			await expect(counterOrder()).rejects.toThrow('Tomate acabou');
+			const order = await createOrder({
+				channel: 'counter',
+				sourceMode: 'staff_pos',
+				lines: [{ ...classic, options: [...classic.options, { groupId: '_sem', sku: 'tomate' }] }],
+				fulfillmentType: 'counter',
+				idempotencyKey: randomUUID(),
+				initialStatus: 'confirmed',
+				actor: cashier
+			});
+			const rows = await db()<{ option_sku: string | null; option_name: string }[]>`
+				select m.option_sku, m.option_name from order_item_modifiers m
+				join order_items i on i.id = m.order_item_id where i.order_id = ${order.id}
+				and m.group_name = 'Retirar'`;
+			expect(rows).toEqual([{ option_sku: null, option_name: 'Sem tomate' }]);
+		} finally {
+			await setIngredientAvailable('tomate', true, manager);
+		}
+	});
+});

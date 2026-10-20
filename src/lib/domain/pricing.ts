@@ -1,7 +1,7 @@
 // Server-side cart pricing. The client sends SKUs, quantities and chosen
 // options; every price comes from the catalog, never from the client.
 import { z } from 'zod';
-import { productBySku, type Catalog, type Channel } from './catalog';
+import { productBySku, REMOVE_GROUP, type Catalog, type Channel } from './catalog';
 
 export const cartLineInput = z.object({
 	sku: z.string().min(1),
@@ -22,7 +22,8 @@ export type CartLineInput = z.input<typeof cartLineInput>;
 
 export interface PricedModifier {
 	groupName: string;
-	optionSku: string;
+	/** Null for removed ingredients ("Sem cebola"), which are not sold items. */
+	optionSku: string | null;
 	optionName: string;
 	quantity: number;
 	unitPriceCents: number;
@@ -62,6 +63,8 @@ export interface PricingContext {
 	channel: Channel;
 	/** SKUs currently sold out for this channel (app-owned overrides). */
 	soldOut: Set<string>;
+	/** Ingredients that ran out today. */
+	missingIngredients?: Set<string>;
 }
 
 export function priceCart(
@@ -110,8 +113,31 @@ export function priceCart(
 				});
 			}
 		}
+		const removed = new Set(
+			input.options.filter((o) => o.groupId === REMOVE_GROUP).map((o) => o.sku)
+		);
+		for (const id of removed) {
+			const ingredient = product.ingredients.find((i) => i.id === id && i.removable);
+			if (!ingredient) throw new PricingError('Opção inválida.', product.sku);
+			modifiers.push({
+				groupName: 'Retirar',
+				optionSku: null,
+				optionName: `Sem ${ingredient.name.toLowerCase()}`,
+				quantity: 1,
+				unitPriceCents: 0
+			});
+		}
+		for (const ingredient of product.ingredients) {
+			if (!ctx.missingIngredients?.has(ingredient.id) || removed.has(ingredient.id)) continue;
+			throw new PricingError(
+				ingredient.removable
+					? `${ingredient.name} acabou. Retire do ${product.name} para continuar.`
+					: `${product.name} está esgotado.`,
+				product.sku
+			);
+		}
 		const unknownGroup = input.options.find(
-			(o) => !product.modifierGroups.some((g) => g.id === o.groupId)
+			(o) => o.groupId !== REMOVE_GROUP && !product.modifierGroups.some((g) => g.id === o.groupId)
 		);
 		if (unknownGroup) throw new PricingError('Opção inválida.', product.sku);
 

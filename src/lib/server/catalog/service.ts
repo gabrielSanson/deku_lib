@@ -1,7 +1,7 @@
 // Catalog access for the app. The menu lives in our own tables and is edited in
 // the staff area (see ./editor.ts); live sold-out overrides are separate.
 // Prices are always re-read here at order time.
-import type { Catalog, Channel, ModifierGroup } from '#lib/domain/catalog.ts';
+import type { Catalog, Channel, ModifierGroup, ProductIngredient } from '#lib/domain/catalog.ts';
 import { db, type Db } from '../db';
 import { menuImageUrl } from './images';
 
@@ -12,7 +12,7 @@ export class CatalogUnavailableError extends Error {}
 
 /** Reads the active menu from the database. */
 export async function loadCatalog(sql: Db = db(), { includeInactive = false } = {}) {
-	const [[rev], categories, products, groups, options, links] = await Promise.all([
+	const [[rev], categories, products, groups, options, links, ingredients] = await Promise.all([
 		sql<{ revision: string }[]>`select revision::text from menu_revision where id = 1`,
 		sql<{ id: string; name: string; position: number; active: boolean }[]>`
 			select id, name, position, active from menu_categories order by position, name`,
@@ -47,8 +47,20 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 		>`select sku, group_id, name, price_cents, max_quantity, active
 			from menu_modifier_options order by position, name`,
 		sql<{ product_sku: string; group_id: string }[]>`
-			select product_sku, group_id from menu_product_groups order by position`
+			select product_sku, group_id from menu_product_groups order by position`,
+		sql<
+			{
+				product_sku: string;
+				id: string;
+				name: string;
+				allergens: string[];
+				removable: boolean;
+			}[]
+		>`select pi.product_sku, i.id, i.name, i.allergens, pi.removable
+			from menu_product_ingredients pi join menu_ingredients i on i.id = pi.ingredient_id
+			order by pi.position, i.name`
 	]);
+	const ingredientsOf = (sku: string) => ingredients.filter((i) => i.product_sku === sku);
 	const groupById = new Map<string, ModifierGroup>(
 		groups.map((g) => [
 			g.id,
@@ -88,7 +100,14 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 				priceCents: p.price_cents,
 				prepStation: p.prep_station,
 				channels: p.channels,
-				allergens: p.allergens,
+				allergens: [
+					...new Set([...p.allergens, ...ingredientsOf(p.sku).flatMap((i) => i.allergens)])
+				],
+				ingredients: ingredientsOf(p.sku).map((i): ProductIngredient => ({
+					id: i.id,
+					name: i.name,
+					removable: i.removable
+				})),
 				modifierGroups: links
 					.filter((l) => l.product_sku === p.sku)
 					.map((l) => groupById.get(l.group_id))
@@ -127,4 +146,10 @@ export async function soldOutSkus(sql: Db, channel: Channel): Promise<Set<string
 		where sold_out and channel in ('all', ${channel})
 	`;
 	return new Set(rows.map((r) => r.sku));
+}
+
+/** Ingredients marked as run out. Read live, like sold-out products. */
+export async function missingIngredients(sql: Db): Promise<Set<string>> {
+	const rows = await sql<{ id: string }[]>`select id from menu_ingredients where not available`;
+	return new Set(rows.map((r) => r.id));
 }

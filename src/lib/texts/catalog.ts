@@ -276,6 +276,17 @@ export const TEXTS = {
 	'product.required': { group: 'product', label: 'Escolha obrigatória', default: 'Obrigatório' },
 	'product.upTo': { group: 'product', label: 'Limite de escolhas', default: 'Até {max}' },
 	'product.optionSoldOut': { group: 'product', label: 'Opção esgotada', default: '(esgotado)' },
+	'product.removeTitle': {
+		group: 'product',
+		label: 'Retirar ingredientes: título',
+		default: 'Retirar algum ingrediente?'
+	},
+	'product.optional': { group: 'product', label: 'Escolha opcional', default: 'Opcional' },
+	'product.ingredientOut': {
+		group: 'product',
+		label: 'Ingrediente em falta',
+		default: 'acabou hoje, vai sem'
+	},
 	'product.note': { group: 'product', label: 'Observação', default: 'Alguma observação?' },
 	'product.notePlaceholder': {
 		group: 'product',

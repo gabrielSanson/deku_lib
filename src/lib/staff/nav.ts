@@ -44,6 +44,7 @@ const GROUPS: { label: string; links: Entry[] }[] = [
 				roles: MANAGER,
 				match: ['/staff/menu/products', '/staff/menu/groups']
 			},
+			{ href: '/staff/menu/ingredients', label: 'Ingredientes', icon: 'list', roles: MANAGER },
 			{ href: '/staff/menu/pages', label: 'Páginas do site', icon: 'book', roles: MANAGER }
 		]
 	},

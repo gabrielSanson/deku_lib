@@ -4,7 +4,11 @@ import { formatBRL } from '#lib/domain/money.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
 import { attempt } from '#lib/server/actions.ts';
-import { getCatalogForPricing, soldOutSkus } from '#lib/server/catalog/service.ts';
+import {
+	getCatalogForPricing,
+	missingIngredients,
+	soldOutSkus
+} from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
 import { startOnlinePayment } from '#lib/server/payments/online.ts';
@@ -64,7 +68,8 @@ export const actions: Actions = {
 			const sql = db();
 			const cart = priceCart(await getCatalogForPricing(), input.lines, {
 				channel: 'web',
-				soldOut: await soldOutSkus(sql, 'web')
+				soldOut: await soldOutSkus(sql, 'web'),
+				missingIngredients: await missingIngredients(sql)
 			});
 			let deliveryFeeCents = 0;
 			let deliveryError: string | null = null;
