@@ -53,7 +53,12 @@
 	{#if form && 'warning' in form}<p class="alert-warn">{form.warning}</p>{/if}
 
 	{#if data.step === 'loja'}
-		<form method="POST" action="?/store" use:enhance={keep} class="space-y-4 card p-4">
+		<form
+			method="POST"
+			action="?passo={data.step}&/store"
+			use:enhance={keep}
+			class="space-y-4 card p-4"
+		>
 			<h2 class="text-lg font-bold">Dados da loja</h2>
 			<p class="text-sm text-muted">Aparecem no site, no app instalado e nos comprovantes.</p>
 			<div>
@@ -108,7 +113,7 @@
 					O cardápio está vazio. Cadastre categorias, produtos, fotos e adicionais no editor, ou
 					comece pelo exemplo e ajuste.
 				</p>
-				<form method="POST" action="?/sampleMenu" use:enhance>
+				<form method="POST" action="?passo={data.step}&/sampleMenu" use:enhance>
 					<button class="btn-secondary w-full">Carregar cardápio de exemplo</button>
 				</form>
 			{/if}
@@ -119,7 +124,12 @@
 			</p>
 		</section>
 	{:else if data.step === 'entrega'}
-		<form method="POST" action="?/fulfillment" use:enhance={keep} class="space-y-3 card p-4">
+		<form
+			method="POST"
+			action="?passo={data.step}&/fulfillment"
+			use:enhance={keep}
+			class="space-y-3 card p-4"
+		>
 			<h2 class="text-lg font-bold">Retirada e entrega (pedidos do site)</h2>
 			<label class="flex min-h-11 items-center gap-3"
 				><input
@@ -156,7 +166,12 @@
 			<a class="btn-primary w-full" href="?passo={nextStep}">Continuar</a>
 		</section>
 	{:else if data.step === 'pagamentos'}
-		<form method="POST" action="?/payments" use:enhance={keep} class="space-y-4 card p-4">
+		<form
+			method="POST"
+			action="?passo={data.step}&/payments"
+			use:enhance={keep}
+			class="space-y-4 card p-4"
+		>
 			<h2 class="text-lg font-bold">Como o cliente do site paga</h2>
 			<label class="flex min-h-11 items-start gap-3"
 				><input
@@ -288,7 +303,12 @@
 			{/if}
 			{#if ifood.problem}<p class="alert-error text-sm">{ifood.problem}</p>{/if}
 
-			<form method="POST" action="?/ifoodSave" use:enhance={keep} class="space-y-3">
+			<form
+				method="POST"
+				action="?passo={data.step}&/ifoodSave"
+				use:enhance={keep}
+				class="space-y-3"
+			>
 				<div>
 					<label class="label" for="clientId">Client ID</label>
 					<input
@@ -328,7 +348,7 @@
 				</div>
 			</form>
 			{#if ifood.clientId}
-				<form method="POST" action="?/ifoodTest" use:enhance>
+				<form method="POST" action="?passo={data.step}&/ifoodTest" use:enhance>
 					<button class="btn-secondary">Testar conexão de novo</button>
 				</form>
 			{/if}
@@ -350,14 +370,14 @@
 			{/if}
 
 			{#if ifood.enabled}
-				<form method="POST" action="?/ifoodEnable" use:enhance>
+				<form method="POST" action="?passo={data.step}&/ifoodEnable" use:enhance>
 					<input type="hidden" name="enabled" value="0" />
 					<button class="btn-danger">Desligar iFood</button>
 				</form>
 			{:else if ifood.lastCheckOk && ifood.source === 'app'}
 				<form
 					method="POST"
-					action="?/ifoodEnable"
+					action="?passo={data.step}&/ifoodEnable"
 					use:enhance
 					class="space-y-2 border-t border-line pt-3"
 				>
@@ -379,7 +399,7 @@
 			>
 		</section>
 	{:else if data.step === 'concluir'}
-		<form method="POST" action="?/finish" class="space-y-3 card p-4">
+		<form method="POST" action="?passo={data.step}&/finish" class="space-y-3 card p-4">
 			<h2 class="text-lg font-bold">Tudo pronto?</h2>
 			<ul class="space-y-1 text-sm">
 				<li>{data.counts.products ? '✓' : '•'} Cardápio: {data.counts.products} produto(s)</li>
