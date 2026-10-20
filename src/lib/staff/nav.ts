@@ -52,6 +52,8 @@ const GROUPS: { label: string; links: Entry[] }[] = [
 		links: [
 			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'clock', roles: MANAGER },
 			{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store', roles: MANAGER },
+			{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings', roles: MANAGER },
+			{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book', roles: MANAGER },
 			{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck', roles: MANAGER },
 			{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid', roles: MANAGER }
 		]

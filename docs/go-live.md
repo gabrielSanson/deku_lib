@@ -51,7 +51,9 @@ points to **Configuração** until it is finished:
 7. **Concluir:** review and open the store.
 
 Also edit the site's text pages (about, allergens, privacy, delivery terms) in
-Cardápio → Editar cardápio → Páginas do site.
+Cardápio → Editar cardápio → Páginas do site. Change the site's colours, logos
+and app icon in Configurações → Aparência, and any button, notice or message the
+customer sees in Configurações → Textos.
 
 ## 4. Before opening
 

@@ -3,13 +3,17 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import Money from '#lib/components/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let {
 		products,
 		store,
+		logo,
 		onclose
 	}: {
 		products: Product[];
+		/** The shop's small logo, shown where a photo is missing. */
+		logo: string;
 		store: {
 			open: boolean;
 			delivery: boolean;
@@ -21,16 +25,17 @@
 		onclose?: () => void;
 	} = $props();
 
+	const t = useTexts();
 	const images = $derived(new Map(products.map((p) => [p.sku, p.imageUrl])));
 	const payHint = $derived(
 		[
-			store.pixKey ? 'Pix' : null,
+			store.pixKey ? t('cart.pay.pix') : null,
 			store.payOnFulfillment
 				? store.delivery && store.pickup
-					? 'pagamento na entrega ou retirada'
+					? t('cart.pay.both')
 					: store.delivery
-						? 'pagamento na entrega'
-						: 'pagamento na retirada'
+						? t('cart.pay.delivery')
+						: t('cart.pay.pickup')
 				: null
 		]
 			.filter(Boolean)
@@ -41,7 +46,7 @@
 <div class="flex h-full flex-col rounded-3xl bg-night text-white shadow-2xl ring-1 ring-night-line">
 	<header class="flex items-center gap-3 border-b border-night-line px-6 py-5">
 		<Icon name="cart" class="size-7 text-brand-500" />
-		<h2 class="text-xl font-bold">Seu pedido</h2>
+		<h2 class="text-xl font-bold">{t('cart.title')}</h2>
 		{#if cart.count}
 			<span
 				class="grid size-6 place-items-center rounded-full bg-brand-500 text-xs font-black text-black tabular-nums"
@@ -52,19 +57,19 @@
 			<button
 				class="ml-auto grid size-10 place-items-center rounded-full hover:bg-night-2"
 				onclick={onclose}
-				aria-label="Fechar carrinho"><Icon name="close" class="size-6" /></button
+				aria-label={t('cart.close')}><Icon name="close" class="size-6" /></button
 			>
 		{/if}
 	</header>
 
 	{#if !cart.ready}
-		<p class="px-6 py-8 text-stone-400">Carregando…</p>
+		<p class="px-6 py-8 text-stone-400">{t('errors.loading')}</p>
 	{:else if cart.lines.length === 0}
 		<div class="grid flex-1 place-items-center px-6 py-10 text-center">
 			<div>
-				<img src="/brand/deku-mark.png" alt="" class="mx-auto mb-4 h-20 w-auto opacity-30" />
-				<p class="font-semibold">Seu carrinho está vazio.</p>
-				<p class="mt-1 text-sm text-stone-400">Escolha um burger e ele aparece aqui.</p>
+				<img src={logo} alt="" class="mx-auto mb-4 h-20 w-auto opacity-30" />
+				<p class="font-semibold">{t('cart.empty')}</p>
+				<p class="mt-1 text-sm text-stone-400">{t('cart.emptyHint')}</p>
 			</div>
 		</div>
 	{:else}
@@ -78,7 +83,7 @@
 						{#if img}
 							<img src={img} alt="" class="size-full object-cover" loading="lazy" />
 						{:else}
-							<img src="/brand/deku-mark.png" alt="" class="h-12 w-auto opacity-40" />
+							<img src={logo} alt="" class="h-12 w-auto opacity-40" />
 						{/if}
 					</div>
 					<div class="min-w-0 flex-1">
@@ -95,19 +100,21 @@
 								<button
 									class="grid size-8 place-items-center rounded-full hover:bg-night-2"
 									onclick={() => cart.setQuantity(l.key, l.quantity - 1)}
-									aria-label="Remover um {l.name}"><Icon name="minus" class="size-4" /></button
+									aria-label={t('cart.removeOne', { item: l.name })}
+									><Icon name="minus" class="size-4" /></button
 								>
 								<span class="w-7 text-center text-sm font-semibold tabular-nums">{l.quantity}</span>
 								<button
 									class="grid size-8 place-items-center rounded-full hover:bg-night-2"
 									onclick={() => cart.setQuantity(l.key, Math.min(50, l.quantity + 1))}
-									aria-label="Adicionar um {l.name}"><Icon name="plus" class="size-4" /></button
+									aria-label={t('cart.addOne', { item: l.name })}
+									><Icon name="plus" class="size-4" /></button
 								>
 							</div>
 							<button
 								class="grid size-9 place-items-center rounded-full text-stone-300 hover:bg-night-2 hover:text-white"
 								onclick={() => cart.setQuantity(l.key, 0)}
-								aria-label="Tirar {l.name} do carrinho"><Icon name="trash" /></button
+								aria-label={t('cart.remove', { item: l.name })}><Icon name="trash" /></button
 							>
 						</div>
 					</div>
@@ -117,22 +124,22 @@
 
 		<div class="space-y-2 border-t border-night-line px-6 pt-5 text-stone-200">
 			<div class="flex justify-between">
-				<span>Subtotal</span><Money cents={cart.subtotalCents} />
+				<span>{t('cart.subtotal')}</span><Money cents={cart.subtotalCents} />
 			</div>
 			{#if store.delivery}
 				<div class="flex justify-between gap-4">
-					<span>Taxa de entrega</span><span class="text-sm text-stone-400"
-						>calculada no checkout</span
+					<span>{t('cart.deliveryFee')}</span><span class="text-sm text-stone-400"
+						>{t('cart.deliveryFeeLater')}</span
 					>
 				</div>
 			{/if}
 		</div>
 		<div class="mx-6 mt-4 flex items-baseline justify-between border-t border-night-line pt-4">
-			<span class="text-lg font-bold">Total</span>
+			<span class="text-lg font-bold">{t('cart.total')}</span>
 			<Money cents={cart.subtotalCents} class="font-display text-3xl text-brand-500" />
 		</div>
 		{#if store.delivery}<p class="px-6 text-right text-xs text-stone-400">
-				+ entrega, se houver
+				{t('cart.plusDelivery')}
 			</p>{/if}
 	{/if}
 
@@ -145,14 +152,14 @@
 			aria-disabled={!store.open || !cart.count}
 			onclick={() => onclose?.()}
 		>
-			{store.open ? 'Finalizar pedido' : 'Loja fechada agora'}
+			{store.open ? t('cart.checkout') : t('cart.closedNow')}
 			<Icon name="arrow" />
 		</a>
 		{#if payHint}
 			<p class="flex items-center gap-3 text-sm">
 				<Icon name="lock" class="size-6 shrink-0 text-brand-500" />
 				<span
-					><span class="block font-semibold">Pagamento seguro</span><span
+					><span class="block font-semibold">{t('cart.securePayment')}</span><span
 						class="block text-xs text-stone-400 first-letter:uppercase">{payHint}</span
 					></span
 				>

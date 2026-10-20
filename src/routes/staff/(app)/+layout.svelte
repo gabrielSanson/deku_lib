@@ -13,8 +13,8 @@
 
 {#snippet brand()}
 	<a href="/staff" class="flex shrink-0 items-center gap-2" aria-label="{data.shopName}, início">
-		<img src="/brand/deku-mark.png" alt="" class="h-8 w-auto" />
-		<img src="/brand/deku-wordmark.png" alt={data.shopName} class="h-5 w-auto" />
+		<img src={data.branding.images.logo} alt="" class="h-8 w-auto" />
+		<img src={data.branding.images.wordmark} alt={data.shopName} class="h-5 w-auto" />
 	</a>
 {/snippet}
 

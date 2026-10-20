@@ -3,9 +3,12 @@
 	import Icon, { type IconName } from '#lib/components/Icon.svelte';
 	import Money from '#lib/components/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 	import CartPanel from './CartPanel.svelte';
 
 	let { data } = $props();
+	const t = useTexts();
+	const logo = $derived(data.branding.images.logo);
 	const soldOut = $derived(new Set(data.soldOut));
 	const sections = $derived(
 		data.catalog.categories
@@ -22,11 +25,27 @@
 
 	const fulfilment = $derived(
 		data.store.delivery && data.store.pickup
-			? { title: 'Delivery e Retirada', hint: 'No conforto da sua casa ou na loja' }
+			? { title: t('home.badge.both.title'), hint: t('home.badge.both.text') }
 			: data.store.delivery
-				? { title: 'Delivery', hint: 'No conforto da sua casa' }
-				: { title: 'Retirada na loja', hint: 'Peça agora e retire quentinho' }
+				? { title: t('home.badge.delivery.title'), hint: t('home.badge.delivery.text') }
+				: { title: t('home.badge.pickup.title'), hint: t('home.badge.pickup.text') }
 	);
+
+	const howTo = $derived([
+		{ icon: 'burger', title: t('home.howTo.1.title'), text: t('home.howTo.1.text') },
+		data.store.delivery
+			? {
+					icon: 'truck',
+					title: t('home.howTo.2.delivery.title'),
+					text: t('home.howTo.2.delivery.text')
+				}
+			: {
+					icon: 'truck',
+					title: t('home.howTo.2.pickup.title'),
+					text: t('home.howTo.2.pickup.text')
+				},
+		{ icon: 'pin', title: t('home.howTo.3.title'), text: t('home.howTo.3.text') }
+	]);
 
 	function iconFor(name: string): IconName {
 		const n = name.toLowerCase();
@@ -51,8 +70,8 @@
 </script>
 
 <svelte:head>
-	<title>{data.shopName} · Cardápio</title>
-	<meta name="description" content="Peça seus burgers online para retirada ou entrega." />
+	<title>{t('home.pageTitle', { name: data.shopName })}</title>
+	<meta name="description" content={t('home.metaDescription')} />
 </svelte:head>
 
 <div class="relative overflow-x-clip lg:bg-brand-500">
@@ -78,32 +97,32 @@
 			<!-- Hero -->
 			<section class="relative overflow-hidden bg-night text-white lg:rounded-t-3xl">
 				<div
-					class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_45%,rgba(255,188,0,0.28),transparent_60%)]"
+					class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_45%,color-mix(in_srgb,var(--color-brand-500)_28%,transparent),transparent_60%)]"
 				></div>
 				<div
 					class="relative grid items-center gap-6 px-5 pt-10 pb-8 sm:px-10 md:grid-cols-[1.25fr_1fr]"
 				>
 					<div>
 						<h1
-							class="font-display text-[2.6rem] leading-[0.95] text-brand-500 uppercase sm:text-6xl md:text-5xl xl:text-6xl"
+							class="font-display text-[2.6rem] leading-[0.95] whitespace-pre-line text-brand-500 uppercase sm:text-6xl md:text-5xl xl:text-6xl"
 						>
-							Seu próximo<br />burger favorito.
+							{t('home.hero.title')}
 						</h1>
 						<p class="mt-5 max-w-md text-base text-stone-200 sm:text-lg">
-							Ingredientes selecionados, carne de verdade e muito sabor. Peça agora e receba no
-							conforto da sua casa ou retire na loja.
+							{t('home.hero.text')}
 						</p>
 						<div class="mt-7 flex flex-wrap items-center gap-4">
 							<a
 								href="#cardapio"
 								class="btn-primary min-h-12 rounded-full px-8 tracking-wide uppercase"
 							>
-								Pedir agora <Icon name="arrow" />
+								{t('home.hero.cta')}
+								<Icon name="arrow" />
 							</a>
 							{#if data.store.open}
 								<span class="flex items-center gap-2 text-sm text-stone-300">
-									<Icon name="clock" class="size-4 text-brand-500" /> Pronto em cerca de {data.store
-										.prepTimeMinutes} min
+									<Icon name="clock" class="size-4 text-brand-500" />
+									{t('home.hero.prepTime', { minutes: data.store.prepTimeMinutes })}
 								</span>
 							{/if}
 						</div>
@@ -113,13 +132,13 @@
 							<img
 								src={hero.imageUrl}
 								alt={hero.name}
-								class="absolute inset-0 size-full rounded-full object-cover shadow-[0_0_80px_rgba(255,188,0,0.25)]"
+								class="absolute inset-0 size-full rounded-full object-cover shadow-[0_0_80px_color-mix(in_srgb,var(--color-brand-500)_25%,transparent)]"
 							/>
 						{:else}
 							<img
-								src="/brand/deku-logo.png"
+								src={data.branding.images.heroLogo}
 								alt=""
-								class="absolute inset-0 m-auto h-[88%] w-auto drop-shadow-[0_0_50px_rgba(255,188,0,0.35)]"
+								class="absolute inset-0 m-auto h-[88%] w-auto drop-shadow-[0_0_50px_color-mix(in_srgb,var(--color-brand-500)_35%,transparent)]"
 							/>
 						{/if}
 					</div>
@@ -138,8 +157,8 @@
 							<div class="flex items-center gap-3 sm:border-l sm:border-stone-700 sm:pl-8">
 								<Icon name="pix" class="size-8 text-brand-500" strokeWidth={1.75} />
 								<div>
-									<p class="text-sm font-semibold">Pague com Pix</p>
-									<p class="text-xs text-stone-400">Rápido, seguro e sem complicação</p>
+									<p class="text-sm font-semibold">{t('home.badge.pix.title')}</p>
+									<p class="text-xs text-stone-400">{t('home.badge.pix.text')}</p>
 								</div>
 							</div>
 						{/if}
@@ -154,12 +173,13 @@
 			>
 				<nav
 					class="sticky top-16 z-10 -mx-4 mb-6 flex gap-3 overflow-x-auto bg-canvas px-4 py-3 sm:top-20 sm:-mx-6 sm:px-6"
-					aria-label="Categorias"
+					aria-label={t('home.categories')}
 				>
 					<button
 						class="pill {selected === null ? 'pill-on' : ''}"
 						aria-pressed={selected === null}
-						onclick={() => (selected = null)}><Icon name="grid" class="size-6" />Todos</button
+						onclick={() => (selected = null)}
+						><Icon name="grid" class="size-6" />{t('home.all')}</button
 					>
 					{#each sections as s (s.id)}
 						<button
@@ -173,7 +193,7 @@
 
 				{#if sections.length === 0}
 					<p class="py-10 text-center text-muted">
-						O cardápio ainda está sendo montado. Volte logo!
+						{t('home.emptyMenu')}
 					</p>
 				{/if}
 
@@ -204,15 +224,15 @@
 											/>
 										{:else}
 											<div
-												class="grid size-full place-items-center bg-[radial-gradient(circle_at_50%_60%,rgba(255,188,0,0.22),transparent_65%)]"
+												class="grid size-full place-items-center bg-[radial-gradient(circle_at_50%_60%,color-mix(in_srgb,var(--color-brand-500)_22%,transparent),transparent_65%)]"
 											>
-												<img src="/brand/deku-mark.png" alt="" class="h-1/2 w-auto opacity-80" />
+												<img src={logo} alt="" class="h-1/2 w-auto opacity-80" />
 											</div>
 										{/if}
 										{#if out}
 											<span
 												class="absolute top-3 left-3 rounded-md bg-red-700 px-2 py-1 text-xs font-black text-white uppercase"
-												>Esgotado</span
+												>{t('home.soldOut')}</span
 											>
 										{/if}
 									</a>
@@ -223,19 +243,20 @@
 										<p class="mt-1 line-clamp-3 text-sm text-muted">{p.description}</p>
 										<p class="mt-auto pt-4 text-2xl font-extrabold">
 											{#if needsChoice}<span class="text-sm font-semibold text-muted"
-													>a partir de&nbsp;</span
+													>{t('home.from')}&nbsp;</span
 												>{/if}<Money cents={p.priceCents} />
 										</p>
 										{#if out || !data.store.open}
 											<span class="mt-3 btn w-full rounded-full bg-stone-200 text-sm text-muted"
-												>{out ? 'Esgotado' : 'Loja fechada'}</span
+												>{out ? t('home.soldOut') : t('home.closed')}</span
 											>
 										{:else if needsChoice}
 											<a
 												href="/menu/{p.slug}"
 												class="mt-3 btn-primary w-full rounded-full px-3 text-sm whitespace-nowrap"
 											>
-												<Icon name="cart" /> Adicionar ao carrinho
+												<Icon name="cart" />
+												{t('home.add')}
 											</a>
 										{:else}
 											<button
@@ -243,9 +264,8 @@
 												onclick={() => quickAdd(p)}
 												aria-live="polite"
 											>
-												{#if justAdded === p.sku}<Icon name="check" /> Adicionado!{:else}<Icon
-														name="cart"
-													/> Adicionar ao carrinho{/if}
+												{#if justAdded === p.sku}<Icon name="check" />
+													{t('home.added')}{:else}<Icon name="cart" /> {t('home.add')}{/if}
 											</button>
 										{/if}
 									</div>
@@ -257,9 +277,9 @@
 
 				<!-- How to order -->
 				<section id="como-pedir" class="scroll-mt-24 rounded-2xl bg-night p-6 text-white sm:p-8">
-					<h2 class="font-display text-2xl text-brand-500 uppercase">Como pedir</h2>
+					<h2 class="font-display text-2xl text-brand-500 uppercase">{t('home.howTo.title')}</h2>
 					<ol class="mt-5 grid gap-5 sm:grid-cols-3">
-						{#each [{ icon: 'burger', title: 'Escolha', text: 'Monte seu pedido no cardápio e ajuste os adicionais.' }, { icon: 'truck', title: data.store.delivery ? 'Entrega ou retirada' : 'Retirada', text: data.store.delivery ? 'Informe o CEP para ver a taxa, ou retire na loja.' : 'Passe na loja quando estiver pronto.' }, { icon: 'pin', title: 'Acompanhe', text: 'Você recebe um link para seguir o pedido em tempo real.' }] as step, i (step.title)}
+						{#each howTo as step, i (i)}
 							<li class="flex gap-4">
 								<span
 									class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 font-display text-xl text-black"
@@ -285,9 +305,9 @@
 				tabindex="-1"
 				role="region"
 				class="sticky top-26 h-[calc(100dvh-8rem)] max-h-[760px] rounded-3xl outline-none focus-visible:ring-4 focus-visible:ring-black"
-				aria-label="Seu pedido"
+				aria-label={t('cart.title')}
 			>
-				<CartPanel products={data.catalog.products} store={data.store} />
+				<CartPanel products={data.catalog.products} store={data.store} {logo} />
 			</div>
 		</aside>
 	</div>
