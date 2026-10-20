@@ -56,6 +56,7 @@ export interface CreateOrderInput {
 	isTest?: boolean;
 	/** Channels that collect payment themselves (iFood) report it here. */
 	paymentStatus?: PaymentStatus;
+	paymentPlan?: 'counter' | 'online' | 'on_fulfillment' | 'channel';
 	actor: OrderActor;
 }
 
@@ -133,7 +134,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				channel, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
-				promised_at, accepted_at, created_by
+				promised_at, accepted_at, created_by, payment_plan
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -142,7 +143,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${discount}, ${deliveryFee}, ${total},
 				${input.deliveryRule ? tx.json(input.deliveryRule as never) : null}, ${input.notes ?? null},
 				${cart.catalogVersion}, ${input.idempotencyKey}, ${input.isTest ?? false},
-				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId}
+				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
+				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')}
 			)
 			on conflict (idempotency_key) do nothing
 			returning id, order_number, public_token`;
