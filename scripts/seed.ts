@@ -10,7 +10,7 @@ import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { closeDb } from '#lib/server/db.ts';
 
 const { DATABASE_URL, PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-const password = process.env.SEED_PASSWORD ?? 'burger123';
+const password = process.env.SEED_PASSWORD || 'burger123';
 if (!DATABASE_URL || !PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 	throw new Error('DATABASE_URL, PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
 }
