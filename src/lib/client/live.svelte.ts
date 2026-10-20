@@ -11,12 +11,13 @@ export interface LiveState {
 }
 
 export function useLiveOrders(
-	config: { supabaseUrl: string | null; supabaseAnonKey: string | null },
+	getConfig: () => { supabaseUrl: string | null; supabaseAnonKey: string | null },
 	onChange?: () => void
 ): LiveState {
 	const state = $state<LiveState>({ connected: false, lastRefresh: new Date() });
 
 	onMount(() => {
+		const config = getConfig();
 		let poll: ReturnType<typeof setInterval> | undefined;
 		let stopped = false;
 		const refresh = async () => {

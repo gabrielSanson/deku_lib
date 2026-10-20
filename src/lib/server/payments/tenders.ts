@@ -14,15 +14,7 @@ export type TenderMethod =
 	| 'online_card'
 	| 'ifood_collected';
 
-export const METHOD_LABEL_PT: Record<TenderMethod, string> = {
-	cash: 'Dinheiro',
-	external_pix: 'Pix (conferido)',
-	terminal_card: 'Cartão (maquininha)',
-	softpos_nfc: 'Cartão por aproximação (celular)',
-	pix: 'Pix online',
-	online_card: 'Cartão online',
-	ifood_collected: 'Pago no iFood'
-};
+export { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 
 export interface ManualTenderInput {
 	orderId: string;
