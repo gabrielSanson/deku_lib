@@ -2,10 +2,10 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import Icon from '#lib/components/Icon.svelte';
-	import { activeHref, navFor } from '#lib/staff/nav.ts';
+	import { activeHref, NAV } from '#lib/staff/nav.ts';
 
 	let { data, children } = $props();
-	const groups = $derived(navFor(data.staff.role));
+	const groups = NAV;
 	const current = $derived(activeHref(groups, page.url.pathname));
 	let drawerOpen = $state(false);
 	afterNavigate(() => (drawerOpen = false));

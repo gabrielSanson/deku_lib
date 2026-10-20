@@ -76,8 +76,8 @@ export async function refundTender(
 	reason: string,
 	actor: Actor & { role: StaffRole }
 ) {
-	if (actor.role !== 'owner' && actor.role !== 'manager') {
-		throw new DomainError('Somente gerente ou dono pode estornar.', 'forbidden', 403);
+	if (actor.role !== 'admin') {
+		throw new DomainError('Somente um admin pode estornar.', 'forbidden', 403);
 	}
 	if (!reason.trim()) throw new DomainError('Informe o motivo do estorno.', 'reason_required');
 	return db().begin(async (tx) => {

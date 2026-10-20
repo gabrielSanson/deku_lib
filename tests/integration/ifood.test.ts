@@ -157,7 +157,7 @@ describe('mirroring our changes to iFood', () => {
 		const [o] = await db()<
 			{ id: string }[]
 		>`select id from orders where channel_order_id = ${orderId}`;
-		const manager = await makeStaff('manager');
+		const manager = await makeStaff('admin');
 		await transitionOrder({ orderId: o.id, to: 'confirmed', actor: manager });
 
 		expect(await syncOrderToIfood({ orderId: o.id, to: 'confirmed' }, client)).toBe('sent');

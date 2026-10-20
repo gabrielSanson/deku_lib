@@ -22,7 +22,7 @@
 	const next = $derived(
 		allowedNextStatuses(o.status).filter((s) => roleMayTransition(data.staff.role, o.status, s))
 	);
-	const manager = $derived(data.staff.role === 'owner' || data.staff.role === 'manager');
+	const manager = $derived(data.staff.role === 'admin');
 	let reasonFor = $state<OrderStatus | null>(null);
 	let refunding = $state<string | null>(null);
 

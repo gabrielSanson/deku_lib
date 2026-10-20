@@ -1,4 +1,4 @@
-// Creates (or re-activates) the first owner account on a fresh install.
+// Creates (or re-activates) the first admin account on a fresh install.
 //   node --import tsx scripts/create-owner.ts <email> "<name>" <password>
 // On the self-hosted stack: deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts …
 import { createClient } from '@supabase/supabase-js';
@@ -36,8 +36,8 @@ try {
 		await admin.auth.admin.updateUserById(id, { password });
 	}
 	await sql`
-		insert into staff_users (id, display_name, role) values (${id}, ${name}, 'owner')
-		on conflict (id) do update set display_name = excluded.display_name, role = 'owner', active = true`;
+		insert into staff_users (id, display_name, role) values (${id}, ${name}, 'admin')
+		on conflict (id) do update set display_name = excluded.display_name, role = 'admin', active = true`;
 	console.log(`Owner ready: ${email}. Sign in at /staff/login to run the setup wizard.`);
 } finally {
 	await sql.end();

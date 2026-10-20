@@ -96,7 +96,9 @@
 <div class="min-h-dvh bg-stone-950 text-stone-50">
 	<LiveBanner {live} />
 	<header class="flex items-center gap-3 border-b border-stone-800 px-4 py-2">
-		<a href="/staff" class="font-bold text-orange-400">← Equipe</a>
+		{#if data.staff.role === 'admin'}
+			<a href="/staff" class="font-bold text-orange-400">← Painel</a>
+		{/if}
 		<h1 class="text-xl font-black tracking-wide">COZINHA</h1>
 		<div class="flex gap-1" role="radiogroup" aria-label="Estação">
 			{#each stations as s (s)}
@@ -118,6 +120,11 @@
 				if (!muted) chime();
 			}}>{muted ? '🔇 Som desligado' : '🔔 Som ligado'}</button
 		>
+		{#if data.staff.role === 'kitchen'}
+			<form method="POST" action="/staff/logout">
+				<button class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold">Sair</button>
+			</form>
+		{/if}
 	</header>
 	{#if form?.error}<p class="bg-red-700 px-4 py-2 font-semibold" role="alert">{form.error}</p>{/if}
 

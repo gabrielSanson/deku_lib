@@ -24,7 +24,7 @@
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<h1 class="text-xl font-bold">Disponibilidade do cardápio</h1>
-		{#if data.staff.role === 'owner' || data.staff.role === 'manager'}
+		{#if data.staff.role === 'admin'}
 			<a class="btn-secondary" href="/staff/menu/edit">Editar cardápio</a>
 		{/if}
 	</div>
@@ -36,9 +36,9 @@
 
 	{#if data.catalog.products.length === 0}
 		<p class="alert-warn">
-			O cardápio está vazio. {data.staff.role === 'owner' || data.staff.role === 'manager'
+			O cardápio está vazio. {data.staff.role === 'admin'
 				? 'Cadastre os produtos em "Editar cardápio".'
-				: 'Peça ao gerente para cadastrar os produtos.'}
+				: 'Peça a um admin para cadastrar os produtos.'}
 		</p>
 	{/if}
 

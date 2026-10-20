@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { FRONT_OF_HOUSE, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import {
@@ -12,7 +12,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, FRONT_OF_HOUSE);
+	requireStaff(event, ADMIN);
 	const order = await getOrderDetail(event.params.id);
 	if (!order) error(404, 'Pedido não encontrado.');
 	const paidCents = order.tenders
@@ -23,7 +23,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	pay: async (event) => {
-		const staff = requireStaff(event, FRONT_OF_HOUSE);
+		const staff = requireStaff(event, ADMIN);
 		const data = await event.request.formData();
 		const method = formString(data, 'method') as ManualMethod;
 		if (!MANUAL_METHODS.includes(method))
@@ -46,7 +46,7 @@ export const actions: Actions = {
 		return result;
 	},
 	cancel: async (event) => {
-		const staff = requireStaff(event, FRONT_OF_HOUSE);
+		const staff = requireStaff(event, ADMIN);
 		const data = await event.request.formData();
 		const result = await attempt(() =>
 			transitionOrder({

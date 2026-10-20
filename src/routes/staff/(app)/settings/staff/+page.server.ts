@@ -7,19 +7,19 @@ import {
 	listStaff,
 	updateStaff
 } from '#lib/server/auth/admin.ts';
-import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-const ROLES: StaffRole[] = ['owner', 'manager', 'cashier', 'kitchen'];
+const ROLES: StaffRole[] = ['admin', 'kitchen'];
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	return { people: await listStaff(), canCreate: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) };
 };
 
 export const actions: Actions = {
 	update: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const role = formString(d, 'role') as StaffRole;
 		const active = formString(d, 'active');
@@ -33,7 +33,7 @@ export const actions: Actions = {
 		});
 	},
 	add: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const role = formString(d, 'role') as StaffRole;
 		if (!ROLES.includes(role)) return fail(400, { error: 'Perfil inválido.' });

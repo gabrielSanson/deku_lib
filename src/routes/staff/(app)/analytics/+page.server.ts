@@ -1,9 +1,9 @@
 import * as a from '#lib/server/analytics/queries.ts';
-import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	const q = event.url.searchParams;
 	const preset = q.get('range') ?? '7d';
 	const range = a.resolveRange(preset, q.get('from'), q.get('to'));

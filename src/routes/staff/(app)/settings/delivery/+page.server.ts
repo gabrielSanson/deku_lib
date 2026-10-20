@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { matchDeliveryRule } from '#lib/domain/pricing.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	deleteDeliveryRule,
 	listDeliveryRules,
@@ -11,7 +11,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	const rules = await listDeliveryRules();
 	const cep = event.url.searchParams.get('cep') ?? '';
 	const hood = event.url.searchParams.get('bairro') ?? '';
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const kind = formString(d, 'matchKind');
 		if (kind !== 'cep_prefix' && kind !== 'neighborhood')
@@ -51,7 +51,7 @@ export const actions: Actions = {
 		});
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		await deleteDeliveryRule(formString(await event.request.formData(), 'id'), staffActor(staff));
 		return { ok: true };
 	}

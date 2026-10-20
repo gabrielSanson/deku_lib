@@ -17,7 +17,7 @@ import { classic, makeStaff } from './helpers.ts';
 beforeAll(async () => {
 	process.env.PAYMENT_PROVIDER = 'local_stub';
 	resetConfigForTests();
-	const owner = await makeStaff('owner');
+	const owner = await makeStaff('admin');
 	const s = await getStoreSettings();
 	await updateStoreSettings(
 		{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true },

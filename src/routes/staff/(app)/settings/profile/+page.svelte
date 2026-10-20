@@ -4,7 +4,6 @@
 
 	let { data, form } = $props();
 	const p = $derived(data.profile);
-	const owner = $derived(data.staff.role === 'owner');
 	let pixEnabled = $derived(data.profile.pix.enabled);
 	const keep =
 		() =>
@@ -64,10 +63,7 @@
 
 	<form method="POST" action="?/payments" use:enhance={keep} class="space-y-4 card p-4">
 		<h2 class="font-semibold">Como o cliente do site paga</h2>
-		{#if !owner}
-			<p class="alert-warn">Só o dono pode mudar a chave Pix e as formas de pagamento.</p>
-		{/if}
-		<fieldset class="space-y-4" disabled={!owner}>
+		<fieldset class="space-y-4">
 			<label class="flex min-h-11 items-start gap-3"
 				><input
 					type="checkbox"
@@ -150,7 +146,7 @@
 			<p class="alert-ok">Pagamentos salvos.</p>
 			{#if form.warning}<p class="alert-warn">{form.warning}</p>{/if}
 		{/if}
-		{#if owner}<button class="btn-primary">Salvar pagamentos</button>{/if}
+		<button class="btn-primary">Salvar pagamentos</button>
 	</form>
 	<FormError message={form?.error} />
 </div>

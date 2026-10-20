@@ -10,7 +10,7 @@
 	let { data, form } = $props();
 
 	const soldOut = $derived(new Set(data.soldOut));
-	const canDiscount = $derived(data.staff.role === 'owner' || data.staff.role === 'manager');
+	const canDiscount = $derived(data.staff.role === 'admin');
 
 	let category = $state<string | null>(null);
 	let search = $state('');

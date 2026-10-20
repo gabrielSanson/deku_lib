@@ -13,9 +13,9 @@ let kitchen: Awaited<ReturnType<typeof makeStaff>>;
 let manager: Awaited<ReturnType<typeof makeStaff>>;
 
 beforeAll(async () => {
-	cashier = await makeStaff('cashier');
+	cashier = await makeStaff('admin');
 	kitchen = await makeStaff('kitchen');
-	manager = await makeStaff('manager');
+	manager = await makeStaff('admin');
 });
 
 afterAll(async () => {
@@ -119,7 +119,7 @@ describe('transitions', () => {
 		const order = await counterOrder();
 		await transitionOrder({ orderId: order.id, to: 'preparing', actor: kitchen });
 		await expect(
-			transitionOrder({ orderId: order.id, to: 'cancelled', actor: cashier, reason: 'x' })
+			transitionOrder({ orderId: order.id, to: 'cancelled', actor: kitchen, reason: 'x' })
 		).rejects.toThrow(/perfil/);
 		await expect(
 			transitionOrder({ orderId: order.id, to: 'cancelled', actor: manager })
@@ -207,7 +207,7 @@ describe('tenders', () => {
 			actor: cashier
 		});
 		const [t] = await db()<{ id: string }[]>`select id from tenders where order_id = ${order.id}`;
-		await expect(refundTender(t.id, 'erro', cashier)).rejects.toThrow(/gerente/);
+		await expect(refundTender(t.id, 'erro', kitchen)).rejects.toThrow(/admin/);
 		await refundTender(t.id, 'Cobrado em dobro', manager);
 		expect((await getOrderDetail(order.id))?.paymentStatus).toBe('refunded');
 	});

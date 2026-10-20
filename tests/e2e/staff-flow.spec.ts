@@ -12,7 +12,7 @@ async function login(page: Page, email: string, next = '/staff') {
 }
 
 test('cashier sells at the counter and the kitchen completes it', async ({ page, browser }) => {
-	await login(page, 'caixa@burger.local', '/staff/pos');
+	await login(page, 'admin@burger.local', '/staff/pos');
 
 	await page.getByRole('button', { name: /Bacon Cheddar/ }).click();
 	const sheet = page.getByRole('dialog');

@@ -1,17 +1,17 @@
 import { fail } from '@sveltejs/kit';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	return {};
 };
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const prep = Number(formString(d, 'prepTimeMinutes'));
 		const maxRaw = formString(d, 'maxOpenOrders');
@@ -39,7 +39,7 @@ export const actions: Actions = {
 		});
 	},
 	toggle: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const open = formString(d, 'open') === '1';
 		return attempt(async () => {

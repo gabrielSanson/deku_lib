@@ -1,14 +1,14 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { deleteProduct, PREP_STATIONS, saveProduct } from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	const sql = db();
 	const isNew = event.params.sku === 'novo';
 	const [categories, groups, rows, links, ingredients, used] = await Promise.all([
@@ -91,7 +91,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const price = parseBRL(formString(d, 'price'));
 		if (price === null) return fail(400, { error: 'Preço inválido. Use por exemplo 29,90.' });
@@ -135,7 +135,7 @@ export const actions: Actions = {
 		redirect(303, isNew ? `/staff/menu/products/${result.sku}?salvo=1` : `?salvo=1`);
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const result = await attempt(async () => {
 			await deleteProduct(event.params.sku, staffActor(staff));
 			return { ok: true };

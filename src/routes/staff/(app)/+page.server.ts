@@ -1,5 +1,5 @@
 import { overview, salesByDay, todayLocal, topProducts } from '#lib/server/analytics/queries.ts';
-import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
@@ -42,6 +42,6 @@ export const load: PageServerLoad = async (event) => {
 		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
 		return [] as string[];
 	});
-	const sales = MANAGERS.includes(staff.role) ? await salesToday() : null;
+	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
 	return { counts, urgent, ifoodAlerts, sales };
 };
