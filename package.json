@@ -13,7 +13,14 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "vitest run --project server",
+		"start": "node build",
+		"worker": "node --env-file-if-exists=.env --import tsx scripts/worker.ts",
+		"migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
+		"seed": "node --env-file-if-exists=.env --import tsx scripts/seed.ts",
+		"cms:bootstrap": "node --env-file-if-exists=.env --import tsx scripts/directus-bootstrap.ts",
+		"test:integration": "vitest run --project integration",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -35,7 +42,6 @@
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
-		"tsx": "^4.23.15",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.3.0",
@@ -51,6 +57,7 @@
 		"pg-boss": "^12.38.0",
 		"postgres": "^3.4.9",
 		"qrcode": "^1.5.4",
-		"zod": "^4.6.7"
+		"zod": "^4.6.7",
+		"tsx": "^4.23.15"
 	}
 }

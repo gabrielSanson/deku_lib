@@ -29,6 +29,7 @@ export interface OrderSummary {
 	channel: 'counter' | 'web' | 'ifood';
 	sourceMode: string;
 	customerLabel: string | null;
+	channelDisplayId: string | null;
 	status: OrderStatus;
 	paymentStatus: PaymentStatus;
 	fulfillmentType: 'counter' | 'pickup' | 'delivery';
@@ -50,6 +51,7 @@ interface OrderRow {
 	channel: OrderSummary['channel'];
 	source_mode: string;
 	customer_label: string | null;
+	channel_display_id: string | null;
 	status: OrderStatus;
 	payment_status: PaymentStatus;
 	fulfillment_type: OrderSummary['fulfillmentType'];
@@ -96,6 +98,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 		channel: r.channel,
 		sourceMode: r.source_mode,
 		customerLabel: r.customer_label,
+		channelDisplayId: r.channel_display_id,
 		status: r.status,
 		paymentStatus: r.payment_status,
 		fulfillmentType: r.fulfillment_type,
@@ -143,7 +146,7 @@ export interface OrderFilter {
 export async function listOrders(filter: OrderFilter = {}, sql: Db = db()): Promise<OrderSummary[]> {
 	const statuses = filter.statuses ?? null;
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, status, payment_status, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, fulfillment_type,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders
@@ -158,7 +161,7 @@ export async function listOrders(filter: OrderFilter = {}, sql: Db = db()): Prom
 /** Orders the kitchen should see, oldest first. Web orders wait until paid or confirmed. */
 export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]> {
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, status, payment_status, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, fulfillment_type,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders

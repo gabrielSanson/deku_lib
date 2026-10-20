@@ -11,6 +11,7 @@ export const QUEUES = {
 	staleOrders: 'stale-orders',
 	ifoodPoll: 'ifood-poll',
 	ifoodEvent: 'ifood-event',
+	ifoodSync: 'ifood-sync',
 	paymentEvent: 'payment-event'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];

@@ -48,7 +48,7 @@
 			<PaymentBadge status={o.paymentStatus} />
 		</div>
 		<p class="text-sm text-muted">
-			{o.channel === 'ifood' ? 'iFood' : o.channel === 'web' ? 'Site' : 'Balcão'} ·
+			{o.channel === 'ifood' ? `iFood ${o.channelDisplayId ?? ''}` : o.channel === 'web' ? 'Site' : 'Balcão'} ·
 			{o.fulfillmentType === 'delivery' ? 'Entrega' : o.fulfillmentType === 'pickup' ? 'Retirada' : 'Balcão'}
 			{o.fulfillmentProvider === 'ifood_courier' ? '(entregador iFood)' : ''} · criado {formatDateTime(o.createdAt)} ·
 			prometido {formatTime(o.promisedAt)}

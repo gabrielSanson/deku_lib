@@ -107,7 +107,7 @@
 								<header class="mb-2 flex items-baseline justify-between gap-2">
 									<span class="text-3xl font-black tabular-nums">#{o.orderNumber}</span>
 									<span class="text-xs font-bold tracking-wider text-orange-300">
-										{o.channel === 'ifood' ? 'IFOOD · ' : o.channel === 'web' ? 'SITE · ' : ''}{fulfillment[o.fulfillmentType]}
+										{o.channel === 'ifood' ? `IFOOD ${o.channelDisplayId ?? ''} · ` : o.channel === 'web' ? 'SITE · ' : ''}{fulfillment[o.fulfillmentType]}
 									</span>
 									<span class="text-lg"><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span>
 								</header>

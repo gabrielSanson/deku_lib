@@ -16,7 +16,8 @@
 	let search = $state('');
 	let lines = $state<CartLine[]>([]);
 	let sheet = $state<Product | null>(null);
-	let fulfillmentType = $state<'counter' | 'pickup'>('counter');
+	let fulfillmentType = $state<'counter' | 'pickup' | 'ifood'>('counter');
+	let ifoodCode = $state('');
 	let customerLabel = $state('');
 	let notes = $state('');
 	let discountText = $state('');
@@ -64,6 +65,7 @@
 		JSON.stringify({
 			lines: toPayload(lines),
 			fulfillmentType,
+			ifoodCode: fulfillmentType === 'ifood' ? ifoodCode : undefined,
 			customerLabel: customerLabel || undefined,
 			notes: notes || undefined,
 			discountCents: discount,
@@ -153,10 +155,15 @@
 			}}
 		>
 			<input type="hidden" name="payload" value={payload} />
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de pedido">
+			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
 				<button type="button" class="btn {fulfillmentType === 'counter' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'counter'} onclick={() => (fulfillmentType = 'counter')}>Balcão</button>
 				<button type="button" class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'pickup'} onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button>
+				<button type="button" class="btn {fulfillmentType === 'ifood' ? 'bg-ink text-white' : 'btn-secondary'}" aria-pressed={fulfillmentType === 'ifood'} onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button>
 			</div>
+			{#if fulfillmentType === 'ifood'}
+				<input class="field" placeholder="Código do pedido no iFood" maxlength="20" bind:value={ifoodCode} aria-label="Código do pedido no iFood" required />
+				<p class="text-xs text-muted">Já pago no iFood. Confirme e atualize o pedido também no app do iFood.</p>
+			{/if}
 			<input class="field" placeholder="Nome ou mesa (opcional)" maxlength="60" bind:value={customerLabel} aria-label="Nome ou mesa" />
 			<input class="field" placeholder="Observação do pedido" maxlength="300" bind:value={notes} aria-label="Observação do pedido" />
 			{#if canDiscount}
@@ -179,7 +186,7 @@
 					}}>Limpar</button
 				>
 				<button class="btn-primary flex-1 text-lg" disabled={!lines.length || busy}>
-					{busy ? 'Enviando…' : 'Cobrar'}
+					{busy ? 'Enviando…' : fulfillmentType === 'ifood' ? 'Lançar pedido iFood' : 'Cobrar'}
 				</button>
 			</div>
 		</form>

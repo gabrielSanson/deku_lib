@@ -10,7 +10,7 @@ import {
 	type PaymentStatus,
 	type StaffRole
 } from '#lib/domain/order-status.ts';
-import { priceCart, type CartLineInput, type DeliveryRule } from '#lib/domain/pricing.ts';
+import { priceCart, type CartLineInput, type DeliveryRule, type PricedCart } from '#lib/domain/pricing.ts';
 import { audit, type Actor } from '../audit';
 import { getCatalogForPricing, soldOutSkus } from '../catalog/service';
 import { db, type Db, type Tx } from '../db';
@@ -57,6 +57,12 @@ export interface CreateOrderInput {
 	/** Channels that collect payment themselves (iFood) report it here. */
 	paymentStatus?: PaymentStatus;
 	paymentPlan?: 'counter' | 'online' | 'on_fulfillment' | 'channel';
+	/**
+	 * Channels that price the order themselves (iFood) pass their lines and
+	 * fees here; the shop's catalog is then not used to re-price.
+	 */
+	externalPricing?: { cart: PricedCart; deliveryFeeCents: number; discountCents: number };
+	channelDisplayId?: string | null;
 	actor: OrderActor;
 }
 
@@ -74,7 +80,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 	const existing = await findByIdempotencyKey(sql, input.idempotencyKey);
 	if (existing) return existing;
 
-	const catalog = await getCatalogForPricing();
+	const catalog = input.externalPricing ? null : await getCatalogForPricing();
 	return sql.begin(async (tx) => {
 		const settings = await getStoreSettings(tx);
 		if (input.channel === 'web') {
@@ -96,11 +102,18 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			}
 		}
 
-		const cart = priceCart(catalog, input.lines, {
-			channel: input.channel,
-			soldOut: await soldOutSkus(tx, input.channel)
-		});
-		const deliveryFee = input.fulfillmentType === 'delivery' ? (input.deliveryRule?.feeCents ?? 0) : 0;
+		const external = input.externalPricing;
+		const cart =
+			external?.cart ??
+			priceCart(catalog!, input.lines, {
+				channel: input.channel,
+				soldOut: await soldOutSkus(tx, input.channel)
+			});
+		const deliveryFee = external
+			? external.deliveryFeeCents
+			: input.fulfillmentType === 'delivery'
+				? (input.deliveryRule?.feeCents ?? 0)
+				: 0;
 		if (input.fulfillmentType === 'delivery' && input.channel === 'web') {
 			if (!input.deliveryRule || !input.address) {
 				throw new DomainError('Endereço fora da área de entrega.', 'no_zone');
@@ -109,7 +122,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				throw new DomainError('Pedido abaixo do mínimo para entrega neste endereço.', 'min_order');
 			}
 		}
-		const discount = Math.min(input.discountCents ?? 0, cart.subtotalCents);
+		const discount = Math.min(external?.discountCents ?? input.discountCents ?? 0, cart.subtotalCents);
 		const total = cart.subtotalCents - discount + deliveryFee;
 		const status: OrderStatus = input.initialStatus ?? 'new';
 		const now = new Date();
@@ -134,7 +147,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				channel, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
-				promised_at, accepted_at, created_by, payment_plan
+				promised_at, accepted_at, created_by, payment_plan, channel_display_id
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -144,7 +157,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${input.deliveryRule ? tx.json(input.deliveryRule as never) : null}, ${input.notes ?? null},
 				${cart.catalogVersion}, ${input.idempotencyKey}, ${input.isTest ?? false},
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
-				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')}
+				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')},
+				${input.channelDisplayId ?? null}
 			)
 			on conflict (idempotency_key) do nothing
 			returning id, order_number, public_token`;
@@ -241,8 +255,8 @@ export interface TransitionResult {
 
 export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<TransitionResult> {
 	const run = async (t: Tx) => {
-		const [order] = await t<{ status: OrderStatus; version: number }[]>`
-			select status, version from orders where id = ${input.orderId} for update`;
+		const [order] = await t<{ status: OrderStatus; version: number; channel: Channel }[]>`
+			select status, version, channel from orders where id = ${input.orderId} for update`;
 		if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
 
 		// Repeated clicks and duplicate events land here: already done, nothing to do.
@@ -283,6 +297,10 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			values (${input.orderId}, ${order.status}, ${input.to}, ${input.actor.type}, ${input.actor.id},
 				${reason}, ${input.sourceEventId ?? null})`;
 		await audit(t, input.actor, `order.${input.to}`, 'order', input.orderId, { from: order.status, reason });
+		// Changes made here are mirrored to iFood; changes that came from iFood are not echoed back.
+		if (order.channel === 'ifood' && input.actor.type !== 'integration') {
+			await enqueue(t, QUEUES.ifoodSync, { orderId: input.orderId, to: input.to, reason }, { singletonKey: `ifood:${input.orderId}:${input.to}` });
+		}
 		return { changed: true, from: order.status, to: input.to, version: updated.version };
 	};
 	return tx ? run(tx) : db().begin(run);

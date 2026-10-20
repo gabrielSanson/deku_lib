@@ -6,6 +6,15 @@
 
 	let { data } = $props();
 	const live = useLiveOrders(() => data.live);
+	// iFood cancels orders the shop does not confirm in time; warn well before that.
+	let now = $state(Date.now());
+	$effect(() => {
+		const t = setInterval(() => (now = Date.now()), 15_000);
+		return () => clearInterval(t);
+	});
+	const ifoodLate = $derived(
+		data.urgent.filter((o) => o.channel === 'ifood' && now - new Date(o.createdAt).getTime() > 5 * 60_000)
+	);
 	const tiles = $derived([
 		{ label: 'Aguardando confirmação', value: data.counts.new, href: '/staff/orders?status=new', alert: data.counts.new > 0 },
 		{ label: 'Em produção', value: data.counts.open, href: '/staff/orders?status=open', alert: false },
@@ -30,6 +39,11 @@
 		<a href="/staff/reconciliation" class="alert-warn block">
 			{data.counts.unpaid} pedido(s) das últimas 24 h com pagamento pendente ou desconhecido.
 		</a>
+	{/if}
+	{#if ifoodLate.length}
+		<p class="alert-error" role="alert">
+			<strong>{ifoodLate.length} pedido(s) do iFood aguardando há mais de 5 min.</strong> Confirme antes de 8 min para o iFood não cancelar.
+		</p>
 	{/if}
 	{#if data.counts.dead > 0}
 		<p class="alert-error">{data.counts.dead} evento(s) de integração com falha. Veja a página de integrações.</p>
@@ -60,9 +74,9 @@
 					<li>
 						<a href="/staff/orders/{o.id}" class="flex items-center justify-between gap-3 p-3 hover:bg-stone-50">
 							<span class="font-semibold">#{o.orderNumber}</span>
-							<span class="flex-1 text-sm text-muted">{o.channel} · {o.customerLabel ?? ''}</span>
+							<span class="flex-1 text-sm text-muted">{o.channel === 'ifood' ? `iFood ${o.channelDisplayId ?? ''}` : o.channel} · {o.customerLabel ?? ''}</span>
 							<Money cents={o.totalCents} />
-							<Age since={o.createdAt} warnAfter={3} lateAfter={6} />
+							<Age since={o.createdAt} warnAfter={o.channel === 'ifood' ? 4 : 3} lateAfter={6} />
 						</a>
 					</li>
 				{/each}
