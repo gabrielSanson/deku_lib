@@ -76,7 +76,7 @@
 
 <svelte:head><title>Caixa · Equipe</title></svelte:head>
 
-<div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:grid-cols-[1fr_380px]">
+<div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_380px]">
 	<section class="flex min-h-0 flex-col">
 		<div class="flex gap-2 overflow-x-auto border-b border-line bg-surface p-2">
 			<input
