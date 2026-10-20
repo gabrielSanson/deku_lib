@@ -83,13 +83,14 @@ pnpm install
 cp .env.example .env
 pnpm exec supabase start          # applies supabase/migrations
 pnpm exec supabase status         # copy API URL, anon key and service_role key into .env
-pnpm seed                         # 4 staff accounts, sample menu, delivery zones, store open
+pnpm seed                         # admin and kitchen accounts, sample menu, delivery zones, store open
 pnpm dev                          # http://localhost:5173
 pnpm worker                       # second terminal: background jobs
 ```
 
-Seeded staff (password `burger123`, or `SEED_PASSWORD`): `dono@`, `gerente@`,
-`caixa@`, `cozinha@burger.local` (owner, manager, cashier, kitchen).
+Seeded staff (password `burger123`, or `SEED_PASSWORD`): `admin@burger.local`
+(runs the shop) and `cozinha@burger.local` (kitchen screen only). Customers
+order without an account.
 
 To try online checkout locally set `PAYMENT_PROVIDER=local_stub`. The payment
 page then shows a "simulate approved payment" button that sends a signed webhook,

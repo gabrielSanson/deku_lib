@@ -144,8 +144,58 @@
 			</fieldset>
 		{/if}
 
+		<fieldset>
+			<legend class="label">Ingredientes</legend>
+			{#if data.ingredients.length}
+				<p class="mb-2 text-xs text-muted">
+					Marque o que vai no produto. "Cliente pode retirar" mostra a opção "sem" no site e no
+					caixa. Quando um ingrediente que não pode ser retirado acaba, o produto fica indisponível.
+				</p>
+				<ul class="divide-y divide-line rounded-lg border border-line">
+					{#each data.ingredients as ing (ing.id)}
+						{@const current = p.ingredients.find((i) => i.id === ing.id)}
+						<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
+							<label class="flex min-h-10 flex-1 items-center gap-2"
+								><input
+									type="checkbox"
+									class="size-5"
+									name="ingredientIds"
+									value={ing.id}
+									checked={Boolean(current)}
+								/>
+								<span
+									>{ing.name}
+									{#if ing.allergens.length}<span class="text-xs text-muted"
+											>· {ing.allergens.join(', ')}</span
+										>{/if}</span
+								></label
+							>
+							<label class="flex items-center gap-2 text-sm text-muted"
+								><input
+									type="checkbox"
+									class="size-4"
+									name="removable"
+									value={ing.id}
+									checked={current?.removable ?? true}
+								/> Cliente pode retirar</label
+							>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="text-sm text-muted">
+					Nenhum ingrediente cadastrado. Cadastre em <a
+						class="underline"
+						href="/staff/menu/ingredients">Ingredientes</a
+					>.
+				</p>
+			{/if}
+		</fieldset>
+
 		<div>
-			<label class="label" for="allergens">Alergênicos (separados por vírgula)</label>
+			<label class="label" for="allergens"
+				>Outros alergênicos (separados por vírgula; os dos ingredientes entram sozinhos)</label
+			>
 			<input
 				class="field"
 				id="allergens"

@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { cart, type StoredOption } from '#lib/client/cart.svelte.ts';
 	import Money from '#lib/components/Money.svelte';
+	import { REMOVE_GROUP } from '#lib/domain/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
@@ -25,14 +26,37 @@
 		else g[sku] = current + 1;
 		picks[groupId] = g;
 	}
-	const options = $derived<StoredOption[]>(
-		p.modifierGroups.flatMap((g) =>
+	const missingIngredients = $derived(new Set(data.missingIngredients));
+	const removable = $derived(p.ingredients.filter((i) => i.removable));
+	let removedPicks = $state<string[]>([]);
+	// Ingredients that ran out are always left out.
+	const removed = $derived(
+		removable
+			.filter((i) => removedPicks.includes(i.id) || missingIngredients.has(i.id))
+			.map((i) => i.id)
+	);
+	function toggleRemoved(id: string) {
+		removedPicks = removedPicks.includes(id)
+			? removedPicks.filter((x) => x !== id)
+			: [...removedPicks, id];
+	}
+	const options = $derived<StoredOption[]>([
+		...p.modifierGroups.flatMap((g) =>
 			Object.entries(picks[g.id] ?? {}).map(([sku, q]) => {
 				const o = g.options.find((x) => x.sku === sku)!;
 				return { groupId: g.id, sku, name: o.name, priceCents: o.priceCents, quantity: q };
 			})
-		)
-	);
+		),
+		...removable
+			.filter((i) => removed.includes(i.id))
+			.map((i) => ({
+				groupId: REMOVE_GROUP,
+				sku: i.id,
+				name: `Sem ${i.name.toLowerCase()}`,
+				priceCents: 0,
+				quantity: 1
+			}))
+	]);
 	const missing = $derived(p.modifierGroups.filter((g) => count(g.id) < g.minSelections));
 	const unit = $derived(p.priceCents + options.reduce((n, o) => n + o.priceCents * o.quantity, 0));
 	const out = $derived(soldOut.has(p.sku));
@@ -63,6 +87,9 @@
 		<h1 class="text-2xl font-black">{p.name}</h1>
 		<p class="text-muted">{p.description}</p>
 		<p class="mt-1 text-lg font-bold"><Money cents={p.priceCents} /></p>
+		{#if p.ingredients.length}<p class="mt-2 text-sm text-muted">
+				{p.ingredients.map((i) => i.name).join(', ')}
+			</p>{/if}
 		{#if p.allergens.length}<p class="mt-1 text-xs text-muted">
 				{t('product.contains', { list: p.allergens.join(', ') })}
 			</p>{/if}
@@ -111,6 +138,38 @@
 			</div>
 		</fieldset>
 	{/each}
+
+	{#if removable.length}
+		<fieldset>
+			<legend class="mb-2 flex w-full items-center justify-between font-semibold">
+				<span>{t('product.removeTitle')}</span>
+				<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-muted"
+					>{t('product.optional')}</span
+				>
+			</legend>
+			<div class="divide-y divide-line card">
+				{#each removable as i (i.id)}
+					{@const off = removed.includes(i.id)}
+					{@const out = missingIngredients.has(i.id)}
+					<button
+						type="button"
+						disabled={out}
+						class="flex min-h-12 w-full items-center gap-3 px-3 text-left {out ? 'opacity-60' : ''}"
+						aria-pressed={off}
+						onclick={() => toggleRemoved(i.id)}
+					>
+						<span
+							class="grid size-6 place-items-center rounded-md border-2 {off
+								? 'border-bad bg-bad text-white'
+								: 'border-stone-300'}">{off ? '✕' : ''}</span
+						>
+						<span class={off ? 'line-through' : ''}>{i.name}</span>
+						{#if out}<span class="text-xs text-muted">{t('product.ingredientOut')}</span>{/if}
+					</button>
+				{/each}
+			</div>
+		</fieldset>
+	{/if}
 
 	<div>
 		<label class="label" for="note">{t('product.note')}</label>

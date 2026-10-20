@@ -43,7 +43,7 @@ points to **Configuração** until it is finished:
    sell on iFood, use it as the "código externo" there.
 3. **Retirada e entrega:** turn pickup and own delivery on or off, and add
    delivery areas and fees.
-4. **Equipe:** one account per person (owner, manager, cashier, kitchen).
+4. **Equipe:** one account per person: admin, or kitchen for the kitchen TV.
 5. **Pagamentos:** pay on pickup/delivery, and/or Pix to the shop's key.
 6. **iFood (optional):** paste the Client ID, Client Secret and Merchant ID,
    click "Salvar e testar", read any error explanation, then turn on automatic

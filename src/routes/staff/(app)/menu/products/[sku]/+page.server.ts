@@ -1,17 +1,17 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { deleteProduct, PREP_STATIONS, saveProduct } from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	const sql = db();
 	const isNew = event.params.sku === 'novo';
-	const [categories, groups, rows, links] = await Promise.all([
+	const [categories, groups, rows, links, ingredients, used] = await Promise.all([
 		sql<
 			{ id: string; name: string }[]
 		>`select id, name from menu_categories order by position, name`,
@@ -37,7 +37,14 @@ export const load: PageServerLoad = async (event) => {
 		isNew
 			? Promise.resolve([])
 			: sql<{ group_id: string }[]>`
-				select group_id from menu_product_groups where product_sku = ${event.params.sku} order by position`
+				select group_id from menu_product_groups where product_sku = ${event.params.sku} order by position`,
+		sql<{ id: string; name: string; allergens: string[] }[]>`
+			select id, name, allergens from menu_ingredients order by position, name`,
+		isNew
+			? Promise.resolve([])
+			: sql<{ ingredient_id: string; removable: boolean }[]>`
+				select ingredient_id, removable from menu_product_ingredients
+				where product_sku = ${event.params.sku} order by position`
 	]);
 	if (!categories.length) redirect(303, '/staff/menu/edit');
 	const p = rows[0];
@@ -47,6 +54,7 @@ export const load: PageServerLoad = async (event) => {
 		categories,
 		groups,
 		stations: PREP_STATIONS,
+		ingredients,
 		product: p
 			? {
 					sku: p.sku,
@@ -60,7 +68,8 @@ export const load: PageServerLoad = async (event) => {
 					position: p.position,
 					active: p.active,
 					imageUrl: menuImageUrl(p.image_path),
-					groupIds: links.map((l) => l.group_id)
+					groupIds: links.map((l) => l.group_id),
+					ingredients: used.map((u) => ({ id: u.ingredient_id, removable: u.removable }))
 				}
 			: {
 					sku: '',
@@ -74,14 +83,15 @@ export const load: PageServerLoad = async (event) => {
 					position: 0,
 					active: true,
 					imageUrl: null,
-					groupIds: [] as string[]
+					groupIds: [] as string[],
+					ingredients: [] as { id: string; removable: boolean }[]
 				}
 	};
 };
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const price = parseBRL(formString(d, 'price'));
 		if (price === null) return fail(400, { error: 'Preço inválido. Use por exemplo 29,90.' });
@@ -108,6 +118,10 @@ export const actions: Actions = {
 						.map((a) => a.trim().toLowerCase())
 						.filter(Boolean),
 					groupIds: d.getAll('groupIds').map(String),
+					ingredients: d
+						.getAll('ingredientIds')
+						.map(String)
+						.map((id) => ({ id, removable: d.getAll('removable').includes(id) })),
 					position: Number(formString(d, 'position') || 0),
 					active: d.get('active') === 'on',
 					imagePath
@@ -121,7 +135,7 @@ export const actions: Actions = {
 		redirect(303, isNew ? `/staff/menu/products/${result.sku}?salvo=1` : `?salvo=1`);
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const result = await attempt(async () => {
 			await deleteProduct(event.params.sku, staffActor(staff));
 			return { ok: true };

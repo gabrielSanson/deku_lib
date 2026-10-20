@@ -33,10 +33,9 @@ export async function listStaff(): Promise<StaffRow[]> {
 	}));
 }
 
-/** Managers handle cashier/kitchen accounts; only owners touch owner/manager accounts. */
-export function canManage(actor: StaffSession, targetRole: StaffRole) {
-	if (actor.role === 'owner') return true;
-	return actor.role === 'manager' && (targetRole === 'cashier' || targetRole === 'kitchen');
+/** Only admins manage accounts. */
+export function canManage(actor: StaffSession) {
+	return actor.role === 'admin';
 }
 
 export async function updateStaff(
@@ -49,21 +48,21 @@ export async function updateStaff(
 			{ role: StaffRole }[]
 		>`select role from staff_users where id = ${id} for update`;
 		if (!target) throw new DomainError('Pessoa não encontrada.', 'not_found', 404);
-		if (!canManage(actor, target.role) || (patch.role && !canManage(actor, patch.role))) {
+		if (!canManage(actor)) {
 			throw new DomainError('Seu perfil não pode alterar esta conta.', 'forbidden', 403);
 		}
 		if (id === actor.id && (patch.active === false || (patch.role && patch.role !== actor.role))) {
 			throw new DomainError('Você não pode desativar ou rebaixar a própria conta.', 'self');
 		}
 		if (
-			target.role === 'owner' &&
-			(patch.active === false || (patch.role && patch.role !== 'owner'))
+			target.role === 'admin' &&
+			(patch.active === false || (patch.role && patch.role !== 'admin'))
 		) {
 			const [{ n }] = await tx<
 				{ n: number }[]
-			>`select count(*)::int n from staff_users where role = 'owner' and active`;
+			>`select count(*)::int n from staff_users where role = 'admin' and active`;
 			if (n <= 1)
-				throw new DomainError('A loja precisa de pelo menos um dono ativo.', 'last_owner');
+				throw new DomainError('A loja precisa de pelo menos um admin ativo.', 'last_owner');
 		}
 		await tx`
 			update staff_users set
@@ -80,7 +79,7 @@ export async function createStaffAccount(
 	actor: StaffSession,
 	input: { email: string; displayName: string; role: StaffRole; password: string }
 ) {
-	if (!canManage(actor, input.role))
+	if (!canManage(actor))
 		throw new DomainError('Seu perfil não pode criar esta conta.', 'forbidden', 403);
 	if (input.password.length < 10)
 		throw new DomainError('A senha precisa ter pelo menos 10 caracteres.');
@@ -119,7 +118,7 @@ export async function linkExistingUser(
 	displayName: string,
 	role: StaffRole
 ) {
-	if (!canManage(actor, role))
+	if (!canManage(actor))
 		throw new DomainError('Seu perfil não pode criar esta conta.', 'forbidden', 403);
 	await db().begin(async (tx) => {
 		const [u] = await tx<

@@ -18,9 +18,9 @@ describe('order state machine', () => {
 	});
 
 	it('limits late cancellation to managers and owners', () => {
-		expect(roleMayTransition('cashier', 'confirmed', 'cancelled')).toBe(true);
-		expect(roleMayTransition('cashier', 'preparing', 'cancelled')).toBe(false);
-		expect(roleMayTransition('manager', 'preparing', 'cancelled')).toBe(true);
+		expect(roleMayTransition('admin', 'confirmed', 'cancelled')).toBe(true);
+		expect(roleMayTransition('kitchen', 'confirmed', 'cancelled')).toBe(false);
+		expect(roleMayTransition('admin', 'preparing', 'cancelled')).toBe(true);
 		expect(roleMayTransition('kitchen', 'new', 'cancelled')).toBe(false);
 	});
 

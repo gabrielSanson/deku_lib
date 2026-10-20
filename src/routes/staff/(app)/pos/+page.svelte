@@ -10,7 +10,7 @@
 	let { data, form } = $props();
 
 	const soldOut = $derived(new Set(data.soldOut));
-	const canDiscount = $derived(data.staff.role === 'owner' || data.staff.role === 'manager');
+	const canDiscount = $derived(data.staff.role === 'admin');
 
 	let category = $state<string | null>(null);
 	let search = $state('');
@@ -38,7 +38,7 @@
 
 	function pick(p: Product) {
 		if (soldOut.has(p.sku)) return;
-		if (p.modifierGroups.some((g) => g.minSelections > 0) || p.modifierGroups.length) sheet = p;
+		if (p.modifierGroups.length || p.ingredients.some((i) => i.removable)) sheet = p;
 		else addLine(p, { quantity: 1, options: [], note: '', allergy: false });
 	}
 
@@ -269,6 +269,7 @@
 	<ProductSheet
 		product={sheet}
 		{soldOut}
+		missingIngredients={new Set(data.missingIngredients)}
 		onclose={() => (sheet = null)}
 		onadd={(l) => sheet && addLine(sheet, l)}
 	/>

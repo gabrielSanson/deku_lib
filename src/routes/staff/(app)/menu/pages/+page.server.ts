@@ -1,10 +1,10 @@
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { blocksToText, listPages, savePage } from '#lib/server/catalog/pages.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	const pages = await listPages();
 	return {
 		pages: pages.map((p) => ({
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await savePage(

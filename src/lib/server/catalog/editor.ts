@@ -106,6 +106,10 @@ export const productInput = z.object({
 	channels: z.array(z.enum(CHANNELS)).min(1, 'Escolha pelo menos um canal de venda.'),
 	allergens: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
 	groupIds: z.array(id).max(20).default([]),
+	ingredients: z
+		.array(z.object({ id, removable: z.boolean().default(true) }))
+		.max(30)
+		.default([]),
 	position: z.number().int().default(0),
 	active: z.boolean().default(true),
 	imagePath: z.string().regex(IMAGE_PATH).nullable().optional()
@@ -166,6 +170,14 @@ export async function saveProduct(input: ProductInput, actor: Actor, existingSku
 			for (const [i, g] of p.groupIds.entries()) {
 				await tx`insert into menu_product_groups (product_sku, group_id, position)
 					values (${productSku!}, ${g}, ${i}) on conflict do nothing`;
+			}
+			await tx`delete from menu_product_ingredients where product_sku = ${productSku!}`;
+			for (const [i, ing] of p.ingredients.entries()) {
+				const r =
+					await tx`insert into menu_product_ingredients (product_sku, ingredient_id, removable, position)
+					select ${productSku!}, id, ${ing.removable}, ${i} from menu_ingredients where id = ${ing.id}
+					on conflict do nothing`;
+				if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'ingredient');
 			}
 			await changed(
 				tx,
@@ -273,6 +285,114 @@ export async function deleteGroup(groupId: string, actor: Actor) {
 }
 
 // ---------------------------------------------------------------------------
+// Ingredients
+// ---------------------------------------------------------------------------
+
+export const ingredientInput = z.object({
+	id: id.optional(),
+	name: z.string().trim().min(1, 'Informe o nome do ingrediente.').max(80),
+	allergens: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+	position: z.number().int().default(0)
+});
+
+export async function saveIngredient(input: z.input<typeof ingredientInput>, actor: Actor) {
+	const g = ingredientInput.parse(input);
+	return done(
+		await db().begin(async (tx) => {
+			const ingredientId = g.id ?? (slugify(g.name) || 'ingrediente');
+			if (g.id) {
+				const r = await tx`update menu_ingredients set name = ${g.name}, allergens = ${g.allergens},
+					position = ${g.position}, updated_by = ${actor.id}, updated_at = now() where id = ${g.id}`;
+				if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'not_found', 404);
+			} else {
+				const r = await tx`insert into menu_ingredients (id, name, allergens, position, updated_by)
+					values (${ingredientId}, ${g.name}, ${g.allergens}, ${g.position}, ${actor.id})
+					on conflict (id) do nothing`;
+				if (!r.count) throw new DomainError('Já existe um ingrediente com esse nome.', 'duplicate');
+			}
+			await changed(
+				tx,
+				actor,
+				g.id ? 'menu.ingredient_updated' : 'menu.ingredient_created',
+				'menu_ingredient',
+				ingredientId,
+				g
+			);
+			return ingredientId;
+		})
+	);
+}
+
+export async function deleteIngredient(ingredientId: string, actor: Actor) {
+	return done(
+		await db().begin(async (tx) => {
+			await tx`delete from menu_ingredients where id = ${ingredientId}`;
+			await changed(tx, actor, 'menu.ingredient_deleted', 'menu_ingredient', ingredientId);
+		})
+	);
+}
+
+/** Marks an ingredient as run out (or back). Operational, so the menu revision stays put. */
+export async function setIngredientAvailable(
+	ingredientId: string,
+	available: boolean,
+	actor: Actor
+) {
+	await db().begin(async (tx) => {
+		const r = await tx`update menu_ingredients set available = ${available},
+			unavailable_at = ${available ? null : tx`now()`}, updated_by = ${actor.id}, updated_at = now()
+			where id = ${ingredientId}`;
+		if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'not_found', 404);
+		await audit(
+			tx,
+			actor,
+			available ? 'menu.ingredient_back' : 'menu.ingredient_out',
+			'menu_ingredient',
+			ingredientId
+		);
+	});
+}
+
+export interface IngredientRow {
+	id: string;
+	name: string;
+	allergens: string[];
+	position: number;
+	available: boolean;
+	unavailableAt: Date | null;
+	products: string[];
+}
+
+export async function listIngredients(sql: Db = db()): Promise<IngredientRow[]> {
+	const rows = await sql<
+		{
+			id: string;
+			name: string;
+			allergens: string[];
+			position: number;
+			available: boolean;
+			unavailable_at: Date | null;
+			products: string[];
+		}[]
+	>`
+		select i.id, i.name, i.allergens, i.position, i.available, i.unavailable_at,
+			coalesce(array_agg(p.name order by p.name) filter (where p.sku is not null), '{}') as products
+		from menu_ingredients i
+		left join menu_product_ingredients pi on pi.ingredient_id = i.id
+		left join menu_products p on p.sku = pi.product_sku
+		group by i.id order by i.position, i.name`;
+	return rows.map((r) => ({
+		id: r.id,
+		name: r.name,
+		allergens: r.allergens,
+		position: r.position,
+		available: r.available,
+		unavailableAt: r.unavailable_at,
+		products: r.products
+	}));
+}
+
+// ---------------------------------------------------------------------------
 // Bulk
 // ---------------------------------------------------------------------------
 
@@ -301,6 +421,15 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 						price_cents = excluded.price_cents, max_quantity = excluded.max_quantity, position = excluded.position`;
 			}
 		}
+		const ingredients = new Map(
+			catalog.products.flatMap((p) => p.ingredients).map((i) => [i.id, i])
+		);
+		for (const [i, ing] of [...ingredients.values()].entries()) {
+			await tx`insert into menu_ingredients (id, name, allergens, position)
+				values (${ing.id}, ${ing.name}, ${[] as string[]}, ${i})
+				on conflict (id) do update set name = excluded.name, allergens = excluded.allergens,
+					position = excluded.position`;
+		}
 		for (const [i, p] of catalog.products.entries()) {
 			await tx`insert into menu_products (sku, slug, name, description, category_id, price_cents, prep_station,
 					channels, allergens, position)
@@ -313,6 +442,11 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 			await tx`delete from menu_product_groups where product_sku = ${p.sku}`;
 			for (const [j, g] of p.modifierGroups.entries()) {
 				await tx`insert into menu_product_groups (product_sku, group_id, position) values (${p.sku}, ${g.id}, ${j})`;
+			}
+			await tx`delete from menu_product_ingredients where product_sku = ${p.sku}`;
+			for (const [j, ing] of p.ingredients.entries()) {
+				await tx`insert into menu_product_ingredients (product_sku, ingredient_id, removable, position)
+					values (${p.sku}, ${ing.id}, ${ing.removable}, ${j})`;
 			}
 		}
 		await changed(tx, actor, 'menu.imported', 'menu', catalog.version, {

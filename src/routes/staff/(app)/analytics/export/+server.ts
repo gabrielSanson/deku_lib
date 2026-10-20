@@ -1,7 +1,7 @@
 // CSV export of orders for a range. No phone numbers or addresses.
 import * as a from '#lib/server/analytics/queries.ts';
 import { audit } from '#lib/server/audit.ts';
-import { MANAGERS, requireStaff } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import { db } from '#lib/server/db.ts';
 import type { RequestHandler } from './$types';
 
@@ -13,7 +13,7 @@ const csv = (v: unknown) => {
 };
 
 export const GET: RequestHandler = async (event) => {
-	const staff = requireStaff(event, MANAGERS);
+	const staff = requireStaff(event, ADMIN);
 	const q = event.url.searchParams;
 	const range = a.resolveRange(q.get('range') ?? '7d', q.get('from'), q.get('to'));
 	const rows = await db()`

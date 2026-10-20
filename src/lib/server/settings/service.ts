@@ -9,6 +9,7 @@ export interface StoreSettings {
 	acceptingOrders: boolean;
 	pauseReason: string | null;
 	pickupEnabled: boolean;
+	dineInEnabled: boolean;
 	deliveryEnabled: boolean;
 	webOrderingEnabled: boolean;
 	payOnFulfillmentEnabled: boolean;
@@ -24,6 +25,7 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 			accepting_orders: boolean;
 			pause_reason: string | null;
 			pickup_enabled: boolean;
+			dine_in_enabled: boolean;
 			delivery_enabled: boolean;
 			web_ordering_enabled: boolean;
 			pay_on_fulfillment_enabled: boolean;
@@ -37,6 +39,7 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 		acceptingOrders: r.accepting_orders,
 		pauseReason: r.pause_reason,
 		pickupEnabled: r.pickup_enabled,
+		dineInEnabled: r.dine_in_enabled,
 		deliveryEnabled: r.delivery_enabled,
 		webOrderingEnabled: r.web_ordering_enabled,
 		payOnFulfillmentEnabled: r.pay_on_fulfillment_enabled,
@@ -65,7 +68,8 @@ export async function updateStoreSettings(
 		await tx`
 			update store_runtime_settings set
 				accepting_orders = ${next.acceptingOrders}, pause_reason = ${next.pauseReason},
-				pickup_enabled = ${next.pickupEnabled}, delivery_enabled = ${next.deliveryEnabled},
+				pickup_enabled = ${next.pickupEnabled}, dine_in_enabled = ${next.dineInEnabled},
+				delivery_enabled = ${next.deliveryEnabled},
 				web_ordering_enabled = ${next.webOrderingEnabled},
 				pay_on_fulfillment_enabled = ${next.payOnFulfillmentEnabled}, prep_time_minutes = ${next.prepTimeMinutes},
 				max_open_orders = ${next.maxOpenOrders}, updated_by = ${actor.id}, updated_at = now(),

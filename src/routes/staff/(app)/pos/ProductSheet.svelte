@@ -1,17 +1,19 @@
 <script lang="ts">
 	// Modifier picker. Enforces min/max per group before the item can be added.
 	import Money from '#lib/components/Money.svelte';
-	import type { Product } from '#lib/domain/catalog.ts';
+	import { REMOVE_GROUP, type Product } from '#lib/domain/catalog.ts';
 	import { lineUnitCents, type CartOption } from './cart.svelte.ts';
 
 	let {
 		product,
 		soldOut,
+		missingIngredients,
 		onadd,
 		onclose
 	}: {
 		product: Product;
 		soldOut: Set<string>;
+		missingIngredients: Set<string>;
 		onadd: (line: {
 			quantity: number;
 			options: CartOption[];
@@ -40,14 +42,37 @@
 		picks[groupId] = group;
 	}
 
-	const options = $derived<CartOption[]>(
-		product.modifierGroups.flatMap((g) =>
+	const removable = $derived(product.ingredients.filter((i) => i.removable));
+	let removedPicks = $state<string[]>([]);
+	// Ingredients that ran out are always left out.
+	const removed = $derived(
+		removable
+			.filter((i) => removedPicks.includes(i.id) || missingIngredients.has(i.id))
+			.map((i) => i.id)
+	);
+	function toggleRemoved(id: string) {
+		removedPicks = removedPicks.includes(id)
+			? removedPicks.filter((x) => x !== id)
+			: [...removedPicks, id];
+	}
+
+	const options = $derived<CartOption[]>([
+		...product.modifierGroups.flatMap((g) =>
 			Object.entries(picks[g.id] ?? {}).map(([sku, qty]) => {
 				const o = g.options.find((x) => x.sku === sku)!;
 				return { groupId: g.id, sku, name: o.name, priceCents: o.priceCents, quantity: qty };
 			})
-		)
-	);
+		),
+		...removable
+			.filter((i) => removed.includes(i.id))
+			.map((i) => ({
+				groupId: REMOVE_GROUP,
+				sku: i.id,
+				name: `Sem ${i.name.toLowerCase()}`,
+				priceCents: 0,
+				quantity: 1
+			}))
+	]);
 	const missing = $derived(product.modifierGroups.filter((g) => count(g.id) < g.minSelections));
 	const unit = $derived(lineUnitCents({ product, options }));
 </script>
@@ -104,6 +129,29 @@
 				</div>
 			</fieldset>
 		{/each}
+
+		{#if removable.length}
+			<fieldset class="mb-4">
+				<legend class="mb-2 font-semibold">Retirar</legend>
+				<div class="grid grid-cols-2 gap-2">
+					{#each removable as i (i.id)}
+						{@const off = removed.includes(i.id)}
+						{@const out = missingIngredients.has(i.id)}
+						<button
+							type="button"
+							disabled={out}
+							class="flex min-h-12 items-center rounded-lg border px-3 text-left text-sm {off
+								? 'border-bad bg-red-50 font-semibold text-bad'
+								: 'border-line'}"
+							aria-pressed={off}
+							onclick={() => toggleRemoved(i.id)}
+						>
+							{off ? 'Sem ' + i.name.toLowerCase() : i.name}{out ? ' (em falta)' : ''}
+						</button>
+					{/each}
+				</div>
+			</fieldset>
+		{/if}
 
 		<label class="label" for="note">Observação</label>
 		<input

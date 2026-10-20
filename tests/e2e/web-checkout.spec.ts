@@ -18,7 +18,7 @@ test('customer orders on the site, pays with Pix and the order reaches the kitch
 
 	await page.goto('/checkout');
 	await page.waitForLoadState('networkidle');
-	await page.getByRole('button', { name: 'Retirar na loja' }).click();
+	await page.getByRole('button', { name: 'Para viagem' }).click();
 	await page.getByLabel('Nome').fill('Cliente Teste');
 	await page.getByLabel('Celular (WhatsApp)').fill('(11) 98765-4321');
 	await page.getByRole('radio', { name: /^Pix/ }).check();

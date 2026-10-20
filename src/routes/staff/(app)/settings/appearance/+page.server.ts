@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
 import {
 	COLOR_KEYS,
@@ -15,7 +15,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	return { look: await getBranding(undefined, { fresh: true }), defaults: DEFAULT_COLORS };
 };
 
@@ -26,7 +26,7 @@ function imageKey(d: FormData): ImageKey | null {
 
 export const actions: Actions = {
 	colors: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const colors = Object.fromEntries(
 			COLOR_KEYS.map((k) => [k, formString(d, k) || null])
@@ -37,14 +37,14 @@ export const actions: Actions = {
 		});
 	},
 	resetColors: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		return attempt(async () => {
 			await saveColors({ primary: null, dark: null, background: null }, staffActor(staff));
 			return { ok: 'Cores padrão de volta.' };
 		});
 	},
 	upload: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const key = imageKey(d);
 		const file = d.get('file');
@@ -57,7 +57,7 @@ export const actions: Actions = {
 		});
 	},
 	resetImage: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const key = imageKey(await event.request.formData());
 		if (!key) return fail(400, { error: 'Imagem desconhecida.' });
 		return attempt(async () => {

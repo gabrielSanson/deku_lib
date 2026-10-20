@@ -61,7 +61,7 @@
 					data.ifood.status.lastPollOkAt
 				)}.
 			{/if}
-			{#if data.staff.role === 'owner'}<a class="underline" href="/staff/setup?passo=ifood"
+			{#if data.staff.role === 'admin'}<a class="underline" href="/staff/setup?passo=ifood"
 					>Credenciais e teste de conexão</a
 				>{/if}
 		</p>

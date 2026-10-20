@@ -16,7 +16,8 @@
 		lines: { sku: string; name: string; quantity: number; lineTotalCents: number }[];
 	};
 
-	let fulfillmentType = $state<'pickup' | 'delivery'>('pickup');
+	let fulfillmentType = $state<'dine_in' | 'pickup' | 'delivery'>('pickup');
+	let tableLabel = $state('');
 	let name = $state('');
 	let phone = $state('');
 	let email = $state('');
@@ -40,7 +41,18 @@
 	let placeError = $state<string | null>(null);
 
 	$effect(() => {
-		if (!data.store.pickup && data.store.delivery) fulfillmentType = 'delivery';
+		let table: string | null = null;
+		try {
+			table = sessionStorage.getItem('deku-mesa');
+		} catch {
+			/* no storage: nothing to prefill */
+		}
+		if (data.store.dineIn && table) {
+			fulfillmentType = 'dine_in';
+			tableLabel = table;
+		} else if (!data.store.pickup) {
+			fulfillmentType = data.store.dineIn ? 'dine_in' : 'delivery';
+		}
 		if (data.onlineMethods.includes('pix')) payment = 'pix';
 		else if (data.store.pixKey) payment = 'pix_key';
 		else if (!data.store.payOnFulfillment && data.onlineMethods.length)
@@ -51,6 +63,7 @@
 		JSON.stringify({
 			lines: cart.payload(),
 			fulfillmentType,
+			tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
 			address:
 				fulfillmentType === 'delivery'
 					? {
@@ -207,7 +220,15 @@
 
 			<fieldset class="space-y-2">
 				<legend class="mb-2 text-lg font-bold">{t('checkout.how')}</legend>
-				<div class="grid grid-cols-2 gap-2">
+				<div class="grid gap-2 {data.store.dineIn ? 'grid-cols-3' : 'grid-cols-2'}">
+					{#if data.store.dineIn}
+						<button
+							type="button"
+							class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-white' : 'btn-secondary'}"
+							aria-pressed={fulfillmentType === 'dine_in'}
+							onclick={() => (fulfillmentType = 'dine_in')}>{t('checkout.dineIn')}</button
+						>
+					{/if}
 					<button
 						type="button"
 						disabled={!data.store.pickup}
@@ -223,6 +244,18 @@
 						onclick={() => (fulfillmentType = 'delivery')}>{t('checkout.delivery')}</button
 					>
 				</div>
+				{#if fulfillmentType === 'dine_in'}
+					<div>
+						<label class="label" for="table">{t('checkout.table')}</label>
+						<input
+							id="table"
+							class="field"
+							maxlength="20"
+							inputmode="numeric"
+							bind:value={tableLabel}
+						/>
+					</div>
+				{/if}
 				<p class="text-sm text-muted">
 					{t(fulfillmentType === 'delivery' ? 'checkout.etaDelivery' : 'checkout.eta', {
 						minutes: data.store.prepTimeMinutes

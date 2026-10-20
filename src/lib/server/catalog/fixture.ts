@@ -27,18 +27,23 @@ const extras: ModifierGroup = {
 	]
 };
 
-const removals: ModifierGroup = {
-	id: 'retirar',
-	name: 'Retirar',
-	minSelections: 0,
-	maxSelections: 4,
-	options: [
-		{ sku: 'SEM-PICLES', name: 'Sem picles', priceCents: 0, maxQuantity: 1 },
-		{ sku: 'SEM-CEBOLA', name: 'Sem cebola', priceCents: 0, maxQuantity: 1 },
-		{ sku: 'SEM-TOMATE', name: 'Sem tomate', priceCents: 0, maxQuantity: 1 },
-		{ sku: 'SEM-MOLHO', name: 'Sem molho', priceCents: 0, maxQuantity: 1 }
-	]
-};
+// Ingredients the customer can leave out ("sem cebola") are marked removable.
+const ing = (id: string, name: string, removable = true) => ({ id, name, removable });
+const pao = ing('pao-brioche', 'Pão brioche', false);
+const blend = ing('blend-bovino', 'Blend bovino', false);
+const queijoPrato = ing('queijo-prato', 'Queijo prato');
+const alface = ing('alface', 'Alface');
+const tomate = ing('tomate', 'Tomate');
+const picles = ing('picles', 'Picles');
+const molho = ing('molho-da-casa', 'Molho da casa');
+const cheddar = ing('cheddar', 'Cheddar cremoso');
+const bacon = ing('bacon', 'Bacon');
+const cebolaCaramelizada = ing('cebola-caramelizada', 'Cebola caramelizada');
+const queijoAmericano = ing('queijo-americano', 'Queijo americano');
+const graoDeBico = ing('burger-grao-de-bico', 'Burger de grão-de-bico', false);
+const rucula = ing('rucula', 'Rúcula');
+const maioneseErvas = ing('maionese-de-ervas', 'Maionese de ervas');
+const batata = ing('batata', 'Batata', false);
 
 const drinkSize: ModifierGroup = {
 	id: 'tamanho',
@@ -72,7 +77,8 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'grill',
 			channels: [...all],
 			allergens: ['glúten', 'lactose'],
-			modifierGroups: [point, extras, removals]
+			ingredients: [pao, blend, queijoPrato, alface, tomate, picles, molho],
+			modifierGroups: [point, extras]
 		},
 		{
 			sku: 'BRG-BACON',
@@ -85,7 +91,8 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'grill',
 			channels: [...all],
 			allergens: ['glúten', 'lactose'],
-			modifierGroups: [point, extras, removals]
+			ingredients: [pao, blend, cheddar, bacon, cebolaCaramelizada],
+			modifierGroups: [point, extras]
 		},
 		{
 			sku: 'BRG-DUPLO',
@@ -98,7 +105,8 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'grill',
 			channels: [...all],
 			allergens: ['glúten', 'lactose'],
-			modifierGroups: [extras, removals]
+			ingredients: [pao, blend, queijoAmericano, molho],
+			modifierGroups: [extras]
 		},
 		{
 			sku: 'BRG-VEG',
@@ -111,7 +119,8 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'grill',
 			channels: [...all],
 			allergens: ['glúten', 'lactose'],
-			modifierGroups: [removals]
+			ingredients: [pao, graoDeBico, queijoPrato, rucula, tomate, maioneseErvas],
+			modifierGroups: []
 		},
 		{
 			sku: 'ACP-FRITAS',
@@ -124,6 +133,7 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'fryer',
 			channels: [...all],
 			allergens: [],
+			ingredients: [batata],
 			modifierGroups: []
 		},
 		{
@@ -137,6 +147,7 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'fryer',
 			channels: [...all],
 			allergens: ['glúten'],
+			ingredients: [],
 			modifierGroups: []
 		},
 		{
@@ -150,6 +161,7 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'counter',
 			channels: [...all],
 			allergens: [],
+			ingredients: [],
 			modifierGroups: [drinkSize]
 		},
 		{
@@ -163,6 +175,7 @@ export const fixtureCatalog: Catalog = {
 			prepStation: 'counter',
 			channels: ['counter', 'web'],
 			allergens: [],
+			ingredients: [],
 			modifierGroups: []
 		}
 	]

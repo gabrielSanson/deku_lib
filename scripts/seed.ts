@@ -19,9 +19,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SEED_PASSWORD) {
 }
 
 const staff = [
-	{ email: 'dono@burger.local', name: 'Dono', role: 'owner' },
-	{ email: 'gerente@burger.local', name: 'Gerente', role: 'manager' },
-	{ email: 'caixa@burger.local', name: 'Caixa', role: 'cashier' },
+	{ email: 'admin@burger.local', name: 'Admin', role: 'admin' },
 	{ email: 'cozinha@burger.local', name: 'Cozinha', role: 'kitchen' }
 ];
 

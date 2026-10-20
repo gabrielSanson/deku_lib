@@ -57,8 +57,8 @@ async function orderAt(
 }
 
 beforeAll(async () => {
-	cashier = await makeStaff('cashier');
-	manager = await makeStaff('manager');
+	cashier = await makeStaff('admin');
+	manager = await makeStaff('admin');
 	// 2025-03-10 local (UTC-3): one order just after midnight, one at 23:30 local (02:30 UTC next day).
 	await orderAt('2025-03-10T03:05:00Z', { pay: true, complete: true });
 	await orderAt('2025-03-11T02:30:00Z', { pay: true, complete: true });

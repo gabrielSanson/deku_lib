@@ -28,7 +28,7 @@ import {
 import { getStoreSettings, updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-const OWNER = ['owner'] as const;
+const OWNER = ['admin'] as const;
 const STEPS = ['loja', 'cardapio', 'entrega', 'equipe', 'pagamentos', 'ifood', 'concluir'] as const;
 
 export const load: PageServerLoad = async (event) => {

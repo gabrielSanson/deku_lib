@@ -68,6 +68,11 @@ export const TEXTS = {
 		label: 'Botão do carrinho (leitor de tela)',
 		default: 'Carrinho, {count} {items}'
 	},
+	'header.closedUntil': {
+		group: 'header',
+		label: 'Aviso fora do horário',
+		default: 'Estamos fechados agora. Abrimos {when}.'
+	},
 	'header.closed': {
 		group: 'header',
 		label: 'Aviso de loja fechada',
@@ -276,6 +281,17 @@ export const TEXTS = {
 	'product.required': { group: 'product', label: 'Escolha obrigatória', default: 'Obrigatório' },
 	'product.upTo': { group: 'product', label: 'Limite de escolhas', default: 'Até {max}' },
 	'product.optionSoldOut': { group: 'product', label: 'Opção esgotada', default: '(esgotado)' },
+	'product.removeTitle': {
+		group: 'product',
+		label: 'Retirar ingredientes: título',
+		default: 'Retirar algum ingrediente?'
+	},
+	'product.optional': { group: 'product', label: 'Escolha opcional', default: 'Opcional' },
+	'product.ingredientOut': {
+		group: 'product',
+		label: 'Ingrediente em falta',
+		default: 'acabou hoje, vai sem'
+	},
 	'product.note': { group: 'product', label: 'Observação', default: 'Alguma observação?' },
 	'product.notePlaceholder': {
 		group: 'product',
@@ -296,7 +312,13 @@ export const TEXTS = {
 		label: 'Como receber',
 		default: 'Como você quer receber?'
 	},
-	'checkout.pickup': { group: 'checkout', label: 'Retirada', default: 'Retirar na loja' },
+	'checkout.dineIn': { group: 'checkout', label: 'Comer no local', default: 'Comer aqui' },
+	'checkout.table': {
+		group: 'checkout',
+		label: 'Mesa (comer no local)',
+		default: 'Número da mesa (opcional)'
+	},
+	'checkout.pickup': { group: 'checkout', label: 'Retirada / para viagem', default: 'Para viagem' },
 	'checkout.delivery': { group: 'checkout', label: 'Entrega', default: 'Entrega' },
 	'checkout.eta': {
 		group: 'checkout',

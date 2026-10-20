@@ -15,6 +15,15 @@
 	let drawer = $state<HTMLElement>();
 	onMount(() => {
 		cart.init();
+		// A table QR code links to /?mesa=7; checkout then defaults to eating in at that table.
+		const table = page.url.searchParams.get('mesa');
+		if (table) {
+			try {
+				sessionStorage.setItem('deku-mesa', table.slice(0, 20));
+			} catch {
+				/* private mode: the customer types the table at checkout */
+			}
+		}
 		orderToken = lastOrder();
 	});
 
@@ -116,7 +125,10 @@
 		</div>
 		{#if !data.store.open}
 			<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-				{data.store.pauseReason ?? t('header.closed')}
+				{data.store.pauseReason ??
+					(data.store.outOfHours
+						? t('header.closedUntil', { when: data.store.outOfHours })
+						: t('header.closed'))}
 			</p>
 		{/if}
 	</header>

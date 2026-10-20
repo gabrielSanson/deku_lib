@@ -159,8 +159,8 @@
 		<section class="space-y-3 card p-4">
 			<h2 class="text-lg font-bold">Equipe</h2>
 			<p class="text-sm">
-				{data.counts.staff} pessoa(s) com acesso. Crie uma conta para cada pessoa: caixa, cozinha e gerente
-				veem só o que precisam.
+				{data.counts.staff} pessoa(s) com acesso. Crie uma conta para cada pessoa. Admins cuidam da loja;
+				a cozinha vê só a tela de pedidos.
 			</p>
 			<a class="btn-secondary w-full" href="/staff/settings/staff">Gerenciar equipe</a>
 			<a class="btn-primary w-full" href="?passo={nextStep}">Continuar</a>

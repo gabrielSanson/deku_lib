@@ -3,17 +3,8 @@
 	import FormError from '#lib/components/FormError.svelte';
 
 	let { data, form } = $props();
-	const roleLabel: Record<string, string> = {
-		owner: 'Dono',
-		manager: 'Gerente',
-		cashier: 'Caixa',
-		kitchen: 'Cozinha'
-	};
-	const assignable = $derived(
-		data.staff.role === 'owner'
-			? ['owner', 'manager', 'cashier', 'kitchen']
-			: ['cashier', 'kitchen']
-	);
+	const roleLabel: Record<string, string> = { admin: 'Admin', kitchen: 'Cozinha' };
+	const assignable = ['admin', 'kitchen'];
 </script>
 
 <svelte:head><title>Equipe · Configurações</title></svelte:head>

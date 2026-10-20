@@ -31,8 +31,8 @@ export function requireStaff(
 	return staff;
 }
 
-export const MANAGERS: StaffRole[] = ['owner', 'manager'];
-export const FRONT_OF_HOUSE: StaffRole[] = ['owner', 'manager', 'cashier'];
+/** Admins run the shop: menu, prices, settings, team and the till. */
+export const ADMIN: StaffRole[] = ['admin'];
 
 export function staffActor(staff: StaffSession) {
 	return { type: 'staff' as const, id: staff.id, role: staff.role };

@@ -1,14 +1,13 @@
-// The shop's details and its Pix key, editable after the setup wizard. The Pix
-// key decides where customers' money goes, so only owners can change it.
+// The shop's details and its Pix key, editable after the setup wizard.
 import { attempt, formString } from '#lib/server/actions.ts';
-import { MANAGERS, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { getStoreProfile, savePixSettings, saveStoreInfo } from '#lib/server/settings/profile.ts';
 import { getStoreSettings, updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, MANAGERS);
+	requireStaff(event, ADMIN);
 	return {
 		profile: await getStoreProfile(undefined, { fresh: true }),
 		onlineProvider: paymentProvider()?.name ?? null
@@ -17,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	store: async (event) => {
-		const staff = requireStaff(event, MANAGERS);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await saveStoreInfo(
@@ -33,7 +32,7 @@ export const actions: Actions = {
 		});
 	},
 	payments: async (event) => {
-		const staff = requireStaff(event, ['owner']);
+		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const pixEnabled = d.get('pixEnabled') === 'on';
 		const payOnFulfillment = d.get('payOnFulfillmentEnabled') === 'on';

@@ -22,7 +22,8 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-export type StaffRole = 'owner' | 'manager' | 'cashier' | 'kitchen';
+/** Admins run everything; kitchen accounts only see the kitchen screen. Customers have no account. */
+export type StaffRole = 'admin' | 'kitchen';
 
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 	new: ['confirmed', 'rejected', 'cancelled'],
@@ -49,10 +50,8 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 export function roleMayTransition(role: StaffRole, from: OrderStatus, to: OrderStatus): boolean {
 	if (!canTransition(from, to)) return false;
 	if (to === 'cancelled') {
-		// Once the kitchen has started, only managers and owners may cancel.
-		return from === 'new' || from === 'confirmed'
-			? role !== 'kitchen'
-			: role === 'manager' || role === 'owner';
+		// Only admins cancel, including after the kitchen has started.
+		return role === 'admin';
 	}
 	if (to === 'rejected' || to === 'confirmed') return role !== 'kitchen';
 	if (to === 'completed') return role !== 'kitchen' || from === 'ready';

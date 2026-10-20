@@ -13,9 +13,9 @@ let kitchen: Awaited<ReturnType<typeof makeStaff>>;
 let manager: Awaited<ReturnType<typeof makeStaff>>;
 
 beforeAll(async () => {
-	cashier = await makeStaff('cashier');
+	cashier = await makeStaff('admin');
 	kitchen = await makeStaff('kitchen');
-	manager = await makeStaff('manager');
+	manager = await makeStaff('admin');
 });
 
 afterAll(async () => {
@@ -119,7 +119,7 @@ describe('transitions', () => {
 		const order = await counterOrder();
 		await transitionOrder({ orderId: order.id, to: 'preparing', actor: kitchen });
 		await expect(
-			transitionOrder({ orderId: order.id, to: 'cancelled', actor: cashier, reason: 'x' })
+			transitionOrder({ orderId: order.id, to: 'cancelled', actor: kitchen, reason: 'x' })
 		).rejects.toThrow(/perfil/);
 		await expect(
 			transitionOrder({ orderId: order.id, to: 'cancelled', actor: manager })
@@ -207,7 +207,7 @@ describe('tenders', () => {
 			actor: cashier
 		});
 		const [t] = await db()<{ id: string }[]>`select id from tenders where order_id = ${order.id}`;
-		await expect(refundTender(t.id, 'erro', cashier)).rejects.toThrow(/gerente/);
+		await expect(refundTender(t.id, 'erro', kitchen)).rejects.toThrow(/admin/);
 		await refundTender(t.id, 'Cobrado em dobro', manager);
 		expect((await getOrderDetail(order.id))?.paymentStatus).toBe('refunded');
 	});
@@ -220,5 +220,96 @@ describe('public order view', () => {
 		expect(view?.orderNumber).toBe(order.orderNumber);
 		expect(view).not.toHaveProperty('history');
 		expect(await getPublicOrder('nope')).toBeNull();
+	});
+});
+
+describe('ingredients', () => {
+	it('stores removed ingredients and enforces ones that ran out', async () => {
+		const { setIngredientAvailable } = await import('#lib/server/catalog/editor.ts');
+		await setIngredientAvailable('tomate', false, manager);
+		try {
+			await expect(counterOrder()).rejects.toThrow('Tomate acabou');
+			const order = await createOrder({
+				channel: 'counter',
+				sourceMode: 'staff_pos',
+				lines: [{ ...classic, options: [...classic.options, { groupId: '_sem', sku: 'tomate' }] }],
+				fulfillmentType: 'counter',
+				idempotencyKey: randomUUID(),
+				initialStatus: 'confirmed',
+				actor: cashier
+			});
+			const rows = await db()<{ option_sku: string | null; option_name: string }[]>`
+				select m.option_sku, m.option_name from order_item_modifiers m
+				join order_items i on i.id = m.order_item_id where i.order_id = ${order.id}
+				and m.group_name = 'Retirar'`;
+			expect(rows).toEqual([{ option_sku: null, option_name: 'Sem tomate' }]);
+		} finally {
+			await setIngredientAvailable('tomate', true, manager);
+		}
+	});
+});
+
+describe('dine-in', () => {
+	it('takes table orders from the site only when eating in is switched on', async () => {
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, dineInEnabled: false },
+			manager
+		);
+		const webOrder = () =>
+			createOrder({
+				channel: 'web',
+				sourceMode: 'web',
+				lines: [classic],
+				fulfillmentType: 'dine_in',
+				tableLabel: '7',
+				customer: { name: 'Ana', phoneE164: '+5511988887777' },
+				idempotencyKey: randomUUID(),
+				paymentPlan: 'on_fulfillment',
+				actor: { type: 'customer', id: null }
+			});
+		await expect(webOrder()).rejects.toThrow(/comer no local/);
+		await updateStoreSettings({ dineInEnabled: true }, manager);
+		const order = await webOrder();
+		const detail = await getOrderDetail(order.id);
+		expect(detail?.fulfillmentType).toBe('dine_in');
+		expect(detail?.tableLabel).toBe('7');
+	});
+});
+
+describe('opening hours', () => {
+	it('refuses web orders outside the schedule and accepts them inside', async () => {
+		const { saveSchedule } = await import('#lib/server/settings/hours.ts');
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true },
+			manager
+		);
+		const webOrder = () =>
+			createOrder({
+				channel: 'web',
+				sourceMode: 'web',
+				lines: [classic],
+				fulfillmentType: 'pickup',
+				customer: { name: 'Bia', phoneE164: '+5511977776666' },
+				idempotencyKey: randomUUID(),
+				paymentPlan: 'on_fulfillment',
+				actor: { type: 'customer', id: null }
+			});
+		try {
+			// Open every day, but today is a closed date.
+			const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(
+				new Date()
+			);
+			const allDay = [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
+				weekday,
+				opens: '00:00',
+				closes: '00:00'
+			}));
+			await saveSchedule({ enabled: true, days: allDay, closures: [{ day: today }] }, manager);
+			await expect(webOrder()).rejects.toThrow(/horário/);
+			await saveSchedule({ enabled: true, days: allDay, closures: [] }, manager);
+			await expect(webOrder()).resolves.toHaveProperty('id');
+		} finally {
+			await saveSchedule({ enabled: false, days: [], closures: [] }, manager);
+		}
 	});
 });

@@ -9,7 +9,7 @@ import { makeStaff } from './helpers.ts';
 let owner: Awaited<ReturnType<typeof makeStaff>>;
 
 beforeAll(async () => {
-	owner = await makeStaff('owner');
+	owner = await makeStaff('admin');
 });
 
 afterAll(async () => {

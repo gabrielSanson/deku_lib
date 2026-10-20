@@ -1,8 +1,7 @@
-// Staff area navigation, grouped the way the shop works: running the shift,
-// the menu, the shop itself and the back office. Roles only hide links; every
-// page still checks the role on the server.
+// Admin navigation, grouped the way the shop works: running the shift, the
+// menu, the shop itself and the back office. Kitchen accounts never see it;
+// they are sent to the kitchen screen.
 import type { IconName } from '#lib/components/Icon.svelte';
-import type { StaffRole } from '#lib/domain/order-status.ts';
 
 export interface NavLink {
 	href: string;
@@ -17,65 +16,52 @@ export interface NavGroup {
 	links: NavLink[];
 }
 
-const MANAGER: StaffRole[] = ['owner', 'manager'];
-const FRONT: StaffRole[] = ['owner', 'manager', 'cashier'];
-
-type Entry = NavLink & { roles?: StaffRole[] };
-
-const GROUPS: { label: string; links: Entry[] }[] = [
+export const NAV: NavGroup[] = [
 	{
 		label: 'Operação',
 		links: [
 			{ href: '/staff', label: 'Início', icon: 'home' },
-			{ href: '/staff/pos', label: 'Caixa', icon: 'cart', roles: FRONT },
+			{ href: '/staff/pos', label: 'Caixa', icon: 'cart' },
 			{ href: '/staff/orders', label: 'Pedidos', icon: 'list' },
 			{ href: '/kitchen', label: 'Cozinha', icon: 'chef' },
-			{ href: '/staff/reconciliation', label: 'Caixa do dia', icon: 'cash', roles: MANAGER }
+			{ href: '/staff/reconciliation', label: 'Caixa do dia', icon: 'cash' }
 		]
 	},
 	{
 		label: 'Cardápio',
 		links: [
-			{ href: '/staff/menu', label: 'Disponibilidade', icon: 'check', roles: FRONT },
+			{ href: '/staff/menu', label: 'Disponibilidade', icon: 'check' },
 			{
 				href: '/staff/menu/edit',
 				label: 'Produtos e adicionais',
 				icon: 'burger',
-				roles: MANAGER,
 				match: ['/staff/menu/products', '/staff/menu/groups']
 			},
-			{ href: '/staff/menu/pages', label: 'Páginas do site', icon: 'book', roles: MANAGER }
+			{ href: '/staff/menu/ingredients', label: 'Ingredientes', icon: 'list' },
+			{ href: '/staff/menu/pages', label: 'Páginas do site', icon: 'book' }
 		]
 	},
 	{
 		label: 'Loja',
 		links: [
-			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'clock', roles: MANAGER },
-			{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store', roles: MANAGER },
-			{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings', roles: MANAGER },
-			{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book', roles: MANAGER },
-			{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck', roles: MANAGER },
-			{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid', roles: MANAGER }
+			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
+			{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
+			{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
+			{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
+			{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },
+			{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck' },
+			{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid' }
 		]
 	},
 	{
 		label: 'Gestão',
 		links: [
-			{ href: '/staff/analytics', label: 'Relatórios', icon: 'chart', roles: MANAGER },
-			{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users', roles: MANAGER },
-			{ href: '/staff/setup', label: 'Configuração inicial', icon: 'settings', roles: ['owner'] }
+			{ href: '/staff/analytics', label: 'Relatórios', icon: 'chart' },
+			{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users' },
+			{ href: '/staff/setup', label: 'Configuração inicial', icon: 'settings' }
 		]
 	}
 ];
-
-export function navFor(role: StaffRole): NavGroup[] {
-	return GROUPS.map((g) => ({
-		label: g.label,
-		links: g.links
-			.filter((l) => !l.roles || l.roles.includes(role))
-			.map(({ href, label, icon, match }) => ({ href, label, icon, match }))
-	})).filter((g) => g.links.length > 0);
-}
 
 /** The most specific link for the current path, so "/staff/menu/edit" beats "/staff/menu". */
 export function activeHref(groups: NavGroup[], pathname: string): string | null {
