@@ -1,0 +1,295 @@
+// Read models for the staff hub, kitchen display and customer status page.
+import type { OrderStatus, PaymentStatus } from '#lib/domain/order-status.ts';
+import { db, type Db } from '../db';
+
+export interface OrderModifierView {
+	groupName: string;
+	optionName: string;
+	quantity: number;
+	unitPriceCents: number;
+}
+
+export interface OrderItemView {
+	id: string;
+	productSku: string;
+	productName: string;
+	quantity: number;
+	unitPriceCents: number;
+	modifiersUnitCents: number;
+	lineTotalCents: number;
+	note: string | null;
+	allergyFlag: boolean;
+	prepStation: string;
+	modifiers: OrderModifierView[];
+}
+
+export interface OrderSummary {
+	id: string;
+	orderNumber: number;
+	channel: 'counter' | 'web' | 'ifood';
+	sourceMode: string;
+	customerLabel: string | null;
+	status: OrderStatus;
+	paymentStatus: PaymentStatus;
+	fulfillmentType: 'counter' | 'pickup' | 'delivery';
+	fulfillmentProvider: 'shop' | 'own_driver' | 'ifood_courier';
+	totalCents: number;
+	notes: string | null;
+	createdAt: Date;
+	promisedAt: Date | null;
+	acceptedAt: Date | null;
+	readyAt: Date | null;
+	kitchenSeenAt: Date | null;
+	version: number;
+	items: OrderItemView[];
+}
+
+interface OrderRow {
+	id: string;
+	order_number: number;
+	channel: OrderSummary['channel'];
+	source_mode: string;
+	customer_label: string | null;
+	status: OrderStatus;
+	payment_status: PaymentStatus;
+	fulfillment_type: OrderSummary['fulfillmentType'];
+	fulfillment_provider: OrderSummary['fulfillmentProvider'];
+	total_cents: number;
+	notes: string | null;
+	created_at: Date;
+	promised_at: Date | null;
+	accepted_at: Date | null;
+	ready_at: Date | null;
+	kitchen_seen_at: Date | null;
+	version: number;
+}
+
+async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
+	if (rows.length === 0) return [];
+	const ids = rows.map((r) => r.id);
+	const items = await sql<
+		{
+			id: string;
+			order_id: string;
+			product_sku: string;
+			product_name: string;
+			quantity: number;
+			unit_price_cents: number;
+			modifiers_unit_cents: number;
+			line_total_cents: number;
+			note: string | null;
+			allergy_flag: boolean;
+			prep_station: string;
+		}[]
+	>`select * from order_items where order_id = any(${ids}::uuid[]) order by position`;
+	const itemIds = items.map((i) => i.id);
+	const mods = itemIds.length
+		? await sql<
+				{ order_item_id: string; group_name: string; option_name: string; quantity: number; unit_price_cents: number }[]
+			>`select order_item_id, group_name, option_name, quantity, unit_price_cents
+				from order_item_modifiers where order_item_id = any(${itemIds}::uuid[])`
+		: [];
+
+	return rows.map((r) => ({
+		id: r.id,
+		orderNumber: r.order_number,
+		channel: r.channel,
+		sourceMode: r.source_mode,
+		customerLabel: r.customer_label,
+		status: r.status,
+		paymentStatus: r.payment_status,
+		fulfillmentType: r.fulfillment_type,
+		fulfillmentProvider: r.fulfillment_provider,
+		totalCents: r.total_cents,
+		notes: r.notes,
+		createdAt: r.created_at,
+		promisedAt: r.promised_at,
+		acceptedAt: r.accepted_at,
+		readyAt: r.ready_at,
+		kitchenSeenAt: r.kitchen_seen_at,
+		version: r.version,
+		items: items
+			.filter((i) => i.order_id === r.id)
+			.map((i) => ({
+				id: i.id,
+				productSku: i.product_sku,
+				productName: i.product_name,
+				quantity: i.quantity,
+				unitPriceCents: i.unit_price_cents,
+				modifiersUnitCents: i.modifiers_unit_cents,
+				lineTotalCents: i.line_total_cents,
+				note: i.note,
+				allergyFlag: i.allergy_flag,
+				prepStation: i.prep_station,
+				modifiers: mods
+					.filter((m) => m.order_item_id === i.id)
+					.map((m) => ({
+						groupName: m.group_name,
+						optionName: m.option_name,
+						quantity: m.quantity,
+						unitPriceCents: m.unit_price_cents
+					}))
+			}))
+	}));
+}
+
+export interface OrderFilter {
+	statuses?: OrderStatus[];
+	channel?: string;
+	since?: Date;
+	limit?: number;
+}
+
+export async function listOrders(filter: OrderFilter = {}, sql: Db = db()): Promise<OrderSummary[]> {
+	const statuses = filter.statuses ?? null;
+	const rows = await sql<OrderRow[]>`
+		select id, order_number, channel, source_mode, customer_label, status, payment_status, fulfillment_type,
+			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
+			kitchen_seen_at, version
+		from orders
+		where (${statuses}::text[] is null or status = any(${statuses}::text[]))
+			and (${filter.channel ?? null}::text is null or channel = ${filter.channel ?? null})
+			and (${filter.since ?? null}::timestamptz is null or created_at >= ${filter.since ?? null})
+		order by created_at desc
+		limit ${Math.min(filter.limit ?? 100, 500)}`;
+	return withItems(sql, rows);
+}
+
+/** Orders the kitchen should see, oldest first. Web orders wait until paid or confirmed. */
+export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]> {
+	const rows = await sql<OrderRow[]>`
+		select id, order_number, channel, source_mode, customer_label, status, payment_status, fulfillment_type,
+			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
+			kitchen_seen_at, version
+		from orders
+		where status in ('confirmed', 'preparing', 'ready')
+			or (status = 'completed' and completed_at > now() - interval '10 minutes')
+		order by coalesce(accepted_at, created_at)
+		limit 200`;
+	return withItems(sql, rows);
+}
+
+export interface OrderDetail extends OrderSummary {
+	subtotalCents: number;
+	discountCents: number;
+	deliveryFeeCents: number;
+	cancelReason: string | null;
+	publicToken: string;
+	catalogVersion: string | null;
+	address: {
+		recipient: string;
+		cep: string;
+		street: string;
+		number: string;
+		complement: string | null;
+		neighborhood: string;
+		city: string;
+		state: string;
+		instructions: string | null;
+	} | null;
+	history: {
+		fromStatus: OrderStatus | null;
+		toStatus: OrderStatus;
+		actorType: string;
+		actorName: string | null;
+		reason: string | null;
+		occurredAt: Date;
+	}[];
+	tenders: {
+		id: string;
+		method: string;
+		provider: string;
+		providerReference: string | null;
+		amountCents: number;
+		changeCents: number | null;
+		status: PaymentStatus;
+		createdAt: Date;
+		recordedByName: string | null;
+	}[];
+}
+
+export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderDetail | null> {
+	const [row] = await sql<
+		(OrderRow & {
+			subtotal_cents: number;
+			discount_cents: number;
+			delivery_fee_cents: number;
+			cancel_reason: string | null;
+			public_token: string;
+			catalog_version: string | null;
+		})[]
+	>`select * from orders where id = ${id}`;
+	if (!row) return null;
+	const [summary] = await withItems(sql, [row]);
+	const [address] = await sql<NonNullable<OrderDetail['address']>[]>`
+		select recipient, cep, street, number, complement, neighborhood, city, state, instructions
+		from order_addresses where order_id = ${id}`;
+	const history = await sql<
+		{ from_status: OrderStatus | null; to_status: OrderStatus; actor_type: string; actor_name: string | null; reason: string | null; occurred_at: Date }[]
+	>`select h.from_status, h.to_status, h.actor_type, s.display_name as actor_name, h.reason, h.occurred_at
+		from order_status_history h left join staff_users s on s.id = h.actor_id
+		where h.order_id = ${id} order by h.occurred_at, h.id`;
+	const tenders = await sql<
+		{ id: string; method: string; provider: string; provider_reference: string | null; amount_cents: number; change_cents: number | null; status: PaymentStatus; created_at: Date; recorded_by_name: string | null }[]
+	>`select t.id, t.method, t.provider, t.provider_reference, t.amount_cents, t.change_cents, t.status, t.created_at,
+			s.display_name as recorded_by_name
+		from tenders t left join staff_users s on s.id = t.recorded_by
+		where t.order_id = ${id} order by t.created_at`;
+	return {
+		...summary,
+		subtotalCents: row.subtotal_cents,
+		discountCents: row.discount_cents,
+		deliveryFeeCents: row.delivery_fee_cents,
+		cancelReason: row.cancel_reason,
+		publicToken: row.public_token,
+		catalogVersion: row.catalog_version,
+		address: address ?? null,
+		history: history.map((h) => ({
+			fromStatus: h.from_status,
+			toStatus: h.to_status,
+			actorType: h.actor_type,
+			actorName: h.actor_name,
+			reason: h.reason,
+			occurredAt: h.occurred_at
+		})),
+		tenders: tenders.map((t) => ({
+			id: t.id,
+			method: t.method,
+			provider: t.provider,
+			providerReference: t.provider_reference,
+			amountCents: t.amount_cents,
+			changeCents: t.change_cents,
+			status: t.status,
+			createdAt: t.created_at,
+			recordedByName: t.recorded_by_name
+		}))
+	};
+}
+
+/** Customer-safe status view. Omits staff notes, history actors and address. */
+export async function getPublicOrder(token: string, sql: Db = db()) {
+	if (!/^[0-9a-f]{36}$/.test(token)) return null;
+	const [row] = await sql<{ id: string }[]>`select id from orders where public_token = ${token}`;
+	if (!row) return null;
+	const d = await getOrderDetail(row.id, sql);
+	if (!d) return null;
+	return {
+		orderNumber: d.orderNumber,
+		status: d.status,
+		paymentStatus: d.paymentStatus,
+		fulfillmentType: d.fulfillmentType,
+		createdAt: d.createdAt,
+		promisedAt: d.promisedAt,
+		readyAt: d.readyAt,
+		subtotalCents: d.subtotalCents,
+		discountCents: d.discountCents,
+		deliveryFeeCents: d.deliveryFeeCents,
+		totalCents: d.totalCents,
+		items: d.items.map((i) => ({
+			productName: i.productName,
+			quantity: i.quantity,
+			lineTotalCents: i.lineTotalCents,
+			modifiers: i.modifiers.map((m) => m.optionName)
+		}))
+	};
+}
