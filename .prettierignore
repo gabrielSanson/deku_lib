@@ -7,3 +7,6 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Vendored upstream files, kept byte-for-byte
+/deploy/supabase/

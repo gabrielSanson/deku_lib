@@ -1,4 +1,5 @@
 services:
+
   # nginx terminates TLS and forwards to the API gateway (api-gw) on port 8000,
   # so the gateway's own host port binding is removed here. This works for
   # either gateway, since the service is named api-gw in both cases.
@@ -13,8 +14,8 @@ services:
     image: jonasal/nginx-certbot:6.2.0-nginx1.31.6
     restart: unless-stopped
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     depends_on:
       api-gw:
         condition: service_healthy

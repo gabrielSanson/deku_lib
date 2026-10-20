@@ -11,6 +11,7 @@
 name: supabase
 
 services:
+
   studio:
     container_name: supabase-studio
     image: supabase/studio:2026.10.12-sha-3699278
@@ -18,8 +19,8 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
-          'node -e "fetch(''http://localhost:3000/api/platform/profile'').then((r) => {if (r.status !== 200) throw new Error(r.status)})"'
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})\""
         ]
       timeout: 10s
       interval: 5s
@@ -27,7 +28,7 @@ services:
       start_period: 20s
     environment:
       # Listen on all IPv4 interfaces
-      HOSTNAME: '0.0.0.0'
+      HOSTNAME: "0.0.0.0"
 
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PORT: ${POSTGRES_PORT}
@@ -56,7 +57,7 @@ services:
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY}
 
       # See: docker-compose.logs.yml
-      ENABLED_FEATURES_LOGS_ALL: 'false'
+      ENABLED_FEATURES_LOGS_ALL: "false"
 
       SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
       EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
@@ -79,7 +80,7 @@ services:
           - kong
     healthcheck:
       # Using a TCP port check because this image does not include curl or wget.
-      test: ['CMD-SHELL', "timeout 1 bash -c '</dev/tcp/127.0.0.1/8000'"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/8000'"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -103,14 +104,22 @@ services:
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
-    entrypoint: ['/bin/sh', '/docker-entrypoint.sh']
+    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
 
   auth:
     container_name: supabase-auth
     image: supabase/gotrue:v2.197.0
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9999/health']
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9999/health"
+        ]
       timeout: 5s
       interval: 5s
       retries: 3
@@ -246,7 +255,7 @@ services:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'postgrest', '--ready']
+      test: [ "CMD", "postgrest", "--ready" ]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -265,9 +274,12 @@ services:
       # PGRST_JWT_SECRET: ${JWT_JWKS}
       PGRST_JWT_SECRET: ${JWT_JWKS:-${JWT_SECRET}}
 
-      PGRST_DB_USE_LEGACY_GUCS: 'false'
+      PGRST_DB_USE_LEGACY_GUCS: "false"
       PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
-    command: ['postgrest']
+    command:
+      [
+        "postgrest"
+      ]
 
   realtime:
     # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
@@ -281,8 +293,8 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
-          'curl -sSfL --head -o /dev/null -H "Authorization: Bearer ${ANON_KEY}" http://localhost:4000/api/tenants/realtime-dev/health'
+          "CMD-SHELL",
+          "curl -sSfL --head -o /dev/null -H \"Authorization: Bearer ${ANON_KEY}\" http://localhost:4000/api/tenants/realtime-dev/health"
         ]
       timeout: 5s
       interval: 30s
@@ -309,11 +321,11 @@ services:
       METRICS_JWT_SECRET: ${JWT_SECRET}
       ERL_AFLAGS: -proto_dist inet_tcp
       DNS_NODES: "''"
-      RLIMIT_NOFILE: '10000'
+      RLIMIT_NOFILE: "10000"
       APP_NAME: realtime
-      SEED_SELF_HOST: 'true'
-      RUN_JANITOR: 'true'
-      DISABLE_HEALTHCHECK_LOGGING: 'true'
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
+      DISABLE_HEALTHCHECK_LOGGING: "true"
 
   # To use S3 backed storage: docker compose -f docker-compose.yml -f docker-compose.s3.yml up
   storage:
@@ -329,7 +341,15 @@ services:
       imgproxy:
         condition: service_started
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://storage:5000/status']
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://storage:5000/status"
+        ]
       timeout: 5s
       interval: 5s
       retries: 3
@@ -348,7 +368,7 @@ services:
 
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       STORAGE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
-      REQUEST_ALLOW_X_FORWARDED_PATH: 'true'
+      REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       # S3 bucket when using S3 backend, directory name when using 'file'
@@ -363,7 +383,7 @@ services:
       TENANT_ID: ${STORAGE_TENANT_ID}
       # TODO: https://github.com/supabase/storage-api/issues/55
       REGION: ${REGION}
-      ENABLE_IMAGE_TRANSFORMATION: 'true'
+      ENABLE_IMAGE_TRANSFORMATION: "true"
       IMGPROXY_URL: http://imgproxy:5001
       # S3 protocol endpoint configuration
       S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID}
@@ -378,14 +398,19 @@ services:
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
-      test: ['CMD', 'imgproxy', 'health']
+      test:
+        [
+          "CMD",
+          "imgproxy",
+          "health"
+        ]
       timeout: 5s
       interval: 5s
       retries: 3
     environment:
-      IMGPROXY_BIND: ':5001'
+      IMGPROXY_BIND: ":5001"
       IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
-      IMGPROXY_USE_ETAG: 'true'
+      IMGPROXY_USE_ETAG: "true"
       IMGPROXY_AUTO_WEBP: ${IMGPROXY_AUTO_WEBP}
       IMGPROXY_MAX_SRC_RESOLUTION: 16.8
 
@@ -417,7 +442,7 @@ services:
       api-gw:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', "timeout 1 bash -c '</dev/tcp/127.0.0.1/9000'"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/9000'"]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -434,18 +459,18 @@ services:
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       # New opaque API keys
-      SUPABASE_PUBLISHABLE_KEYS: '{"default":"${SUPABASE_PUBLISHABLE_KEY:-}"}'
-      SUPABASE_SECRET_KEYS: '{"default":"${SUPABASE_SECRET_KEY:-}"}'
+      SUPABASE_PUBLISHABLE_KEYS: "{\"default\":\"${SUPABASE_PUBLISHABLE_KEY:-}\"}"
+      SUPABASE_SECRET_KEYS: "{\"default\":\"${SUPABASE_SECRET_KEY:-}\"}"
       SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       # TODO: Allow configuring VERIFY_JWT per function.
-      VERIFY_JWT: '${FUNCTIONS_VERIFY_JWT}'
+      VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
     command:
       [
-        'start',
-        '--user-worker-request-idle-timeout',
-        '150000',
-        '--main-service',
-        '/home/deno/functions/main'
+        "start",
+        "--user-worker-request-idle-timeout",
+        "150000",
+        "--main-service",
+        "/home/deno/functions/main"
       ]
 
   # Comment out everything below this point if you are using an external Postgres database
@@ -473,7 +498,15 @@ services:
       # Use named volume to persist pgsodium decryption key between restarts
       - db-config:/etc/postgresql-custom
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+      test:
+        [
+        "CMD",
+        "pg_isready",
+        "-U",
+        "postgres",
+        "-h",
+        "localhost"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -486,12 +519,13 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       POSTGRES_DB: ${POSTGRES_DB}
       JWT_EXP: ${JWT_EXPIRY}
-    command: [
-        'postgres',
-        '-c',
-        'config_file=/etc/postgresql/postgresql.conf',
-        '-c',
-        'log_min_messages=fatal' # prevents Realtime polling queries from appearing in logs
+    command:
+      [
+        "postgres",
+        "-c",
+        "config_file=/etc/postgresql/postgresql.conf",
+        "-c",
+        "log_min_messages=fatal" # prevents Realtime polling queries from appearing in logs
       ]
 
   # Update the DATABASE_URL if you are using an external Postgres database
@@ -506,7 +540,15 @@ services:
       - ./volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
     healthcheck:
       test:
-        ['CMD', 'curl', '-sSfL', '--head', '-o', '/dev/null', 'http://127.0.0.1:4000/api/health']
+        [
+          "CMD",
+          "curl",
+          "-sSfL",
+          "--head",
+          "-o",
+          "/dev/null",
+          "http://127.0.0.1:4000/api/health"
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -521,7 +563,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/_supabase
-      CLUSTER_POSTGRES: 'true'
+      CLUSTER_POSTGRES: "true"
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       VAULT_ENC_KEY: ${VAULT_ENC_KEY}
       API_JWT_SECRET: ${JWT_SECRET}
@@ -535,9 +577,9 @@ services:
       DB_POOL_SIZE: ${POOLER_DB_POOL_SIZE}
     command:
       [
-        '/bin/sh',
-        '-c',
-        '/app/bin/migrate && /app/bin/supavisor eval "$$(cat /etc/pooler/pooler.exs)" && /app/bin/server'
+        "/bin/sh",
+        "-c",
+        "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"
       ]
 
 volumes:

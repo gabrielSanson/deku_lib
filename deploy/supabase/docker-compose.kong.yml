@@ -13,7 +13,7 @@ services:
     container_name: supabase-kong
     image: kong/kong:3.9.3
     healthcheck:
-      test: !override ['CMD', 'kong', 'health']
+      test: !override ["CMD", "kong", "health"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
       #- ./volumes/api/server.crt:/home/kong/server.crt:ro
       #- ./volumes/api/server.key:/home/kong/server.key:ro
     environment: !override
-      KONG_DATABASE: 'off'
+      KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /usr/local/kong/kong.yml
       KONG_ROUTER_FLAVOR: expressions
       KONG_DNS_ORDER: LAST,A,CNAME
@@ -46,4 +46,4 @@ services:
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
-    entrypoint: !override ['/bin/sh', '/home/kong/kong-entrypoint.sh']
+    entrypoint: !override ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
