@@ -307,7 +307,13 @@ export const TEXTS = {
 		label: 'Como receber',
 		default: 'Como você quer receber?'
 	},
-	'checkout.pickup': { group: 'checkout', label: 'Retirada', default: 'Retirar na loja' },
+	'checkout.dineIn': { group: 'checkout', label: 'Comer no local', default: 'Comer aqui' },
+	'checkout.table': {
+		group: 'checkout',
+		label: 'Mesa (comer no local)',
+		default: 'Número da mesa (opcional)'
+	},
+	'checkout.pickup': { group: 'checkout', label: 'Retirada / para viagem', default: 'Para viagem' },
 	'checkout.delivery': { group: 'checkout', label: 'Entrega', default: 'Entrega' },
 	'checkout.eta': {
 		group: 'checkout',

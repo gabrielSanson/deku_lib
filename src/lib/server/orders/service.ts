@@ -24,7 +24,7 @@ import { enqueue, QUEUES } from '../jobs';
 import { getStoreSettings } from '../settings/service';
 
 export type SourceMode = 'staff_pos' | 'web' | 'kiosk' | 'ifood_api' | 'ifood_manual';
-export type FulfillmentType = 'counter' | 'pickup' | 'delivery';
+export type FulfillmentType = 'counter' | 'pickup' | 'delivery' | 'dine_in';
 export type FulfillmentProvider = 'shop' | 'own_driver' | 'ifood_courier';
 
 export interface OrderActor extends Actor {
@@ -50,6 +50,8 @@ export interface CreateOrderInput {
 	fulfillmentType: FulfillmentType;
 	fulfillmentProvider?: FulfillmentProvider;
 	customerLabel?: string | null;
+	/** Where a dine-in customer is sitting ("Mesa 7"). */
+	tableLabel?: string | null;
 	customer?: {
 		name: string;
 		phoneE164?: string | null;
@@ -106,6 +108,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			}
 			if (input.fulfillmentType === 'pickup' && !settings.pickupEnabled) {
 				throw new DomainError('Retirada indisponível no momento.', 'pickup_off', 409);
+			}
+			if (input.fulfillmentType === 'dine_in' && !settings.dineInEnabled) {
+				throw new DomainError('Pedidos para comer no local estão desligados.', 'dine_in_off', 409);
 			}
 			if (settings.maxOpenOrders) {
 				const [{ open }] = await tx<{ open: number }[]>`
@@ -169,7 +174,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				channel, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
-				promised_at, accepted_at, created_by, payment_plan, channel_display_id
+				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -180,7 +185,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${cart.catalogVersion}, ${input.idempotencyKey}, ${input.isTest ?? false},
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
 				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')},
-				${input.channelDisplayId ?? null}
+				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null}
 			)
 			on conflict (idempotency_key) do nothing
 			returning id, order_number, public_token`;

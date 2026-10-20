@@ -72,8 +72,12 @@
 			/> Pedidos pelo site</label
 		>
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} /> Retirada
-			no balcão</label
+			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} /> Comer no
+			local (o cliente pede pelo celular na mesa)</label
+		>
+		<label class="flex min-h-11 items-center gap-3"
+			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} /> Para viagem
+			/ retirada no balcão</label
 		>
 		<label class="flex min-h-11 items-center gap-3"
 			><input type="checkbox" class="size-5" name="deliveryEnabled" checked={s.deliveryEnabled} /> Entrega

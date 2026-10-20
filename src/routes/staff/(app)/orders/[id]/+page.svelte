@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/FormError.svelte';
 	import LiveBanner from '#lib/components/LiveBanner.svelte';
@@ -53,11 +54,7 @@
 				: o.channel === 'web'
 					? 'Site'
 					: 'Balcão'} ·
-			{o.fulfillmentType === 'delivery'
-				? 'Entrega'
-				: o.fulfillmentType === 'pickup'
-					? 'Retirada'
-					: 'Balcão'}
+			{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}
 			{o.fulfillmentProvider === 'ifood_courier' ? '(entregador iFood)' : ''} · criado {formatDateTime(
 				o.createdAt
 			)} · prometido {formatTime(o.promisedAt)}

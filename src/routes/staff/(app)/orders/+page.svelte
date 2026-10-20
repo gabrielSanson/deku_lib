@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { goto } from '$app/navigation';
 	import Age from '#lib/components/Age.svelte';
 	import LiveBanner from '#lib/components/LiveBanner.svelte';
@@ -34,11 +35,6 @@
 		goto(`?${u}`, { replace: true });
 	}
 	const channelLabel: Record<string, string> = { counter: 'Balcão', web: 'Site', ifood: 'iFood' };
-	const fulfillmentLabel: Record<string, string> = {
-		counter: 'Balcão',
-		pickup: 'Retirada',
-		delivery: 'Entrega'
-	};
 </script>
 
 <svelte:head><title>Pedidos · Equipe</title></svelte:head>
@@ -85,7 +81,9 @@
 					>
 						<td class="p-3 font-bold"><a href="/staff/orders/{o.id}">#{o.orderNumber}</a></td>
 						<td class="p-3"><StatusBadge status={o.status} /></td>
-						<td class="p-3">{channelLabel[o.channel]} · {fulfillmentLabel[o.fulfillmentType]}</td>
+						<td class="p-3"
+							>{channelLabel[o.channel]} · {fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</td
+						>
 						<td class="p-3">{o.customerLabel ?? '—'}</td>
 						<td class="p-3 text-muted">{o.items.reduce((n, i) => n + i.quantity, 0)} itens</td>
 						<td class="p-3"><PaymentBadge status={o.paymentStatus} /></td>

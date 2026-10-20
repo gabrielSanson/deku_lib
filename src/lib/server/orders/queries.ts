@@ -33,7 +33,8 @@ export interface OrderSummary {
 	status: OrderStatus;
 	paymentStatus: PaymentStatus;
 	paymentPlan: 'counter' | 'online' | 'on_fulfillment' | 'channel' | 'pix_key';
-	fulfillmentType: 'counter' | 'pickup' | 'delivery';
+	fulfillmentType: 'counter' | 'pickup' | 'delivery' | 'dine_in';
+	tableLabel: string | null;
 	fulfillmentProvider: 'shop' | 'own_driver' | 'ifood_courier';
 	totalCents: number;
 	notes: string | null;
@@ -57,6 +58,7 @@ interface OrderRow {
 	payment_status: PaymentStatus;
 	payment_plan: OrderSummary['paymentPlan'];
 	fulfillment_type: OrderSummary['fulfillmentType'];
+	table_label: string | null;
 	fulfillment_provider: OrderSummary['fulfillmentProvider'];
 	total_cents: number;
 	notes: string | null;
@@ -111,6 +113,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 		paymentStatus: r.payment_status,
 		paymentPlan: r.payment_plan,
 		fulfillmentType: r.fulfillment_type,
+		tableLabel: r.table_label,
 		fulfillmentProvider: r.fulfillment_provider,
 		totalCents: r.total_cents,
 		notes: r.notes,
@@ -158,7 +161,7 @@ export async function listOrders(
 ): Promise<OrderSummary[]> {
 	const statuses = filter.statuses ?? null;
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders
@@ -173,7 +176,7 @@ export async function listOrders(
 /** Orders the kitchen should see, oldest first. Web orders wait until paid or confirmed. */
 export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]> {
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders

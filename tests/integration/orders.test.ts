@@ -248,3 +248,30 @@ describe('ingredients', () => {
 		}
 	});
 });
+
+describe('dine-in', () => {
+	it('takes table orders from the site only when eating in is switched on', async () => {
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, dineInEnabled: false },
+			manager
+		);
+		const webOrder = () =>
+			createOrder({
+				channel: 'web',
+				sourceMode: 'web',
+				lines: [classic],
+				fulfillmentType: 'dine_in',
+				tableLabel: '7',
+				customer: { name: 'Ana', phoneE164: '+5511988887777' },
+				idempotencyKey: randomUUID(),
+				paymentPlan: 'on_fulfillment',
+				actor: { type: 'customer', id: null }
+			});
+		await expect(webOrder()).rejects.toThrow(/comer no local/);
+		await updateStoreSettings({ dineInEnabled: true }, manager);
+		const order = await webOrder();
+		const detail = await getOrderDetail(order.id);
+		expect(detail?.fulfillmentType).toBe('dine_in');
+		expect(detail?.tableLabel).toBe('7');
+	});
+});

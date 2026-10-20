@@ -24,6 +24,7 @@ export const load: LayoutServerLoad = async ({ setHeaders }) => {
 		store: {
 			open: settings.acceptingOrders && settings.webOrderingEnabled,
 			pauseReason: settings.pauseReason,
+			dineIn: settings.dineInEnabled,
 			pickup: settings.pickupEnabled,
 			delivery: settings.deliveryEnabled,
 			payOnFulfillment: settings.payOnFulfillmentEnabled,

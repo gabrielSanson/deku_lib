@@ -15,6 +15,15 @@
 	let drawer = $state<HTMLElement>();
 	onMount(() => {
 		cart.init();
+		// A table QR code links to /?mesa=7; checkout then defaults to eating in at that table.
+		const table = page.url.searchParams.get('mesa');
+		if (table) {
+			try {
+				sessionStorage.setItem('deku-mesa', table.slice(0, 20));
+			} catch {
+				/* private mode: the customer types the table at checkout */
+			}
+		}
 		orderToken = lastOrder();
 	});
 

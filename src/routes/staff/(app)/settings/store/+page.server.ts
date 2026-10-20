@@ -25,6 +25,7 @@ export const actions: Actions = {
 				{
 					acceptingOrders: d.get('acceptingOrders') === 'on',
 					pauseReason: formString(d, 'pauseReason') || null,
+					dineInEnabled: d.get('dineInEnabled') === 'on',
 					pickupEnabled: d.get('pickupEnabled') === 'on',
 					deliveryEnabled: d.get('deliveryEnabled') === 'on',
 					webOrderingEnabled: d.get('webOrderingEnabled') === 'on',

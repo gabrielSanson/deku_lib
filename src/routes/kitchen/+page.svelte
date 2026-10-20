@@ -3,6 +3,7 @@
 	import Age from '#lib/components/Age.svelte';
 	import LiveBanner from '#lib/components/LiveBanner.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
+	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
 
@@ -79,11 +80,6 @@
 		preparing: { to: 'ready', label: 'Pronto' },
 		ready: { to: 'completed', label: 'Entregue' }
 	};
-	const fulfillment: Record<string, string> = {
-		counter: 'BALCÃO',
-		pickup: 'VIAGEM',
-		delivery: 'ENTREGA'
-	};
 </script>
 
 <svelte:head
@@ -149,7 +145,7 @@
 											? `IFOOD ${o.channelDisplayId ?? ''} · `
 											: o.channel === 'web'
 												? 'SITE · '
-												: ''}{fulfillment[o.fulfillmentType]}
+												: ''}{fulfillmentLabel(o.fulfillmentType, o.tableLabel).toUpperCase()}
 									</span>
 									<span class="text-lg"
 										><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span

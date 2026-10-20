@@ -38,7 +38,8 @@ const address = z.object({
 
 const checkout = z.object({
 	lines: z.array(cartLineInput).min(1).max(60),
-	fulfillmentType: z.enum(['pickup', 'delivery']),
+	fulfillmentType: z.enum(['dine_in', 'pickup', 'delivery']),
+	tableLabel: z.string().trim().max(20).optional(),
 	address: address.optional(),
 	name: z.string().trim().min(2).max(60),
 	phone: z.string().trim().min(8).max(25),
@@ -141,6 +142,7 @@ export const actions: Actions = {
 				sourceMode: 'web',
 				lines: input.lines,
 				fulfillmentType: input.fulfillmentType,
+				tableLabel: input.tableLabel || null,
 				fulfillmentProvider: input.fulfillmentType === 'delivery' ? 'own_driver' : 'shop',
 				customer: {
 					name: input.name,
