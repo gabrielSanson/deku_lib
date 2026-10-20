@@ -6,8 +6,10 @@
 	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
 	import { formatTime } from '#lib/domain/time.ts';
 	import { rememberOrder } from '#lib/client/last-order.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
+	const t = useTexts();
 	const o = $derived(data.order);
 	onMount(() => {
 		if (page.params.token) rememberOrder(page.params.token);
@@ -19,39 +21,42 @@
 	});
 
 	const steps = $derived([
-		{ key: 'new', label: 'Recebido' },
-		{ key: 'confirmed', label: 'Confirmado' },
-		{ key: 'preparing', label: 'Em preparo' },
+		{ key: 'new', label: t('order.step.new') },
+		{ key: 'confirmed', label: t('order.step.confirmed') },
+		{ key: 'preparing', label: t('order.step.preparing') },
 		{
 			key: 'ready',
-			label: o.fulfillmentType === 'delivery' ? 'Saiu para entrega' : 'Pronto para retirar'
+			label: o.fulfillmentType === 'delivery' ? t('order.step.out') : t('order.step.ready')
 		},
-		{ key: 'completed', label: 'Concluído' }
+		{ key: 'completed', label: t('order.step.completed') }
 	]);
 	const idx = $derived(steps.findIndex((s) => s.key === o.status));
 	const isNew = $derived(page.url.searchParams.has('novo'));
 </script>
 
 <svelte:head
-	><title>Pedido #{o.orderNumber}</title><meta name="robots" content="noindex" /></svelte:head
+	><title>{t('order.pageTitle', { number: o.orderNumber })}</title><meta
+		name="robots"
+		content="noindex"
+	/></svelte:head
 >
 
 <section class="space-y-5 py-6">
-	{#if isNew}<p class="alert-ok">Pedido enviado! Guarde este link para acompanhar.</p>{/if}
+	{#if isNew}<p class="alert-ok">{t('order.sent')}</p>{/if}
 	<div class="text-center">
-		<p class="text-sm text-muted">Pedido</p>
+		<p class="text-sm text-muted">{t('order.label')}</p>
 		<h1 class="text-5xl font-black tabular-nums">#{o.orderNumber}</h1>
 		{#if o.promisedAt && idx >= 0 && idx < 4}<p class="mt-1 text-muted">
-				Previsão: {formatTime(o.promisedAt)}
+				{t('order.eta', { time: formatTime(o.promisedAt) })}
 			</p>{/if}
 	</div>
 
 	{#if o.status === 'cancelled' || o.status === 'rejected'}
 		<p class="alert-error text-center">
-			Este pedido foi cancelado. Se você já pagou, o estorno é feito pela loja.
+			{t('order.cancelled')}
 		</p>
 	{:else}
-		<ol class="space-y-2" aria-label="Andamento do pedido">
+		<ol class="space-y-2" aria-label={t('order.progress')}>
 			{#each steps as s, i (s.key)}
 				<li
 					class="flex items-center gap-3 {i <= idx ? '' : 'opacity-40'}"
@@ -81,20 +86,22 @@
 			</div>
 		{/each}
 		{#if o.deliveryFeeCents}<div class="flex justify-between">
-				<span>Entrega</span><Money cents={o.deliveryFeeCents} />
+				<span>{t('order.delivery')}</span><Money cents={o.deliveryFeeCents} />
 			</div>{/if}
 		{#if o.discountCents}<div class="flex justify-between">
-				<span>Desconto</span><span>−<Money cents={o.discountCents} /></span>
+				<span>{t('order.discount')}</span><span>−<Money cents={o.discountCents} /></span>
 			</div>{/if}
 		<div class="flex justify-between border-t border-line pt-2 text-base font-bold">
-			<span>Total</span><Money cents={o.totalCents} />
+			<span>{t('order.total')}</span><Money cents={o.totalCents} />
 		</div>
 		<div class="flex justify-between pt-1">
-			<span>Pagamento</span><PaymentBadge status={o.paymentStatus} />
+			<span>{t('order.payment')}</span><PaymentBadge status={o.paymentStatus} />
 		</div>
 	</div>
 	{#if o.paymentPlan === 'pix_key' && o.status === 'new' && o.paymentStatus !== 'paid'}
-		<a class="btn-primary w-full" href="/checkout/payment/{page.params.token}">Pagar com Pix</a>
+		<a class="btn-primary w-full" href="/checkout/payment/{page.params.token}"
+			>{t('order.payPix')}</a
+		>
 	{/if}
-	<a class="btn-secondary w-full" href="/">Voltar ao cardápio</a>
+	<a class="btn-secondary w-full" href="/">{t('errors.backToMenu')}</a>
 </section>

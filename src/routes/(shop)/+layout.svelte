@@ -5,9 +5,12 @@
 	import { lastOrder } from '#lib/client/last-order.ts';
 	import Icon from '#lib/components/Icon.svelte';
 	import Money from '#lib/components/Money.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 	import CartPanel from './CartPanel.svelte';
 
 	let { data, children } = $props();
+	const t = useTexts();
+	const items = $derived(t(cart.count === 1 ? 'cart.item' : 'cart.items'));
 	let orderToken = $state<string | null>(null);
 	let drawer = $state<HTMLElement>();
 	onMount(() => {
@@ -51,13 +54,13 @@
 	});
 
 	const nav = $derived([
-		{ href: '/', label: 'Cardápio', icon: 'burger' as const, active: isHome },
-		{ href: '/#como-pedir', label: 'Como pedir', icon: 'receipt' as const, active: false },
+		{ href: '/', label: t('header.nav.menu'), icon: 'burger' as const, active: isHome },
+		{ href: '/#como-pedir', label: t('header.nav.howTo'), icon: 'receipt' as const, active: false },
 		...(orderToken
 			? [
 					{
 						href: `/orders/${orderToken}`,
-						label: 'Acompanhar pedido',
+						label: t('header.nav.track'),
 						icon: 'pin' as const,
 						active: path.startsWith('/orders')
 					}
@@ -67,7 +70,7 @@
 </script>
 
 <svelte:head>
-	<meta name="theme-color" content="#0b0b0b" />
+	<meta name="theme-color" content={data.branding.colors.dark ?? '#0b0b0b'} />
 	<link rel="manifest" href="/manifest.webmanifest" />
 </svelte:head>
 
@@ -76,15 +79,13 @@
 		<div
 			class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 lg:px-6"
 		>
-			<a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="{data.shopName}, início">
-				<img src="/brand/deku-mark.png" alt="" class="h-10 w-auto sm:h-14" width="35" height="52" />
-				<img
-					src="/brand/deku-wordmark.png"
-					alt={data.shopName}
-					class="h-6 w-auto sm:h-9"
-					width="83"
-					height="26"
-				/>
+			<a
+				href="/"
+				class="flex shrink-0 items-center gap-2.5"
+				aria-label={t('header.home', { name: data.shopName })}
+			>
+				<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-14" />
+				<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
 			</a>
 			<nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
 				{#each nav as n (n.href)}
@@ -102,7 +103,7 @@
 			<button
 				class="relative grid size-12 place-items-center rounded-full hover:bg-night-2"
 				onclick={openCart}
-				aria-label="Carrinho, {cart.count} {cart.count === 1 ? 'item' : 'itens'}"
+				aria-label={t('header.cart', { count: cart.count, items })}
 			>
 				<Icon name="cart" class="size-8" strokeWidth={1.75} />
 				{#if cart.count}
@@ -115,7 +116,7 @@
 		</div>
 		{#if !data.store.open}
 			<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-				{data.store.pauseReason ?? 'Não estamos aceitando pedidos online agora.'}
+				{data.store.pauseReason ?? t('header.closed')}
 			</p>
 		{/if}
 	</header>
@@ -133,15 +134,15 @@
 			<p
 				class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
 			>
-				<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>Burger de verdade é aqui<span
+				<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>{t('footer.tagline')}<span
 					class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
 				></span>
 			</p>
 			<nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-				<a href="/p/sobre" class="hover:text-white">Sobre</a>
-				<a href="/p/alergenicos" class="hover:text-white">Alergênicos</a>
-				<a href="/p/privacidade" class="hover:text-white">Privacidade</a>
-				<a href="/p/entrega" class="hover:text-white">Entrega e trocas</a>
+				<a href="/p/sobre" class="hover:text-white">{t('footer.about')}</a>
+				<a href="/p/alergenicos" class="hover:text-white">{t('footer.allergens')}</a>
+				<a href="/p/privacidade" class="hover:text-white">{t('footer.privacy')}</a>
+				<a href="/p/entrega" class="hover:text-white">{t('footer.delivery')}</a>
 			</nav>
 		</div>
 	</footer>
@@ -154,8 +155,7 @@
 				: ''}"
 		>
 			<span class="flex items-center gap-2"
-				><Icon name="cart" /> Ver carrinho · {cart.count}
-				{cart.count === 1 ? 'item' : 'itens'}</span
+				><Icon name="cart" /> {t('cart.view', { count: cart.count, items })}</span
 			>
 			<Money cents={cart.subtotalCents} />
 		</button>
@@ -166,7 +166,7 @@
 			<button
 				class="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
 				onclick={close}
-				aria-label="Fechar carrinho"
+				aria-label={t('cart.close')}
 				tabindex="-1"
 			></button>
 			<div
@@ -174,10 +174,15 @@
 				role="dialog"
 				aria-modal="true"
 				bind:this={drawer}
-				aria-label="Seu pedido"
+				aria-label={t('cart.title')}
 			>
 				<div class="w-full">
-					<CartPanel products={data.catalog.products} store={data.store} onclose={close} />
+					<CartPanel
+						products={data.catalog.products}
+						store={data.store}
+						logo={data.branding.images.logo}
+						onclose={close}
+					/>
 				</div>
 			</div>
 		</div>

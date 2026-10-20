@@ -39,6 +39,13 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
   time; the browser never sets a price. Every edit bumps a menu revision that
   orders record. Photos go to a private Storage bucket and are served by the app
   at `/media/menu/…`.
+- **Texts and look are edited by the owner** in Configurações → Textos and
+  Configurações → Aparência. Every customer-facing text has a default in
+  `src/lib/texts/catalog.ts` (read in components with `useTexts()`); only the
+  owner's changes are stored, in `ui_texts`. Colours, logos and the app icon live
+  in `store_branding` and fall back to the files in `static/brand`. New
+  customer-facing copy goes into the catalog, not straight into a component.
+
 - **The setup wizard** (`/staff/setup`, owner only) walks through store details,
   menu, pickup/delivery, team, payments (including the Pix key) and iFood. The
   owner is pointed to it until it is finished.

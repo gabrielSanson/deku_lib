@@ -2,8 +2,10 @@
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import Money from '#lib/components/Money.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
+	const t = useTexts();
 	let copied = $state(false);
 	let now = $state(Date.now());
 
@@ -28,20 +30,18 @@
 	}
 </script>
 
-<svelte:head><title>Pagamento do pedido #{data.orderNumber}</title></svelte:head>
+<svelte:head><title>{t('payment.pageTitle', { number: data.orderNumber })}</title></svelte:head>
 
 <section class="space-y-5 py-6 text-center">
-	<h1 class="text-2xl font-black">Pedido #{data.orderNumber}</h1>
-	<p class="text-lg">Total: <Money cents={data.totalCents} class="font-bold" /></p>
+	<h1 class="text-2xl font-black">{t('payment.order', { number: data.orderNumber })}</h1>
+	<p class="text-lg">{t('payment.total')} <Money cents={data.totalCents} class="font-bold" /></p>
 
 	{#if data.tenderStatus === 'cancelled' || data.tenderStatus === 'failed' || remaining === 0}
-		<p class="alert-error">O pagamento não foi concluído. Faça o pedido novamente.</p>
-		<a class="btn-primary" href="/">Voltar ao cardápio</a>
+		<p class="alert-error">{t('payment.failed')}</p>
+		<a class="btn-primary" href="/">{t('errors.backToMenu')}</a>
 	{:else if data.pixSvg}
 		<p class="text-muted">
-			{data.shopPix
-				? 'Abra o app do seu banco e pague com Pix. A loja confere o pagamento e confirma o pedido.'
-				: 'Abra o app do seu banco e pague com Pix. A confirmação é automática.'}
+			{data.shopPix ? t('payment.instructions.shop') : t('payment.instructions.auto')}
 		</p>
 		<div class="mx-auto w-60 rounded-xl bg-white p-2">
 			<!-- QR generated on our server from the provider's Pix payload -->
@@ -49,22 +49,24 @@
 			{@html data.pixSvg}
 		</div>
 		<button class="btn-secondary w-full" onclick={copy}
-			>{copied ? 'Código copiado!' : 'Copiar código Pix (copia e cola)'}</button
+			>{copied ? t('payment.copied') : t('payment.copy')}</button
 		>
 		{#if remaining !== null}
 			<p class="text-sm text-muted" aria-live="polite">
-				Expira em {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}
+				{t('payment.expires', {
+					time: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`
+				})}
 			</p>
 		{/if}
 		<p class="flex items-center justify-center gap-2 text-sm text-muted">
 			<span class="size-2 animate-pulse rounded-full bg-brand-500"></span>
-			{data.shopPix ? 'Aguardando a loja confirmar o Pix…' : 'Aguardando confirmação do pagamento…'}
+			{data.shopPix ? t('payment.waiting.shop') : t('payment.waiting.auto')}
 		</p>
 		{#if data.shopPix}
-			<a class="btn-ghost w-full" href="/orders/{data.token}">Acompanhar o pedido</a>
+			<a class="btn-ghost w-full" href="/orders/{data.token}">{t('payment.track')}</a>
 		{/if}
 	{:else if data.redirectUrl}
-		<a class="btn-primary w-full" href={data.redirectUrl}>Ir para o pagamento com cartão</a>
+		<a class="btn-primary w-full" href={data.redirectUrl}>{t('payment.card')}</a>
 	{/if}
 
 	{#if data.devApproveUrl}
