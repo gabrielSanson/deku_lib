@@ -143,7 +143,9 @@
 		<fieldset>
 			<legend class="mb-2 flex w-full items-center justify-between font-semibold">
 				<span>{t('product.removeTitle')}</span>
-				<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-muted">{t('product.optional')}</span>
+				<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-muted"
+					>{t('product.optional')}</span
+				>
 			</legend>
 			<div class="divide-y divide-line card">
 				{#each removable as i (i.id)}
