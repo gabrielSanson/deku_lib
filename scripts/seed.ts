@@ -1,9 +1,13 @@
-// Seeds a usable local/staging setup: staff accounts, delivery zones and an
-// open store. Staff users are created through the Supabase Auth admin API.
+// Seeds a usable local/staging setup: staff accounts, the sample menu (only
+// into an empty menu), delivery zones and an open store. Staff users are created through the Supabase Auth admin API.
 //   DATABASE_URL, PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY are required.
 //   SEED_PASSWORD sets the password for every seeded account (default: burger123).
 import { createClient } from '@supabase/supabase-js';
 import postgres from 'postgres';
+import { SYSTEM } from '#lib/server/audit.ts';
+import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
+import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
+import { closeDb } from '#lib/server/db.ts';
 
 const { DATABASE_URL, PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const password = process.env.SEED_PASSWORD ?? 'burger123';
@@ -58,7 +62,12 @@ try {
 	await sql`
 		update store_runtime_settings set accepting_orders = true, pause_reason = null, web_ordering_enabled = true,
 			delivery_enabled = true, pickup_enabled = true where id = 1`;
+	if (await menuIsEmpty(sql)) {
+		await importCatalog(fixtureCatalog, SYSTEM);
+		console.log(`sample menu: ${fixtureCatalog.products.length} products`);
+	}
 	console.log(`seeded; staff password: ${password}`);
 } finally {
 	await sql.end();
+	await closeDb();
 }

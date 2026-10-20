@@ -1,5 +1,10 @@
 // Gives each integration run a freshly migrated database.
 import postgres from 'postgres';
+import { SYSTEM } from '#lib/server/audit.ts';
+import { importCatalog } from '#lib/server/catalog/editor.ts';
+import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
+import { resetConfigForTests } from '#lib/server/config.ts';
+import { closeDb } from '#lib/server/db.ts';
 import { migrate } from '../../scripts/migrate';
 
 export default async function setup() {
@@ -14,4 +19,9 @@ export default async function setup() {
 	await sql.unsafe(`create database "${name}"`);
 	await sql.end();
 	await migrate(url);
+	// The tests order from the sample menu.
+	process.env.DATABASE_URL = url;
+	resetConfigForTests();
+	await importCatalog(fixtureCatalog, SYSTEM);
+	await closeDb();
 }

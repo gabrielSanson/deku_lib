@@ -1,5 +1,5 @@
-// Demo menu used in local development and tests, and as the catalog when no
-// CMS is configured. Production reads the published menu from Directus.
+// Sample menu: loaded by `pnpm seed`, by the tests, and by the setup wizard when
+// the owner chooses to start from an example instead of an empty menu.
 import type { Catalog, ModifierGroup } from '#lib/domain/catalog.ts';
 
 const point: ModifierGroup = {

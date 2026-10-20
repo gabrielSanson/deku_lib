@@ -1,7 +1,6 @@
 import { attempt, formString } from '#lib/server/actions.ts';
 import { FRONT_OF_HOUSE, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
-import { config } from '#lib/server/config.ts';
 import { db } from '#lib/server/db.ts';
 import { setSoldOut } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -11,7 +10,7 @@ export const load: PageServerLoad = async (event) => {
 	const catalog = await getCatalog();
 	const overrides = await db()<{ sku: string; reason: string | null; updated_at: Date }[]>`
 		select sku, reason, updated_at from product_availability_overrides where sold_out and channel = 'all'`;
-	return { catalog, overrides, cmsUrl: config().DIRECTUS_URL ?? null };
+	return { catalog, overrides };
 };
 
 export const actions: Actions = {

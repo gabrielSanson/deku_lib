@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import FormError from '#lib/components/FormError.svelte';
 	import Money from '#lib/components/Money.svelte';
 	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
@@ -27,7 +28,9 @@
 			hint: 'Cobre no app Tap to Pay do seu PSP e informe o código da transação.'
 		}
 	];
-	let method = $state<Method>('cash');
+	let method = $state<Method>(
+		page.url.searchParams.get('method') === 'external_pix' ? 'external_pix' : 'cash'
+	);
 	// Defaults to what is still owed; the cashier can overwrite it.
 	let amount = $derived(formatBRL(data.remainingCents).replace(/[R$\s]/g, ''));
 	let received = $state('');

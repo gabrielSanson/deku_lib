@@ -5,7 +5,6 @@
 import { canTransition, type OrderStatus } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../../audit';
 import { getCatalog } from '../../catalog/service';
-import { config } from '../../config';
 import { db } from '../../db';
 import { enqueue, QUEUES } from '../../jobs';
 import { createOrder, transitionOrder } from '../../orders/service';
@@ -25,12 +24,13 @@ import {
 	type IfoodOrder,
 	type ProductInfo
 } from './mapping';
+import { ifoodSettings, ifoodStatus, type IfoodStatus } from './settings';
 
 const IFOOD: Actor = { type: 'integration', id: null };
 const FORWARD: OrderStatus[] = ['new', 'confirmed', 'preparing', 'ready', 'completed'];
 
-export function ifoodEnabled() {
-	return config().IFOOD_ENABLED;
+export async function ifoodEnabled() {
+	return (await ifoodSettings()).enabled;
 }
 
 async function storeEvents(
@@ -63,8 +63,9 @@ async function storeEvents(
 
 /** Webhook receiver: verify the signature on raw bytes, persist, enqueue, answer 202. */
 export async function receiveIfoodWebhook(rawBody: Uint8Array, headers: Headers) {
-	if (!ifoodEnabled()) return { status: 404 };
-	if (!verifyIfoodSignature(rawBody, headers.get('x-ifood-signature'))) {
+	const settings = await ifoodSettings();
+	if (!settings.enabled) return { status: 404 };
+	if (!verifyIfoodSignature(rawBody, headers.get('x-ifood-signature'), settings.clientSecret)) {
 		console.warn(JSON.stringify({ msg: 'ifood webhook signature rejected' }));
 		return { status: 401 };
 	}
@@ -284,7 +285,7 @@ export async function syncOrderToIfood(
 			: undefined;
 	const [row] = await sql<{ id: string; status: string }[]>`
 		insert into channel_outbound (channel, order_id, action, request, status)
-		values ('ifood', ${data.orderId}, ${action}, ${body ? sql.json(body) : null}, ${ifoodEnabled() ? 'pending' : 'skipped'})
+		values ('ifood', ${data.orderId}, ${action}, ${body ? sql.json(body) : null}, ${(await ifoodEnabled()) ? 'pending' : 'skipped'})
 		on conflict (order_id, action) do update set attempts = channel_outbound.attempts
 		returning id, status`;
 	if (row.status === 'sent' || row.status === 'skipped') return row.status;
@@ -381,5 +382,50 @@ export async function integrationHealth() {
 		select c.id, c.order_id, o.order_number, c.action, c.status, c.attempts, c.last_error, c.created_at
 		from channel_outbound c join orders o on o.id = c.order_id
 		order by (c.status = 'failed') desc, c.created_at desc limit 30`;
-	return { enabled: ifoodEnabled(), summary, events, outbound };
+	const status = await ifoodStatus();
+	return { enabled: status.enabled, status, summary, events, outbound };
+}
+
+/** Problems the home screen should shout about while iFood is on. */
+export function ifoodAlerts(
+	status: IfoodStatus,
+	counts: { failed: number; dead: number; outboundFailed: number },
+	now = new Date()
+): string[] {
+	if (!status.enabled) return status.problem ? [status.problem] : [];
+	const alerts: string[] = [];
+	const errorIsLatest =
+		status.lastPollErrorAt &&
+		(!status.lastPollOkAt || status.lastPollErrorAt.getTime() > status.lastPollOkAt.getTime());
+	if (errorIsLatest) {
+		alerts.push(`O iFood não está respondendo: ${status.lastPollError ?? 'erro desconhecido'}`);
+	} else if (!status.lastPollOkAt || now.getTime() - status.lastPollOkAt.getTime() > 3 * 60_000) {
+		alerts.push(
+			'Nenhuma consulta ao iFood deu certo nos últimos 3 minutos. Confira se o serviço de segundo plano (worker) está rodando.'
+		);
+	}
+	if (counts.failed + counts.dead > 0)
+		alerts.push(
+			`${counts.failed + counts.dead} evento(s) do iFood não puderam ser processados. Veja em Configurações → Integrações.`
+		);
+	if (counts.outboundFailed > 0)
+		alerts.push(
+			`${counts.outboundFailed} atualização(ões) de status não chegaram ao iFood. Confirme no Gestor de Pedidos e tente de novo em Integrações.`
+		);
+	return alerts;
+}
+
+export async function currentIfoodAlerts() {
+	const status = await ifoodStatus();
+	if (!status.enabled && !status.problem) return [];
+	const [counts] = await db()<{ failed: number; dead: number; outbound_failed: number }[]>`
+		select
+			(select count(*)::int from channel_events where channel = 'ifood' and processing_status = 'failed') as failed,
+			(select count(*)::int from channel_events where channel = 'ifood' and processing_status = 'dead') as dead,
+			(select count(*)::int from channel_outbound where channel = 'ifood' and status = 'failed') as outbound_failed`;
+	return ifoodAlerts(status, {
+		failed: counts.failed,
+		dead: counts.dead,
+		outboundFailed: counts.outbound_failed
+	});
 }

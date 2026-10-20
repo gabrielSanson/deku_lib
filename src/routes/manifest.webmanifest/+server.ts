@@ -1,8 +1,8 @@
-import { config } from '#lib/server/config.ts';
+import { shopName } from '#lib/server/settings/profile.ts';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = () => {
-	const name = config().SHOP_NAME;
+export const GET: RequestHandler = async () => {
+	const name = await shopName();
 	return new Response(
 		JSON.stringify({
 			name,

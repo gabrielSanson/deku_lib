@@ -9,6 +9,7 @@ import { createOrder } from '#lib/server/orders/service.ts';
 import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { rateLimit } from '#lib/server/rate-limit.ts';
+import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings, listDeliveryRules } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -36,7 +37,7 @@ const checkout = z.object({
 	phone: z.string().trim().min(8).max(25),
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
-	payment: z.enum(['pix', 'online_card', 'on_fulfillment']),
+	payment: z.enum(['pix', 'online_card', 'pix_key', 'on_fulfillment']),
 	idempotencyKey: z.string().uuid()
 });
 
@@ -108,8 +109,14 @@ export const actions: Actions = {
 		if (input.payment === 'on_fulfillment' && !settings.payOnFulfillmentEnabled) {
 			return fail(400, { error: 'Pagamento na entrega/retirada não está disponível.' });
 		}
+		if (input.payment === 'pix_key' && !(await getStoreProfile()).pix.enabled) {
+			return fail(400, { error: 'Pix indisponível no momento.' });
+		}
 		const provider = paymentProvider();
-		if (input.payment !== 'on_fulfillment' && !provider?.methods.includes(input.payment)) {
+		if (
+			(input.payment === 'pix' || input.payment === 'online_card') &&
+			!provider?.methods.includes(input.payment)
+		) {
 			return fail(400, { error: 'Pagamento online indisponível no momento.' });
 		}
 
@@ -136,13 +143,17 @@ export const actions: Actions = {
 					: undefined,
 				deliveryRule: rule,
 				idempotencyKey: input.idempotencyKey,
-				paymentPlan: input.payment === 'on_fulfillment' ? 'on_fulfillment' : 'online',
+				paymentPlan:
+					input.payment === 'on_fulfillment' || input.payment === 'pix_key'
+						? input.payment
+						: 'online',
 				actor: { type: 'customer', id: null }
 			})
 		);
 		if (!('id' in result)) return result;
 
 		if (input.payment === 'on_fulfillment') redirect(303, `/orders/${result.publicToken}?novo=1`);
+		if (input.payment === 'pix_key') redirect(303, `/checkout/payment/${result.publicToken}`);
 
 		const payment = await attempt(() =>
 			startOnlinePayment({

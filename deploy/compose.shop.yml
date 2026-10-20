@@ -17,7 +17,10 @@ x-app: &app
     SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
     SHOP_NAME: ${SHOP_NAME:-Deku Burger}
     SHOP_TIMEZONE: America/Sao_Paulo
+    APP_SECRET: ${APP_SECRET:-}
     PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-none}
+    # Menu photos are up to 5 MB.
+    BODY_SIZE_LIMIT: 6M
 
 services:
   # Studio stays reachable from the server itself only (use an SSH tunnel).
@@ -62,6 +65,9 @@ services:
   shop-worker:
     <<: *app
     command: ['node', '--import', 'tsx', 'scripts/worker.ts']
+    # The image's healthcheck is for the web process; the worker serves no HTTP.
+    healthcheck:
+      disable: true
     depends_on:
       shop-migrate:
         condition: service_completed_successfully

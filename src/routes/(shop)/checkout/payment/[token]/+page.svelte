@@ -38,7 +38,11 @@
 		<p class="alert-error">O pagamento não foi concluído. Faça o pedido novamente.</p>
 		<a class="btn-primary" href="/">Voltar ao cardápio</a>
 	{:else if data.pixSvg}
-		<p class="text-muted">Abra o app do seu banco e pague com Pix. A confirmação é automática.</p>
+		<p class="text-muted">
+			{data.shopPix
+				? 'Abra o app do seu banco e pague com Pix. A loja confere o pagamento e confirma o pedido.'
+				: 'Abra o app do seu banco e pague com Pix. A confirmação é automática.'}
+		</p>
 		<div class="mx-auto w-60 rounded-xl bg-white p-2">
 			<!-- QR generated on our server from the provider's Pix payload -->
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -- SVG built on our server by the qrcode library -->
@@ -53,8 +57,12 @@
 			</p>
 		{/if}
 		<p class="flex items-center justify-center gap-2 text-sm text-muted">
-			<span class="size-2 animate-pulse rounded-full bg-brand-500"></span> Aguardando confirmação do pagamento…
+			<span class="size-2 animate-pulse rounded-full bg-brand-500"></span>
+			{data.shopPix ? 'Aguardando a loja confirmar o Pix…' : 'Aguardando confirmação do pagamento…'}
 		</p>
+		{#if data.shopPix}
+			<a class="btn-ghost w-full" href="/orders/{data.token}">Acompanhar o pedido</a>
+		{/if}
 	{:else if data.redirectUrl}
 		<a class="btn-primary w-full" href={data.redirectUrl}>Ir para o pagamento com cartão</a>
 	{/if}

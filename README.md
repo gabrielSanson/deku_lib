@@ -1,39 +1,47 @@
 # Deku Burger platform
 
 Ordering and operations for one burger shop in Brazil: counter POS, web ordering
-with pickup and delivery, kitchen display (KDS), iFood channel, payment
-reconciliation and analytics. Staff screens and customer pages are pt-BR; money is
+with pickup and delivery, kitchen display (KDS), menu editor, iFood channel,
+payment reconciliation and analytics. It runs entirely on the shop's own server
+on top of self-hosted Supabase; there is no cloud host and no paid licence. Staff screens and customer pages are pt-BR; money is
 stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`.
 
-> **Status.** Counter, web ordering, KDS, settings, reconciliation and analytics
-> work end to end against Supabase. **Online payment is a stub** (no PSP is
-> connected) and **iFood is off** (written from the public docs, not yet
-> homologated). See [Known gates](#known-gates) before going live.
+> **Status.** Counter, web ordering, KDS, menu editor, setup wizard, settings,
+> reconciliation and analytics work end to end on self-hosted Supabase. Web
+> customers can pay on pickup/delivery or by **Pix to the shop's own key** (staff
+> confirm it by hand). **No payment provider (PSP) is connected**, so there is no
+> automatic online payment. **iFood is optional and off by default**: it was
+> written from iFood's public docs and has not been homologated. See
+> [Known gates](#known-gates) before going live.
 
 ## What is in here
 
-| Area                                        | Where                                                | Notes                                                        |
-| ------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
-| Web app (SvelteKit 3, Svelte 5, Tailwind 4) | `src/routes`                                         | `(shop)` customer site, `staff/` back office, `kitchen/` KDS |
-| Domain rules (pure, unit tested)            | `src/lib/domain`                                     | order states, pricing, money, phone, time                    |
-| Server services                             | `src/lib/server`                                     | the only code that writes orders, tenders, settings          |
-| Worker (pg-boss)                            | `scripts/worker.ts`, `src/lib/server/worker`         | payment events, checkout expiry, iFood polling and sync      |
-| Schema                                      | `supabase/migrations`                                | Postgres + RLS; realtime publication on `orders`             |
-| CMS bootstrap                               | `scripts/directus-bootstrap.ts`                      | Directus collections, read-only token, cache Flow            |
-| Tests                                       | `src/**/*.spec.ts`, `tests/integration`, `tests/e2e` | unit, DB integration, Playwright                             |
-| Deploy                                      | `Dockerfile`, `fly.toml`, `docker-compose.yml`       | one image runs web or worker                                 |
+| Area                                        | Where                                                | Notes                                                         |
+| ------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------- |
+| Web app (SvelteKit 3, Svelte 5, Tailwind 4) | `src/routes`                                         | `(shop)` customer site, `staff/` back office, `kitchen/` KDS  |
+| Domain rules (pure, unit tested)            | `src/lib/domain`                                     | order states, pricing, money, phone, time                     |
+| Server services                             | `src/lib/server`                                     | the only code that writes orders, tenders, settings           |
+| Worker (pg-boss)                            | `scripts/worker.ts`, `src/lib/server/worker`         | payment events, checkout expiry, iFood polling and sync       |
+| Schema                                      | `supabase/migrations`                                | Postgres + RLS; realtime publication on `orders`              |
+| Menu editor and setup wizard                | `src/routes/staff/(app)/menu`, `.../setup`           | categories, products, photos, options, pages; first-run setup |
+| Tests                                       | `src/**/*.spec.ts`, `tests/integration`, `tests/e2e` | unit, DB integration, Playwright                              |
+| Deploy (own server)                         | `deploy/`, `Dockerfile`                              | self-hosted Supabase + shop + Caddy, one command              |
 
 ### How it fits together
 
-- **Supabase** holds the database, staff login (Supabase Auth) and Realtime. The
-  browser only ever gets the anon key; the service-role key stays on the server.
-  Staff can read `orders` through RLS for live updates; all writes go through
-  server actions.
-- **Directus** owns the menu and editorial pages only. Prices are read from
-  Directus on the server and re-checked at order time; the browser never sets a
-  price. Live operations (pause, sold-out, delivery zones, fees, prep time) live in
-  the app's own tables so they work even if the CMS is down. Without
-  `DIRECTUS_URL` the built-in demo menu is used.
+- **Self-hosted Supabase** (in `deploy/supabase`) holds the database, staff login
+  (Supabase Auth), Realtime and menu photos (Storage). The browser only ever gets
+  the anon key; the service-role key stays on the server. Staff can read `orders`
+  through RLS for live updates; all writes go through server actions.
+- **The menu lives in the app's own tables** and is edited in the staff area
+  (Cardápio → Editar cardápio): categories, products, photos, option groups and
+  the site's text pages. Prices are read on the server and re-checked at order
+  time; the browser never sets a price. Every edit bumps a menu revision that
+  orders record. Photos go to a private Storage bucket and are served by the app
+  at `/media/menu/…`.
+- **The setup wizard** (`/staff/setup`, owner only) walks through store details,
+  menu, pickup/delivery, team, payments (including the Pix key) and iFood. The
+  owner is pointed to it until it is finished.
 - **pg-boss** runs in the same Postgres. Jobs that follow a data change are
   enqueued in the same transaction (no outbox table): a committed order always
   has its follow-up job. Delivery is at least once, so every handler is idempotent.
@@ -53,16 +61,22 @@ Counter tenders are recorded manually, each with a reference: cash (with change)
 counter Pix, card terminal, and SoftPOS ("Tap to Pay" in the PSP's own app). The
 app never reads card data.
 
+**Pix to the shop's own key** (payment plan `pix_key`): the payment page shows a
+static BR Code (EMV, CRC16) with the amount and `PEDIDO<number>` as reference,
+built in `src/lib/domain/pix.ts`. Nobody notifies the app when it is paid, so the
+order waits in `new`; staff check their bank app and record an "external Pix"
+tender from the order page before accepting it.
+
 ## Local setup
 
-Requirements: Node 22.12+, pnpm 10, Docker (for local Supabase and Directus).
+Requirements: Node 22.12+, pnpm 10, Docker (for the local Supabase).
 
 ```sh
 pnpm install
 cp .env.example .env
 pnpm exec supabase start          # applies supabase/migrations
 pnpm exec supabase status         # copy API URL, anon key and service_role key into .env
-pnpm seed                         # 4 staff accounts, delivery zones, store open
+pnpm seed                         # 4 staff accounts, sample menu, delivery zones, store open
 pnpm dev                          # http://localhost:5173
 pnpm worker                       # second terminal: background jobs
 ```
@@ -73,26 +87,6 @@ Seeded staff (password `burger123`, or `SEED_PASSWORD`): `dono@`, `gerente@`,
 To try online checkout locally set `PAYMENT_PROVIDER=local_stub`. The payment
 page then shows a "simulate approved payment" button that sends a signed webhook,
 just like a PSP would. The stub is refused when `NODE_ENV=production`.
-
-### Directus (optional locally)
-
-```sh
-docker run -d --name directus -p 8055:8055 \
-  -e SECRET=dev -e ADMIN_EMAIL=admin@example.com -e ADMIN_PASSWORD=admin12345 \
-  -e IMPORT_IP_DENY_LIST=169.254.169.254 directus/directus:11.12.0
-DIRECTUS_URL=http://localhost:8055 DIRECTUS_ADMIN_EMAIL=admin@example.com \
-  DIRECTUS_ADMIN_PASSWORD=admin12345 APP_URL=http://localhost:5173 \
-  CMS_WEBHOOK_SECRET=change-me-at-least-16 pnpm cms:bootstrap --seed
-```
-
-The script prints a `DIRECTUS_TOKEN` for a read-only storefront user; put it and
-`DIRECTUS_URL` in `.env`. `--seed` copies the demo menu into an empty Directus.
-Editors then manage products in Directus. **Use each product's SKU as its
-"external code" in the iFood menu**, so iFood orders map to the same products.
-
-`IMPORT_IP_DENY_LIST` matters only when Directus calls an app on a private
-address (localhost or a private network). By default Directus refuses those
-calls, so the menu-cache Flow would fail.
 
 ## Environment variables
 
@@ -106,15 +100,16 @@ variables.
 | `SUPABASE_SERVICE_ROLE_KEY`                                                                      | for seed and "add staff"                    | Server only                                                                                        |
 | `SHOP_NAME`, `SHOP_TIMEZONE`                                                                     | no                                          | Defaults: Deku Burger, America/Sao_Paulo                                                           |
 | `ORIGIN`                                                                                         | build time, only when not served over https | CSRF origin                                                                                        |
-| `DIRECTUS_URL`, `DIRECTUS_TOKEN`, `CMS_WEBHOOK_SECRET`                                           | no                                          | Menu from Directus; cache Flow secret                                                              |
+| `APP_SECRET`                                                                                     | to save the iFood secret in the app         | Encrypts secrets saved in the database; generated by `deploy/setup.sh`                             |
+| `BODY_SIZE_LIMIT`                                                                                | no                                          | Upload limit; the deploy sets `6M` for menu photos                                                 |
 | `PAYMENT_PROVIDER`                                                                               | no                                          | `none` (default) or `local_stub` (dev only)                                                        |
-| `IFOOD_ENABLED`, `IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`, `IFOOD_MERCHANT_ID`, `IFOOD_API_BASE` | no                                          | iFood channel, off by default                                                                      |
+| `IFOOD_ENABLED`, `IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`, `IFOOD_MERCHANT_ID`, `IFOOD_API_BASE` | no                                          | Fallback when no iFood credentials are saved in the setup wizard                                   |
 | `TEST_DATABASE_URL`                                                                              | tests                                       | Database that integration tests drop and recreate                                                  |
 
 ## Migrations
 
-- **Supabase (staging and production):**
-  `pnpm exec supabase link --project-ref <ref>` and then `pnpm exec supabase db push`.
+- **Your server:** the `shop-migrate` service applies new migrations every time
+  the stack starts (`deploy/shop.sh up -d`).
 - **Local Supabase:** `supabase start` applies them, and
   `pnpm exec supabase migration up --local` applies new ones.
 - **Plain Postgres** (CI, tests): `pnpm migrate` first applies `db/plain-postgres-shim.sql`
@@ -141,51 +136,46 @@ against a local Supabase.
 
 ## Deploy
 
+The shop runs on its own machine: see **[deploy/README.md](deploy/README.md)**
+for the requirements, the three-command install, HTTPS (open ports or a free
+Cloudflare Tunnel), updates and backups. The step-by-step launch checklist is in
+[docs/go-live.md](docs/go-live.md).
+
 One Docker image runs either process:
 
 - web: `node build` (port 3000; `/health/live`, `/health/ready`)
-- worker: `node --import tsx scripts/worker.ts` (exactly one, or more: polling is guarded by an advisory lock)
-
-**Recommended: Fly.io in `gru` (São Paulo) with Supabase in `sa-east-1`.** See
-[`fly.toml`](fly.toml) and the step-by-step [go-live guide](docs/go-live.md).
-[`docker-compose.yml`](docker-compose.yml) runs web, worker and Directus on a
-single VPS behind your TLS proxy.
-
-`PUBLIC_SUPABASE_URL` must be passed as a build argument. It is used to allow a
-plain-http local Supabase in the CSP, and the hosted `https://` URL is already
-covered.
+- worker: `node --import tsx scripts/worker.ts` (one is enough; iFood polling is guarded by an advisory lock)
 
 ## Backup and restore
 
-- **Database:** Supabase daily backups (Pro plan and up; enable PITR for the
-  production project). Before every migration run `pnpm exec supabase db dump
--f backup.sql --data-only` as well, and keep a schema dump from `db dump` with
-  no flags.
-- **Restore drill:** create a new Supabase project, `supabase db push`, then
-  `psql "$NEW_DATABASE_URL" -f backup.sql`, point a staging deploy at it, and check
-  `/staff/reconciliation` for a known day.
-- **Directus:** back up its database and the `uploads` volume (or the S3 bucket if you use one).
-- **pg-boss** state lives in the `pgboss` schema of the same database and is restored with it.
+Everything that matters is in the database, the Storage volume (menu photos) and
+`deploy/supabase/.env` (keys, including `APP_SECRET`). The nightly `pg_dump`,
+off-machine copies and the restore drill are described in
+[deploy/README.md](deploy/README.md#backups). pg-boss state lives in the
+`pgboss` schema of the same database and is restored with it.
 
 ## Known gates
 
 These are deliberate. Nothing below is claimed to work in production yet.
 
-1. **Online payments: stub only.** No PSP is integrated. Pick one
-   (Mercado Pago, Pagar.me, Stripe BR, Asaas…) and implement
-   `PaymentProvider` (`src/lib/server/payments/provider.ts`): create the
-   checkout, check its status, verify the webhook on raw bytes, parse it, and
-   refund. Then add it to `PAYMENT_PROVIDER`. Until then, web customers pay on
-   pickup or delivery. That option can be turned off in Settings → Loja.
-2. **iFood: off, unverified.** The adapter covers OAuth, polling with
+1. **No payment provider (PSP).** Web customers pay on pickup/delivery or by
+   Pix to the shop's key, which staff confirm by hand. Automatic online payment
+   (Pix with automatic confirmation, card) needs a PSP account (Mercado Pago,
+   Pagar.me, Asaas…) and an implementation of `PaymentProvider`
+   (`src/lib/server/payments/provider.ts`): create the checkout, check its
+   status, verify the webhook on raw bytes, parse it, and refund. `local_stub`
+   only simulates this in development.
+2. **iFood: optional, unverified.** The adapter covers OAuth, polling with
    persist-before-ack, a signed webhook, order mapping, status sync and replay.
    It was written from iFood's public docs (`src/lib/server/integrations/ifood/api.ts`
-   keeps every path in one place) and has never talked to iFood. It needs merchant
-   API credentials and iFood homologation before `IFOOD_ENABLED=true`. Until then
-   staff key iFood orders in the POS as **"iFood (manual)"**.
-3. **Directus licence.** Directus is free under its BSL licence only for
-   organisations under its revenue/funding threshold. Confirm eligibility, or
-   buy a licence, before production use.
+   keeps every path in one place) and has never talked to iFood. The owner enters
+   the credentials in the setup wizard, which tests the connection and explains
+   errors; turning it on needs a passing test and an explicit acknowledgement that
+   it is not homologated. Without it, staff key iFood orders in the POS as
+   **"iFood (manual)"**. The connection test's error explanations are inferred
+   from HTTP status codes.
+3. **Menu photos need Storage.** Uploads use the self-hosted Supabase Storage
+   service. Without `SUPABASE_SERVICE_ROLE_KEY` the editor works but refuses photos.
 4. **Notifications and printing.** The `order-placed` job is the hook for
    WhatsApp/e-mail messages and an optional print agent. Neither is connected.
 5. **Fiscal documents (NFC-e/SAT)** are out of scope. Use the shop's existing

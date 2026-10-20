@@ -22,21 +22,23 @@
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<h1 class="text-xl font-bold">Disponibilidade do cardápio</h1>
-		{#if data.cmsUrl}
-			<a class="btn-secondary" href={data.cmsUrl} target="_blank" rel="noopener"
-				>Editar cardápio no CMS ↗</a
-			>
-		{:else}
-			<span class="text-sm text-muted"
-				>Usando o cardápio de demonstração (CMS não configurado).</span
-			>
+		{#if data.staff.role === 'owner' || data.staff.role === 'manager'}
+			<a class="btn-secondary" href="/staff/menu/edit">Editar cardápio</a>
 		{/if}
 	</div>
 	<p class="text-sm text-muted">
-		Marcar como esgotado vale na hora para o caixa, o site e (quando ativo) o iFood. Não altera o
-		CMS.
+		Marcar como esgotado vale na hora para o caixa, o site e (quando ativo) o iFood. O produto
+		continua cadastrado.
 	</p>
 	<FormError message={form?.error} />
+
+	{#if data.catalog.products.length === 0}
+		<p class="alert-warn">
+			O cardápio está vazio. {data.staff.role === 'owner' || data.staff.role === 'manager'
+				? 'Cadastre os produtos em "Editar cardápio".'
+				: 'Peça ao gerente para cadastrar os produtos.'}
+		</p>
+	{/if}
 
 	{#each data.catalog.categories as c (c.id)}
 		<section>

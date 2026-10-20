@@ -28,8 +28,9 @@ deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts voce@emai
 Then open `https://<domain>/staff/login`, sign in as the owner, and follow the
 setup wizard (store, menu, delivery, team, payments, iFood).
 
-Keep `deploy/supabase/.env` safe. It holds the database password and the
-signing keys, and it is not in Git.
+Keep `deploy/supabase/.env` safe. It holds the database password, the signing
+keys and `APP_SECRET` (which encrypts the iFood secret saved in the app), and it
+is not in Git.
 
 ## Everyday commands
 

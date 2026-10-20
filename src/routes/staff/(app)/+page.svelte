@@ -44,6 +44,20 @@
 <LiveBanner {live} />
 
 <main class="mx-auto max-w-5xl space-y-6 p-4">
+	{#if !data.setupDone && data.staff.role === 'owner'}
+		<div class="flex flex-wrap items-center justify-between gap-3 alert-warn">
+			<span><strong>Falta terminar a configuração da loja.</strong> Leva poucos minutos.</span>
+			<a class="btn-primary min-h-9" href="/staff/setup">Continuar configuração</a>
+		</div>
+	{/if}
+	{#each data.ifoodAlerts as alert, i (i)}
+		<div class="flex flex-wrap items-center justify-between gap-3 alert-error" role="alert">
+			<span><strong>iFood:</strong> {alert}</span>
+			{#if data.staff.role === 'owner' || data.staff.role === 'manager'}
+				<a class="btn-secondary min-h-9" href="/staff/settings/integrations">Ver detalhes</a>
+			{/if}
+		</div>
+	{/each}
 	{#if !data.settings.acceptingOrders}
 		<div class="flex items-center justify-between gap-3 alert-warn">
 			<span><strong>Loja pausada.</strong> {data.settings.pauseReason ?? ''}</span>

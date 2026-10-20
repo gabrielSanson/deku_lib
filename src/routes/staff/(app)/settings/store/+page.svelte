@@ -119,9 +119,8 @@
 		<button class="btn-primary">Salvar</button>
 	</form>
 	<p class="text-sm text-muted">
-		Cardápio, fotos e preços são editados no CMS. Itens esgotados ficam em <a
-			class="underline"
-			href="/staff/menu">Cardápio</a
-		>.
+		Cardápio, fotos e preços ficam em <a class="underline" href="/staff/menu/edit"
+			>Editar cardápio</a
+		>. Itens esgotados ficam em <a class="underline" href="/staff/menu">Cardápio</a>.
 	</p>
 </div>

@@ -66,7 +66,7 @@ export interface CreateOrderInput {
 	isTest?: boolean;
 	/** Channels that collect payment themselves (iFood) report it here. */
 	paymentStatus?: PaymentStatus;
-	paymentPlan?: 'counter' | 'online' | 'on_fulfillment' | 'channel';
+	paymentPlan?: 'counter' | 'online' | 'on_fulfillment' | 'channel' | 'pix_key';
 	/**
 	 * Channels that price the order themselves (iFood) pass their lines and
 	 * fees here; the shop's catalog is then not used to re-price.

@@ -91,5 +91,8 @@
 			<span>Pagamento</span><PaymentBadge status={o.paymentStatus} />
 		</div>
 	</div>
+	{#if o.paymentPlan === 'pix_key' && o.status === 'new' && o.paymentStatus !== 'paid'}
+		<a class="btn-primary w-full" href="/checkout/payment/{page.params.token}">Pagar com Pix</a>
+	{/if}
 	<a class="btn-secondary w-full" href="/">Voltar ao cardápio</a>
 </section>

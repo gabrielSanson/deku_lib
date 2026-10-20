@@ -32,6 +32,7 @@ export interface OrderSummary {
 	channelDisplayId: string | null;
 	status: OrderStatus;
 	paymentStatus: PaymentStatus;
+	paymentPlan: 'counter' | 'online' | 'on_fulfillment' | 'channel' | 'pix_key';
 	fulfillmentType: 'counter' | 'pickup' | 'delivery';
 	fulfillmentProvider: 'shop' | 'own_driver' | 'ifood_courier';
 	totalCents: number;
@@ -54,6 +55,7 @@ interface OrderRow {
 	channel_display_id: string | null;
 	status: OrderStatus;
 	payment_status: PaymentStatus;
+	payment_plan: OrderSummary['paymentPlan'];
 	fulfillment_type: OrderSummary['fulfillmentType'];
 	fulfillment_provider: OrderSummary['fulfillmentProvider'];
 	total_cents: number;
@@ -107,6 +109,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 		channelDisplayId: r.channel_display_id,
 		status: r.status,
 		paymentStatus: r.payment_status,
+		paymentPlan: r.payment_plan,
 		fulfillmentType: r.fulfillment_type,
 		fulfillmentProvider: r.fulfillment_provider,
 		totalCents: r.total_cents,
@@ -155,7 +158,7 @@ export async function listOrders(
 ): Promise<OrderSummary[]> {
 	const statuses = filter.statuses ?? null;
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders
@@ -170,7 +173,7 @@ export async function listOrders(
 /** Orders the kitchen should see, oldest first. Web orders wait until paid or confirmed. */
 export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]> {
 	const rows = await sql<OrderRow[]>`
-		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, fulfillment_type,
+		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
 			kitchen_seen_at, version
 		from orders
@@ -306,6 +309,7 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 		orderNumber: d.orderNumber,
 		status: d.status,
 		paymentStatus: d.paymentStatus,
+		paymentPlan: d.paymentPlan,
 		fulfillmentType: d.fulfillmentType,
 		createdAt: d.createdAt,
 		promisedAt: d.promisedAt,

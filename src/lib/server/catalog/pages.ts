@@ -1,7 +1,10 @@
-// Editorial pages. Directus stores them as a constrained list of text blocks
-// (no raw HTML/JS); without a CMS the defaults below are served.
+// Customer-facing pages, stored as a constrained list of text blocks (no raw
+// HTML or scripts) and edited in the staff area. Until a page is edited, the
+// default below is served.
 import { z } from 'zod';
-import { config } from '../config';
+import { audit, type Actor } from '../audit';
+import { db, type Db } from '../db';
+import { DomainError } from '../errors';
 
 export interface ContentPage {
 	slug: string;
@@ -52,31 +55,74 @@ const DEFAULTS: Record<string, ContentPage> = {
 	}
 };
 
-const pageSchema = z.object({
-	slug: z.string(),
-	title: z.string(),
-	blocks: z.array(z.object({ type: z.enum(['heading', 'paragraph']), text: z.string() })).nullable()
-});
+export const PAGE_SLUGS = Object.keys(DEFAULTS);
 
-export async function getPage(slug: string): Promise<ContentPage | null> {
-	const { DIRECTUS_URL, DIRECTUS_TOKEN } = config();
-	if (DIRECTUS_URL && /^[a-z0-9-]+$/.test(slug)) {
-		try {
-			const url = new URL(
-				`/items/pages?filter[slug][_eq]=${slug}&filter[status][_eq]=published&limit=1`,
-				DIRECTUS_URL
-			);
-			const res = await fetch(url, {
-				headers: DIRECTUS_TOKEN ? { Authorization: `Bearer ${DIRECTUS_TOKEN}` } : {},
-				signal: AbortSignal.timeout(4000)
-			});
-			if (res.ok) {
-				const [row] = z.array(pageSchema).parse(((await res.json()) as { data: unknown }).data);
-				if (row) return { slug: row.slug, title: row.title, blocks: row.blocks ?? [] };
-			}
-		} catch (err) {
-			console.error(JSON.stringify({ msg: 'page fetch failed', slug, err: String(err) }));
-		}
+export const pageBlocks = z
+	.array(
+		z.object({ type: z.enum(['heading', 'paragraph']), text: z.string().trim().min(1).max(2000) })
+	)
+	.max(50);
+
+export async function getPage(slug: string, sql: Db = db()): Promise<ContentPage | null> {
+	if (!/^[a-z0-9-]+$/.test(slug)) return null;
+	try {
+		const [row] = await sql<{ slug: string; title: string; blocks: unknown }[]>`
+			select slug, title, blocks from content_pages where slug = ${slug} and published`;
+		if (row) return { slug: row.slug, title: row.title, blocks: pageBlocks.parse(row.blocks) };
+	} catch (err) {
+		console.error(JSON.stringify({ msg: 'page load failed', slug, err: String(err) }));
 	}
 	return DEFAULTS[slug] ?? null;
+}
+
+/** The pages staff can edit: saved ones plus the defaults not yet changed. */
+export async function listPages(sql: Db = db()): Promise<(ContentPage & { published: boolean })[]> {
+	const rows = await sql<{ slug: string; title: string; blocks: unknown; published: boolean }[]>`
+		select slug, title, blocks, published from content_pages order by slug`;
+	const saved = new Map(
+		rows.map((r) => [
+			r.slug,
+			{ slug: r.slug, title: r.title, blocks: pageBlocks.parse(r.blocks), published: r.published }
+		])
+	);
+	return [
+		...PAGE_SLUGS.map((s) => saved.get(s) ?? { ...DEFAULTS[s], published: true }),
+		...[...saved.values()].filter((p) => !DEFAULTS[p.slug])
+	];
+}
+
+export async function savePage(
+	input: { slug: string; title: string; text: string; published: boolean },
+	actor: Actor
+) {
+	if (!/^[a-z0-9][a-z0-9-]{0,59}$/.test(input.slug)) throw new DomainError('Endereço inválido.');
+	const title = input.title.trim();
+	if (!title) throw new DomainError('Informe o título.');
+	const blocks = pageBlocks.parse(textToBlocks(input.text));
+	await db().begin(async (tx) => {
+		await tx`
+			insert into content_pages (slug, title, blocks, published)
+			values (${input.slug}, ${title}, ${tx.json(blocks)}, ${input.published})
+			on conflict (slug) do update set title = excluded.title, blocks = excluded.blocks,
+				published = excluded.published, updated_at = now()`;
+		await audit(tx, actor, 'page.saved', 'content_page', input.slug, { title });
+	});
+}
+
+/** Plain text editing: blank lines separate paragraphs, a line starting with "## " is a heading. */
+export function textToBlocks(text: string): ContentPage['blocks'] {
+	return text
+		.replace(/\r\n/g, '\n')
+		.split(/\n\s*\n/)
+		.map((b) => b.trim())
+		.filter(Boolean)
+		.map((b) =>
+			b.startsWith('## ')
+				? { type: 'heading' as const, text: b.slice(3).trim() }
+				: { type: 'paragraph' as const, text: b }
+		);
+}
+
+export function blocksToText(blocks: ContentPage['blocks']): string {
+	return blocks.map((b) => (b.type === 'heading' ? `## ${b.text}` : b.text)).join('\n\n');
 }

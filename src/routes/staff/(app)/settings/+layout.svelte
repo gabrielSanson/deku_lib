@@ -2,16 +2,17 @@
 	import { page } from '$app/state';
 
 	let { data, children } = $props();
-	const tabs = [
+	const tabs = $derived([
 		{ href: '/staff/settings/store', label: 'Loja' },
 		{ href: '/staff/settings/delivery', label: 'Entrega' },
 		{ href: '/staff/settings/staff', label: 'Equipe' },
-		{ href: '/staff/settings/integrations', label: 'Integrações' }
-	];
+		{ href: '/staff/settings/integrations', label: 'Integrações' },
+		...(data.staff.role === 'owner' ? [{ href: '/staff/setup', label: 'Configuração' }] : [])
+	]);
 </script>
 
 <div class="mx-auto max-w-4xl p-4">
-	<nav class="mb-4 flex gap-1 border-b border-line" aria-label="Configurações">
+	<nav class="mb-4 flex gap-1 overflow-x-auto border-b border-line" aria-label="Configurações">
 		{#each tabs as t (t.href)}
 			<a
 				href={t.href}

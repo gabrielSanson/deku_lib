@@ -29,7 +29,7 @@
 		state: 'SP',
 		instructions: ''
 	});
-	let payment = $state<'pix' | 'online_card' | 'on_fulfillment'>('on_fulfillment');
+	let payment = $state<'pix' | 'online_card' | 'pix_key' | 'on_fulfillment'>('on_fulfillment');
 	let idempotencyKey = $state(crypto.randomUUID());
 	let quote = $state<Quote | null>(null);
 	let quoteError = $state<string | null>(null);
@@ -39,6 +39,7 @@
 	$effect(() => {
 		if (!data.store.pickup && data.store.delivery) fulfillmentType = 'delivery';
 		if (data.onlineMethods.includes('pix')) payment = 'pix';
+		else if (data.store.pixKey) payment = 'pix_key';
 		else if (!data.store.payOnFulfillment && data.onlineMethods.length)
 			payment = data.onlineMethods[0];
 	});
@@ -125,7 +126,15 @@
 						hint: 'Pague agora com QR Code. O pedido vai para a cozinha assim que o Pix for confirmado.'
 					}
 				]
-			: []),
+			: data.store.pixKey
+				? [
+						{
+							id: 'pix_key',
+							label: 'Pix',
+							hint: 'Pague agora com QR Code. A loja confere o Pix recebido e confirma o pedido.'
+						}
+					]
+				: []),
 		...(data.onlineMethods.includes('online_card')
 			? [
 					{

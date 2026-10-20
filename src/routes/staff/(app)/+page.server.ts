@@ -1,5 +1,6 @@
 import { requireStaff } from '#lib/server/auth/staff.ts';
 import { db } from '#lib/server/db.ts';
+import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
 import type { PageServerLoad } from './$types';
 
@@ -20,5 +21,9 @@ export const load: PageServerLoad = async (event) => {
 			(select count(*)::int from channel_events where processing_status in ('failed','dead')) as dead
 		from orders where created_at > now() - interval '2 days' or status in ('new','confirmed','preparing','ready')`;
 	const urgent = await listOrders({ statuses: ['new'], limit: 20 });
-	return { counts, urgent };
+	const ifoodAlerts = await currentIfoodAlerts().catch((err) => {
+		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
+		return [] as string[];
+	});
+	return { counts, urgent, ifoodAlerts };
 };

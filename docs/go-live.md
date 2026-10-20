@@ -1,81 +1,88 @@
 # Go-live guide
 
-These are the steps from this repository to a running shop. Steps marked
-**owner** need an account, a contract or a decision that only the shop owner can make.
+These are the steps from this repository to a running shop on your own server.
+Steps marked **owner** need an account, a purchase or a decision that only the
+shop owner can make. Nothing here needs a paid licence or a cloud host.
 
-## 1. Accounts (owner)
+## 1. What you need (owner)
 
-| What                                                                               | Why                             | Notes                                                          |
-| ---------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------- |
-| Supabase: two projects, `staging` and `production`, region `sa-east-1` (São Paulo) | Database, staff login, realtime | Pro plan for daily backups; enable PITR on production          |
-| Fly.io account (or a VPS for `docker-compose.yml`)                                 | Runs web + worker               | `fly.toml` targets `gru` (São Paulo)                           |
-| A domain (e.g. `pedido.dekuburger.com.br`)                                         | Customer site and webhooks      | HTTPS is required for Pix/card webhooks and the PWA            |
-| Directus hosting + licence check                                                   | Menu editing                    | Self-host (compose) or Directus Cloud. Confirm BSL eligibility |
-| PSP contract (Mercado Pago, Pagar.me, Stripe BR, Asaas…)                           | Online Pix/card                 | Needs development work first (see section 5)                   |
-| iFood Merchant API access                                                          | Automatic iFood orders          | Requires iFood partner approval + homologation                 |
+| What                                                       | Why                                    | Notes                                                                      |
+| ---------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
+| A Linux machine with Docker (VPS or a mini PC in the shop) | Runs Supabase, the shop and the worker | 4 GB RAM, 2 cores, 20 GB disk. See [deploy/README.md](../deploy/README.md) |
+| A domain (e.g. `pedido.dekuburger.com.br`)                 | Customer site, staff login, webhooks   | HTTPS is required for the installable apps and for iFood                   |
+| A way in from the internet                                 | Customers and iFood reach the shop     | Open ports 80/443, or a free Cloudflare Tunnel                             |
+| A Pix key in the shop's bank account (optional)            | Web customers pay by Pix               | Staff confirm each Pix by hand in the bank app                             |
+| iFood Merchant API access (optional)                       | Automatic iFood orders                 | Developer portal app + store authorisation; homologation recommended       |
+| A payment provider (PSP) contract (optional)               | Automatic online Pix/card              | Needs development work first, see section 5                                |
 
-## 2. Database
+## 2. Install
 
-```sh
-pnpm exec supabase link --project-ref <staging-ref>
-pnpm exec supabase db push
-```
-
-In the Supabase dashboard:
-
-- **Auth → Providers:** keep email/password and turn off "allow new users to
-  sign up". Staff accounts are created by the owner in Configurações → Equipe, or by `pnpm seed`.
-- **Auth → URL configuration:** site URL = your domain.
-- **Database → Connection string:** use the **session** pooler (port 5432) or
-  the direct connection for `DATABASE_URL`. Do not use the transaction pooler (6543).
-
-Create the first owner, then change or remove the demo accounts:
+On the server:
 
 ```sh
-DATABASE_URL=… PUBLIC_SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… \
-SEED_PASSWORD='<strong temporary password>' NODE_ENV=production pnpm seed
+git clone https://github.com/gabrielSanson/deku_lib.git && cd deku_lib
+sh deploy/setup.sh pedido.example.com "Deku Burger"
+deploy/shop.sh up -d --build
+deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts voce@email.com "Seu nome" 'uma-senha-forte'
 ```
 
-Then sign in as `dono@burger.local` and add the real staff in Configurações → Equipe.
-Deactivate the four demo accounts there.
+Check that `https://pedido.example.com/health/ready` returns `{"ready":true}`
+and that `deploy/shop.sh logs shop-worker` shows `worker started`.
 
-## 3. Directus
+New sign-ups are turned off: only the owner creates staff accounts, in
+Configurações → Equipe.
 
-- Run Directus (compose service `directus`, or Directus Cloud) with its own
-  database. It can be a separate database in the same Supabase project.
-- Bootstrap it:
+## 3. Setup wizard
 
-  ```sh
-  DIRECTUS_URL=https://cms.example DIRECTUS_ADMIN_EMAIL=… DIRECTUS_ADMIN_PASSWORD=… \
-  APP_URL=https://pedido.example CMS_WEBHOOK_SECRET=<32 random chars> pnpm cms:bootstrap
-  ```
+Sign in at `https://pedido.example.com/staff/login` as the owner. The home screen
+points to **Configuração** until it is finished:
 
-- Save the printed `DIRECTUS_TOKEN`; it is shown only once.
-- Enter the real menu: categories, products (price in centavos), option groups and options.
-- Use each product's SKU as its external code in iFood.
+1. **Loja:** name, phone, pickup address.
+2. **Cardápio:** create categories, products (with photos), option groups, or
+   start from the sample menu and edit it. Each product has a code (SKU); if you
+   sell on iFood, use it as the "código externo" there.
+3. **Retirada e entrega:** turn pickup and own delivery on or off, and add
+   delivery areas and fees.
+4. **Equipe:** one account per person (owner, manager, cashier, kitchen).
+5. **Pagamentos:** pay on pickup/delivery, and/or Pix to the shop's key.
+6. **iFood (optional):** paste the Client ID, Client Secret and Merchant ID,
+   click "Salvar e testar", read any error explanation, then turn on automatic
+   orders. Skip it to key iFood orders in the Caixa as "iFood (manual)".
+7. **Concluir:** review and open the store.
 
-## 4. App deploy (Fly.io)
+Also edit the site's text pages (about, allergens, privacy, delivery terms) in
+Cardápio → Editar cardápio → Páginas do site.
 
-```sh
-fly launch --no-deploy --copy-config --name <app-name>
-fly secrets set \
-  DATABASE_URL='postgresql://…:5432/postgres' \
-  PUBLIC_SUPABASE_ANON_KEY='…' SUPABASE_SERVICE_ROLE_KEY='…' \
-  SHOP_NAME='Deku Burger' \
-  DIRECTUS_URL='https://cms.example' DIRECTUS_TOKEN='…' CMS_WEBHOOK_SECRET='…' \
-  PUBLIC_SUPABASE_URL='https://<ref>.supabase.co'
-fly deploy --build-arg PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
-fly scale count web=1 worker=1
-fly certs add pedido.example
-```
+## 4. Before opening
 
-Check that `https://pedido.example/health/ready` returns `{"ready":true}`. Then
-check that the worker logs show `worker started`. Next, run through
-[smoke tests](#6-smoke-tests) on staging. Repeat the same steps for production.
+- Make a Pix test order of R$ 1 and check it lands in the right bank account.
+- Run a backup and a restore drill ([deploy/README.md](../deploy/README.md#backups)).
+- Run the [smoke tests](#6-smoke-tests).
 
-## 5. Turning on the gated parts
+## 5. Optional parts
 
-### Online payments
+### iFood
+
+The integration was written from iFood's public docs and has not been through
+iFood homologation. The setup wizard tests the credentials (token, then a read of
+the store) and explains failures in Portuguese. While it is on, the home screen
+warns when polling fails, when no poll has succeeded for 3 minutes, or when
+events or status updates failed.
+
+Before relying on it:
+
+1. Re-check `src/lib/server/integrations/ifood/api.ts` against the current iFood
+   docs: the paths (all in `IFOOD_PATHS`), the token request body, the webhook
+   signature header and algorithm, and the cancellation codes.
+2. If iFood uses webhooks for your app, register the address shown in the wizard.
+   Polling runs every 30 s either way.
+3. Place test orders, follow them in iFood's Gestor de Pedidos too, then record
+   real payloads (with personal data removed) into `tests/fixtures/ifood/` and run the tests.
+4. Watch Configurações → Integrações: received events, failures, and calls sent to iFood.
+
+### Automatic online payments
+
+Only needed if you want Pix confirmed automatically or card payments on the site.
 
 1. Implement `PaymentProvider` for the chosen PSP in
    `src/lib/server/payments/<psp>.ts`. Use `local-stub.ts` as the template. The
@@ -84,33 +91,19 @@ check that the worker logs show `worker started`. Next, run through
    signature checked on raw bytes, duplicate events ignored, no regression
    after `paid`, and the provider asked before an unpaid checkout expires.
 2. Add the provider name to `PAYMENT_PROVIDER` in `src/lib/server/config.ts` and to `paymentProvider()`.
-3. Register `https://pedido.example/api/v1/payments/webhooks/<psp>` in the PSP dashboard.
-4. On staging, pay real small amounts with Pix and a card, refund one, and compare against `/staff/reconciliation`.
-
-### iFood
-
-1. Get merchant API credentials and the merchant id from iFood.
-2. Re-check `src/lib/server/integrations/ifood/api.ts` against the current iFood
-   docs. Check the paths, the token request body, the webhook signature header and
-   algorithm, and the cancellation codes. Every path is in `IFOOD_PATHS`.
-3. On staging set `IFOOD_ENABLED=true`, `IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`, `IFOOD_MERCHANT_ID`.
-   If iFood uses webhooks for your account, register
-   `https://<staging>/api/v1/integrations/ifood/webhook`. Polling runs anyway
-   every 30 s.
-4. Run iFood's homologation checklist with test orders. Then record real
-   payloads (with personal data removed) into `tests/fixtures/ifood/` and run the tests.
-5. Watch Configurações → Integrações: received events, failures, and calls sent to iFood.
+3. Register `https://pedido.example.com/api/v1/payments/webhooks/<psp>` in the PSP dashboard.
+4. Pay real small amounts with Pix and a card, refund one, and compare against `/staff/reconciliation`.
 
 ## 6. Smoke tests
-
-On staging, then production:
 
 - [ ] Staff login for each role. The kitchen account gets "403" on the POS.
 - [ ] POS: sell with cash (with change) and a Pix reference. The order shows on the KDS within a few seconds. Bump it to completed.
 - [ ] Put the KDS tablet in airplane mode for 20 s. The stale banner appears and clears when the tablet reconnects.
 - [ ] Web: order with pickup, pay on pickup. It appears as "Aguardando confirmação". Confirm it, and the KDS shows it.
+- [ ] Web: order and pay by Pix (shop key). The QR opens in the bank app with the right amount and name. Record the Pix on the order, accept it, and the KDS shows it.
 - [ ] Web delivery to a CEP outside the zones is refused with a clear message.
 - [ ] Pause the store in Configurações → Loja. The site refuses new orders, and reopening works.
+- [ ] Edit a product's price and photo. The site and the POS show the change.
 - [ ] Mark an item sold out. It shows as sold out on the site and is disabled in the POS.
 - [ ] `/staff/reconciliation` for today matches the drawer count.
 - [ ] Analytics CSV export opens in a spreadsheet with correct accents.
@@ -118,8 +111,8 @@ On staging, then production:
 
 ## 7. Operations
 
-- **Backups:** see the README. Run a restore drill once before launch.
+- **Backups:** see [deploy/README.md](../deploy/README.md#backups).
 - **Alerts:** use an uptime monitor on `/health/ready`, and watch worker logs for `"job failed"`.
 - **Incidents:** if the site misbehaves, pause it in Configurações → Loja. The
-  counter keeps working. If iFood misbehaves, set `IFOOD_ENABLED=false` and use
-  "iFood (manual)" in the POS.
+  counter keeps working. If iFood misbehaves, turn it off in Configuração → iFood
+  and use "iFood (manual)" in the POS.

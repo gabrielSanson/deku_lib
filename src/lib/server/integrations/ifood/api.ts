@@ -2,14 +2,14 @@
 //
 // UNVERIFIED: paths, payload shapes and the webhook signature scheme follow
 // iFood's public developer docs as we understood them, but have not been
-// exercised against iFood's homologation environment. IFOOD_ENABLED stays
-// false until that homologation passes; keep every iFood URL in IFOOD_PATHS
-// so corrections land in one place.
+// exercised against iFood's homologation environment. Keep every iFood URL in
+// IFOOD_PATHS so corrections land in one place.
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { config } from '../../config';
+import { ifoodSettings } from './settings';
 
 export const IFOOD_PATHS = {
 	token: '/authentication/v1.0/oauth/token',
+	merchant: (id: string) => `/merchant/v1.0/merchants/${encodeURIComponent(id)}`,
 	polling: '/events/v1.0/events:polling',
 	acknowledgment: '/events/v1.0/events/acknowledgment',
 	order: (id: string) => `/order/v1.0/orders/${encodeURIComponent(id)}`,
@@ -43,55 +43,67 @@ export interface IfoodEvent {
 
 type Fetch = typeof fetch;
 
-let token: { value: string; expiresAt: number } | undefined;
+export interface IfoodCredentials {
+	base: string;
+	clientId: string;
+	clientSecret: string;
+	merchantId: string;
+}
+
+export class IfoodNotConfiguredError extends Error {}
+
+let token: { key: string; value: string; expiresAt: number } | undefined;
 
 export function resetIfoodTokenForTests() {
 	token = undefined;
 }
 
-function credentials() {
-	const c = config();
-	if (!c.IFOOD_CLIENT_ID || !c.IFOOD_CLIENT_SECRET || !c.IFOOD_MERCHANT_ID) {
-		throw new Error(
-			'iFood credentials are not configured (IFOOD_CLIENT_ID, IFOOD_CLIENT_SECRET, IFOOD_MERCHANT_ID)'
-		);
+/** Credentials saved in the setup wizard, or the IFOOD_* environment variables. */
+export async function currentIfoodCredentials(): Promise<IfoodCredentials> {
+	const s = await ifoodSettings();
+	if (!s.clientId || !s.clientSecret || !s.merchantId) {
+		throw new IfoodNotConfiguredError('iFood credentials are not configured');
 	}
 	return {
-		base: c.IFOOD_API_BASE,
-		clientId: c.IFOOD_CLIENT_ID,
-		clientSecret: c.IFOOD_CLIENT_SECRET,
-		merchantId: c.IFOOD_MERCHANT_ID
+		base: s.apiBase,
+		clientId: s.clientId,
+		clientSecret: s.clientSecret,
+		merchantId: s.merchantId
 	};
 }
 
-async function accessToken(f: Fetch): Promise<string> {
-	if (token && token.expiresAt > Date.now() + 60_000) return token.value;
-	const { base, clientId, clientSecret } = credentials();
-	const res = await f(base + IFOOD_PATHS.token, {
+async function accessToken(f: Fetch, c: IfoodCredentials): Promise<string> {
+	const key = `${c.base}|${c.clientId}|${c.clientSecret.length}`;
+	if (token && token.key === key && token.expiresAt > Date.now() + 60_000) return token.value;
+	const res = await f(c.base + IFOOD_PATHS.token, {
 		method: 'POST',
 		headers: { 'content-type': 'application/x-www-form-urlencoded' },
-		body: new URLSearchParams({ grantType: 'client_credentials', clientId, clientSecret }),
+		body: new URLSearchParams({
+			grantType: 'client_credentials',
+			clientId: c.clientId,
+			clientSecret: c.clientSecret
+		}),
 		signal: AbortSignal.timeout(10_000)
 	});
 	const text = await res.text();
 	if (!res.ok) throw new IfoodApiError('iFood token request failed', res.status, text);
 	const body = JSON.parse(text) as { accessToken: string; expiresIn: number };
-	token = { value: body.accessToken, expiresAt: Date.now() + body.expiresIn * 1000 };
+	token = { key, value: body.accessToken, expiresAt: Date.now() + body.expiresIn * 1000 };
 	return token.value;
 }
 
 async function call(
 	f: Fetch,
+	c: IfoodCredentials,
 	path: string,
 	init: RequestInit = {}
 ): Promise<{ status: number; body: string }> {
-	const { base } = credentials();
 	const send = async () =>
-		f(base + path, {
+		f(c.base + path, {
 			...init,
 			headers: {
 				...(init.headers as Record<string, string>),
-				authorization: `Bearer ${await accessToken(f)}`
+				authorization: `Bearer ${await accessToken(f, c)}`
 			},
 			signal: AbortSignal.timeout(10_000)
 		});
@@ -106,27 +118,41 @@ async function call(
 	return { status: res.status, body };
 }
 
-export function ifoodClient(f: Fetch = fetch) {
+export function ifoodClient(
+	f: Fetch = fetch,
+	creds: () => Promise<IfoodCredentials> = currentIfoodCredentials
+) {
 	return {
+		/** Fetches a fresh token: proves the client id and secret are accepted. */
+		async authenticate() {
+			token = undefined;
+			await accessToken(f, await creds());
+		},
+		/** Reads the merchant: proves the credentials can see this store. */
+		async merchant(): Promise<unknown> {
+			const c = await creds();
+			return JSON.parse((await call(f, c, IFOOD_PATHS.merchant(c.merchantId))).body || 'null');
+		},
 		async poll(): Promise<IfoodEvent[]> {
-			const res = await call(f, IFOOD_PATHS.polling, {
-				headers: { 'x-polling-merchants': credentials().merchantId }
+			const c = await creds();
+			const res = await call(f, c, IFOOD_PATHS.polling, {
+				headers: { 'x-polling-merchants': c.merchantId }
 			});
 			return res.status === 204 || !res.body ? [] : (JSON.parse(res.body) as IfoodEvent[]);
 		},
 		async acknowledge(ids: string[]) {
 			if (!ids.length) return;
-			await call(f, IFOOD_PATHS.acknowledgment, {
+			await call(f, await creds(), IFOOD_PATHS.acknowledgment, {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(ids.map((id) => ({ id })))
 			});
 		},
 		async order(id: string): Promise<unknown> {
-			return JSON.parse((await call(f, IFOOD_PATHS.order(id))).body);
+			return JSON.parse((await call(f, await creds(), IFOOD_PATHS.order(id))).body);
 		},
 		async action(path: string, body?: unknown) {
-			await call(f, path, {
+			await call(f, await creds(), path, {
 				method: 'POST',
 				headers: body ? { 'content-type': 'application/json' } : {},
 				body: body ? JSON.stringify(body) : undefined
@@ -141,7 +167,7 @@ export type IfoodClient = ReturnType<typeof ifoodClient>;
 export function verifyIfoodSignature(
 	rawBody: Uint8Array,
 	signature: string | null,
-	secret = config().IFOOD_CLIENT_SECRET
+	secret: string | null | undefined
 ) {
 	if (!signature || !secret) return false;
 	const expected = createHmac('sha256', secret).update(rawBody).digest('hex');

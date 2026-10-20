@@ -221,8 +221,20 @@
 			{:else}
 				<p class="text-sm text-muted">Nenhum pagamento registrado.</p>
 			{/each}
+			{#if o.paymentPlan === 'pix_key' && o.paymentStatus !== 'paid' && !['cancelled', 'rejected'].includes(o.status)}
+				<p class="alert-warn text-sm">
+					O cliente vai pagar por Pix na chave da loja. Confira no app do banco um Pix de
+					<Money cents={o.totalCents} /> com a referência <strong>PEDIDO{o.orderNumber}</strong> e registre
+					o pagamento antes de aceitar.
+				</p>
+			{/if}
 			{#if o.paymentStatus !== 'paid' && !['cancelled', 'rejected'].includes(o.status) && data.staff.role !== 'kitchen'}
-				<a class="btn-secondary w-full" href="/staff/pos/{o.id}/payment">Receber pagamento</a>
+				<a
+					class="btn-secondary w-full"
+					href="/staff/pos/{o.id}/payment{o.paymentPlan === 'pix_key'
+						? '?method=external_pix'
+						: ''}">{o.paymentPlan === 'pix_key' ? 'Registrar Pix recebido' : 'Receber pagamento'}</a
+				>
 			{/if}
 		</div>
 	</aside>

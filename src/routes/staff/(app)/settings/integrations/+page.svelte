@@ -26,24 +26,16 @@
 	<section class="space-y-2 card p-4">
 		<h2 class="text-lg font-bold">Pagamento online</h2>
 		{#if data.paymentProvider === 'none'}
-			<p class="alert-warn">
-				Desligado. Clientes do site pagam na retirada ou na entrega. Ligar exige escolher um
-				provedor (PSP) e configurar as credenciais.
+			<p class="text-sm">
+				Nenhum provedor de pagamento (PSP) conectado. Clientes do site pagam na retirada ou na
+				entrega{data.shopPix ? ', ou por Pix na chave da loja (a equipe confirma)' : ''}.
+				<a class="underline" href="/staff/setup?passo=pagamentos">Mudar</a>
 			</p>
 		{:else if data.paymentProvider === 'local_stub'}
 			<p class="alert-warn">
 				Simulador local ativo. Nenhum dinheiro real é cobrado. Não é permitido em produção.
 			</p>
 		{/if}
-	</section>
-
-	<section class="space-y-2 card p-4">
-		<h2 class="text-lg font-bold">Cardápio (Directus)</h2>
-		<p class="text-sm">
-			{data.directus
-				? 'Conectado. O cardápio do site e do caixa vem do Directus.'
-				: 'Não configurado. Usando o cardápio de demonstração embutido.'}
-		</p>
 	</section>
 
 	<section class="space-y-3 card p-4">
@@ -55,17 +47,24 @@
 					: 'bg-line text-muted'}">{data.ifood.enabled ? 'Ligado' : 'Desligado'}</span
 			>
 		</div>
+		{#each data.ifoodAlerts as alert, i (i)}
+			<p class="alert-error" role="alert">{alert}</p>
+		{/each}
 		{#if !data.ifood.enabled}
-			<p class="alert-warn">
-				A integração está desligada (IFOOD_ENABLED). Ela foi escrita a partir da documentação
-				pública do iFood e ainda não passou pela homologação. Enquanto isso, lance pedidos do iFood
-				pelo Caixa usando "iFood (manual)".
-			</p>
-		{:else if !data.ifoodConfigured}
-			<p class="alert-error">
-				Ligada, mas faltam credenciais (IFOOD_CLIENT_ID, IFOOD_CLIENT_SECRET, IFOOD_MERCHANT_ID).
+			<p class="text-sm">
+				Desligado. Lance pedidos do iFood pelo Caixa usando "iFood (manual)". A integração foi
+				escrita a partir da documentação pública do iFood e ainda não passou pela homologação.
 			</p>
 		{/if}
+		<p class="text-sm">
+			{#if data.ifood.status.lastPollOkAt}Última consulta ao iFood com sucesso: {formatDateTime(
+					data.ifood.status.lastPollOkAt
+				)}.
+			{/if}
+			{#if data.staff.role === 'owner'}<a class="underline" href="/staff/setup?passo=ifood"
+					>Credenciais e teste de conexão</a
+				>{/if}
+		</p>
 		<dl class="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
 			<div>
 				<dt class="text-muted">Último evento</dt>

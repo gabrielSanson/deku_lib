@@ -1,4 +1,4 @@
-// Catalog shape shared by the CMS adapter, the local fixture and pricing.
+// Catalog shape shared by the menu tables, the sample menu and pricing.
 // Prices are integer centavos.
 
 export type Channel = 'counter' | 'web' | 'ifood';

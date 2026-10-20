@@ -30,11 +30,10 @@ cat >> .env <<ENV
 ############
 SHOP_DOMAIN=$DOMAIN
 SHOP_NAME=$NAME
+# Encrypts secrets saved in the app (the iFood client secret). Keep it with the backups:
+# without it, saved secrets must be typed in again.
+APP_SECRET=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
 PAYMENT_PROVIDER=none
-IFOOD_ENABLED=false
-IFOOD_CLIENT_ID=
-IFOOD_CLIENT_SECRET=
-IFOOD_MERCHANT_ID=
 ENV
 chmod 600 .env
 echo "Wrote deploy/supabase/.env for $URL."

@@ -16,9 +16,8 @@ const schema = z.object({
 	SUPABASE_INTERNAL_URL: z.string().url().optional(),
 	SHOP_NAME: z.string().default('Deku Burger'),
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
-	DIRECTUS_URL: z.string().url().optional(),
-	DIRECTUS_TOKEN: z.string().optional(),
-	CMS_WEBHOOK_SECRET: z.string().min(16).optional(),
+	// Encrypts secrets the owner saves in the app (the iFood client secret).
+	APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),
 	PAYMENT_PROVIDER: z.enum(['none', 'local_stub']).default('none'),
 	IFOOD_ENABLED: flag,
 	IFOOD_CLIENT_ID: z.string().optional(),
@@ -38,6 +37,9 @@ export function config(): Config {
 		const production = parsed.NODE_ENV === 'production';
 		if (production && parsed.PAYMENT_PROVIDER === 'local_stub') {
 			throw new Error('The local payment stub cannot run in production');
+		}
+		if (production && parsed.APP_SECRET?.startsWith('local-development-only')) {
+			throw new Error('APP_SECRET is the development placeholder; generate a real one');
 		}
 		cached = parsed;
 	}

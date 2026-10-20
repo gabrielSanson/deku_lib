@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
 						'script-src': ['self'],
 						// Svelte writes inline style attributes for transitions.
 						'style-src': ['self', 'unsafe-inline'],
-						// Menu images come from Directus; QR codes are inline SVG.
+						// Menu photos are served by the app itself (/media/menu); QR codes are inline SVG.
 						'img-src': ['self', 'data:', 'blob:', 'https:'],
 						'font-src': ['self'],
 						// Supabase Realtime (wss) and Auth for the staff screens.
@@ -72,7 +72,10 @@ export default defineConfig(({ mode }) => {
 						environment: 'node',
 						include: ['tests/integration/**/*.test.ts'],
 						globalSetup: ['tests/integration/setup.ts'],
-						env: { DATABASE_URL: process.env.TEST_DATABASE_URL ?? '' },
+						env: {
+							DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
+							APP_SECRET: 'integration-tests-only-app-secret-0123456789'
+						},
 						fileParallelism: false,
 						testTimeout: 20000,
 						hookTimeout: 30000

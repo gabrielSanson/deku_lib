@@ -1,11 +1,11 @@
 // Installable kitchen display: opens straight into the KDS, full screen, landscape.
-import { config } from '#lib/server/config.ts';
+import { shopName } from '#lib/server/settings/profile.ts';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = () =>
+export const GET: RequestHandler = async () =>
 	new Response(
 		JSON.stringify({
-			name: `Cozinha · ${config().SHOP_NAME}`,
+			name: `Cozinha · ${await shopName()}`,
 			short_name: 'Cozinha',
 			lang: 'pt-BR',
 			start_url: '/kitchen',
