@@ -98,7 +98,7 @@
 								class="grid size-6 place-items-center {g.maxSelections === 1
 									? 'rounded-full'
 									: 'rounded-md'} border-2 {q
-									? 'border-brand-600 bg-brand-600 text-white'
+									? 'border-brand-500 bg-brand-500 text-black'
 									: 'border-stone-300'}">{q > 1 ? q : q ? '✓' : ''}</span
 							>
 							{o.name}{oOut ? ' (esgotado)' : ''}

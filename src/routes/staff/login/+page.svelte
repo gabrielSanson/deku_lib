@@ -8,7 +8,8 @@
 
 <svelte:head><title>Entrar · Equipe</title></svelte:head>
 
-<main class="grid min-h-dvh place-items-center p-4">
+<main class="flex min-h-dvh flex-col items-center justify-center bg-night p-4">
+	<img src="/brand/deku-logo.png" alt="Deku Burger" class="mb-6 h-36 w-auto" />
 	<form
 		method="POST"
 		class="w-full max-w-sm space-y-4 card p-6"

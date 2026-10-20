@@ -20,9 +20,20 @@
 </script>
 
 <div class="flex min-h-dvh flex-col">
-	<header class="sticky top-0 z-20 border-b border-line bg-surface">
+	<header class="sticky top-0 z-20 border-b border-night-line bg-night text-white">
 		<div class="flex items-center gap-3 px-3 py-2">
-			<a href="/staff" class="font-bold text-brand-700">{data.shopName}</a>
+			<a
+				href="/staff"
+				class="flex shrink-0 items-center gap-2"
+				aria-label="{data.shopName}, início"
+			>
+				<img src="/brand/deku-mark.png" alt="" class="h-8 w-auto" />
+				<img
+					src="/brand/deku-wordmark.png"
+					alt={data.shopName}
+					class="hidden h-5 w-auto sm:block"
+				/>
+			</a>
 			{#if data.settings.acceptingOrders}
 				<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
 					>Aberto</span
@@ -37,14 +48,17 @@
 					<a
 						href={item.href}
 						class="rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap {active(item.href)
-							? 'bg-brand-100 text-brand-700'
-							: 'text-muted hover:bg-stone-100'}"
+							? 'bg-brand-500 font-semibold text-black'
+							: 'text-stone-300 hover:bg-night-2 hover:text-white'}"
 						aria-current={active(item.href) ? 'page' : undefined}>{item.label}</a
 					>
 				{/each}
 			</nav>
 			<form method="POST" action="/staff/logout">
-				<button class="btn-ghost min-h-9 text-sm" title={data.staff.email ?? ''}>
+				<button
+					class="btn min-h-9 text-sm text-stone-300 hover:bg-night-2 hover:text-white"
+					title={data.staff.email ?? ''}
+				>
 					{data.staff.displayName} · Sair
 				</button>
 			</form>

@@ -5,10 +5,12 @@
 	import Money from '#lib/components/Money.svelte';
 	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
 	import { formatTime } from '#lib/domain/time.ts';
+	import { rememberOrder } from '#lib/client/last-order.ts';
 
 	let { data } = $props();
 	const o = $derived(data.order);
 	onMount(() => {
+		if (page.params.token) rememberOrder(page.params.token);
 		const t = setInterval(
 			() => document.visibilityState === 'visible' && invalidate('app:public-order'),
 			10_000
@@ -59,7 +61,7 @@
 						class="grid size-8 place-items-center rounded-full text-sm font-bold {i < idx
 							? 'bg-ok text-white'
 							: i === idx
-								? 'bg-brand-600 text-white'
+								? 'bg-brand-500 text-black'
 								: 'bg-stone-200'}">{i < idx ? '✓' : i + 1}</span
 					>
 					<span class={i === idx ? 'font-bold' : ''}>{s.label}</span>

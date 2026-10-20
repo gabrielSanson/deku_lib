@@ -39,7 +39,7 @@
 			<a
 				href="?passo={s}"
 				class="rounded-full px-3 py-1 {s === data.step
-					? 'bg-brand-600 font-semibold text-white'
+					? 'bg-brand-500 font-semibold text-black'
 					: i < index
 						? 'bg-brand-100 text-brand-700'
 						: 'bg-stone-100 text-muted'}"
