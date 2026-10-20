@@ -34,6 +34,8 @@ function load(): StoredLine[] {
 class Cart {
 	lines = $state<StoredLine[]>([]);
 	ready = $state(false);
+	/** Whether the slide-in cart panel is showing (small screens, other pages). */
+	panelOpen = $state(false);
 
 	init() {
 		if (this.ready) return;
