@@ -1,0 +1,96 @@
+// Customer-facing texts and the shop's look, edited by the owner.
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { closeDb, db } from '#lib/server/db.ts';
+import { DomainError } from '#lib/server/errors.ts';
+import { getBranding, saveColors, setBrandImage, themeCss } from '#lib/server/settings/branding.ts';
+import { getTexts, listTextsForEditor, saveTexts } from '#lib/server/settings/texts.ts';
+import { makeStaff } from './helpers.ts';
+
+let owner: Awaited<ReturnType<typeof makeStaff>>;
+
+beforeAll(async () => {
+	owner = await makeStaff('owner');
+});
+
+afterAll(async () => {
+	await db()`delete from ui_texts`;
+	await db()`update store_branding set color_primary = null, color_dark = null,
+		color_background = null, logo_path = null, wordmark_path = null, hero_logo_path = null,
+		icon_path = null where id = 1`;
+	await closeDb();
+});
+
+describe('texts', () => {
+	it('serves the defaults until the owner edits a text', async () => {
+		const t = await getTexts(db(), { fresh: true });
+		expect(t['errors.offline']).toBe('Você está sem conexão.');
+	});
+
+	it('stores only changed texts and goes back to the default when emptied', async () => {
+		await saveTexts(
+			{
+				'home.hero.cta': 'Quero o meu',
+				'errors.offline': 'Você está sem conexão.',
+				'not.a.key': 'ignored'
+			},
+			owner
+		);
+		const rows = await db()<{ key: string }[]>`select key from ui_texts order by key`;
+		expect(rows.map((r) => r.key)).toEqual(['home.hero.cta']);
+		expect((await getTexts())['home.hero.cta']).toBe('Quero o meu');
+
+		const editor = await listTextsForEditor();
+		const cta = editor.flatMap((g) => g.texts).find((x) => x.key === 'home.hero.cta');
+		expect(cta).toMatchObject({ changed: true, value: 'Quero o meu', default: 'Pedir agora' });
+
+		await saveTexts({ 'home.hero.cta': '  ' }, owner);
+		expect((await getTexts())['home.hero.cta']).toBe('Pedir agora');
+		const [audit] = await db()<{ summary: { reset: string[] } }[]>`
+			select summary from audit_log where action = 'store.texts_updated' order by id desc limit 1`;
+		expect(audit.summary.reset).toEqual(['home.hero.cta']);
+	});
+
+	it('keeps the {names} the app fills in', async () => {
+		await expect(
+			saveTexts({ 'home.hero.prepTime': 'Fica pronto rapidinho' }, owner)
+		).rejects.toThrow(DomainError);
+		await expect(saveTexts({ 'footer.tagline': 'Oi {name}' }, owner)).rejects.toThrow(
+			/não pode ter palavras entre chaves/
+		);
+		await saveTexts({ 'home.hero.prepTime': 'Pronto em {minutes} minutinhos' }, owner);
+		expect((await getTexts())['home.hero.prepTime']).toBe('Pronto em {minutes} minutinhos');
+	});
+});
+
+describe('branding', () => {
+	it('falls back to the built-in brand', async () => {
+		const b = await getBranding(db(), { fresh: true });
+		expect(b.colors).toEqual({ primary: null, dark: null, background: null });
+		expect(b.images.logo).toBe('/brand/deku-mark.png');
+		expect(themeCss(b.colors)).toBe('');
+	});
+
+	it('saves colours, treating the default as no change', async () => {
+		await saveColors({ primary: '#E63946', dark: '#0b0b0b', background: null }, owner);
+		const b = await getBranding();
+		expect(b.colors).toEqual({ primary: '#e63946', dark: null, background: null });
+		const css = themeCss(b.colors);
+		expect(css).toContain('--color-brand-500:#e63946');
+		expect(css).not.toContain('--color-night:');
+		await expect(
+			saveColors({ primary: 'red;}body{display:none', dark: null, background: null }, owner)
+		).rejects.toThrow(DomainError);
+	});
+
+	it('uses an uploaded logo and goes back to the default', async () => {
+		const path = `${'a'.repeat(32)}.png`;
+		await setBrandImage('logo', path, owner);
+		let b = await getBranding();
+		expect(b.images.logo).toBe(`/media/menu/${path}`);
+		expect(b.custom.logo).toBe(true);
+		await expect(setBrandImage('icon', '../etc/passwd', owner)).rejects.toThrow(DomainError);
+		await setBrandImage('logo', null, owner);
+		b = await getBranding();
+		expect(b.images.logo).toBe('/brand/deku-mark.png');
+	});
+});

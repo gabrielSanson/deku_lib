@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
+import { formatBRL } from '#lib/domain/money.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
 import { attempt } from '#lib/server/actions.ts';
@@ -11,6 +12,8 @@ import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { rateLimit } from '#lib/server/rate-limit.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings, listDeliveryRules } from '#lib/server/settings/service.ts';
+import { getTexts } from '#lib/server/settings/texts.ts';
+import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -54,7 +57,8 @@ export const actions: Actions = {
 	quote: async ({ request }) => {
 		const data = await request.formData();
 		const parsed = parse(String(data.get('payload') ?? ''));
-		if (!parsed?.success) return fail(400, { quoteError: 'Revise os dados do pedido.' });
+		const texts = await getTexts();
+		if (!parsed?.success) return fail(400, { quoteError: texts['checkout.error.review'] });
 		const input = parsed.data;
 		return attempt(async () => {
 			const sql = db();
@@ -68,9 +72,11 @@ export const actions: Actions = {
 				const rule = input.address
 					? matchDeliveryRule(await listDeliveryRules(sql), input.address)
 					: null;
-				if (!rule) deliveryError = 'Ainda não entregamos neste endereço.';
+				if (!rule) deliveryError = texts['checkout.error.noDelivery'];
 				else if (cart.subtotalCents < rule.minOrderCents)
-					deliveryError = `Pedido mínimo para este endereço: R$ ${(rule.minOrderCents / 100).toFixed(2).replace('.', ',')}.`;
+					deliveryError = fill(texts['checkout.error.minOrder'], {
+						amount: formatBRL(rule.minOrderCents)
+					});
 				else deliveryFeeCents = rule.feeCents;
 			}
 			return {
@@ -91,33 +97,32 @@ export const actions: Actions = {
 	},
 
 	place: async ({ request, getClientAddress, url }) => {
+		const texts = await getTexts();
 		if (!rateLimit(`checkout:${getClientAddress()}`, 10, 10 * 60_000)) {
-			return fail(429, { error: 'Muitas tentativas. Aguarde alguns minutos.' });
+			return fail(429, { error: texts['checkout.error.tooMany'] });
 		}
 		const data = await request.formData();
 		const parsed = parse(String(data.get('payload') ?? ''));
-		if (!parsed?.success) {
-			return fail(400, { error: parsed?.error.issues[0]?.message ?? 'Revise os dados do pedido.' });
-		}
+		if (!parsed?.success) return fail(400, { error: texts['checkout.error.review'] });
 		const input = parsed.data;
 		const phone = normalizeBrPhone(input.phone);
-		if (!phone) return fail(400, { error: 'Telefone inválido. Use DDD + número.' });
+		if (!phone) return fail(400, { error: texts['checkout.error.phone'] });
 		if (input.fulfillmentType === 'delivery' && !input.address)
-			return fail(400, { error: 'Informe o endereço de entrega.' });
+			return fail(400, { error: texts['checkout.error.address'] });
 
 		const settings = await getStoreSettings();
 		if (input.payment === 'on_fulfillment' && !settings.payOnFulfillmentEnabled) {
-			return fail(400, { error: 'Pagamento na entrega/retirada não está disponível.' });
+			return fail(400, { error: texts['checkout.error.payOnFulfillment'] });
 		}
 		if (input.payment === 'pix_key' && !(await getStoreProfile()).pix.enabled) {
-			return fail(400, { error: 'Pix indisponível no momento.' });
+			return fail(400, { error: texts['checkout.error.pix'] });
 		}
 		const provider = paymentProvider();
 		if (
 			(input.payment === 'pix' || input.payment === 'online_card') &&
 			!provider?.methods.includes(input.payment)
 		) {
-			return fail(400, { error: 'Pagamento online indisponível no momento.' });
+			return fail(400, { error: texts['checkout.error.online'] });
 		}
 
 		const rule =

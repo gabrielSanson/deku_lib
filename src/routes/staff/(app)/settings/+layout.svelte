@@ -4,6 +4,9 @@
 	let { data, children } = $props();
 	const tabs = $derived([
 		{ href: '/staff/settings/store', label: 'Loja' },
+		{ href: '/staff/settings/appearance', label: 'Aparência' },
+		{ href: '/staff/settings/texts', label: 'Textos' },
+
 		{ href: '/staff/settings/delivery', label: 'Entrega' },
 		{ href: '/staff/settings/staff', label: 'Equipe' },
 		{ href: '/staff/settings/integrations', label: 'Integrações' },

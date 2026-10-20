@@ -2,8 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { cart, type StoredOption } from '#lib/client/cart.svelte.ts';
 	import Money from '#lib/components/Money.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
+	const t = useTexts();
 	const p = $derived(data.product);
 	const soldOut = $derived(new Set(data.soldOut));
 	let quantity = $state(1);
@@ -51,7 +53,7 @@
 >
 
 <article class="space-y-5 py-4">
-	<a href="/" class="text-sm text-muted">← Cardápio</a>
+	<a href="/" class="text-sm text-muted">{t('product.back')}</a>
 	{#if p.imageUrl}<img
 			src={p.imageUrl}
 			alt={p.name}
@@ -62,7 +64,7 @@
 		<p class="text-muted">{p.description}</p>
 		<p class="mt-1 text-lg font-bold"><Money cents={p.priceCents} /></p>
 		{#if p.allergens.length}<p class="mt-1 text-xs text-muted">
-				Contém: {p.allergens.join(', ')}
+				{t('product.contains', { list: p.allergens.join(', ') })}
 			</p>{/if}
 	</header>
 
@@ -77,7 +79,7 @@
 							: 'bg-stone-100'
 						: 'bg-stone-100 text-muted'}"
 				>
-					{g.minSelections ? 'Obrigatório' : `Até ${g.maxSelections}`}
+					{g.minSelections ? t('product.required') : t('product.upTo', { max: g.maxSelections })}
 				</span>
 			</legend>
 			<div class="divide-y divide-line card">
@@ -101,7 +103,7 @@
 									? 'border-brand-500 bg-brand-500 text-black'
 									: 'border-stone-300'}">{q > 1 ? q : q ? '✓' : ''}</span
 							>
-							{o.name}{oOut ? ' (esgotado)' : ''}
+							{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
 						</span>
 						{#if o.priceCents}<span class="text-sm">+ <Money cents={o.priceCents} /></span>{/if}
 					</button>
@@ -111,17 +113,17 @@
 	{/each}
 
 	<div>
-		<label class="label" for="note">Alguma observação?</label>
+		<label class="label" for="note">{t('product.note')}</label>
 		<textarea
 			id="note"
 			class="field"
 			rows="2"
 			maxlength="200"
 			bind:value={note}
-			placeholder="Ex.: sem sal na batata"></textarea>
+			placeholder={t('product.notePlaceholder')}></textarea>
 	</div>
 	{#if tried && missing.length}<p class="alert-error" role="alert">
-			Escolha: {missing.map((g) => g.name).join(', ')}.
+			{t('product.missing', { list: missing.map((g) => g.name).join(', ') })}
 		</p>{/if}
 
 	<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4">
@@ -130,17 +132,17 @@
 				<button
 					class="btn-ghost"
 					onclick={() => (quantity = Math.max(1, quantity - 1))}
-					aria-label="Diminuir">−</button
+					aria-label={t('product.less')}>−</button
 				>
 				<span class="w-8 text-center font-semibold" aria-live="polite">{quantity}</span>
 				<button
 					class="btn-ghost"
 					onclick={() => (quantity = Math.min(50, quantity + 1))}
-					aria-label="Aumentar">+</button
+					aria-label={t('product.more')}>+</button
 				>
 			</div>
 			<button class="btn-primary flex-1 text-lg" disabled={out || !data.store.open} onclick={add}>
-				{out ? 'Esgotado' : !data.store.open ? 'Loja fechada' : 'Adicionar'} · <Money
+				{out ? t('product.soldOut') : !data.store.open ? t('product.closed') : t('product.add')} · <Money
 					cents={unit * quantity}
 				/>
 			</button>
