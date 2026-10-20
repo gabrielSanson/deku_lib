@@ -1,0 +1,18 @@
+# One domain serves both the shop and the Supabase API the browser needs
+# (staff login and live order updates). Supabase Studio is not exposed.
+{$CADDY_SITE} {
+	encode zstd gzip
+
+	@supabase path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/*
+	handle @supabase {
+		reverse_proxy api-gw:8000
+	}
+
+	handle {
+		reverse_proxy shop-web:3000 {
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	header -server
+}

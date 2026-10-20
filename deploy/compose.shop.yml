@@ -1,0 +1,97 @@
+# The shop on top of self-hosted Supabase. Run through deploy/shop.sh, which
+# combines this file with the vendored deploy/supabase/docker-compose.yml.
+# Relative paths below resolve from deploy/supabase (the first compose file).
+x-app: &app
+  image: deku-shop:latest
+  build:
+    context: ../..
+    args:
+      PUBLIC_SUPABASE_URL: https://${SHOP_DOMAIN}
+  restart: unless-stopped
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+    PUBLIC_SUPABASE_URL: https://${SHOP_DOMAIN}
+    PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+    SUPABASE_INTERNAL_URL: http://api-gw:8000
+    SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+    SHOP_NAME: ${SHOP_NAME:-Deku Burger}
+    SHOP_TIMEZONE: America/Sao_Paulo
+    APP_SECRET: ${APP_SECRET:-}
+    PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-none}
+    # Menu photos are up to 5 MB.
+    BODY_SIZE_LIMIT: 6M
+
+services:
+  # Studio stays reachable from the server itself only (use an SSH tunnel).
+  api-gw:
+    ports: !override
+      - 127.0.0.1:${API_GW_HTTP_PORT:-8000}:8000
+
+  # Postgres stays private to this machine; the shop's containers use the internal network.
+  supavisor:
+    ports: !override
+      - 127.0.0.1:${POSTGRES_PORT}:5432
+      - 127.0.0.1:${POOLER_PROXY_PORT_TRANSACTION}:6543
+
+  shop-migrate:
+    <<: *app
+    restart: 'no'
+    command: ['node', '--import', 'tsx', 'scripts/migrate.ts', '--no-shim']
+    depends_on:
+      db:
+        condition: service_healthy
+      # Auth creates the auth schema our tables reference.
+      auth:
+        condition: service_healthy
+
+  shop-web:
+    <<: *app
+    depends_on:
+      shop-migrate:
+        condition: service_completed_successfully
+      api-gw:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  shop-worker:
+    <<: *app
+    command: ['node', '--import', 'tsx', 'scripts/worker.ts']
+    # The image's healthcheck is for the web process; the worker serves no HTTP.
+    healthcheck:
+      disable: true
+    depends_on:
+      shop-migrate:
+        condition: service_completed_successfully
+
+  # TLS for the shop and the Supabase API on one domain. Certificates come from
+  # Let's Encrypt automatically; ports 80 and 443 must reach this machine.
+  # Behind a Cloudflare Tunnel instead, see deploy/README.md.
+  shop-proxy:
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      CADDY_SITE: ${SHOP_DOMAIN}
+    volumes:
+      - ../Caddyfile:/etc/caddy/Caddyfile:ro
+      - shop_caddy_data:/data
+      - shop_caddy_config:/config
+    depends_on:
+      shop-web:
+        condition: service_healthy
+
+volumes:
+  shop_caddy_data:
+  shop_caddy_config:

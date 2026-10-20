@@ -1,0 +1,17 @@
+# Cloudflare Tunnel instead of public ports: Cloudflare terminates HTTPS and
+# forwards to Caddy over the private network. Use with deploy/shop.sh -f ../compose.tunnel.yml
+services:
+  shop-proxy:
+    ports: !reset []
+    environment:
+      # Caddy serves plain HTTP; the public URL is still https://SHOP_DOMAIN.
+      CADDY_SITE: :80
+
+  cloudflared:
+    image: cloudflare/cloudflared:2025.9.1
+    restart: unless-stopped
+    command: ['tunnel', '--no-autoupdate', 'run']
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in deploy/supabase/.env}
+    depends_on:
+      - shop-proxy

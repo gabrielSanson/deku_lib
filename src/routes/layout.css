@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--color-brand-50: #fff7ed;
+	--color-brand-100: #ffedd5;
+	--color-brand-500: #f97316;
+	--color-brand-600: #ea580c;
+	--color-brand-700: #c2410c;
+	--color-ink: #1c1917;
+	--color-muted: #57534e;
+	--color-line: #e7e5e4;
+	--color-surface: #ffffff;
+	--color-canvas: #fafaf9;
+	--color-ok: #15803d;
+	--color-warn: #b45309;
+	--color-bad: #b91c1c;
+}
+
+:root {
+	color-scheme: light;
+}
+
+html,
+body {
+	background: var(--color-canvas);
+	color: var(--color-ink);
+	font-family: var(--font-sans);
+	-webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+	outline: 3px solid var(--color-brand-500);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+@utility btn {
+	@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+	@apply btn bg-brand-600 text-white hover:bg-brand-700;
+}
+
+@utility btn-secondary {
+	@apply btn border border-line bg-surface text-ink hover:bg-stone-100;
+}
+
+@utility btn-danger {
+	@apply btn bg-bad text-white hover:bg-red-800;
+}
+
+@utility btn-ghost {
+	@apply btn text-ink hover:bg-stone-100;
+}
+
+@utility card {
+	@apply rounded-xl border border-line bg-surface;
+}
+
+@utility field {
+	@apply min-h-11 w-full rounded-lg border border-line bg-surface px-3 py-2 text-base;
+}
+
+@utility label {
+	@apply mb-1 block text-sm font-medium text-muted;
+}
+
+@utility alert-error {
+	@apply rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-bad;
+}
+
+@utility alert-warn {
+	@apply rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-warn;
+}
+
+@utility alert-ok {
+	@apply rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-ok;
+}

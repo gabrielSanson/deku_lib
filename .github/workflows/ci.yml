@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/burger_test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/burger_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm test:integration
+      - run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: checks
+    env:
+      PAYMENT_PROVIDER: local_stub
+      SEED_PASSWORD: burger123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start local Supabase
+        run: pnpm exec supabase start -x studio,imgproxy,vector,logflare,supavisor,edge-runtime,inbucket,storage-api,postgres-meta
+      - name: Write .env from local Supabase
+        run: |
+          pnpm exec supabase status -o env > /tmp/sb.env
+          . /tmp/sb.env
+          {
+            echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+            echo "PUBLIC_SUPABASE_URL=$API_URL"
+            echo "PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "PAYMENT_PROVIDER=local_stub"
+          } > .env
+      - run: pnpm seed
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Start worker
+        run: nohup pnpm worker > worker.log 2>&1 &
+      - run: pnpm test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            playwright-report
+            test-results
+            worker.log
