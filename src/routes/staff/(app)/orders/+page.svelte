@@ -15,6 +15,8 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
 	let { data, form } = $props();
 	const t = useTexts();
 	const live = useLiveOrders(() => data.live);
@@ -46,7 +48,7 @@
 
 	/** Current filters as a query string, with one key overridden. */
 	function linkParams(over: Record<string, string>) {
-		const u = new URLSearchParams({ status: data.status, channel: data.channel, q: data.q });
+		const u = new SvelteURLSearchParams({ status: data.status, channel: data.channel, q: data.q });
 		for (const [k, v] of Object.entries(over)) {
 			if (v) u.set(k, v);
 			else u.delete(k);
