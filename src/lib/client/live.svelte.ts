@@ -1,7 +1,7 @@
 // Keeps staff screens current. Supabase Realtime only says "orders changed";
 // we then re-run the page's server load, which is the source of truth. If the
 // realtime channel drops, we poll every 8 s and show the screen as possibly stale.
-import { SUPABASE_COOKIE_OPTIONS } from '#lib/supabase-cookie.ts';
+import { sessionCookieName } from '#lib/supabase-cookie.ts';
 import { createBrowserClient } from '@supabase/ssr';
 import { invalidate } from '$app/navigation';
 import { onMount } from 'svelte';
@@ -43,7 +43,7 @@ export function useLiveOrders(
 		}
 
 		const supabase = createBrowserClient(config.supabaseUrl, config.supabaseAnonKey, {
-			cookieOptions: SUPABASE_COOKIE_OPTIONS
+			cookieOptions: { name: sessionCookieName(window.location.pathname) }
 		});
 		let channel: ReturnType<typeof supabase.channel> | undefined;
 		// Join with the staff member's token: RLS hides order changes from anonymous

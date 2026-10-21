@@ -4,9 +4,8 @@ import { randomUUID } from 'node:crypto';
 import { loadCustomer } from '#lib/server/auth/customer.ts';
 import { loadStaff } from '#lib/server/auth/staff.ts';
 import { config, supabaseServerUrl } from '#lib/server/config.ts';
-import { SUPABASE_COOKIE_OPTIONS } from '#lib/supabase-cookie.ts';
+import { isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
-const STAFF_PREFIXES = ['/staff', '/kitchen'];
 // Assets and health checks never need the sign-in state.
 const NO_SESSION = /^\/(api|media|health|offline)(\/|$)|\.webmanifest$/;
 
@@ -18,7 +17,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	const path = event.url.pathname;
-	const isStaff = STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
+	const isStaff = isStaffPath(path);
 	// Shop pages read the customer's sign-in too (the account button, /conta).
 	const withSession = !NO_SESSION.test(path);
 
@@ -27,7 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			supabaseServerUrl() ?? PUBLIC_SUPABASE_URL,
 			PUBLIC_SUPABASE_ANON_KEY,
 			{
-				cookieOptions: SUPABASE_COOKIE_OPTIONS,
+				cookieOptions: { name: sessionCookieName(path) },
 				cookies: {
 					getAll: () => event.cookies.getAll(),
 					setAll: (cookies) => {
