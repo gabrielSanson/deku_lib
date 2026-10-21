@@ -159,6 +159,10 @@
 										<li>
 											<p class="text-lg leading-tight font-bold">
 												{item.quantity}× {item.productName}
+												{#if item.discountCents}<span
+														class="ml-1 rounded bg-yellow-300 px-1.5 text-xs font-black text-black uppercase"
+														>promo</span
+													>{/if}
 											</p>
 											{#each item.modifiers as m, i (i)}
 												<p

@@ -404,6 +404,81 @@ export const TEXTS = {
 	'checkout.summary': { group: 'checkout', label: 'Resumo', default: 'Resumo' },
 	'checkout.deliveryLine': { group: 'checkout', label: 'Entrega no resumo', default: 'Entrega' },
 	'checkout.calculating': { group: 'checkout', label: 'Calculando', default: 'Calculando…' },
+	'checkout.coupon': { group: 'checkout', label: 'Campo de cupom', default: 'Cupom de desconto' },
+	'checkout.coupon.apply': { group: 'checkout', label: 'Botão aplicar cupom', default: 'Aplicar' },
+	'checkout.coupon.remove': { group: 'checkout', label: 'Botão remover cupom', default: 'Remover' },
+	'checkout.discountLine': { group: 'checkout', label: 'Desconto no resumo', default: 'Desconto' },
+	'coupon.not_found': {
+		group: 'checkout',
+		label: 'Cupom: não existe',
+		default: 'Cupom não encontrado.'
+	},
+	'coupon.inactive': {
+		group: 'checkout',
+		label: 'Cupom: desligado',
+		default: 'Este cupom não está valendo.'
+	},
+	'coupon.not_started': {
+		group: 'checkout',
+		label: 'Cupom: ainda não começou',
+		default: 'Esta promoção ainda não começou.'
+	},
+	'coupon.expired': { group: 'checkout', label: 'Cupom: expirado', default: 'Este cupom expirou.' },
+	'coupon.outside_hours': {
+		group: 'checkout',
+		label: 'Cupom: fora do horário',
+		default: 'Esta promoção não vale neste horário.'
+	},
+	'coupon.min_order': {
+		group: 'checkout',
+		label: 'Cupom: pedido mínimo',
+		default: 'Esta promoção vale para pedidos a partir de {amount}.'
+	},
+	'coupon.needs_customer': {
+		group: 'checkout',
+		label: 'Cupom: precisa do telefone',
+		default: 'Este cupom precisa do telefone do cliente.'
+	},
+	'coupon.other_customer': {
+		group: 'checkout',
+		label: 'Cupom: de outra pessoa',
+		default: 'Este cupom é de outra pessoa.'
+	},
+	'coupon.used_up': {
+		group: 'checkout',
+		label: 'Cupom: esgotado',
+		default: 'Este cupom já foi usado o máximo de vezes.'
+	},
+	'coupon.already_used': {
+		group: 'checkout',
+		label: 'Cupom: já usado pelo cliente',
+		default: 'Você já usou este cupom.'
+	},
+	'coupon.first_order_only': {
+		group: 'checkout',
+		label: 'Cupom: só primeiro pedido',
+		default: 'Este cupom vale só no primeiro pedido.'
+	},
+	'coupon.delivery_only': {
+		group: 'checkout',
+		label: 'Cupom: frete grátis sem entrega',
+		default: 'Frete grátis vale só para entrega.'
+	},
+	'coupon.needs_more_items': {
+		group: 'checkout',
+		label: 'Cupom: faltam itens',
+		default: 'Adicione mais itens da promoção para ganhar o desconto.'
+	},
+	'coupon.no_reward_item': {
+		group: 'checkout',
+		label: 'Cupom: falta o brinde no carrinho',
+		default: 'Adicione ao carrinho o item que vem de brinde.'
+	},
+	'coupon.better_offer': {
+		group: 'checkout',
+		label: 'Cupom: já há promoção melhor',
+		default: 'Você já tem uma promoção melhor aplicada.'
+	},
 	'checkout.enterCep': {
 		group: 'checkout',
 		label: 'Pedir CEP',

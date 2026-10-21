@@ -17,6 +17,8 @@ export interface OrderItemView {
 	unitPriceCents: number;
 	modifiersUnitCents: number;
 	lineTotalCents: number;
+	/** Given away by the order's promotion (a free item keeps its price here). */
+	discountCents: number;
 	note: string | null;
 	allergyFlag: boolean;
 	prepStation: string;
@@ -83,6 +85,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 			unit_price_cents: number;
 			modifiers_unit_cents: number;
 			line_total_cents: number;
+			discount_cents: number;
 			note: string | null;
 			allergy_flag: boolean;
 			prep_station: string;
@@ -133,6 +136,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 				unitPriceCents: i.unit_price_cents,
 				modifiersUnitCents: i.modifiers_unit_cents,
 				lineTotalCents: i.line_total_cents,
+				discountCents: i.discount_cents,
 				note: i.note,
 				allergyFlag: i.allergy_flag,
 				prepStation: i.prep_station,
@@ -190,6 +194,8 @@ export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]>
 export interface OrderDetail extends OrderSummary {
 	subtotalCents: number;
 	discountCents: number;
+	/** The campaign that paid for the discount, if any. */
+	offerName: string | null;
 	deliveryFeeCents: number;
 	cancelReason: string | null;
 	publicToken: string;
@@ -235,8 +241,10 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 			cancel_reason: string | null;
 			public_token: string;
 			catalog_version: string | null;
+			offer_name: string | null;
 		})[]
-	>`select * from orders where id = ${id}`;
+	>`select o.*, c.name as offer_name from orders o left join campaigns c on c.id = o.campaign_id
+		where o.id = ${id}`;
 	if (!row) return null;
 	const [summary] = await withItems(sql, [row]);
 	const [address] = await sql<NonNullable<OrderDetail['address']>[]>`
@@ -274,6 +282,7 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 		...summary,
 		subtotalCents: row.subtotal_cents,
 		discountCents: row.discount_cents,
+		offerName: row.offer_name,
 		deliveryFeeCents: row.delivery_fee_cents,
 		cancelReason: row.cancel_reason,
 		publicToken: row.public_token,
@@ -319,12 +328,14 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 		readyAt: d.readyAt,
 		subtotalCents: d.subtotalCents,
 		discountCents: d.discountCents,
+		offerName: d.offerName,
 		deliveryFeeCents: d.deliveryFeeCents,
 		totalCents: d.totalCents,
 		items: d.items.map((i) => ({
 			productName: i.productName,
 			quantity: i.quantity,
 			lineTotalCents: i.lineTotalCents,
+			discountCents: i.discountCents,
 			modifiers: i.modifiers.map((m) => m.optionName)
 		}))
 	};

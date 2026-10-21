@@ -75,6 +75,11 @@
 							{#if m.unitPriceCents}<Money cents={m.unitPriceCents * m.quantity} />{/if}
 						</div>
 					{/each}
+					{#if item.discountCents}
+						<div class="flex justify-between text-sm text-ok">
+							<span>Promoção</span><span>−<Money cents={item.discountCents} /></span>
+						</div>
+					{/if}
 					{#if item.allergyFlag}<p class="text-sm font-bold text-bad">⚠ Alergia / atenção</p>{/if}
 					{#if item.note}<p class="text-sm italic">“{item.note}”</p>{/if}
 				</div>
@@ -85,7 +90,7 @@
 					<dd><Money cents={o.subtotalCents} /></dd>
 				</div>
 				{#if o.discountCents}<div class="flex justify-between">
-						<dt>Desconto</dt>
+						<dt>Desconto{o.offerName ? ` · ${o.offerName}` : ''}</dt>
 						<dd>−<Money cents={o.discountCents} /></dd>
 					</div>{/if}
 				{#if o.deliveryFeeCents}<div class="flex justify-between">

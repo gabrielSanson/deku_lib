@@ -6,6 +6,7 @@ export const load: PageServerLoad = async ({ params, depends, setHeaders }) => {
 	depends('app:public-order');
 	const order = await getPublicOrder(params.token);
 	if (!order) error(404, 'Pedido não encontrado.');
-	setHeaders({ 'cache-control': 'no-store', 'x-robots-tag': 'noindex' });
+	// The shop layout already sends cache-control: no-store; setting it twice throws.
+	setHeaders({ 'x-robots-tag': 'noindex' });
 	return { order };
 };

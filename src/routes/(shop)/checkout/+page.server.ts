@@ -5,6 +5,12 @@ import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
 import { attempt } from '#lib/server/actions.ts';
 import {
+	customerIdByPhone,
+	evalCart,
+	findOffer,
+	offerMessage
+} from '#lib/server/campaigns/service.ts';
+import {
 	getCatalogForPricing,
 	missingIngredients,
 	soldOutSkus
@@ -46,12 +52,18 @@ const checkout = z.object({
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
 	payment: z.enum(['pix', 'online_card', 'pix_key', 'on_fulfillment']),
+	couponCode: z.string().trim().max(30).optional(),
 	idempotencyKey: z.string().uuid()
 });
 
-function parse(raw: string) {
+// The quote runs while the customer is still typing: name and payment may be empty.
+const quoteInput = checkout
+	.pick({ lines: true, fulfillmentType: true, address: true, couponCode: true })
+	.extend({ phone: z.string().max(25).optional() });
+
+function parse<T extends z.ZodType>(schema: T, raw: string) {
 	try {
-		return checkout.safeParse(JSON.parse(raw));
+		return schema.safeParse(JSON.parse(raw)) as z.ZodSafeParseResult<z.infer<T>>;
 	} catch {
 		return null;
 	}
@@ -61,13 +73,14 @@ export const actions: Actions = {
 	/** Server-side price and fee preview; never trusted at placement time. */
 	quote: async ({ request }) => {
 		const data = await request.formData();
-		const parsed = parse(String(data.get('payload') ?? ''));
+		const parsed = parse(quoteInput, String(data.get('payload') ?? ''));
 		const texts = await getTexts();
 		if (!parsed?.success) return fail(400, { quoteError: texts['checkout.error.review'] });
 		const input = parsed.data;
 		return attempt(async () => {
 			const sql = db();
-			const cart = priceCart(await getCatalogForPricing(), input.lines, {
+			const catalog = await getCatalogForPricing();
+			const cart = priceCart(catalog, input.lines, {
 				channel: 'web',
 				soldOut: await soldOutSkus(sql, 'web'),
 				missingIngredients: await missingIngredients(sql)
@@ -85,11 +98,25 @@ export const actions: Actions = {
 					});
 				else deliveryFeeCents = rule.feeCents;
 			}
+			const offer = await findOffer(sql, {
+				cart: evalCart(catalog, cart, deliveryFeeCents),
+				customerId: await customerIdByPhone(sql, normalizeBrPhone(input.phone ?? '')),
+				couponCode: input.couponCode
+			});
+			const discountCents = Math.min(offer.applied?.discountCents ?? 0, cart.subtotalCents);
 			return {
 				quote: {
 					subtotalCents: cart.subtotalCents,
 					deliveryFeeCents,
-					totalCents: cart.subtotalCents + deliveryFeeCents,
+					discountCents,
+					offerName: offer.applied?.name ?? null,
+					couponApplied: !!offer.applied?.couponId,
+					couponError: offer.couponProblem
+						? offerMessage(texts, offer.couponProblem, offer.couponMinOrderCents)
+						: null,
+					// Placing the order would be refused with this code; a better automatic offer is fine.
+					couponBlocks: !!offer.couponProblem && offer.couponProblem !== 'better_offer',
+					totalCents: cart.subtotalCents - discountCents + deliveryFeeCents,
 					deliveryError,
 					lines: cart.lines.map((l) => ({
 						sku: l.productSku,
@@ -108,7 +135,7 @@ export const actions: Actions = {
 			return fail(429, { error: texts['checkout.error.tooMany'] });
 		}
 		const data = await request.formData();
-		const parsed = parse(String(data.get('payload') ?? ''));
+		const parsed = parse(checkout, String(data.get('payload') ?? ''));
 		if (!parsed?.success) return fail(400, { error: texts['checkout.error.review'] });
 		const input = parsed.data;
 		const phone = normalizeBrPhone(input.phone);
@@ -154,6 +181,7 @@ export const actions: Actions = {
 					? { ...input.address, recipient: input.name, cep: input.address.cep.replace(/\D/g, '') }
 					: undefined,
 				deliveryRule: rule,
+				couponCode: input.couponCode || null,
 				idempotencyKey: input.idempotencyKey,
 				paymentPlan:
 					input.payment === 'on_fulfillment' || input.payment === 'pix_key'
