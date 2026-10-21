@@ -26,8 +26,8 @@
 		{ key: 'wordmark', label: 'Nome em letras', hint: 'Ao lado do símbolo, no topo.' },
 		{
 			key: 'heroLogo',
-			label: 'Logo grande',
-			hint: 'No destaque da página inicial, quando não há foto de produto.'
+			label: 'Imagem do destaque',
+			hint: 'Na frente da foto do topo da página inicial. PNG com fundo transparente.'
 		},
 		{
 			key: 'icon',

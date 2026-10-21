@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon, { type IconName } from '#lib/components/Icon.svelte';
 	import Money from '#lib/components/Money.svelte';
+	import { heroMotion } from '#lib/client/hero-motion.ts';
 	import { categoryIcon } from '#lib/domain/category-icon.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -22,7 +23,6 @@
 		const pool = pick ? pick.products : categories.flatMap((c) => c.products);
 		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, 8);
 	});
-	const heroPhoto = $derived(featured[0]?.imageUrl ?? null);
 	const titleLines = $derived(t('home.hero.title').split('\n'));
 
 	const modes = $derived(
@@ -55,34 +55,28 @@
 	<meta name="description" content={t('home.metaDescription')} />
 </svelte:head>
 
-<!-- Hero: full-bleed photo on night, as in mockups 01 and 03 -->
-<section class="relative isolate overflow-hidden bg-night text-white">
-	{#if heroPhoto}
-		<img
-			src={heroPhoto}
-			alt=""
-			class="absolute inset-0 -z-10 size-full object-cover md:left-[38%] md:w-[62%]"
-			fetchpriority="high"
-		/>
-		<div
-			class="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/60 to-night/10 md:bg-gradient-to-r md:from-night md:from-38% md:via-night/50 md:via-50% md:to-transparent md:to-70%"
-		></div>
-	{:else}
-		<div
-			class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_75%_45%,color-mix(in_srgb,var(--color-brand-500)_28%,transparent),transparent_60%)]"
-		></div>
-		<img
-			src={data.branding.images.heroLogo}
-			alt=""
-			class="absolute top-1/2 right-[6%] -z-10 hidden h-[70%] w-auto -translate-y-1/2 drop-shadow-[0_0_50px_color-mix(in_srgb,var(--color-brand-500)_35%,transparent)] md:block"
-		/>
-	{/if}
+<!-- Hero: photo backdrop with the burger in front, as in mockups 01 and 03.
+     hero-motion.ts adds the intro and the parallax; without JS it is a still photo. -->
+<section class="relative isolate overflow-hidden bg-night text-white" {@attach heroMotion}>
+	<img
+		data-hero-bg
+		src="/hero/background-1920.webp"
+		srcset="/hero/background-960.webp 960w, /hero/background-1920.webp 1920w"
+		sizes="100vw"
+		alt=""
+		class="absolute inset-x-0 -top-[10%] -z-10 h-[120%] w-full object-cover"
+		fetchpriority="high"
+	/>
+	<div
+		class="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/70 to-night/10 md:bg-gradient-to-r md:from-night md:from-20% md:via-night/60 md:via-45% md:to-transparent md:to-75%"
+	></div>
 
 	<div
-		class="mx-auto flex min-h-[30rem] max-w-7xl flex-col justify-end px-5 pt-24 pb-8 sm:px-8 md:min-h-[34rem] md:justify-center md:pt-12 lg:px-6"
+		class="mx-auto grid min-h-[30rem] max-w-7xl items-center gap-2 px-5 pt-20 pb-8 sm:px-8 md:min-h-[36rem] md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:gap-6 md:pt-12 lg:px-6"
 	>
 		<div class="max-w-xl">
 			<span
+				data-hero-in
 				class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-sm font-semibold backdrop-blur"
 			>
 				<span
@@ -92,14 +86,17 @@
 				{t(data.store.open ? 'home.hero.open' : 'home.hero.closed', { name: data.shopName })}
 			</span>
 			<h1
+				data-hero-in
 				class="mt-4 font-display text-[2.75rem] leading-[0.98] font-black tracking-tight sm:text-6xl lg:text-7xl"
 			>
 				{#each titleLines as line, i (i)}
 					<span class="block {i === titleLines.length - 1 ? 'text-brand-500' : ''}">{line}</span>
 				{/each}
 			</h1>
-			<p class="mt-4 max-w-md text-base text-stone-200 sm:text-lg">{t('home.hero.text')}</p>
-			<div class="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
+			<p data-hero-in class="mt-4 max-w-md text-base text-stone-200 sm:text-lg">
+				{t('home.hero.text')}
+			</p>
+			<div data-hero-in class="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
 				<a href="/cardapio" class="btn-primary btn-lg px-7">
 					{t('home.hero.cta')}
 					<Icon name="arrow" />
@@ -110,7 +107,7 @@
 					>{t('home.hero.secondary')}</a
 				>
 			</div>
-			<ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200">
+			<ul data-hero-in class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200">
 				{#each modes as m (m.label)}
 					<li class="flex items-center gap-2">
 						<Icon name={m.icon} class="size-5 text-brand-500" />{m.label}
@@ -124,6 +121,18 @@
 				{/if}
 			</ul>
 		</div>
+		<!-- The owner can swap this picture in Configurações > Aparência ("Imagem do destaque"). -->
+		<img
+			data-hero-burger
+			src={data.branding.images.heroLogo}
+			srcset={data.branding.custom.heroLogo
+				? undefined
+				: '/hero/burger-640.webp 640w, /hero/burger-1200.webp 1200w'}
+			sizes="(min-width: 768px) 55vw, 90vw"
+			alt=""
+			class="order-first mx-auto w-full max-w-xs drop-shadow-[0_30px_40px_rgb(0_0_0/0.6)] sm:max-w-sm md:order-none md:max-w-none"
+			fetchpriority="high"
+		/>
 	</div>
 </section>
 

@@ -18,7 +18,7 @@ export const DEFAULT_COLORS: Record<ColorKey, string> = {
 export const DEFAULT_IMAGES: Record<ImageKey, string> = {
 	logo: '/brand/deku-mark.png',
 	wordmark: '/brand/deku-wordmark.png',
-	heroLogo: '/brand/deku-logo.png',
+	heroLogo: '/hero/burger-1200.webp',
 	icon: '/icon-512.png'
 };
 
