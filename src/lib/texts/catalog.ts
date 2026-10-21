@@ -711,6 +711,48 @@ export const TEXTS = {
 	},
 	'order.label': { group: 'order', label: 'Rótulo do número', default: 'Pedido' },
 	'order.eta': { group: 'order', label: 'Previsão', default: 'Previsão: {time}' },
+	'order.track.title': { group: 'order', label: 'Título', default: 'Acompanhe seu pedido' },
+	'order.track.subtitle': {
+		group: 'order',
+		label: 'Subtítulo',
+		default: 'Veja em tempo real o status do seu pedido.'
+	},
+	'order.track.orderNumber': {
+		group: 'order',
+		label: 'Número do pedido',
+		default: 'Pedido #{number}'
+	},
+	'order.track.waitingPayment': {
+		group: 'order',
+		label: 'Aguardando pagamento',
+		default: 'Aguardando pagamento. A loja começa o pedido assim que o pagamento for confirmado.'
+	},
+	'order.track.hintPreparing': {
+		group: 'order',
+		label: 'Dica: em preparo',
+		default: 'Na cozinha agora'
+	},
+	'order.track.hintReady': {
+		group: 'order',
+		label: 'Dica: pronto',
+		default: 'Avisamos quando ficar pronto'
+	},
+	'order.track.etaMinutes': {
+		group: 'order',
+		label: 'Previsão em minutos',
+		default: 'Pronto em cerca de {min} min'
+	},
+	'order.track.etaSoon': {
+		group: 'order',
+		label: 'Previsão: quase pronto',
+		default: 'Quase pronto'
+	},
+	'order.track.itemsTitle': {
+		group: 'order',
+		label: 'Título dos itens',
+		default: 'Itens do pedido'
+	},
+	'order.track.menuCta': { group: 'order', label: 'Botão ver cardápio', default: 'Ver cardápio' },
 	'order.cancelled': {
 		group: 'order',
 		label: 'Pedido cancelado',

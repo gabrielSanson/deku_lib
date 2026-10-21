@@ -2,8 +2,11 @@
 	import { onMount, tick } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
+	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import Timeline, { type Step } from '#lib/components/organisms/Timeline.svelte';
+	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import { getsReadyAlert, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
@@ -115,17 +118,65 @@
 		return () => clearInterval(t);
 	});
 
-	const steps = $derived([
-		{ key: 'new', label: t('order.step.new') },
-		{ key: 'confirmed', label: t('order.step.confirmed') },
-		{ key: 'preparing', label: t('order.step.preparing') },
+	// Three steps on the card (mockup 10). The first two are reached by the kitchen,
+	// the last one depends on how the order is delivered.
+	const rank: Record<string, number> = {
+		new: 0,
+		confirmed: 1,
+		preparing: 2,
+		ready: 3,
+		completed: 4
+	};
+	const r = $derived(rank[o.status] ?? 0);
+	const cancelled = $derived(o.status === 'cancelled' || o.status === 'rejected');
+	const waitingPayment = $derived(o.status === 'new' && o.paymentStatus !== 'paid');
+	const statusLabel = $derived(
+		o.status === 'ready' && o.fulfillmentType === 'delivery'
+			? t('order.step.out')
+			: t(
+					(
+						{
+							new: 'order.step.new',
+							confirmed: 'order.step.confirmed',
+							preparing: 'order.step.preparing',
+							ready: 'order.step.ready',
+							completed: 'order.step.completed'
+						} as const
+					)[o.status as 'new'] ?? 'order.step.new'
+				)
+	);
+	const stepState = (reachedAt: number, doneAt: number): Step['state'] =>
+		r >= doneAt ? 'done' : r === reachedAt ? 'current' : 'next';
+	const timeline = $derived<Step[]>([
 		{
-			key: 'ready',
-			label: o.fulfillmentType === 'delivery' ? t('order.step.out') : t('order.step.ready')
+			label: t('order.step.confirmed'),
+			time: o.acceptedAt ? formatTime(o.acceptedAt) : null,
+			state: stepState(1, 2)
 		},
-		{ key: 'completed', label: t('order.step.completed') }
+		{
+			label: t('order.step.preparing'),
+			hint: t('order.track.hintPreparing'),
+			state: stepState(2, 3)
+		},
+		{
+			label: o.fulfillmentType === 'delivery' ? t('order.step.out') : t('order.step.ready'),
+			time: o.readyAt ? formatTime(o.readyAt) : null,
+			hint: t('order.track.hintReady'),
+			state: stepState(3, 4)
+		}
 	]);
-	const idx = $derived(steps.findIndex((s) => s.key === o.status));
+
+	// Minutes left until the promised time, refreshed every 30 seconds.
+	let now = $state(Date.now());
+	$effect(() => {
+		const timer = setInterval(() => (now = Date.now()), 30_000);
+		return () => clearInterval(timer);
+	});
+	const eta = $derived.by(() => {
+		if (!o.promisedAt || !open || r >= 3) return null;
+		const min = Math.ceil((new Date(o.promisedAt).getTime() - now) / 60_000);
+		return min > 0 ? t('order.track.etaMinutes', { min }) : t('order.track.etaSoon');
+	});
 	const isNew = $derived(page.url.searchParams.has('novo'));
 </script>
 
@@ -137,19 +188,51 @@
 	><meta name="robots" content="noindex" /></svelte:head
 >
 
-<section class="space-y-5 py-6">
+<section class="mx-auto max-w-2xl space-y-5 py-6">
+	<div>
+		<h1 class="page-title">{t('order.track.title')}</h1>
+		<p class="mt-1 text-muted">{t('order.track.subtitle')}</p>
+	</div>
 	{#if isNew}<p class="alert-ok">{t('order.sent')}</p>{/if}
-	<div class="rounded-(--radius-card) bg-night p-6 text-center text-white">
+
+	<div class="space-y-5 rounded-(--radius-card) bg-night p-6 text-white">
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<p class="text-sm font-semibold text-stone-300">
+					{t('order.track.orderNumber', { number: o.orderNumber })}
+				</p>
+				<p class="text-stone-200">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</p>
+			</div>
+			<span class="pill bg-brand-500 text-black"
+				>{cancelled ? t('order.cancelled') : statusLabel}</span
+			>
+		</div>
+
 		<!-- Collected at the counter: the order number is the code that is called out. -->
-		<p class="text-sm font-semibold tracking-wide text-stone-300">
-			{collects ? t('order.codeLabel') : t('order.label')}
-		</p>
-		<h1 class="font-display text-7xl font-black tracking-tight text-brand-500 tabular-nums">
-			#{code}
-		</h1>
-		{#if o.promisedAt && idx >= 0 && idx < 4}<p class="mt-2 text-stone-300">
-				{t('order.eta', { time: formatTime(o.promisedAt) })}
-			</p>{/if}
+		<div class="text-center">
+			<p class="text-sm font-semibold tracking-wide text-stone-300">
+				{collects ? t('order.codeLabel') : t('order.label')}
+			</p>
+			<h2 class="font-display text-6xl font-black tracking-tight text-brand-500 tabular-nums">
+				#{code}
+			</h2>
+		</div>
+
+		{#if cancelled}
+			<p class="alert-error text-center">{t('order.cancelled')}</p>
+		{:else if waitingPayment}
+			<p class="rounded-(--radius-control) bg-night-2 p-4 text-center text-stone-200">
+				{t('order.track.waitingPayment')}
+			</p>
+		{:else}
+			<Timeline steps={timeline} dark />
+		{/if}
+
+		{#if eta && !cancelled && !waitingPayment}
+			<p class="flex items-center gap-3 rounded-(--radius-control) bg-night-2 p-4 font-semibold">
+				<Icon name="timer" class="size-6 text-brand-500" />{eta}
+			</p>
+		{/if}
 	</div>
 
 	{#if ready}
@@ -197,40 +280,11 @@
 		</form>
 	{/if}
 
-	{#if o.status === 'cancelled' || o.status === 'rejected'}
-		<p class="alert-error text-center">
-			{t('order.cancelled')}
-		</p>
-	{:else}
-		<ol class="space-y-0 card p-5" aria-label={t('order.progress')}>
-			{#each steps as s, i (s.key)}
-				<li
-					class="relative flex items-center gap-4 pb-5 last:pb-0 {i <= idx ? '' : 'opacity-50'}"
-					aria-current={i === idx ? 'step' : undefined}
-				>
-					{#if i < steps.length - 1}
-						<span
-							class="absolute top-9 left-4 h-[calc(100%-1.25rem)] w-0.5 {i < idx
-								? 'bg-ok'
-								: 'bg-line'}"
-							aria-hidden="true"
-						></span>
-					{/if}
-					<span
-						class="relative grid size-9 shrink-0 place-items-center rounded-full text-sm font-black {i <
-						idx
-							? 'bg-ok text-white'
-							: i === idx
-								? 'bg-brand-500 text-black ring-4 ring-brand-100'
-								: 'bg-quiet text-stone-500'}">{i < idx ? '✓' : i + 1}</span
-					>
-					<span class={i === idx ? 'text-lg font-extrabold' : 'font-medium'}>{s.label}</span>
-				</li>
-			{/each}
-		</ol>
-	{/if}
-
-	<div class="space-y-1 card p-5 text-sm">
+	<section class="space-y-1 card p-5 text-sm">
+		<div class="mb-2 flex items-baseline justify-between">
+			<h2 class="font-semibold">{t('order.track.itemsTitle')}</h2>
+			<Money cents={o.totalCents} class="font-bold" />
+		</div>
 		{#each o.items as item, i (i)}
 			<div class="flex justify-between gap-2">
 				<span
@@ -254,11 +308,14 @@
 		<div class="flex justify-between pt-1">
 			<span>{t('order.payment')}</span><PaymentBadge status={o.paymentStatus} />
 		</div>
-	</div>
+	</section>
+
 	{#if o.paymentPlan === 'pix_key' && o.status === 'new' && o.paymentStatus !== 'paid'}
 		<a class="btn-primary w-full" href="/checkout/payment/{page.params.token}"
 			>{t('order.payPix')}</a
 		>
 	{/if}
-	<a class="btn-secondary w-full" href="/cardapio">{t('errors.backToMenu')}</a>
+	<a class="btn-primary btn-lg w-full" href="/cardapio">
+		<Icon name="burger" class="size-6" />{t('order.track.menuCta')}
+	</a>
 </section>
