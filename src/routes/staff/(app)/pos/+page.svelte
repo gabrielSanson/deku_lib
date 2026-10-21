@@ -136,12 +136,14 @@
 				aria-label="Buscar produto"
 			/>
 			<button
-				class="btn {category === null ? 'bg-ink text-white' : 'btn-secondary'}"
+				class="btn {category === null ? 'bg-brand-500 font-bold text-black' : 'btn-secondary'}"
 				onclick={() => (category = null)}>Tudo</button
 			>
 			{#each data.catalog.categories as c (c.id)}
 				<button
-					class="btn whitespace-nowrap {category === c.id ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn whitespace-nowrap {category === c.id
+						? 'bg-brand-500 font-bold text-black'
+						: 'btn-secondary'}"
 					onclick={() => (category = c.id)}>{c.name}</button
 				>
 			{/each}
@@ -158,9 +160,9 @@
 					disabled={out}
 					onclick={() => pick(p)}
 				>
-					<span class="leading-tight font-semibold">{p.name}</span>
+					<span class="leading-tight font-bold">{p.name}</span>
 					<span class="flex w-full items-end justify-between">
-						<Money cents={p.priceCents} class="text-lg font-bold" />
+						<Money cents={p.priceCents} class="text-lg font-black tabular-nums" />
 						{#if out}<span class="text-xs font-semibold text-bad">Esgotado</span>{/if}
 					</span>
 				</button>
@@ -172,7 +174,7 @@
 
 	<aside class="flex min-h-0 flex-col border-l border-line bg-surface" aria-label="Pedido atual">
 		<div class="flex-1 overflow-y-auto p-3">
-			<h2 class="mb-2 text-lg font-bold">Pedido</h2>
+			<h2 class="mb-3 section-label">Pedido</h2>
 			{#if lines.length === 0}
 				<p class="py-10 text-center text-muted">Toque em um produto para começar.</p>
 			{/if}
@@ -229,19 +231,25 @@
 			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
 				<button
 					type="button"
-					class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn {fulfillmentType === 'dine_in'
+						? 'bg-brand-500 font-bold text-black'
+						: 'btn-secondary'}"
 					aria-pressed={fulfillmentType === 'dine_in'}
 					onclick={() => (fulfillmentType = 'dine_in')}>Comer aqui</button
 				>
 				<button
 					type="button"
-					class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn {fulfillmentType === 'pickup'
+						? 'bg-brand-500 font-bold text-black'
+						: 'btn-secondary'}"
 					aria-pressed={fulfillmentType === 'pickup'}
 					onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button
 				>
 				<button
 					type="button"
-					class="btn {fulfillmentType === 'ifood' ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn {fulfillmentType === 'ifood'
+						? 'bg-brand-500 font-bold text-black'
+						: 'btn-secondary'}"
 					aria-pressed={fulfillmentType === 'ifood'}
 					onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button
 				>
@@ -380,7 +388,7 @@
 					}}>Limpar</button
 				>
 				<button
-					class="btn-primary flex-1 text-lg"
+					class="btn-primary btn-lg flex-1"
 					disabled={!lines.length ||
 						busy ||
 						(!!couponCode &&
