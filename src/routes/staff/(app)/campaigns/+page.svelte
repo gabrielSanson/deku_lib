@@ -138,7 +138,7 @@
 					<tr class="hover:bg-quiet/50">
 						<td class="p-3">
 							<div class="flex items-center gap-3">
-								<ProductImage src={null} tone="brand" class="size-12 shrink-0 rounded-lg" />
+								<ProductImage src={c.imageUrl} tone="brand" class="size-12 shrink-0 rounded-lg" />
 								<div class="min-w-0">
 									<a
 										class="font-semibold underline-offset-2 hover:underline"

@@ -26,12 +26,14 @@ import { fill, type TextKey, type Texts } from '#lib/texts/catalog.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import { IMAGE_PATH, menuImageUrl } from '../catalog/images';
 
 interface CampaignRow {
 	id: string;
 	template_key: string;
 	name: string;
 	tagline: string;
+	image_path: string | null;
 	status: CampaignStatus;
 	starts_at: Date | null;
 	ends_at: Date | null;
@@ -258,6 +260,8 @@ export const campaignInput = z
 	.object({
 		name: z.string().trim().min(1).max(80),
 		tagline: z.string().trim().max(80).default(''),
+		/** undefined keeps the current photo, null removes it. */
+		imagePath: z.string().regex(IMAGE_PATH).nullable().optional(),
 		templateKey: z.string().refine(isTemplateKey, 'Tipo inválido'),
 		params: z.unknown(),
 		code: z
@@ -306,6 +310,7 @@ export interface CampaignDetail {
 	id: string;
 	name: string;
 	tagline: string;
+	imageUrl: string | null;
 	templateKey: TemplateKey;
 	status: CampaignStatus;
 	params: unknown;
@@ -333,6 +338,7 @@ export async function getCampaign(id: string, sql: Db = db()): Promise<CampaignD
 		id: r.id,
 		name: r.name,
 		tagline: r.tagline,
+		imageUrl: menuImageUrl(r.image_path),
 		templateKey: r.template_key,
 		status: r.status,
 		params: r.params,
@@ -373,6 +379,7 @@ export async function saveCampaign(
 		if (id) {
 			const [row] = await tx<{ id: string }[]>`
 				update campaigns set name = ${v.name}, tagline = ${v.tagline}, template_key = ${key}, params = ${tx.json(params as never)},
+					image_path = ${v.imagePath === undefined ? tx`image_path` : v.imagePath},
 					auto_apply = ${v.autoApply}, starts_at = ${v.startsAt}, ends_at = ${v.endsAt},
 					time_windows = ${tx.json(v.timeWindows as never)}, benefit_type = ${benefitType},
 					min_order_cents = ${v.minOrderCents}, max_uses_total = ${v.maxUsesTotal},
@@ -384,11 +391,11 @@ export async function saveCampaign(
 			const [row] = await tx<{ id: string }[]>`
 				insert into campaigns (name, tagline, template_key, params, auto_apply, starts_at, ends_at, time_windows,
 					benefit_type, min_order_cents, max_uses_total, max_uses_per_customer, first_order_only,
-					status, created_by)
+					status, created_by, image_path)
 				values (${v.name}, ${v.tagline}, ${key}, ${tx.json(params as never)}, ${v.autoApply}, ${v.startsAt}, ${v.endsAt},
 					${tx.json(v.timeWindows as never)}, ${benefitType}, ${v.minOrderCents}, ${v.maxUsesTotal},
 					${v.maxUsesPerCustomer}, ${v.firstOrderOnly}, ${status ?? 'draft'},
-					${actor.type === 'staff' ? actor.id : null})
+					${actor.type === 'staff' ? actor.id : null}, ${v.imagePath ?? null})
 				returning id`;
 			campaignId = row.id;
 		}
@@ -427,6 +434,7 @@ export interface CampaignResult {
 	id: string;
 	name: string;
 	tagline: string;
+	imageUrl: string | null;
 	templateKey: string;
 	status: CampaignStatus;
 	code: string | null;
@@ -450,6 +458,7 @@ export async function campaignResults(
 			id: string;
 			name: string;
 			tagline: string;
+			image_path: string | null;
 			template_key: string;
 			status: CampaignStatus;
 			code: string | null;
@@ -467,7 +476,7 @@ export async function campaignResults(
 			where o.campaign_id is not null and o.created_at >= ${from} and o.created_at < ${to}
 				and order_counts_for_offer(o.status, o.payment_status)
 		)
-		select c.id, c.name, c.tagline, c.template_key, c.status, c.auto_apply, c.starts_at, c.ends_at,
+		select c.id, c.name, c.tagline, c.image_path, c.template_key, c.status, c.auto_apply, c.starts_at, c.ends_at,
 			(select code from coupons where campaign_id = c.id and kind = 'manual' and active
 				order by created_at limit 1) as code,
 			count(u.id)::int as uses,
@@ -483,6 +492,7 @@ export async function campaignResults(
 		id: r.id,
 		name: r.name,
 		tagline: r.tagline,
+		imageUrl: menuImageUrl(r.image_path),
 		templateKey: r.template_key,
 		status: r.status,
 		code: r.code,
