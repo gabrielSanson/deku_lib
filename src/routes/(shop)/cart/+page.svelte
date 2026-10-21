@@ -16,7 +16,7 @@
 	{:else if cart.lines.length === 0}
 		<div class="card p-8 text-center">
 			<p class="mb-4 text-muted">{t('cart.empty')}</p>
-			<a href="/" class="btn-primary">{t('cart.seeMenu')}</a>
+			<a href="/cardapio" class="btn-primary">{t('cart.seeMenu')}</a>
 		</div>
 	{:else}
 		<ul class="divide-y divide-line card">
@@ -57,6 +57,6 @@
 			class="btn-primary w-full text-lg {data.store.open ? '' : 'pointer-events-none opacity-50'}"
 			aria-disabled={!data.store.open}>{t('cart.continue')}</a
 		>
-		<a href="/" class="btn-ghost w-full">{t('cart.addMore')}</a>
+		<a href="/cardapio" class="btn-ghost w-full">{t('cart.addMore')}</a>
 	{/if}
 </section>

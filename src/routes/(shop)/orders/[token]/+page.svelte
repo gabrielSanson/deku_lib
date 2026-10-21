@@ -260,5 +260,5 @@
 			>{t('order.payPix')}</a
 		>
 	{/if}
-	<a class="btn-secondary w-full" href="/">{t('errors.backToMenu')}</a>
+	<a class="btn-secondary w-full" href="/cardapio">{t('errors.backToMenu')}</a>
 </section>

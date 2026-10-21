@@ -17,7 +17,7 @@
 		</h1>
 		<p class="text-muted">{notFound ? t('errors.notFound') : t('errors.generic')}</p>
 		{#if notFound}
-			<a class="btn-primary rounded-full px-6" href="/">{t('errors.backToMenu')}</a>
+			<a class="btn-primary rounded-full px-6" href="/cardapio">{t('errors.backToMenu')}</a>
 		{:else}
 			<button class="btn-primary rounded-full px-6" onclick={() => location.reload()}
 				>{t('errors.reload')}</button

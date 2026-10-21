@@ -58,7 +58,9 @@
 		book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z', 'M4 21a2 2 0 0 1 2-2h13v2', 'M8 7h7'],
 		chef: ['M7 14a4 4 0 1 1 1.5-7.7A4 4 0 0 1 16 6.5 4 4 0 1 1 17 14', 'M7 14v6h10v-6', 'M7 17h10'],
 		menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
-		logout: ['M10 4H5v16h5', 'M15 8l4 4-4 4', 'M19 12H9']
+		logout: ['M10 4H5v16h5', 'M15 8l4 4-4 4', 'M19 12H9'],
+		search: ['M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z', 'M20 20l-4-4'],
+		bag: ['M5 8h14l-1 12H6z', 'M9 8V6a3 3 0 0 1 6 0v2']
 	} as const;
 	export type IconName = keyof typeof paths;
 </script>

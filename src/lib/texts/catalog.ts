@@ -12,6 +12,7 @@ export const TEXT_GROUPS = {
 	errors: 'Avisos e erros',
 	header: 'Topo e rodapé',
 	home: 'Página inicial',
+	menu: 'Cardápio',
 	cart: 'Carrinho',
 	product: 'Produto',
 	checkout: 'Finalizar pedido',
@@ -56,6 +57,12 @@ export const TEXTS = {
 
 	// Header and footer
 	'header.home': { group: 'header', label: 'Logo (leitor de tela)', default: '{name}, início' },
+	'header.nav.home': { group: 'header', label: 'Menu: Início', default: 'Início' },
+	'header.nav.tabs': {
+		group: 'header',
+		label: 'Abas do celular (leitor de tela)',
+		default: 'Navegação'
+	},
 	'header.nav.menu': { group: 'header', label: 'Menu: Cardápio', default: 'Cardápio' },
 	'header.nav.howTo': { group: 'header', label: 'Menu: Como pedir', default: 'Como pedir' },
 	'header.nav.track': {
@@ -101,14 +108,52 @@ export const TEXTS = {
 	},
 	'home.hero.title': {
 		group: 'home',
-		label: 'Destaque: título (Enter quebra a linha)',
-		default: 'Seu próximo\nburger favorito.'
+		label: 'Destaque: título (Enter quebra a linha; a última linha fica amarela)',
+		default: 'Feito na chapa.\nFeito pra você.'
 	},
 	'home.hero.text': {
 		group: 'home',
 		label: 'Destaque: texto',
-		default:
-			'Ingredientes selecionados, carne de verdade e muito sabor. Peça agora e receba no conforto da sua casa ou retire na loja.'
+		default: 'Burgers suculentos, ingredientes frescos e muito sabor.'
+	},
+	'home.hero.open': {
+		group: 'home',
+		label: 'Destaque: selo loja aberta',
+		default: '{name} · aberto'
+	},
+	'home.hero.closed': {
+		group: 'home',
+		label: 'Destaque: selo loja fechada',
+		default: '{name} · fechado'
+	},
+	'home.hero.secondary': {
+		group: 'home',
+		label: 'Destaque: segundo botão',
+		default: 'Como funciona'
+	},
+	'home.mode.pickup': { group: 'home', label: 'Modo: retirada', default: 'Retirada' },
+	'home.mode.delivery': { group: 'home', label: 'Modo: entrega', default: 'Entrega' },
+	'home.mode.dineIn': { group: 'home', label: 'Modo: comer no local', default: 'Comer no local' },
+	'home.categoriesTitle': {
+		group: 'home',
+		label: 'Categorias: título',
+		default: 'Categorias'
+	},
+	'home.seeAll': { group: 'home', label: 'Categorias: ver todas', default: 'Ver todas' },
+	'home.featured.eyebrow': {
+		group: 'home',
+		label: 'Destaques: chamada',
+		default: 'Nossos destaques'
+	},
+	'home.featured.title': {
+		group: 'home',
+		label: 'Destaques: título',
+		default: 'Burgers que todo mundo ama.'
+	},
+	'home.featured.seeAll': {
+		group: 'home',
+		label: 'Destaques: ver cardápio',
+		default: 'Ver todo o cardápio'
 	},
 	'home.hero.cta': { group: 'home', label: 'Destaque: botão', default: 'Pedir agora' },
 	'home.hero.prepTime': {
@@ -201,6 +246,12 @@ export const TEXTS = {
 		label: 'Como pedir 3: texto',
 		default: 'Você recebe um link para seguir o pedido em tempo real.'
 	},
+
+	// Menu page
+	'menu.pageTitle': { group: 'menu', label: 'Título da aba', default: 'Cardápio · {name}' },
+	'menu.title': { group: 'menu', label: 'Título', default: 'Cardápio' },
+	'menu.search': { group: 'menu', label: 'Busca', default: 'Buscar no cardápio' },
+	'menu.noResults': { group: 'menu', label: 'Busca sem resultado', default: 'Nada encontrado.' },
 
 	// Cart
 	'cart.title': { group: 'cart', label: 'Título', default: 'Seu pedido' },
