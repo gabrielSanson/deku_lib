@@ -81,6 +81,23 @@
 			: [])
 	]);
 
+	// Desktop header: Cardápio, Como funciona, Meus pedidos (the account page lists orders).
+	const desktopNav = $derived([
+		nav[0],
+		{
+			href: '/#como-pedir',
+			label: t('header.nav.howToFull'),
+			icon: 'receipt' as const,
+			active: false
+		},
+		{
+			href: data.customer ? '/conta' : '/conta/entrar',
+			label: t('header.nav.mine'),
+			icon: 'bag' as const,
+			active: path.startsWith('/conta')
+		}
+	]);
+
 	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
 	// Order tracking has its own slim header (mockup 10): back arrow, wordmark and mascot.
 	const slimHeader = $derived(path.startsWith('/orders/'));
@@ -146,7 +163,7 @@
 					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
 				</a>
 				<nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
-					{#each nav as n (n.href)}
+					{#each desktopNav as n (n.href)}
 						<a
 							href={n.href}
 							class="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors {n.active
@@ -158,6 +175,11 @@
 						</a>
 					{/each}
 				</nav>
+				<a
+					href="/cardapio"
+					class="hidden shrink-0 items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-[15px] font-black text-black transition-colors hover:bg-brand-400 md:flex"
+					>{t('header.order')}</a
+				>
 				<a
 					href={accountHref}
 					class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line md:grid {path.startsWith(

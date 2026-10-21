@@ -148,6 +148,13 @@ export const TEXTS = {
 	},
 	'header.nav.menu': { group: 'header', label: 'Menu: Cardápio', default: 'Cardápio' },
 	'header.nav.howTo': { group: 'header', label: 'Menu: Como pedir', default: 'Como pedir' },
+	'header.nav.howToFull': {
+		group: 'header',
+		label: 'Menu: Como funciona (desktop)',
+		default: 'Como funciona'
+	},
+	'header.nav.mine': { group: 'header', label: 'Menu: Meus pedidos', default: 'Meus pedidos' },
+	'header.order': { group: 'header', label: 'Botão Fazer pedido', default: 'Fazer pedido' },
 	'header.nav.track': {
 		group: 'header',
 		label: 'Menu: Acompanhar pedido',
@@ -188,6 +195,12 @@ export const TEXTS = {
 		group: 'home',
 		label: 'Descrição para buscadores',
 		default: 'Peça seus burgers online para retirada ou entrega.'
+	},
+	'home.hero.eyebrow': { group: 'home', label: 'Destaque: eyebrow', default: 'Peça no seu ritmo' },
+	'home.hero.phoneTitle': {
+		group: 'home',
+		label: 'Destaque: título no celular',
+		default: 'Sua fome merece esse clássico.'
 	},
 	'home.hero.title': {
 		group: 'home',
