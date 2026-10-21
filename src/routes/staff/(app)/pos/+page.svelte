@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { deserialize, enhance } from '$app/forms';
-	import FormError from '#lib/components/molecules/FormError.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { parseBRL } from '#lib/domain/money.ts';
 	import ProductSheet from './ProductSheet.svelte';
@@ -32,6 +34,8 @@
 		couponBlocks: boolean;
 	} | null>(null);
 	let busy = $state(false);
+	let searchEl = $state<HTMLInputElement>();
+	let payEl = $state<HTMLButtonElement>();
 	// One key per cart: a double tap or a retry after a timeout cannot create two orders.
 	let idempotencyKey = $state(crypto.randomUUID());
 
@@ -82,6 +86,25 @@
 		}, 250);
 	});
 
+	const types = [
+		{ value: 'dine_in', label: 'Balcão', icon: 'table' },
+		{ value: 'pickup', label: 'Para viagem', icon: 'bag' },
+		{ value: 'ifood', label: 'iFood (manual)', icon: 'truck' }
+	] as const;
+	const itemCount = $derived(lines.reduce((n, l) => n + l.quantity, 0));
+
+	// "/" jumps to the search box and F9 opens the payment step, as on the mockup.
+	function onKey(e: KeyboardEvent) {
+		const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+		if (e.key === '/' && !typing) {
+			e.preventDefault();
+			searchEl?.focus();
+		} else if (e.key === 'F9' && lines.length) {
+			e.preventDefault();
+			payEl?.click();
+		}
+	}
+
 	function pick(p: Product) {
 		if (soldOut.has(p.sku)) return;
 		if (p.modifierGroups.length || p.ingredients.some((i) => i.removable)) sheet = p;
@@ -124,46 +147,87 @@
 </script>
 
 <svelte:head><title>Caixa · Equipe</title></svelte:head>
+<svelte:window onkeydown={onKey} />
 
 <div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_380px]">
 	<section class="flex min-h-0 flex-col">
-		<div class="flex gap-2 overflow-x-auto border-b border-line bg-surface p-2">
-			<input
-				class="field max-w-48"
-				type="search"
-				placeholder="Buscar"
-				bind:value={search}
-				aria-label="Buscar produto"
-			/>
-			<button
-				class="btn {category === null ? 'bg-brand-500 font-bold text-black' : 'btn-secondary'}"
-				onclick={() => (category = null)}>Tudo</button
-			>
-			{#each data.catalog.categories as c (c.id)}
-				<button
-					class="btn whitespace-nowrap {category === c.id
-						? 'bg-brand-500 font-bold text-black'
-						: 'btn-secondary'}"
-					onclick={() => (category = c.id)}>{c.name}</button
+		<header class="space-y-3 border-b border-line bg-surface p-4">
+			<div>
+				<h1 class="page-title">Caixa</h1>
+				<p class="text-sm text-muted">Atendimento no balcão, para viagem ou delivery manual.</p>
+			</div>
+			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
+				{#each types as t (t.value)}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={fulfillmentType === t.value}
+						class="flex min-h-14 items-center justify-center gap-2 rounded-(--radius-card) border px-3 font-semibold transition-colors {fulfillmentType ===
+						t.value
+							? 'border-brand-500 bg-brand-500 text-black'
+							: 'border-line bg-surface hover:bg-quiet'}"
+						onclick={() => (fulfillmentType = t.value)}
+					>
+						<Icon name={t.icon} class="size-5" />{t.label}
+					</button>
+				{/each}
+			</div>
+			<div class="flex items-center gap-3">
+				<div class="relative flex-1">
+					<Icon
+						name="search"
+						class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
+					/>
+					<input
+						bind:this={searchEl}
+						class="field pl-10"
+						type="search"
+						placeholder="Buscar produto"
+						bind:value={search}
+						aria-label="Buscar produto"
+					/>
+				</div>
+				<span class="hidden text-xs text-muted sm:block"
+					>Atalho: <kbd class="rounded border border-line px-1.5">/</kbd></span
 				>
-			{/each}
-		</div>
+			</div>
+			<div class="flex gap-2 overflow-x-auto pb-1">
+				<button class={category === null ? 'chip-active' : 'chip'} onclick={() => (category = null)}
+					>Todos</button
+				>
+				{#each data.catalog.categories as c (c.id)}
+					<button
+						class={category === c.id ? 'chip-active' : 'chip'}
+						onclick={() => (category = c.id)}>{c.name}</button
+					>
+				{/each}
+			</div>
+		</header>
+
 		<div
-			class="grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2 sm:grid-cols-3 xl:grid-cols-4"
+			class="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-3 sm:grid-cols-3 xl:grid-cols-4"
 		>
 			{#each products as p (p.sku)}
 				{@const out = soldOut.has(p.sku)}
 				<button
-					class="flex min-h-28 flex-col items-start justify-between card p-3 text-left active:scale-[0.98] {out
-						? 'opacity-50'
-						: 'hover:border-brand-500'}"
+					class="flex flex-col overflow-hidden card text-left transition-colors hover:border-brand-500 disabled:opacity-50 disabled:hover:border-line"
 					disabled={out}
 					onclick={() => pick(p)}
 				>
-					<span class="leading-tight font-bold">{p.name}</span>
-					<span class="flex w-full items-end justify-between">
-						<Money cents={p.priceCents} class="text-lg font-black tabular-nums" />
-						{#if out}<span class="text-xs font-semibold text-bad">Esgotado</span>{/if}
+					<ProductImage src={p.imageUrl} class="aspect-[4/3] w-full" />
+					<span class="flex flex-1 flex-col gap-1 p-3">
+						<span class="leading-tight font-bold">{p.name}</span>
+						<span class="line-clamp-2 text-xs text-muted">{p.description}</span>
+						<span class="mt-auto flex items-center justify-between pt-2">
+							<Money cents={p.priceCents} class="font-black" />
+							{#if out}
+								<span class="text-xs font-semibold text-bad">Esgotado</span>
+							{:else}
+								<span class="grid size-9 place-items-center rounded-full bg-brand-500 text-black">
+									<Icon name="plus" class="size-5" strokeWidth={3} />
+								</span>
+							{/if}
+						</span>
 					</span>
 				</button>
 			{:else}
@@ -173,72 +237,60 @@
 	</section>
 
 	<aside class="flex min-h-0 flex-col border-l border-line bg-surface" aria-label="Pedido atual">
-		<div
-			class="grid grid-cols-3 gap-2 border-b border-line p-3"
-			role="radiogroup"
-			aria-label="Tipo de pedido"
-		>
-			<button
-				type="button"
-				class="btn btn-lg {fulfillmentType === 'dine_in'
-					? 'bg-brand-500 font-bold text-black'
-					: 'btn-secondary'}"
-				aria-pressed={fulfillmentType === 'dine_in'}
-				onclick={() => (fulfillmentType = 'dine_in')}>Comer aqui</button
-			>
-			<button
-				type="button"
-				class="btn btn-lg {fulfillmentType === 'pickup'
-					? 'bg-brand-500 font-bold text-black'
-					: 'btn-secondary'}"
-				aria-pressed={fulfillmentType === 'pickup'}
-				onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button
-			>
-			<button
-				type="button"
-				class="btn btn-lg {fulfillmentType === 'ifood'
-					? 'bg-brand-500 font-bold text-black'
-					: 'btn-secondary'}"
-				aria-pressed={fulfillmentType === 'ifood'}
-				onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button
-			>
-		</div>
-		<div class="flex-1 overflow-y-auto p-3">
-			<h2 class="mb-3 section-label">Pedido</h2>
+		<div class="flex-1 space-y-3 overflow-y-auto p-4">
+			<div class="flex items-baseline justify-between">
+				<h2 class="font-display text-2xl font-extrabold">Pedido atual</h2>
+				<span class="text-sm text-muted">{itemCount} {itemCount === 1 ? 'item' : 'itens'}</span>
+			</div>
 			{#if lines.length === 0}
 				<p class="py-10 text-center text-muted">Toque em um produto para começar.</p>
 			{/if}
-			<ul class="space-y-2">
+			<ul class="space-y-3">
 				{#each lines as line (line.key)}
-					<li class="rounded-lg border border-line p-2">
-						<div class="flex justify-between gap-2">
-							<span class="font-semibold">{line.product.name}</span>
-							<Money cents={lineUnitCents(line) * line.quantity} />
-						</div>
-						{#if line.options.length}
-							<p class="text-xs text-muted">
-								{line.options
-									.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name))
-									.join(', ')}
-							</p>
-						{/if}
-						{#if line.note || line.allergy}
-							<p class="text-xs {line.allergy ? 'font-semibold text-bad' : 'text-muted'}">
-								{line.allergy ? '⚠ Alergia. ' : ''}{line.note}
-							</p>
-						{/if}
-						<div class="mt-1 flex items-center gap-1">
-							<button
-								class="btn-secondary min-h-11 px-4"
-								onclick={() => change(line, -1)}
-								aria-label="Remover um">−</button
-							>
-							<span class="w-8 text-center text-lg font-bold tabular-nums">{line.quantity}</span>
-							<button
-								class="btn-secondary min-h-11 px-4"
-								onclick={() => change(line, 1)}
-								aria-label="Adicionar um">+</button
-							>
+					<li class="flex gap-3 rounded-(--radius-control) border border-line p-2">
+						<ProductImage src={line.product.imageUrl} class="size-16 shrink-0 rounded-lg" />
+						<div class="min-w-0 flex-1">
+							<div class="flex items-start justify-between gap-2">
+								<span class="leading-tight font-semibold">{line.product.name}</span>
+								<button
+									class="-mt-1 -mr-2 btn-ghost min-h-9 px-2 text-stone-500"
+									aria-label="Remover {line.product.name}"
+									onclick={() => (lines = lines.filter((l) => l.key !== line.key))}
+								>
+									<Icon name="close" class="size-4" />
+								</button>
+							</div>
+							{#if line.options.length}
+								<p class="text-xs text-muted">
+									{line.options
+										.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name))
+										.join(', ')}
+								</p>
+							{/if}
+							{#if line.note || line.allergy}
+								<p class="text-xs {line.allergy ? 'font-semibold text-bad' : 'text-muted'}">
+									{line.allergy ? '⚠ Alergia. ' : ''}{line.note}
+								</p>
+							{/if}
+							<div class="mt-2 flex items-center justify-between gap-2">
+								<div class="flex items-center gap-1">
+									<button
+										class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
+										onclick={() => change(line, -1)}
+										aria-label="Remover um">−</button
+									>
+									<span class="w-7 text-center font-bold tabular-nums">{line.quantity}</span>
+									<button
+										class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
+										onclick={() => change(line, 1)}
+										aria-label="Adicionar um">+</button
+									>
+								</div>
+								<span class="text-right">
+									<Money cents={lineUnitCents(line)} class="block text-xs text-muted" />
+									<Money cents={lineUnitCents(line) * line.quantity} class="font-bold" />
+								</span>
+							</div>
 						</div>
 					</li>
 				{/each}
@@ -248,7 +300,7 @@
 		<form
 			method="POST"
 			action="?/create"
-			class="space-y-2 border-t border-line p-3"
+			class="space-y-2 border-t border-line p-4"
 			use:enhance={() => {
 				busy = true;
 				return async ({ update }) => {
@@ -271,19 +323,18 @@
 					Já pago no iFood. Confirme e atualize o pedido também no app do iFood.
 				</p>
 			{/if}
-			<div>
-				<input
-					class="field"
-					placeholder="Nome"
-					maxlength="60"
-					bind:value={customerLabel}
-					aria-label="Nome"
-					aria-describedby="pos-name-hint"
-				/>
-				<p id="pos-name-hint" class="mt-1 text-xs text-muted">Para chamar quando ficar pronto.</p>
-			</div>
-			{#if fulfillmentType !== 'ifood'}
-				<div class="grid grid-cols-[6rem_1fr] gap-2">
+			<input
+				class="field"
+				placeholder="Nome ou mesa (opcional)"
+				maxlength="60"
+				bind:value={customerLabel}
+				aria-label="Nome"
+			/>
+			<p class="text-xs text-muted">Para chamar quando ficar pronto.</p>
+
+			<details class="rounded-(--radius-control) border border-line p-3">
+				<summary class="cursor-pointer text-sm font-semibold">Mais opções</summary>
+				<div class="mt-3 space-y-2">
 					{#if fulfillmentType === 'dine_in'}
 						<input
 							class="field"
@@ -293,92 +344,93 @@
 							aria-label="Mesa (opcional)"
 						/>
 					{/if}
+					{#if fulfillmentType !== 'ifood'}
+						<input
+							class="field"
+							type="tel"
+							inputmode="tel"
+							autocomplete="off"
+							placeholder="Celular do cliente (opcional)"
+							maxlength="25"
+							bind:value={phone}
+							aria-label="Celular do cliente (opcional)"
+						/>
+						<div class="flex gap-2">
+							<input
+								class="field uppercase"
+								placeholder="Cupom"
+								maxlength="24"
+								autocomplete="off"
+								bind:value={couponInput}
+								readonly={!!couponCode}
+								aria-label="Cupom"
+								onkeydown={(e) => {
+									if (e.key === 'Enter') {
+										e.preventDefault();
+										couponCode = couponInput.trim();
+									}
+								}}
+							/>
+							{#if couponCode}
+								<button
+									type="button"
+									class="btn-secondary"
+									onclick={() => {
+										couponCode = '';
+										couponInput = '';
+									}}>Remover</button
+								>
+							{:else}
+								<button
+									type="button"
+									class="btn-secondary"
+									disabled={!couponInput.trim()}
+									onclick={() => (couponCode = couponInput.trim())}>Aplicar</button
+								>
+							{/if}
+						</div>
+						{#if couponCode && offer?.couponError}
+							<p class="text-sm {offer.couponBlocks ? 'text-bad' : 'text-muted'}" role="status">
+								{offer.couponError}
+							</p>
+						{/if}
+					{/if}
 					<input
-						class="field {fulfillmentType === 'dine_in' ? '' : 'col-span-2'}"
-						type="tel"
-						inputmode="tel"
-						autocomplete="off"
-						placeholder="Celular do cliente (opcional)"
-						maxlength="25"
-						bind:value={phone}
-						aria-label="Celular do cliente (opcional)"
-						aria-describedby="pos-phone-hint"
+						class="field"
+						placeholder="Observação do pedido"
+						maxlength="300"
+						bind:value={notes}
+						aria-label="Observação do pedido"
 					/>
-				</div>
-				<p id="pos-phone-hint" class="text-xs text-muted">Para cupons, selos e aviso de pronto.</p>
-			{/if}
-			<input
-				class="field"
-				placeholder="Observação do pedido"
-				maxlength="300"
-				bind:value={notes}
-				aria-label="Observação do pedido"
-			/>
-			{#if fulfillmentType !== 'ifood'}
-				<div class="flex gap-2">
-					<input
-						class="field uppercase"
-						placeholder="Cupom"
-						maxlength="24"
-						autocomplete="off"
-						bind:value={couponInput}
-						readonly={!!couponCode}
-						aria-label="Cupom"
-						onkeydown={(e) => {
-							if (e.key === 'Enter') {
-								e.preventDefault();
-								couponCode = couponInput.trim();
-							}
-						}}
-					/>
-					{#if couponCode}
-						<button
-							type="button"
-							class="btn-secondary"
-							onclick={() => {
-								couponCode = '';
-								couponInput = '';
-							}}>Remover</button
-						>
-					{:else}
-						<button
-							type="button"
-							class="btn-secondary"
-							disabled={!couponInput.trim()}
-							onclick={() => (couponCode = couponInput.trim())}>Aplicar</button
-						>
+					{#if canDiscount}
+						<input
+							class="field"
+							inputmode="decimal"
+							placeholder="Desconto autorizado (R$)"
+							bind:value={discountText}
+							aria-label="Desconto manual em reais"
+						/>
 					{/if}
 				</div>
-				{#if couponCode && offer?.couponError}
-					<p class="text-sm {offer.couponBlocks ? 'text-bad' : 'text-muted'}" role="status">
-						{offer.couponError}
-					</p>
-				{/if}
-			{/if}
-			{#if canDiscount}
-				<input
-					class="field"
-					inputmode="decimal"
-					placeholder="Desconto manual (R$)"
-					bind:value={discountText}
-					aria-label="Desconto manual em reais"
-				/>
-			{/if}
+			</details>
+
 			<FormError message={form?.error} />
 			<dl class="space-y-1 text-sm">
 				<div class="flex justify-between">
-					<dt>Subtotal</dt>
+					<dt>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})</dt>
 					<dd><Money cents={subtotal} /></dd>
 				</div>
 				{#if discount}<div class="flex justify-between text-ok">
 						<dt>
-							{!manualDiscount && offer?.name ? `Promoção · ${offer.name}` : 'Desconto'}
+							{!manualDiscount && offer?.name
+								? `Promoção · ${offer.name}`
+								: 'Desconto (autorizado)'}
 						</dt>
 						<dd>−<Money cents={discount} /></dd>
 					</div>{/if}
-				<div class="flex justify-between text-lg font-bold">
+				<div class="flex items-baseline justify-between pt-1 text-xl font-bold">
 					<dt>Total</dt>
-					<dd><Money cents={total} /></dd>
+					<dd><Money cents={total} class="font-display text-3xl font-black" /></dd>
 				</div>
 			</dl>
 			<div class="flex gap-2">
@@ -389,9 +441,12 @@
 					onclick={() => {
 						lines = [];
 						idempotencyKey = crypto.randomUUID();
-					}}>Limpar</button
+					}}
 				>
+					<Icon name="trash" class="size-5" />Limpar
+				</button>
 				<button
+					bind:this={payEl}
 					class="btn-primary btn-lg flex-1"
 					disabled={!lines.length ||
 						busy ||
@@ -400,7 +455,12 @@
 							fulfillmentType !== 'ifood' &&
 							!!offer?.couponBlocks)}
 				>
+					<Icon name={fulfillmentType === 'ifood' ? 'truck' : 'card'} class="size-5" />
 					{busy ? 'Enviando…' : fulfillmentType === 'ifood' ? 'Lançar pedido iFood' : 'Cobrar'}
+					<kbd
+						class="ml-1 hidden rounded border border-black/30 px-1 text-xs font-semibold sm:inline"
+						>F9</kbd
+					>
 				</button>
 			</div>
 		</form>

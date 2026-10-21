@@ -337,9 +337,11 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 		paymentPlan: d.paymentPlan,
 		fulfillmentType: d.fulfillmentType,
 		createdAt: d.createdAt,
+		acceptedAt: d.acceptedAt,
 		promisedAt: d.promisedAt,
 		readyAt: d.readyAt,
 		calledAt: d.calledAt,
+		tableLabel: d.tableLabel,
 		subtotalCents: d.subtotalCents,
 		discountCents: d.discountCents,
 		offerName: d.offerName,
@@ -353,4 +355,17 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 			modifiers: i.modifiers.map((m) => m.optionName)
 		}))
 	};
+}
+
+/** Order counts by status for the orders board tabs. Open orders always count; the rest only for three days. */
+export async function orderStatusCounts(
+	channel?: string,
+	sql: Db = db()
+): Promise<Record<string, number>> {
+	const rows = await sql<{ status: string; n: number }[]>`
+		select status, count(*)::int as n from orders
+		where (status in ('new', 'confirmed', 'preparing', 'ready') or created_at >= now() - interval '3 days')
+			and (${channel ?? null}::text is null or channel = ${channel ?? null})
+		group by status`;
+	return Object.fromEntries(rows.map((r) => [r.status, r.n]));
 }

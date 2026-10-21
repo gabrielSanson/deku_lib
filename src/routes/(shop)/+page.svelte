@@ -85,13 +85,19 @@
 				></span>
 				{t(data.store.open ? 'home.hero.open' : 'home.hero.closed', { name: data.shopName })}
 			</span>
+			<p data-hero-in class="mt-4 text-sm font-bold tracking-[0.18em] text-brand-500 uppercase">
+				{t('home.hero.eyebrow')}
+			</p>
 			<h1
 				data-hero-in
-				class="mt-4 font-display text-[2.75rem] leading-[0.98] font-black tracking-tight sm:text-6xl lg:text-7xl"
+				class="mt-2 font-display text-[2.75rem] leading-[0.98] font-black tracking-tight sm:text-6xl lg:text-7xl"
 			>
-				{#each titleLines as line, i (i)}
-					<span class="block {i === titleLines.length - 1 ? 'text-brand-500' : ''}">{line}</span>
-				{/each}
+				<span class="block md:hidden">{t('home.hero.phoneTitle')}</span>
+				<span class="hidden md:contents">
+					{#each titleLines as line, i (i)}
+						<span class="block {i === titleLines.length - 1 ? 'text-brand-500' : ''}">{line}</span>
+					{/each}
+				</span>
 			</h1>
 			<p data-hero-in class="mt-4 max-w-md text-base text-stone-200 sm:text-lg">
 				{t('home.hero.text')}
@@ -225,7 +231,7 @@
 								</span>
 								<span
 									class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 text-black"
-									aria-hidden="true"><Icon name="plus" /></span
+									aria-hidden="true"><Icon name="arrow" /></span
 								>
 							</span>
 						</a>

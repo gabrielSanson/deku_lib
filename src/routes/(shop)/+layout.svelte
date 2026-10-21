@@ -81,7 +81,26 @@
 			: [])
 	]);
 
+	// Desktop header: Cardápio, Como funciona, Meus pedidos (the account page lists orders).
+	const desktopNav = $derived([
+		nav[0],
+		{
+			href: '/#como-pedir',
+			label: t('header.nav.howToFull'),
+			icon: 'receipt' as const,
+			active: false
+		},
+		{
+			href: data.customer ? '/conta' : '/conta/entrar',
+			label: t('header.nav.mine'),
+			icon: 'bag' as const,
+			active: path.startsWith('/conta')
+		}
+	]);
+
 	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
+	// Order tracking has its own slim header (mockup 10): back arrow, wordmark and mascot.
+	const slimHeader = $derived(path.startsWith('/orders/'));
 	const tabs = $derived([
 		{ href: '/', label: t('header.nav.home'), icon: 'home' as const, active: isHome },
 		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'menu' as const, active: isMenu },
@@ -110,66 +129,93 @@
 </svelte:head>
 
 <div class="flex min-h-dvh flex-col">
-	<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
-		<div
-			class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 lg:px-6"
-		>
-			<a
-				href="/"
-				class="flex shrink-0 items-center gap-2.5"
-				aria-label={t('header.home', { name: data.shopName })}
+	{#if slimHeader}
+		<header class="sticky top-0 z-30 bg-night text-white">
+			<div class="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4">
+				<a
+					href="/cardapio"
+					class="grid size-11 place-items-center rounded-full bg-night-2 hover:bg-night-line"
+					aria-label={t('errors.backToMenu')}
+				>
+					<Icon name="back" class="size-5" />
+				</a>
+				<a
+					href="/"
+					class="flex items-center gap-2"
+					aria-label={t('header.home', { name: data.shopName })}
+				>
+					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
+				</a>
+				<img src={data.branding.images.logo} alt="" class="h-10 w-auto" />
+			</div>
+		</header>
+	{:else}
+		<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
+			<div
+				class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 lg:px-6"
 			>
-				<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-14" />
-				<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
-			</a>
-			<nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
-				{#each nav as n (n.href)}
-					<a
-						href={n.href}
-						class="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors {n.active
-							? 'bg-brand-500 text-black'
-							: 'text-stone-100 hover:bg-night-2 hover:text-brand-400'}"
-						aria-current={n.active ? 'page' : undefined}
-					>
-						<Icon name={n.icon} />{n.label}
-					</a>
-				{/each}
-			</nav>
-			<a
-				href={accountHref}
-				class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line md:grid {path.startsWith(
-					'/conta'
-				)
-					? 'text-brand-500'
-					: ''}"
-				aria-label={t('account.tab')}
-				aria-current={path.startsWith('/conta') ? 'page' : undefined}
-			>
-				<Icon name="user" class="size-7" strokeWidth={1.75} />
-			</a>
-			<button
-				class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
-				onclick={openCart}
-				aria-label={t('header.cart', { count: cart.count, items })}
-			>
-				<Icon name="cart" class="size-8" strokeWidth={1.75} />
-				{#if cart.count}
-					<span
-						class="absolute top-0.5 right-0 grid min-w-6 place-items-center rounded-full bg-brand-500 px-1 text-xs leading-6 font-black text-black tabular-nums"
-						>{cart.count}</span
-					>
-				{/if}
-			</button>
-		</div>
-		{#if !data.store.open}
-			<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-				{data.store.pauseReason ??
-					(data.store.outOfHours
-						? t('header.closedUntil', { when: data.store.outOfHours })
-						: t('header.closed'))}
-			</p>
-		{/if}
-	</header>
+				<a
+					href="/"
+					class="flex shrink-0 items-center gap-2.5"
+					aria-label={t('header.home', { name: data.shopName })}
+				>
+					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-14" />
+					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
+				</a>
+				<nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
+					{#each desktopNav as n (n.href)}
+						<a
+							href={n.href}
+							class="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors {n.active
+								? 'bg-brand-500 text-black'
+								: 'text-stone-100 hover:bg-night-2 hover:text-brand-400'}"
+							aria-current={n.active ? 'page' : undefined}
+						>
+							<Icon name={n.icon} />{n.label}
+						</a>
+					{/each}
+				</nav>
+				<a
+					href="/cardapio"
+					class="hidden shrink-0 items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-[15px] font-black text-black transition-colors hover:bg-brand-400 md:flex"
+					>{t('header.order')}</a
+				>
+				<a
+					href={accountHref}
+					class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line md:grid {path.startsWith(
+						'/conta'
+					)
+						? 'text-brand-500'
+						: ''}"
+					aria-label={t('account.tab')}
+					aria-current={path.startsWith('/conta') ? 'page' : undefined}
+				>
+					<Icon name="user" class="size-7" strokeWidth={1.75} />
+				</a>
+				<button
+					class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
+					onclick={openCart}
+					aria-label={t('header.cart', { count: cart.count, items })}
+				>
+					<Icon name="cart" class="size-8" strokeWidth={1.75} />
+					{#if cart.count}
+						<span
+							class="absolute top-0.5 right-0 grid min-w-6 place-items-center rounded-full bg-brand-500 px-1 text-xs leading-6 font-black text-black tabular-nums"
+							>{cart.count}</span
+						>
+					{/if}
+				</button>
+			</div>
+			{#if !data.store.open}
+				<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
+					{data.store.pauseReason ??
+						(data.store.outOfHours
+							? t('header.closedUntil', { when: data.store.outOfHours })
+							: t('header.closed'))}
+				</p>
+			{/if}
+		</header>
+	{/if}
 
 	{#if isHome || isMenu}
 		<div class="flex-1">{@render children()}</div>

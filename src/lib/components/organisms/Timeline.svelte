@@ -46,6 +46,7 @@
 			</span>
 			<div class="min-w-0 pt-1">
 				<p
+					aria-current={step.state === 'current' ? 'step' : undefined}
 					class="font-semibold {step.state === 'next'
 						? dark
 							? 'text-stone-400'

@@ -148,6 +148,13 @@ export const TEXTS = {
 	},
 	'header.nav.menu': { group: 'header', label: 'Menu: Cardápio', default: 'Cardápio' },
 	'header.nav.howTo': { group: 'header', label: 'Menu: Como pedir', default: 'Como pedir' },
+	'header.nav.howToFull': {
+		group: 'header',
+		label: 'Menu: Como funciona (desktop)',
+		default: 'Como funciona'
+	},
+	'header.nav.mine': { group: 'header', label: 'Menu: Meus pedidos', default: 'Meus pedidos' },
+	'header.order': { group: 'header', label: 'Botão Fazer pedido', default: 'Fazer pedido' },
 	'header.nav.track': {
 		group: 'header',
 		label: 'Menu: Acompanhar pedido',
@@ -188,6 +195,12 @@ export const TEXTS = {
 		group: 'home',
 		label: 'Descrição para buscadores',
 		default: 'Peça seus burgers online para retirada ou entrega.'
+	},
+	'home.hero.eyebrow': { group: 'home', label: 'Destaque: eyebrow', default: 'Peça no seu ritmo' },
+	'home.hero.phoneTitle': {
+		group: 'home',
+		label: 'Destaque: título no celular',
+		default: 'Sua fome merece esse clássico.'
 	},
 	'home.hero.title': {
 		group: 'home',
@@ -333,6 +346,12 @@ export const TEXTS = {
 	// Menu page
 	'menu.pageTitle': { group: 'menu', label: 'Título da aba', default: 'Cardápio · {name}' },
 	'menu.title': { group: 'menu', label: 'Título', default: 'Cardápio' },
+	'menu.subtitle': {
+		group: 'menu',
+		label: 'Subtítulo',
+		default: 'Sabor brasileiro em cada mordida.'
+	},
+	'menu.addShort': { group: 'menu', label: 'Botão curto adicionar', default: '+ Adicionar' },
 	'menu.search': { group: 'menu', label: 'Busca', default: 'Buscar no cardápio' },
 	'menu.noResults': { group: 'menu', label: 'Busca sem resultado', default: 'Nada encontrado.' },
 
@@ -711,6 +730,48 @@ export const TEXTS = {
 	},
 	'order.label': { group: 'order', label: 'Rótulo do número', default: 'Pedido' },
 	'order.eta': { group: 'order', label: 'Previsão', default: 'Previsão: {time}' },
+	'order.track.title': { group: 'order', label: 'Título', default: 'Acompanhe seu pedido' },
+	'order.track.subtitle': {
+		group: 'order',
+		label: 'Subtítulo',
+		default: 'Veja em tempo real o status do seu pedido.'
+	},
+	'order.track.orderNumber': {
+		group: 'order',
+		label: 'Número do pedido',
+		default: 'Pedido #{number}'
+	},
+	'order.track.waitingPayment': {
+		group: 'order',
+		label: 'Aguardando pagamento',
+		default: 'Aguardando pagamento. A loja começa o pedido assim que o pagamento for confirmado.'
+	},
+	'order.track.hintPreparing': {
+		group: 'order',
+		label: 'Dica: em preparo',
+		default: 'Na cozinha agora'
+	},
+	'order.track.hintReady': {
+		group: 'order',
+		label: 'Dica: pronto',
+		default: 'Avisamos quando ficar pronto'
+	},
+	'order.track.etaMinutes': {
+		group: 'order',
+		label: 'Previsão em minutos',
+		default: 'Pronto em cerca de {min} min'
+	},
+	'order.track.etaSoon': {
+		group: 'order',
+		label: 'Previsão: quase pronto',
+		default: 'Quase pronto'
+	},
+	'order.track.itemsTitle': {
+		group: 'order',
+		label: 'Título dos itens',
+		default: 'Itens do pedido'
+	},
+	'order.track.menuCta': { group: 'order', label: 'Botão ver cardápio', default: 'Ver cardápio' },
 	'order.cancelled': {
 		group: 'order',
 		label: 'Pedido cancelado',
@@ -812,6 +873,21 @@ export const TEXTS = {
 		default: 'Preparando'
 	},
 	'kitchen.lane.ready': { group: 'staff', label: 'Quadro: coluna prontos', default: 'Pronto' },
+	'kitchen.rule.confirmed': {
+		group: 'staff',
+		label: 'Quadro: regra coluna novos',
+		default: 'Ainda não iniciados. Toque em Visto para marcar que viu.'
+	},
+	'kitchen.rule.preparing': {
+		group: 'staff',
+		label: 'Quadro: regra coluna em preparo',
+		default: 'Em produção agora.'
+	},
+	'kitchen.rule.ready': {
+		group: 'staff',
+		label: 'Quadro: regra coluna prontos',
+		default: 'Aguardando retirada. Chame o cliente pelo código.'
+	},
 	'kitchen.waiting': {
 		group: 'staff',
 		label: 'Quadro: pronto há mais de 10 min',
