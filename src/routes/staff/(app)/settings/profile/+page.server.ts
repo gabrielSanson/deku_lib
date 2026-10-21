@@ -3,7 +3,6 @@ import { attempt, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { getStoreProfile, savePixSettings, saveStoreInfo } from '#lib/server/settings/profile.ts';
-import { getStoreSettings, updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -35,7 +34,6 @@ export const actions: Actions = {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const pixEnabled = d.get('pixEnabled') === 'on';
-		const payOnFulfillment = d.get('payOnFulfillmentEnabled') === 'on';
 		return attempt(async () => {
 			await savePixSettings(
 				{
@@ -46,14 +44,11 @@ export const actions: Actions = {
 				},
 				staffActor(staff)
 			);
-			const settings = await getStoreSettings();
-			if (settings.payOnFulfillmentEnabled !== payOnFulfillment)
-				await updateStoreSettings({ payOnFulfillmentEnabled: payOnFulfillment }, staffActor(staff));
 			return {
 				ok: 'payments' as const,
 				warning:
-					!payOnFulfillment && !pixEnabled && !paymentProvider()
-						? 'Com as duas opções desligadas, o site não tem como receber pagamento. Os pedidos do balcão continuam funcionando.'
+					!pixEnabled && !paymentProvider()
+						? 'Sem Pix, o site não tem como receber pagamento e não aceita pedidos. Os pedidos do balcão continuam funcionando.'
 						: null
 			};
 		});

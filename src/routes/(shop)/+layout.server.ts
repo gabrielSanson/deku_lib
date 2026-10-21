@@ -35,7 +35,6 @@ export const load: LayoutServerLoad = async ({ setHeaders }) => {
 			dineIn: settings.dineInEnabled,
 			pickup: settings.pickupEnabled,
 			delivery: settings.deliveryEnabled,
-			payOnFulfillment: settings.payOnFulfillmentEnabled,
 			pixKey: profile.pix.enabled,
 			prepTimeMinutes: settings.prepTimeMinutes
 		}

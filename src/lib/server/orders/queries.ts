@@ -1,5 +1,6 @@
 // Read models for the staff hub, kitchen display and customer status page.
 import type { OrderStatus, PaymentStatus } from '#lib/domain/order-status.ts';
+import type { PaymentPlan } from '#lib/domain/payment-rules.ts';
 import { db, type Db } from '../db';
 
 export interface OrderModifierView {
@@ -34,7 +35,7 @@ export interface OrderSummary {
 	channelDisplayId: string | null;
 	status: OrderStatus;
 	paymentStatus: PaymentStatus;
-	paymentPlan: 'counter' | 'online' | 'on_fulfillment' | 'channel' | 'pix_key';
+	paymentPlan: PaymentPlan;
 	fulfillmentType: 'counter' | 'pickup' | 'delivery' | 'dine_in';
 	tableLabel: string | null;
 	fulfillmentProvider: 'shop' | 'own_driver' | 'ifood_courier';

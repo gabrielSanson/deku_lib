@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { formatBRL } from '#lib/domain/money.ts';
+import { WEB_PAYMENT_METHODS, webPaymentPlan } from '#lib/domain/payment-rules.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
 import { attempt } from '#lib/server/actions.ts';
@@ -21,7 +22,7 @@ import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { rateLimit } from '#lib/server/rate-limit.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
-import { getStoreSettings, listDeliveryRules } from '#lib/server/settings/service.ts';
+import { listDeliveryRules } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -51,7 +52,7 @@ const checkout = z.object({
 	phone: z.string().trim().min(8).max(25),
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
-	payment: z.enum(['pix', 'online_card', 'pix_key', 'on_fulfillment']),
+	payment: z.enum(WEB_PAYMENT_METHODS),
 	couponCode: z.string().trim().max(30).optional(),
 	idempotencyKey: z.string().uuid()
 });
@@ -143,10 +144,6 @@ export const actions: Actions = {
 		if (input.fulfillmentType === 'delivery' && !input.address)
 			return fail(400, { error: texts['checkout.error.address'] });
 
-		const settings = await getStoreSettings();
-		if (input.payment === 'on_fulfillment' && !settings.payOnFulfillmentEnabled) {
-			return fail(400, { error: texts['checkout.error.payOnFulfillment'] });
-		}
 		if (input.payment === 'pix_key' && !(await getStoreProfile()).pix.enabled) {
 			return fail(400, { error: texts['checkout.error.pix'] });
 		}
@@ -183,22 +180,21 @@ export const actions: Actions = {
 				deliveryRule: rule,
 				couponCode: input.couponCode || null,
 				idempotencyKey: input.idempotencyKey,
-				paymentPlan:
-					input.payment === 'on_fulfillment' || input.payment === 'pix_key'
-						? input.payment
-						: 'online',
+				paymentPlan: webPaymentPlan(input.payment),
 				actor: { type: 'customer', id: null }
 			})
 		);
 		if (!('id' in result)) return result;
 
-		if (input.payment === 'on_fulfillment') redirect(303, `/orders/${result.publicToken}?novo=1`);
-		if (input.payment === 'pix_key') redirect(303, `/checkout/payment/${result.publicToken}`);
+		// Nothing to pay (a full discount): the order is already confirmed.
+		if (result.status !== 'new') redirect(303, `/orders/${result.publicToken}?novo=1`);
+		const method = input.payment;
+		if (method === 'pix_key') redirect(303, `/checkout/payment/${result.publicToken}`);
 
 		const payment = await attempt(() =>
 			startOnlinePayment({
 				orderId: result.id,
-				method: input.payment as 'pix' | 'online_card',
+				method,
 				idempotencyKey: `pay:${input.idempotencyKey}`,
 				returnUrl: new URL(`/checkout/payment/${result.publicToken}`, url).toString()
 			})

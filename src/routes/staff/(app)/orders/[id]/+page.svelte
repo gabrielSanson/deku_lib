@@ -14,6 +14,7 @@
 		STATUS_LABEL_PT,
 		type OrderStatus
 	} from '#lib/domain/order-status.ts';
+	import { mayConfirm } from '#lib/domain/payment-rules.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
 
@@ -21,7 +22,12 @@
 	const live = useLiveOrders(() => data.live);
 	const o = $derived(data.order);
 	const next = $derived(
-		allowedNextStatuses(o.status).filter((s) => roleMayTransition(data.staff.role, o.status, s))
+		allowedNextStatuses(o.status).filter(
+			(s) =>
+				roleMayTransition(data.staff.role, o.status, s) &&
+				// Unpaid orders confirm by themselves once the payment is registered.
+				(s !== 'confirmed' || mayConfirm(o.paymentPlan, o.paymentStatus))
+		)
 	);
 	const manager = $derived(data.staff.role === 'admin');
 	let reasonFor = $state<OrderStatus | null>(null);

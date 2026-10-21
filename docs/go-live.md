@@ -44,7 +44,7 @@ points to **Configuração** until it is finished:
 3. **Retirada e entrega:** turn pickup and own delivery on or off, and add
    delivery areas and fees.
 4. **Equipe:** one account per person: admin, or kitchen for the kitchen TV.
-5. **Pagamentos:** pay on pickup/delivery, and/or Pix to the shop's key.
+5. **Pagamentos:** Pix to the shop's key. Every site order is paid when it is placed.
 6. **iFood (optional):** paste the Client ID, Client Secret and Merchant ID,
    click "Salvar e testar", read any error explanation, then turn on automatic
    orders. Skip it to key iFood orders in the Caixa as "iFood (manual)".
@@ -99,10 +99,9 @@ Only needed if you want Pix confirmed automatically or card payments on the site
 ## 6. Smoke tests
 
 - [ ] Staff login for each role. The kitchen account gets "403" on the POS.
-- [ ] POS: sell with cash (with change) and a Pix reference. The order shows on the KDS within a few seconds. Bump it to completed.
+- [ ] POS: sell with cash (with change) and a Pix reference. The order shows on the KDS only after the payment is confirmed, within a few seconds. Bump it to completed.
 - [ ] Put the KDS tablet in airplane mode for 20 s. The stale banner appears and clears when the tablet reconnects.
-- [ ] Web: order with pickup, pay on pickup. It appears as "Aguardando confirmação". Confirm it, and the KDS shows it.
-- [ ] Web: order and pay by Pix (shop key). The QR opens in the bank app with the right amount and name. Record the Pix on the order, accept it, and the KDS shows it.
+- [ ] Web: order and pay by Pix (shop key). The QR opens in the bank app with the right amount and name. It stays out of the KDS until you record the Pix on the order; then it is confirmed and the KDS shows it.
 - [ ] Web delivery to a CEP outside the zones is refused with a clear message.
 - [ ] Pause the store in Configurações → Loja. The site refuses new orders, and reopening works.
 - [ ] Edit a product's price and photo. The site and the POS show the change.

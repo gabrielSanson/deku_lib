@@ -8,8 +8,8 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
 
 > **Status.** Counter, web ordering, KDS, menu editor, setup wizard, settings,
 > reconciliation and analytics work end to end on self-hosted Supabase. Web
-> customers can pay on pickup/delivery or by **Pix to the shop's own key** (staff
-> confirm it by hand). **No payment provider (PSP) is connected**, so there is no
+> customers pay when they order, by **Pix to the shop's own key** (staff
+> confirm it by hand); there is no pay on pickup or delivery. **No payment provider (PSP) is connected**, so there is no
 > automatic online payment. **iFood is optional and off by default**: it was
 > written from iFood's public docs and has not been homologated. See
 > [Known gates](#known-gates) before going live.
@@ -166,8 +166,9 @@ off-machine copies and the restore drill are described in
 
 These are deliberate. Nothing below is claimed to work in production yet.
 
-1. **No payment provider (PSP).** Web customers pay on pickup/delivery or by
-   Pix to the shop's key, which staff confirm by hand. Automatic online payment
+1. **No payment provider (PSP).** Web customers pay when they order, by Pix to
+   the shop's key, which staff confirm by hand. Orders (site and counter) reach
+   the kitchen only once paid. Automatic online payment
    (Pix with automatic confirmation, card) needs a PSP account (Mercado Pago,
    Pagar.me, Asaas…) and an implementation of `PaymentProvider`
    (`src/lib/server/payments/provider.ts`): create the checkout, check its

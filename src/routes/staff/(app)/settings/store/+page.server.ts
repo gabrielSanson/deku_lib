@@ -29,7 +29,6 @@ export const actions: Actions = {
 					pickupEnabled: d.get('pickupEnabled') === 'on',
 					deliveryEnabled: d.get('deliveryEnabled') === 'on',
 					webOrderingEnabled: d.get('webOrderingEnabled') === 'on',
-					payOnFulfillmentEnabled: d.get('payOnFulfillmentEnabled') === 'on',
 					prepTimeMinutes: prep,
 					maxOpenOrders: max
 				},

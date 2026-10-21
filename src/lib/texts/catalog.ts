@@ -259,21 +259,6 @@ export const TEXTS = {
 	'cart.closedNow': { group: 'cart', label: 'Loja fechada', default: 'Loja fechada agora' },
 	'cart.securePayment': { group: 'cart', label: 'Pagamento seguro', default: 'Pagamento seguro' },
 	'cart.pay.pix': { group: 'cart', label: 'Forma de pagamento: Pix', default: 'Pix' },
-	'cart.pay.both': {
-		group: 'cart',
-		label: 'Forma de pagamento: na entrega ou retirada',
-		default: 'pagamento na entrega ou retirada'
-	},
-	'cart.pay.delivery': {
-		group: 'cart',
-		label: 'Forma de pagamento: na entrega',
-		default: 'pagamento na entrega'
-	},
-	'cart.pay.pickup': {
-		group: 'cart',
-		label: 'Forma de pagamento: na retirada',
-		default: 'pagamento na retirada'
-	},
 
 	// Product
 	'product.back': { group: 'product', label: 'Voltar', default: '← Cardápio' },
@@ -386,21 +371,6 @@ export const TEXTS = {
 		label: 'Cartão online: explicação',
 		default: 'Você será levado à página segura do provedor de pagamento.'
 	},
-	'checkout.method.onDelivery': {
-		group: 'checkout',
-		label: 'Pagar na entrega',
-		default: 'Pagar na entrega'
-	},
-	'checkout.method.onPickup': {
-		group: 'checkout',
-		label: 'Pagar na retirada',
-		default: 'Pagar na retirada'
-	},
-	'checkout.method.onFulfillment.hint': {
-		group: 'checkout',
-		label: 'Pagar na entrega/retirada: explicação',
-		default: 'Dinheiro, Pix ou cartão no balcão/entrega. A loja confirma o pedido.'
-	},
 	'checkout.summary': { group: 'checkout', label: 'Resumo', default: 'Resumo' },
 	'checkout.deliveryLine': { group: 'checkout', label: 'Entrega no resumo', default: 'Entrega' },
 	'checkout.calculating': { group: 'checkout', label: 'Calculando', default: 'Calculando…' },
@@ -485,7 +455,6 @@ export const TEXTS = {
 		default: 'Informe o CEP para calcular a entrega.'
 	},
 	'checkout.sending': { group: 'checkout', label: 'Enviando', default: 'Enviando…' },
-	'checkout.place': { group: 'checkout', label: 'Botão fazer pedido', default: 'Fazer pedido' },
 	'checkout.goPay': {
 		group: 'checkout',
 		label: 'Botão ir para o pagamento',
@@ -525,11 +494,6 @@ export const TEXTS = {
 		group: 'checkout',
 		label: 'Erro: pedido mínimo',
 		default: 'Pedido mínimo para este endereço: {amount}.'
-	},
-	'checkout.error.payOnFulfillment': {
-		group: 'checkout',
-		label: 'Erro: pagar na entrega indisponível',
-		default: 'Pagamento na entrega/retirada não está disponível.'
 	},
 	'checkout.error.pix': {
 		group: 'checkout',

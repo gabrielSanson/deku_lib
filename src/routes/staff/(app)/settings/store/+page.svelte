@@ -91,14 +91,6 @@
 			><input type="checkbox" class="size-5" name="deliveryEnabled" checked={s.deliveryEnabled} /> Entrega
 			própria</label
 		>
-		<label class="flex min-h-11 items-center gap-3"
-			><input
-				type="checkbox"
-				class="size-5"
-				name="payOnFulfillmentEnabled"
-				checked={s.payOnFulfillmentEnabled}
-			/> Site: permitir pagar na retirada/entrega</label
-		>
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
 				<label class="label" for="prep">Tempo de preparo prometido (min)</label>

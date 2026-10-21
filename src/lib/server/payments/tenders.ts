@@ -5,6 +5,7 @@ import type { PaymentStatus, StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
+import { confirmIfPaid } from '../orders/service';
 
 export const MANUAL_METHODS = ['cash', 'external_pix', 'terminal_card', 'softpos_nfc'] as const;
 export type ManualMethod = (typeof MANUAL_METHODS)[number];
@@ -67,6 +68,8 @@ export async function recordManualTender(input: ManualTenderInput) {
 			reference: input.providerReference ?? null
 		});
 		await refreshPaymentStatus(tx, input.orderId);
+		// Counter sales and Pix-to-key orders reach the kitchen only once fully paid.
+		await confirmIfPaid(tx, input.orderId, input.actor, 'Pagamento confirmado');
 		return { duplicate: false, changeCents: change };
 	});
 }

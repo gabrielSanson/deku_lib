@@ -17,9 +17,7 @@
 		store: {
 			open: boolean;
 			delivery: boolean;
-			pickup: boolean;
 			pixKey: boolean;
-			payOnFulfillment: boolean;
 		};
 		/** Present when the panel is a closable drawer. */
 		onclose?: () => void;
@@ -27,20 +25,7 @@
 
 	const t = useTexts();
 	const images = $derived(new Map(products.map((p) => [p.sku, p.imageUrl])));
-	const payHint = $derived(
-		[
-			store.pixKey ? t('cart.pay.pix') : null,
-			store.payOnFulfillment
-				? store.delivery && store.pickup
-					? t('cart.pay.both')
-					: store.delivery
-						? t('cart.pay.delivery')
-						: t('cart.pay.pickup')
-				: null
-		]
-			.filter(Boolean)
-			.join(', ')
-	);
+	const payHint = $derived(store.pixKey ? t('cart.pay.pix') : '');
 </script>
 
 <div class="flex h-full flex-col rounded-3xl bg-night text-white shadow-2xl ring-1 ring-night-line">

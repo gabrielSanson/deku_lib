@@ -4,7 +4,7 @@ import { audit, SYSTEM } from '../audit';
 import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
-import { transitionOrder } from '../orders/service';
+import { confirmIfPaid, transitionOrder } from '../orders/service';
 import {
 	paymentProvider,
 	providerByName,
@@ -21,11 +21,7 @@ export async function startOnlinePayment(input: {
 }) {
 	const provider = paymentProvider();
 	if (!provider || !provider.methods.includes(input.method)) {
-		throw new DomainError(
-			'Pagamento online indisponível. Escolha pagar na retirada.',
-			'no_provider',
-			503
-		);
+		throw new DomainError('Pagamento online indisponível no momento.', 'no_provider', 503);
 	}
 	const sql = db();
 	const [existing] = await sql<
@@ -146,24 +142,9 @@ export async function applyProviderStatus(
 		provider,
 		providerPaymentId
 	});
-	const paymentStatus = await refreshPaymentStatus(tx, tender.order_id);
-	if (paymentStatus === 'paid') {
-		const [o] = await tx<
-			{ status: string; payment_plan: string }[]
-		>`select status, payment_plan from orders where id = ${tender.order_id}`;
-		// Paid online orders go straight to the kitchen.
-		if (o.status === 'new' && o.payment_plan === 'online') {
-			await transitionOrder(
-				{
-					orderId: tender.order_id,
-					to: 'confirmed',
-					actor: SYSTEM,
-					reason: 'Pagamento online confirmado'
-				},
-				tx
-			);
-		}
-	}
+	await refreshPaymentStatus(tx, tender.order_id);
+	// Paid online orders go straight to the kitchen.
+	await confirmIfPaid(tx, tender.order_id, SYSTEM, 'Pagamento online confirmado');
 }
 
 /** Worker: cancel online-only orders whose checkout expired unpaid. */
