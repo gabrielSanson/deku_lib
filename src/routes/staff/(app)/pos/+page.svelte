@@ -173,6 +173,36 @@
 	</section>
 
 	<aside class="flex min-h-0 flex-col border-l border-line bg-surface" aria-label="Pedido atual">
+		<div
+			class="grid grid-cols-3 gap-2 border-b border-line p-3"
+			role="radiogroup"
+			aria-label="Tipo de pedido"
+		>
+			<button
+				type="button"
+				class="btn btn-lg {fulfillmentType === 'dine_in'
+					? 'bg-brand-500 font-bold text-black'
+					: 'btn-secondary'}"
+				aria-pressed={fulfillmentType === 'dine_in'}
+				onclick={() => (fulfillmentType = 'dine_in')}>Comer aqui</button
+			>
+			<button
+				type="button"
+				class="btn btn-lg {fulfillmentType === 'pickup'
+					? 'bg-brand-500 font-bold text-black'
+					: 'btn-secondary'}"
+				aria-pressed={fulfillmentType === 'pickup'}
+				onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button
+			>
+			<button
+				type="button"
+				class="btn btn-lg {fulfillmentType === 'ifood'
+					? 'bg-brand-500 font-bold text-black'
+					: 'btn-secondary'}"
+				aria-pressed={fulfillmentType === 'ifood'}
+				onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button
+			>
+		</div>
 		<div class="flex-1 overflow-y-auto p-3">
 			<h2 class="mb-3 section-label">Pedido</h2>
 			{#if lines.length === 0}
@@ -199,13 +229,13 @@
 						{/if}
 						<div class="mt-1 flex items-center gap-1">
 							<button
-								class="btn-secondary min-h-9 px-3"
+								class="btn-secondary min-h-11 px-4"
 								onclick={() => change(line, -1)}
 								aria-label="Remover um">−</button
 							>
-							<span class="w-8 text-center tabular-nums">{line.quantity}</span>
+							<span class="w-8 text-center text-lg font-bold tabular-nums">{line.quantity}</span>
 							<button
-								class="btn-secondary min-h-9 px-3"
+								class="btn-secondary min-h-11 px-4"
 								onclick={() => change(line, 1)}
 								aria-label="Adicionar um">+</button
 							>
@@ -228,32 +258,6 @@
 			}}
 		>
 			<input type="hidden" name="payload" value={payload} />
-			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
-				<button
-					type="button"
-					class="btn {fulfillmentType === 'dine_in'
-						? 'bg-brand-500 font-bold text-black'
-						: 'btn-secondary'}"
-					aria-pressed={fulfillmentType === 'dine_in'}
-					onclick={() => (fulfillmentType = 'dine_in')}>Comer aqui</button
-				>
-				<button
-					type="button"
-					class="btn {fulfillmentType === 'pickup'
-						? 'bg-brand-500 font-bold text-black'
-						: 'btn-secondary'}"
-					aria-pressed={fulfillmentType === 'pickup'}
-					onclick={() => (fulfillmentType = 'pickup')}>Para viagem</button
-				>
-				<button
-					type="button"
-					class="btn {fulfillmentType === 'ifood'
-						? 'bg-brand-500 font-bold text-black'
-						: 'btn-secondary'}"
-					aria-pressed={fulfillmentType === 'ifood'}
-					onclick={() => (fulfillmentType = 'ifood')}>iFood (manual)</button
-				>
-			</div>
 			{#if fulfillmentType === 'ifood'}
 				<input
 					class="field"
