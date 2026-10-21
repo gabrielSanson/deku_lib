@@ -31,6 +31,7 @@ interface CampaignRow {
 	id: string;
 	template_key: string;
 	name: string;
+	tagline: string;
 	status: CampaignStatus;
 	starts_at: Date | null;
 	ends_at: Date | null;
@@ -256,6 +257,7 @@ const optionalCount = z.number().int().positive().max(1_000_000).nullable();
 export const campaignInput = z
 	.object({
 		name: z.string().trim().min(1).max(80),
+		tagline: z.string().trim().max(80).default(''),
 		templateKey: z.string().refine(isTemplateKey, 'Tipo inválido'),
 		params: z.unknown(),
 		code: z
@@ -303,6 +305,7 @@ export type CampaignInput = z.input<typeof campaignInput>;
 export interface CampaignDetail {
 	id: string;
 	name: string;
+	tagline: string;
 	templateKey: TemplateKey;
 	status: CampaignStatus;
 	params: unknown;
@@ -329,6 +332,7 @@ export async function getCampaign(id: string, sql: Db = db()): Promise<CampaignD
 	return {
 		id: r.id,
 		name: r.name,
+		tagline: r.tagline,
 		templateKey: r.template_key,
 		status: r.status,
 		params: r.params,
@@ -368,7 +372,7 @@ export async function saveCampaign(
 		let campaignId = id;
 		if (id) {
 			const [row] = await tx<{ id: string }[]>`
-				update campaigns set name = ${v.name}, template_key = ${key}, params = ${tx.json(params as never)},
+				update campaigns set name = ${v.name}, tagline = ${v.tagline}, template_key = ${key}, params = ${tx.json(params as never)},
 					auto_apply = ${v.autoApply}, starts_at = ${v.startsAt}, ends_at = ${v.endsAt},
 					time_windows = ${tx.json(v.timeWindows as never)}, benefit_type = ${benefitType},
 					min_order_cents = ${v.minOrderCents}, max_uses_total = ${v.maxUsesTotal},
@@ -378,10 +382,10 @@ export async function saveCampaign(
 			if (!row) throw new DomainError('Campanha não encontrada.', 'not_found', 404);
 		} else {
 			const [row] = await tx<{ id: string }[]>`
-				insert into campaigns (name, template_key, params, auto_apply, starts_at, ends_at, time_windows,
+				insert into campaigns (name, tagline, template_key, params, auto_apply, starts_at, ends_at, time_windows,
 					benefit_type, min_order_cents, max_uses_total, max_uses_per_customer, first_order_only,
 					status, created_by)
-				values (${v.name}, ${key}, ${tx.json(params as never)}, ${v.autoApply}, ${v.startsAt}, ${v.endsAt},
+				values (${v.name}, ${v.tagline}, ${key}, ${tx.json(params as never)}, ${v.autoApply}, ${v.startsAt}, ${v.endsAt},
 					${tx.json(v.timeWindows as never)}, ${benefitType}, ${v.minOrderCents}, ${v.maxUsesTotal},
 					${v.maxUsesPerCustomer}, ${v.firstOrderOnly}, ${status ?? 'draft'},
 					${actor.type === 'staff' ? actor.id : null})
@@ -422,6 +426,7 @@ export async function setCampaignStatus(id: string, status: CampaignStatus, acto
 export interface CampaignResult {
 	id: string;
 	name: string;
+	tagline: string;
 	templateKey: string;
 	status: CampaignStatus;
 	code: string | null;
@@ -444,6 +449,7 @@ export async function campaignResults(
 		{
 			id: string;
 			name: string;
+			tagline: string;
 			template_key: string;
 			status: CampaignStatus;
 			code: string | null;
@@ -461,7 +467,7 @@ export async function campaignResults(
 			where o.campaign_id is not null and o.created_at >= ${from} and o.created_at < ${to}
 				and order_counts_for_offer(o.status, o.payment_status)
 		)
-		select c.id, c.name, c.template_key, c.status, c.auto_apply, c.starts_at, c.ends_at,
+		select c.id, c.name, c.tagline, c.template_key, c.status, c.auto_apply, c.starts_at, c.ends_at,
 			(select code from coupons where campaign_id = c.id and kind = 'manual' and active
 				order by created_at limit 1) as code,
 			count(u.id)::int as uses,
@@ -476,6 +482,7 @@ export async function campaignResults(
 	return rows.map((r) => ({
 		id: r.id,
 		name: r.name,
+		tagline: r.tagline,
 		templateKey: r.template_key,
 		status: r.status,
 		code: r.code,

@@ -24,6 +24,7 @@
 	const bx = c?.templateKey === 'buy_x_get_y' ? (c.params as BuyXGetYParams) : null;
 
 	let name = $state(c?.name ?? '');
+	let tagline = $state(c?.tagline ?? '');
 	let templateKey = $state<TemplateKey>(c?.templateKey ?? 'code_discount');
 	let code = $state(c?.code ?? '');
 	let autoApply = $state(c?.autoApply ?? false);
@@ -132,6 +133,7 @@
 		if (!schema.safeParse(p).success) return null;
 		return JSON.stringify({
 			name,
+			tagline,
 			templateKey,
 			params: p,
 			code,
@@ -203,6 +205,16 @@
 		<div class="sm:col-span-2">
 			<label class="label" for="name">Nome (aparece no resumo do pedido)</label>
 			<input class="field" id="name" maxlength="80" bind:value={name} required />
+		</div>
+		<div class="sm:col-span-2">
+			<label class="label" for="tagline">Frase curta (aparece na lista, opcional)</label>
+			<input
+				class="field"
+				id="tagline"
+				maxlength="80"
+				bind:value={tagline}
+				placeholder="Ex.: Almoço com 10% de desconto"
+			/>
 		</div>
 		<fieldset class="sm:col-span-2">
 			<legend class="label">Tipo de promoção</legend>
