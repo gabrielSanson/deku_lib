@@ -618,6 +618,19 @@ export const TEXTS = {
 		label: 'Atualização ao vivo indisponível',
 		default: 'Atualizando a cada 8 s (última {time}).'
 	},
+	'kitchen.lane.new': { group: 'staff', label: 'Quadro: coluna novos', default: 'Novos' },
+	'kitchen.lane.preparing': {
+		group: 'staff',
+		label: 'Quadro: coluna em preparo',
+		default: 'Preparando'
+	},
+	'kitchen.lane.ready': { group: 'staff', label: 'Quadro: coluna prontos', default: 'Pronto' },
+	'kitchen.waiting': {
+		group: 'staff',
+		label: 'Quadro: pronto há mais de 10 min',
+		default: 'Aguardando retirada'
+	},
+	'kitchen.empty': { group: 'staff', label: 'Quadro: coluna vazia', default: 'Vazio' },
 	'staff.call': { group: 'staff', label: 'Botão chamar pedido pronto', default: 'Chamar' },
 	'staff.called': {
 		group: 'staff',
