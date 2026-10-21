@@ -3,6 +3,7 @@
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import FormError from '#lib/components/FormError.svelte';
 	import Money from '#lib/components/Money.svelte';
+	import type { WebPaymentMethod } from '#lib/domain/payment-rules.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
@@ -38,7 +39,7 @@
 		state: 'SP',
 		instructions: ''
 	});
-	let payment = $state<'pix' | 'online_card' | 'pix_key' | 'on_fulfillment'>('on_fulfillment');
+	let payment = $state<WebPaymentMethod>('pix_key');
 	let idempotencyKey = $state(crypto.randomUUID());
 	let quote = $state<Quote | null>(null);
 	let quoteError = $state<string | null>(null);
@@ -61,8 +62,7 @@
 		}
 		if (data.onlineMethods.includes('pix')) payment = 'pix';
 		else if (data.store.pixKey) payment = 'pix_key';
-		else if (!data.store.payOnFulfillment && data.onlineMethods.length)
-			payment = data.onlineMethods[0];
+		else if (data.onlineMethods.length) payment = data.onlineMethods[0];
 	});
 
 	const payload = $derived(
@@ -166,18 +166,6 @@
 						id: 'online_card',
 						label: t('checkout.method.card'),
 						hint: t('checkout.method.card.hint')
-					}
-				]
-			: []),
-		...(data.store.payOnFulfillment
-			? [
-					{
-						id: 'on_fulfillment',
-						label:
-							fulfillmentType === 'delivery'
-								? t('checkout.method.onDelivery')
-								: t('checkout.method.onPickup'),
-						hint: t('checkout.method.onFulfillment.hint')
 					}
 				]
 			: [])
@@ -487,11 +475,7 @@
 				class="btn-primary w-full text-lg"
 				disabled={!canPlace || busy || methods.length === 0}
 			>
-				{busy
-					? t('checkout.sending')
-					: payment === 'on_fulfillment'
-						? t('checkout.place')
-						: t('checkout.goPay')}
+				{busy ? t('checkout.sending') : t('checkout.goPay')}
 			</button>
 			<p class="text-center text-xs text-muted">
 				{t('checkout.noHiddenFees')}

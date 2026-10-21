@@ -112,7 +112,6 @@ export const actions: Actions = {
 	payments: async (event) => {
 		const staff = requireStaff(event, [...OWNER]);
 		const d = await event.request.formData();
-		const payOnFulfillment = d.get('payOnFulfillmentEnabled') === 'on';
 		const pixEnabled = d.get('pixEnabled') === 'on';
 		const r = await attempt(async () => {
 			await savePixSettings(
@@ -124,14 +123,13 @@ export const actions: Actions = {
 				},
 				staffActor(staff)
 			);
-			await updateStoreSettings({ payOnFulfillmentEnabled: payOnFulfillment }, staffActor(staff));
 			return { ok: true };
 		});
 		if (!('ok' in r)) return r;
-		if (!payOnFulfillment && !pixEnabled && !paymentProvider()) {
+		if (!pixEnabled && !paymentProvider()) {
 			return {
 				warning:
-					'Com as duas opções desligadas, o site não tem como receber pagamento. Os pedidos do balcão continuam funcionando.'
+					'Sem Pix, o site não tem como receber pagamento e não aceita pedidos. Os pedidos do balcão continuam funcionando.'
 			};
 		}
 		next('ifood');

@@ -63,21 +63,10 @@
 
 	<form method="POST" action="?/payments" use:enhance={keep} class="space-y-4 card p-4">
 		<h2 class="font-semibold">Como o cliente do site paga</h2>
+		<p class="text-sm text-muted">
+			Todo pedido do site é pago na hora, antes de ir para a cozinha.
+		</p>
 		<fieldset class="space-y-4">
-			<label class="flex min-h-11 items-start gap-3"
-				><input
-					type="checkbox"
-					class="mt-1 size-5"
-					name="payOnFulfillmentEnabled"
-					checked={data.settings.payOnFulfillmentEnabled}
-				/>
-				<span
-					>Pagar na retirada ou na entrega
-					<span class="block text-sm text-muted"
-						>Dinheiro, Pix ou maquininha na hora. A loja confirma o pedido antes de preparar.</span
-					></span
-				></label
-			>
 			<label class="flex min-h-11 items-start gap-3"
 				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
 				<span

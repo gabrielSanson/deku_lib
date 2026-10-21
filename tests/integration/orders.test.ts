@@ -264,7 +264,7 @@ describe('dine-in', () => {
 				tableLabel: '7',
 				customer: { name: 'Ana', phoneE164: '+5511988887777' },
 				idempotencyKey: randomUUID(),
-				paymentPlan: 'on_fulfillment',
+				paymentPlan: 'pix_key',
 				actor: { type: 'customer', id: null }
 			});
 		await expect(webOrder()).rejects.toThrow(/comer no local/);
@@ -291,7 +291,7 @@ describe('opening hours', () => {
 				fulfillmentType: 'pickup',
 				customer: { name: 'Bia', phoneE164: '+5511977776666' },
 				idempotencyKey: randomUUID(),
-				paymentPlan: 'on_fulfillment',
+				paymentPlan: 'pix_key',
 				actor: { type: 'customer', id: null }
 			});
 		try {
@@ -311,5 +311,79 @@ describe('opening hours', () => {
 		} finally {
 			await saveSchedule({ enabled: false, days: [], closures: [] }, manager);
 		}
+	});
+});
+
+describe('paid before the kitchen', () => {
+	it('keeps a counter sale out of the kitchen until it is fully paid', async () => {
+		const order = await createOrder({
+			channel: 'counter',
+			sourceMode: 'staff_pos',
+			lines: [classic, { sku: 'ACP-FRITAS', quantity: 2 }],
+			fulfillmentType: 'counter',
+			customerLabel: 'Ana',
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		expect(order.status).toBe('new');
+		expect((await listKitchenOrders()).some((o) => o.id === order.id)).toBe(false);
+
+		const pay = (amountCents: number) =>
+			recordManualTender({
+				orderId: order.id,
+				method: 'cash',
+				amountCents,
+				idempotencyKey: randomUUID(),
+				actor: cashier
+			});
+		await pay(2000);
+		expect((await getOrderDetail(order.id))?.status).toBe('new');
+		await pay(order.totalCents - 2000);
+		const detail = await getOrderDetail(order.id);
+		expect(detail?.status).toBe('confirmed');
+		expect(detail?.paymentStatus).toBe('paid');
+		expect((await listKitchenOrders()).some((o) => o.id === order.id)).toBe(true);
+	});
+
+	it('sends a site order paid by Pix to the shop key to the kitchen when staff register it', async () => {
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true },
+			manager
+		);
+		const order = await createOrder({
+			channel: 'web',
+			sourceMode: 'web',
+			lines: [classic],
+			fulfillmentType: 'pickup',
+			customer: { name: 'Caio', phoneE164: '+5511966665555' },
+			idempotencyKey: randomUUID(),
+			paymentPlan: 'pix_key',
+			actor: { type: 'customer', id: null }
+		});
+		expect(order.status).toBe('new');
+		await recordManualTender({
+			orderId: order.id,
+			method: 'external_pix',
+			amountCents: order.totalCents,
+			providerReference: 'E2E123',
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		expect((await getOrderDetail(order.id))?.status).toBe('confirmed');
+	});
+
+	it('sends a counter sale with nothing to pay straight to the kitchen', async () => {
+		const order = await createOrder({
+			channel: 'counter',
+			sourceMode: 'staff_pos',
+			lines: [classic],
+			fulfillmentType: 'counter',
+			discountCents: 99_999,
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		expect(order.totalCents).toBe(0);
+		expect(order.status).toBe('confirmed');
+		expect((await getOrderDetail(order.id))?.paymentStatus).toBe('paid');
 	});
 });

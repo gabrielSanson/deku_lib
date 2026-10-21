@@ -119,7 +119,8 @@ export const actions: Actions = {
 				discountCents: parsed.discountCents,
 				couponCode: ifood ? null : parsed.couponCode || null,
 				idempotencyKey: parsed.idempotencyKey,
-				initialStatus: 'confirmed',
+				// iFood orders are already paid; counter sales wait for payment on the next screen.
+				initialStatus: ifood ? 'confirmed' : 'new',
 				actor: staffActor(staff)
 			})
 		);

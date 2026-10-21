@@ -11,6 +11,12 @@ import {
 	type StaffRole
 } from '#lib/domain/order-status.ts';
 import {
+	confirmsOnPayment,
+	mayConfirm,
+	waitsForPayment,
+	type PaymentPlan
+} from '#lib/domain/payment-rules.ts';
+import {
 	priceCart,
 	type CartLineInput,
 	type DeliveryRule,
@@ -74,7 +80,8 @@ export interface CreateOrderInput {
 	isTest?: boolean;
 	/** Channels that collect payment themselves (iFood) report it here. */
 	paymentStatus?: PaymentStatus;
-	paymentPlan?: 'counter' | 'online' | 'on_fulfillment' | 'channel' | 'pix_key';
+	/** Counter, site and Pix orders wait as "new" until paid; see payment-rules. */
+	paymentPlan?: PaymentPlan;
 	/**
 	 * Channels that price the order themselves (iFood) pass their lines and
 	 * fees here; the shop's catalog is then not used to re-price.
@@ -155,7 +162,6 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				throw new DomainError('Pedido abaixo do mínimo para entrega neste endereço.', 'min_order');
 			}
 		}
-		const status: OrderStatus = input.initialStatus ?? 'new';
 		const now = new Date();
 		const promisedAt = new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
 
@@ -195,6 +201,12 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		const applied = offer?.applied ?? null;
 		const discount = Math.min(applied?.discountCents ?? manualDiscount, cart.subtotalCents);
 		const total = cart.subtotalCents - discount + deliveryFee;
+		const plan: PaymentPlan =
+			input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter');
+		// A fully discounted order has nothing to pay, so it goes straight to the kitchen.
+		const nothingToPay = total === 0 && waitsForPayment(plan);
+		const paymentStatus: PaymentStatus = nothingToPay ? 'paid' : (input.paymentStatus ?? 'pending');
+		const status: OrderStatus = nothingToPay ? 'confirmed' : (input.initialStatus ?? 'new');
 
 		const staffId = input.actor.type === 'staff' ? input.actor.id : null;
 		const inserted = await tx<{ id: string; order_number: number; public_token: string }[]>`
@@ -207,13 +219,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
-				${input.paymentStatus ?? 'pending'},
+				${paymentStatus},
 				${input.fulfillmentType}, ${input.fulfillmentProvider ?? 'shop'}, ${cart.subtotalCents},
 				${discount}, ${deliveryFee}, ${total},
 				${input.deliveryRule ? tx.json(input.deliveryRule as never) : null}, ${input.notes ?? null},
 				${cart.catalogVersion}, ${input.idempotencyKey}, ${input.isTest ?? false},
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
-				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')},
+				${plan},
 				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null},
 				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}
 			)
@@ -326,8 +338,17 @@ export interface TransitionResult {
 
 export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<TransitionResult> {
 	const run = async (t: Tx) => {
-		const [order] = await t<{ status: OrderStatus; version: number; channel: Channel }[]>`
-			select status, version, channel from orders where id = ${input.orderId} for update`;
+		const [order] = await t<
+			{
+				status: OrderStatus;
+				version: number;
+				channel: Channel;
+				payment_plan: PaymentPlan;
+				payment_status: PaymentStatus;
+			}[]
+		>`
+			select status, version, channel, payment_plan, payment_status from orders
+			where id = ${input.orderId} for update`;
 		if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
 
 		// Repeated clicks and duplicate events land here: already done, nothing to do.
@@ -352,6 +373,13 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			if (!input.actor.role || !roleMayTransition(input.actor.role, order.status, input.to)) {
 				throw new DomainError('Seu perfil não permite esta ação.', 'forbidden', 403);
 			}
+		}
+		if (input.to === 'confirmed' && !mayConfirm(order.payment_plan, order.payment_status)) {
+			throw new DomainError(
+				'Receba o pagamento antes de enviar o pedido para a cozinha.',
+				'unpaid',
+				409
+			);
 		}
 		const reason = input.reason?.trim() || null;
 		if (requiresReason(input.to) && !reason) {
@@ -391,6 +419,17 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 		return { changed: true, from: order.status, to: input.to, version: updated.version };
 	};
 	return tx ? run(tx) : db().begin(run);
+}
+
+/** Sends an order that waits for payment to the kitchen once it is fully paid. */
+export async function confirmIfPaid(tx: Tx, orderId: string, actor: OrderActor, reason: string) {
+	const [o] = await tx<
+		{ status: OrderStatus; payment_status: PaymentStatus; payment_plan: PaymentPlan }[]
+	>`
+		select status, payment_status, payment_plan from orders where id = ${orderId}`;
+	if (o && confirmsOnPayment(o.payment_plan, o.status, o.payment_status)) {
+		await transitionOrder({ orderId, to: 'confirmed', actor, reason }, tx);
+	}
 }
 
 export async function markKitchenSeen(orderId: string, actor: OrderActor) {

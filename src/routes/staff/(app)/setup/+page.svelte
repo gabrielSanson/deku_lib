@@ -173,20 +173,9 @@
 			class="space-y-4 card p-4"
 		>
 			<h2 class="text-lg font-bold">Como o cliente do site paga</h2>
-			<label class="flex min-h-11 items-start gap-3"
-				><input
-					type="checkbox"
-					class="mt-1 size-5"
-					name="payOnFulfillmentEnabled"
-					checked={data.settings.payOnFulfillmentEnabled}
-				/>
-				<span
-					>Pagar na retirada ou na entrega
-					<span class="block text-sm text-muted"
-						>Dinheiro, Pix ou maquininha na hora. A loja confirma o pedido antes de preparar.</span
-					></span
-				></label
-			>
+			<p class="text-sm text-muted">
+				Todo pedido do site é pago na hora, antes de ir para a cozinha.
+			</p>
 			<label class="flex min-h-11 items-start gap-3"
 				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
 				<span
@@ -411,13 +400,8 @@
 				</li>
 				<li>{data.counts.staff > 1 ? '✓' : '•'} Equipe: {data.counts.staff} pessoa(s)</li>
 				<li>
-					{data.settings.payOnFulfillmentEnabled || p.pix.enabled ? '✓' : '•'} Pagamento:
-					{[
-						data.settings.payOnFulfillmentEnabled ? 'na retirada/entrega' : null,
-						p.pix.enabled ? 'Pix na chave da loja' : null
-					]
-						.filter(Boolean)
-						.join(', ') || 'nenhum para o site'}
+					{p.pix.enabled ? '✓' : '•'} Pagamento:
+					{p.pix.enabled ? 'Pix na chave da loja' : 'nenhum para o site'}
 				</li>
 				<li>
 					{ifood.enabled ? '✓ iFood ligado' : '• iFood desligado (use "iFood (manual)" no Caixa)'}
