@@ -6,6 +6,7 @@ import {
 	requiresReason,
 	roleMayTransition,
 	STATUS_TIMESTAMP,
+	TERMINAL_STATUSES,
 	type OrderStatus,
 	type PaymentStatus,
 	type StaffRole
@@ -29,6 +30,7 @@ import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalo
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
+import { dropPushSubscriptions } from '../notifications/push';
 import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
@@ -408,6 +410,16 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			from: order.status,
 			reason
 		});
+		if (input.to === 'ready') {
+			// The customer's phone gets the "ready" alert (if they asked for it).
+			await enqueue(
+				t,
+				QUEUES.orderReady,
+				{ orderId: input.orderId },
+				{ singletonKey: `ready:${input.orderId}` }
+			);
+		}
+		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
 		// Changes made here are mirrored to iFood; changes that came from iFood are not echoed back.
 		if (order.channel === 'ifood' && input.actor.type !== 'integration') {
 			await enqueue(
@@ -447,6 +459,13 @@ export async function callOrder(orderId: string, actor: OrderActor) {
 			where id = ${orderId}
 			returning called_at, call_count`;
 		await audit(tx, actor, 'order.called', 'order', orderId, { count: row.call_count });
+		// Each call sends the ready alert again.
+		await enqueue(
+			tx,
+			QUEUES.orderReady,
+			{ orderId },
+			{ singletonKey: `call:${orderId}:${row.call_count}` }
+		);
 		return { calledAt: row.called_at, count: row.call_count };
 	});
 }

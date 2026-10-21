@@ -203,6 +203,8 @@ export interface OrderDetail extends OrderSummary {
 	offerName: string | null;
 	deliveryFeeCents: number;
 	cancelReason: string | null;
+	/** The phone's ready alert could not be delivered at least once. */
+	pushFailed: boolean;
 	publicToken: string;
 	catalogVersion: string | null;
 	address: {
@@ -283,8 +285,14 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 			s.display_name as recorded_by_name
 		from tenders t left join staff_users s on s.id = t.recorded_by
 		where t.order_id = ${id} order by t.created_at`;
+	const [push] = await sql<{ failed: boolean }[]>`
+		select exists (
+			select 1 from audit_log where object_type = 'order' and object_id = ${id}
+				and action = 'order.push_failed'
+		) as failed`;
 	return {
 		...summary,
+		pushFailed: push.failed,
 		subtotalCents: row.subtotal_cents,
 		discountCents: row.discount_cents,
 		offerName: row.offer_name,
@@ -331,6 +339,7 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 		createdAt: d.createdAt,
 		promisedAt: d.promisedAt,
 		readyAt: d.readyAt,
+		calledAt: d.calledAt,
 		subtotalCents: d.subtotalCents,
 		discountCents: d.discountCents,
 		offerName: d.offerName,

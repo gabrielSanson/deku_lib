@@ -102,6 +102,7 @@ Only needed if you want Pix confirmed automatically or card payments on the site
 - [ ] POS: sell with cash (with change) and a Pix reference. The order shows on the KDS only after the payment is confirmed, within a few seconds. Bump it to completed.
 - [ ] Put the KDS tablet in airplane mode for 20 s. The stale banner appears and clears when the tablet reconnects.
 - [ ] Web: order and pay by Pix (shop key). The QR opens in the bank app with the right amount and name. It stays out of the KDS until you record the Pix on the order; then it is confirmed and the KDS shows it.
+- [ ] On an Android phone, place a pickup order, tap "Avisar quando ficar pronto" and allow. Mark it Pronto: the phone shows "Seu pedido está pronto!". Tap "Chamar": it buzzes again.
 - [ ] Web delivery to a CEP outside the zones is refused with a clear message.
 - [ ] Pause the store in Configurações → Loja. The site refuses new orders, and reopening works.
 - [ ] Edit a product's price and photo. The site and the POS show the change.

@@ -65,3 +65,40 @@ sw.addEventListener('fetch', (event) => {
 		);
 	}
 });
+
+// "Avisar quando ficar pronto": the server sends { title, body, url, tag } when
+// the order is ready and on each "Chamar". Tapping the notification opens the order.
+sw.addEventListener('push', (event) => {
+	let msg: { title?: string; body?: string; url?: string; tag?: string } = {};
+	try {
+		msg = event.data?.json() ?? {};
+	} catch {
+		/* not ours */
+	}
+	if (!msg.title) return;
+	event.waitUntil(
+		sw.registration.showNotification(msg.title, {
+			body: msg.body,
+			tag: msg.tag,
+			data: { url: msg.url ?? '/' },
+			icon: '/icon-192.png',
+			// @ts-expect-error renotify is supported by Chromium; a repeated call must buzz again.
+			renotify: true,
+			vibrate: [200, 100, 200]
+		})
+	);
+});
+
+sw.addEventListener('notificationclick', (event) => {
+	event.notification.close();
+	const url = new URL(
+		(event.notification.data as { url?: string })?.url ?? '/',
+		sw.location.origin
+	);
+	event.waitUntil(
+		sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+			const open = wins.find((w) => new URL(w.url).pathname === url.pathname);
+			return open ? open.focus() : sw.clients.openWindow(url.href);
+		})
+	);
+});
