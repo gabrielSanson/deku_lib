@@ -24,9 +24,8 @@ export function requireStaff(
 	roles?: StaffRole[]
 ): StaffSession {
 	const staff = event.locals.staff;
-	if (!staff) {
-		redirect(303, `/staff/login?next=${encodeURIComponent(event.url.pathname + event.url.search)}`);
-	}
+	// One login for every role; after it each account lands on its own screen.
+	if (!staff) redirect(303, '/staff/login');
 	if (roles && !roles.includes(staff.role)) error(403, 'Seu perfil não tem acesso a esta área.');
 	return staff;
 }

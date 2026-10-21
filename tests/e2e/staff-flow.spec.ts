@@ -2,12 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 const password = process.env.SEED_PASSWORD ?? 'burger123';
 
-async function login(page: Page, email: string, next = '/staff') {
-	await page.goto(`/staff/login?next=${encodeURIComponent(next)}`);
+async function login(page: Page, email: string, next?: string) {
+	await page.goto('/staff/login');
 	await page.getByLabel('E-mail').fill(email);
 	await page.getByLabel('Senha').fill(password);
 	await page.getByRole('button', { name: 'Entrar' }).click();
 	await page.waitForURL((u) => !u.pathname.startsWith('/staff/login'));
+	if (next) await page.goto(next);
 	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
 }
 
@@ -63,6 +64,7 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 
 test('kitchen staff only get the kitchen screen', async ({ page }) => {
 	await login(page, 'cozinha@burger.local');
+	await expect(page).toHaveURL(/\/kitchen$/);
 	await page.goto('/staff/pos');
 	await expect(page).toHaveURL(/\/kitchen$/);
 });
