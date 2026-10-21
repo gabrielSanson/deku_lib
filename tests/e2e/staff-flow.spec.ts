@@ -22,7 +22,7 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 	await sheet.getByRole('button', { name: 'Cebola caramelizada' }).click();
 	await sheet.getByRole('button', { name: /Adicionar/ }).click();
 	await page.getByRole('button', { name: /Batata frita/ }).click();
-	await page.getByLabel('Nome ou mesa').fill('Ana');
+	await page.getByLabel('Nome', { exact: true }).fill('Ana');
 	// 34,90 + 5,00 bacon + 14,90 fritas
 	await expect(page.getByText('R$ 54,80').last()).toBeVisible();
 	await page.getByRole('button', { name: 'Cobrar' }).click();
@@ -34,7 +34,7 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 	await expect(page.getByText('Pagamento confirmado.')).toBeVisible();
 	await page.getByRole('button', { name: 'Continuar' }).click();
 	await page.waitForURL(/\/complete$/);
-	const orderNumber = (await page.locator('p.text-7xl').textContent())!.trim();
+	const orderNumber = (await page.getByTestId('pickup-code').textContent())!.trim();
 
 	const kitchenCtx = await browser.newContext();
 	const kitchen = await kitchenCtx.newPage();

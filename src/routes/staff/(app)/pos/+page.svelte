@@ -16,9 +16,11 @@
 	let search = $state('');
 	let lines = $state<CartLine[]>([]);
 	let sheet = $state<Product | null>(null);
-	let fulfillmentType = $state<'counter' | 'pickup' | 'ifood'>('counter');
+	let fulfillmentType = $state<'dine_in' | 'pickup' | 'ifood'>('dine_in');
 	let ifoodCode = $state('');
 	let customerLabel = $state('');
+	let tableLabel = $state('');
+	let phone = $state('');
 	let notes = $state('');
 	let discountText = $state('');
 	let couponInput = $state('');
@@ -54,7 +56,11 @@
 		const body = new FormData();
 		body.set(
 			'payload',
-			JSON.stringify({ lines: toPayload(lines), couponCode: couponCode || undefined })
+			JSON.stringify({
+				lines: toPayload(lines),
+				couponCode: couponCode || undefined,
+				phone: phone.trim() || undefined
+			})
 		);
 		clearTimeout(quoteTimer);
 		if (!lines.length) {
@@ -107,6 +113,8 @@
 			fulfillmentType,
 			ifoodCode: fulfillmentType === 'ifood' ? ifoodCode : undefined,
 			customerLabel: customerLabel || undefined,
+			tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
+			phone: fulfillmentType === 'ifood' ? undefined : phone.trim() || undefined,
 			notes: notes || undefined,
 			discountCents: manualDiscount,
 			couponCode: couponCode || undefined,
@@ -221,9 +229,9 @@
 			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
 				<button
 					type="button"
-					class="btn {fulfillmentType === 'counter' ? 'bg-ink text-white' : 'btn-secondary'}"
-					aria-pressed={fulfillmentType === 'counter'}
-					onclick={() => (fulfillmentType = 'counter')}>Balcão</button
+					class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-white' : 'btn-secondary'}"
+					aria-pressed={fulfillmentType === 'dine_in'}
+					onclick={() => (fulfillmentType = 'dine_in')}>Comer aqui</button
 				>
 				<button
 					type="button"
@@ -251,13 +259,42 @@
 					Já pago no iFood. Confirme e atualize o pedido também no app do iFood.
 				</p>
 			{/if}
-			<input
-				class="field"
-				placeholder="Nome ou mesa (opcional)"
-				maxlength="60"
-				bind:value={customerLabel}
-				aria-label="Nome ou mesa"
-			/>
+			<div>
+				<input
+					class="field"
+					placeholder="Nome"
+					maxlength="60"
+					bind:value={customerLabel}
+					aria-label="Nome"
+					aria-describedby="pos-name-hint"
+				/>
+				<p id="pos-name-hint" class="mt-1 text-xs text-muted">Para chamar quando ficar pronto.</p>
+			</div>
+			{#if fulfillmentType !== 'ifood'}
+				<div class="grid grid-cols-[6rem_1fr] gap-2">
+					{#if fulfillmentType === 'dine_in'}
+						<input
+							class="field"
+							placeholder="Mesa (opcional)"
+							maxlength="20"
+							bind:value={tableLabel}
+							aria-label="Mesa (opcional)"
+						/>
+					{/if}
+					<input
+						class="field {fulfillmentType === 'dine_in' ? '' : 'col-span-2'}"
+						type="tel"
+						inputmode="tel"
+						autocomplete="off"
+						placeholder="Celular do cliente (opcional)"
+						maxlength="25"
+						bind:value={phone}
+						aria-label="Celular do cliente (opcional)"
+						aria-describedby="pos-phone-hint"
+					/>
+				</div>
+				<p id="pos-phone-hint" class="text-xs text-muted">Para cupons, selos e aviso de pronto.</p>
+			{/if}
 			<input
 				class="field"
 				placeholder="Observação do pedido"

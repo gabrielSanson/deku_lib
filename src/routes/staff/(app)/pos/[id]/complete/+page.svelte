@@ -10,8 +10,15 @@
 
 <main class="mx-auto max-w-md space-y-5 p-6 text-center">
 	<p class="text-sm font-medium text-muted">Pedido enviado para a cozinha</p>
-	<p class="text-7xl font-black tabular-nums">#{data.order.orderNumber}</p>
+	<!-- The order number is the pickup code: read it out, the customer can photograph it. -->
+	<div>
+		<p class="text-2xl font-bold">Senha</p>
+		<p class="text-8xl font-black tabular-nums" data-testid="pickup-code">
+			{data.order.orderNumber}
+		</p>
+	</div>
 	{#if data.order.customerLabel}<p class="text-xl">{data.order.customerLabel}</p>{/if}
+	{#if data.order.tableLabel}<p class="text-muted">Mesa {data.order.tableLabel}</p>{/if}
 	<div class="space-y-2 card p-4 text-left">
 		<div class="flex justify-between">
 			<span>Total</span><Money cents={data.order.totalCents} class="font-bold" />

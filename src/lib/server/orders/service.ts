@@ -16,6 +16,7 @@ import {
 	waitsForPayment,
 	type PaymentPlan
 } from '#lib/domain/payment-rules.ts';
+import { mayCall } from '#lib/domain/pickup.ts';
 import {
 	priceCart,
 	type CartLineInput,
@@ -430,6 +431,24 @@ export async function confirmIfPaid(tx: Tx, orderId: string, actor: OrderActor, 
 	if (o && confirmsOnPayment(o.payment_plan, o.status, o.payment_status)) {
 		await transitionOrder({ orderId, to: 'confirmed', actor, reason }, tx);
 	}
+}
+
+/** "Chamar": staff called a ready order out loud. Repeats are fine, each one is recorded. */
+export async function callOrder(orderId: string, actor: OrderActor) {
+	return db().begin(async (tx) => {
+		const [o] = await tx<{ status: OrderStatus }[]>`
+			select status from orders where id = ${orderId} for update`;
+		if (!o) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
+		if (!mayCall(o.status)) {
+			throw new DomainError('Só pedidos prontos podem ser chamados.', 'not_ready', 409);
+		}
+		const [row] = await tx<{ called_at: Date; call_count: number }[]>`
+			update orders set called_at = now(), call_count = call_count + 1, version = version + 1
+			where id = ${orderId}
+			returning called_at, call_count`;
+		await audit(tx, actor, 'order.called', 'order', orderId, { count: row.call_count });
+		return { calledAt: row.called_at, count: row.call_count };
+	});
 }
 
 export async function markKitchenSeen(orderId: string, actor: OrderActor) {

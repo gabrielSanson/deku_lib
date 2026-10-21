@@ -49,7 +49,8 @@ const checkout = z.object({
 	tableLabel: z.string().trim().max(20).optional(),
 	address: address.optional(),
 	name: z.string().trim().min(2).max(60),
-	phone: z.string().trim().min(8).max(25),
+	/** Optional when eating in: only the name is needed to call the order. */
+	phone: z.string().trim().max(25).default(''),
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
 	payment: z.enum(WEB_PAYMENT_METHODS),
@@ -139,8 +140,9 @@ export const actions: Actions = {
 		const parsed = parse(checkout, String(data.get('payload') ?? ''));
 		if (!parsed?.success) return fail(400, { error: texts['checkout.error.review'] });
 		const input = parsed.data;
-		const phone = normalizeBrPhone(input.phone);
-		if (!phone) return fail(400, { error: texts['checkout.error.phone'] });
+		const phone = input.phone ? normalizeBrPhone(input.phone) : null;
+		if (!phone && (input.phone || input.fulfillmentType !== 'dine_in'))
+			return fail(400, { error: texts['checkout.error.phone'] });
 		if (input.fulfillmentType === 'delivery' && !input.address)
 			return fail(400, { error: texts['checkout.error.address'] });
 
@@ -168,12 +170,17 @@ export const actions: Actions = {
 				fulfillmentType: input.fulfillmentType,
 				tableLabel: input.tableLabel || null,
 				fulfillmentProvider: input.fulfillmentType === 'delivery' ? 'own_driver' : 'shop',
-				customer: {
-					name: input.name,
-					phoneE164: phone,
-					email: input.email || null,
-					marketingConsent: input.marketingConsent
-				},
+				customerLabel: input.name,
+				// Without a phone or e-mail there is nobody to link the order to.
+				customer:
+					phone || input.email
+						? {
+								name: input.name,
+								phoneE164: phone,
+								email: input.email || null,
+								marketingConsent: input.marketingConsent
+							}
+						: undefined,
 				address: input.address
 					? { ...input.address, recipient: input.name, cep: input.address.cep.replace(/\D/g, '') }
 					: undefined,

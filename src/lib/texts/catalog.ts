@@ -331,6 +331,16 @@ export const TEXTS = {
 	'checkout.you': { group: 'checkout', label: 'Seus dados', default: 'Seus dados' },
 	'checkout.name': { group: 'checkout', label: 'Nome', default: 'Nome' },
 	'checkout.phone': { group: 'checkout', label: 'Celular', default: 'Celular (WhatsApp)' },
+	'checkout.phoneOptional': {
+		group: 'checkout',
+		label: 'Celular no pedido para comer aqui',
+		default: 'Celular (opcional)'
+	},
+	'checkout.phoneOptional.hint': {
+		group: 'checkout',
+		label: 'Celular opcional: explicação',
+		default: 'Para usar cupons e juntar selos.'
+	},
 	'checkout.email': { group: 'checkout', label: 'E-mail', default: 'E-mail (opcional)' },
 	'checkout.marketing': {
 		group: 'checkout',
@@ -607,6 +617,12 @@ export const TEXTS = {
 		group: 'staff',
 		label: 'Atualização ao vivo indisponível',
 		default: 'Atualizando a cada 8 s (última {time}).'
+	},
+	'staff.call': { group: 'staff', label: 'Botão chamar pedido pronto', default: 'Chamar' },
+	'staff.called': {
+		group: 'staff',
+		label: 'Pedido já chamado',
+		default: 'Chamado às {time}'
 	}
 } as const satisfies Record<string, TextDef>;
 
