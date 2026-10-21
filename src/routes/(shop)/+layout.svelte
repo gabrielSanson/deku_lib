@@ -33,6 +33,9 @@
 	const onCheckout = $derived(
 		path.startsWith('/cart') || path.startsWith('/checkout') || path.startsWith('/orders')
 	);
+	const showTabs = $derived(
+		path.startsWith('/orders') || !(onCheckout || path.startsWith('/menu/'))
+	);
 	const showCartBar = $derived(cart.count > 0 && !onCheckout && !cart.panelOpen);
 
 	// On the menu page at desktop width the cart is docked beside the menu, so the
@@ -175,8 +178,8 @@
 		</div>
 	</footer>
 
-	<!-- Bottom tabs on phones (mockup 03) -->
-	{#if !onCheckout || path.startsWith('/orders')}
+	<!-- Bottom tabs on phones (mockup 03); the product page has its own bottom bar. -->
+	{#if showTabs}
 		<nav
 			class="fixed inset-x-0 bottom-0 z-30 border-t border-night-line bg-night pb-[env(safe-area-inset-bottom)] text-stone-300 md:hidden"
 			aria-label={t('header.nav.tabs')}
