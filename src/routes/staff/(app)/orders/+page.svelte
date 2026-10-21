@@ -45,12 +45,13 @@
 <svelte:head><title>Pedidos · Equipe</title></svelte:head>
 <LiveBanner {live} />
 
-<main class="space-y-3 p-3">
+<main class="space-y-4 p-4 sm:p-6">
+	<h1 class="page-title">Pedidos</h1>
 	<div class="flex flex-wrap items-center gap-2">
 		<div class="flex gap-1 overflow-x-auto">
 			{#each tabs as [key, label] (key)}
 				<button
-					class="btn min-h-9 text-sm {data.status === key ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="chip {data.status === key ? 'chip-active' : ''}"
 					onclick={() => setFilter('status', key)}>{label}</button
 				>
 			{/each}
@@ -66,9 +67,9 @@
 	</div>
 
 	<FormError message={form?.error} />
-	<div class="overflow-x-auto card">
+	<div class="overflow-hidden overflow-x-auto card">
 		<table class="w-full text-sm">
-			<thead class="bg-stone-50 text-left text-xs text-muted uppercase">
+			<thead class="bg-quiet text-left text-xs font-semibold tracking-wide text-muted">
 				<tr>
 					<th class="p-3">Nº</th><th class="p-3">Status</th><th class="p-3">Canal</th><th
 						class="p-3">Cliente</th
@@ -81,10 +82,7 @@
 			</thead>
 			<tbody class="divide-y divide-line">
 				{#each data.orders as o (o.id)}
-					<tr
-						class="cursor-pointer hover:bg-stone-50"
-						onclick={() => goto(`/staff/orders/${o.id}`)}
-					>
+					<tr class="cursor-pointer hover:bg-quiet" onclick={() => goto(`/staff/orders/${o.id}`)}>
 						<td class="p-3 font-bold"><a href="/staff/orders/{o.id}">#{o.orderNumber}</a></td>
 						<td class="p-3">
 							<StatusBadge status={o.status} />
