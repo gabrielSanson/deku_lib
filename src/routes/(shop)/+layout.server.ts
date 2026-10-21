@@ -7,7 +7,7 @@ import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings } from '#lib/server/settings/service.ts';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ setHeaders }) => {
+export const load: LayoutServerLoad = async ({ setHeaders, locals }) => {
 	const [catalog, settings, soldOut, missing, profile, schedule] = await Promise.all([
 		getCatalog(),
 		getStoreSettings(),
@@ -24,6 +24,7 @@ export const load: LayoutServerLoad = async ({ setHeaders }) => {
 	setHeaders({ 'cache-control': 'no-store' });
 	return {
 		shopName: profile.displayName,
+		customer: locals.customer ? { name: locals.customer.name } : null,
 		catalog: { ...catalog, products: catalog.products.filter((p) => p.channels.includes('web')) },
 		soldOut: [...soldOut],
 		missingIngredients: [...missing],

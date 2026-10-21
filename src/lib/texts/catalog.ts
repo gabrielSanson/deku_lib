@@ -18,11 +18,94 @@ export const TEXT_GROUPS = {
 	checkout: 'Finalizar pedido',
 	payment: 'Pagamento',
 	order: 'Acompanhar pedido',
+	account: 'Conta do cliente',
 	staff: 'Telas da equipe'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
 export const TEXTS = {
+	// Customer account
+	'account.tab': { group: 'account', label: 'Aba Conta (celular)', default: 'Conta' },
+	'account.title': { group: 'account', label: 'Entrar: título', default: 'Sua conta, seu pedido.' },
+	'account.subtitle': {
+		group: 'account',
+		label: 'Entrar: subtítulo',
+		default: 'Entre para acompanhar pedidos e guardar seus benefícios.'
+	},
+	'account.tabLogin': { group: 'account', label: 'Aba Entrar', default: 'Entrar' },
+	'account.tabSignup': { group: 'account', label: 'Aba Criar conta', default: 'Criar conta' },
+	'account.name': { group: 'account', label: 'Campo nome', default: 'Nome' },
+	'account.phone': { group: 'account', label: 'Campo celular', default: 'Celular' },
+	'account.email': { group: 'account', label: 'Campo e-mail', default: 'E-mail' },
+	'account.password': { group: 'account', label: 'Campo senha', default: 'Senha' },
+	'account.passwordHint': {
+		group: 'account',
+		label: 'Dica da senha',
+		default: 'Mínimo de 8 caracteres.'
+	},
+	'account.submitLogin': { group: 'account', label: 'Botão entrar', default: 'Continuar' },
+	'account.submitSignup': { group: 'account', label: 'Botão criar conta', default: 'Criar conta' },
+	'account.or': { group: 'account', label: 'Divisor "ou"', default: 'ou' },
+	'account.google': {
+		group: 'account',
+		label: 'Botão Google',
+		default: 'Continuar com Google'
+	},
+	'account.protected': {
+		group: 'account',
+		label: 'Aviso de dados',
+		default: 'Seus dados ficam protegidos'
+	},
+	'account.error.invalid': {
+		group: 'account',
+		label: 'Erro: dados inválidos',
+		default: 'Confira os dados informados.'
+	},
+	'account.error.login': {
+		group: 'account',
+		label: 'Erro: e-mail ou senha',
+		default: 'E-mail ou senha incorretos.'
+	},
+	'account.error.exists': {
+		group: 'account',
+		label: 'Erro: e-mail já cadastrado',
+		default: 'Já existe uma conta com este e-mail. Entre com sua senha.'
+	},
+	'account.error.phoneTaken': {
+		group: 'account',
+		label: 'Erro: celular em outra conta',
+		default: 'Este celular já está em outra conta.'
+	},
+	'account.error.unavailable': {
+		group: 'account',
+		label: 'Erro: login indisponível',
+		default: 'Login indisponível no momento.'
+	},
+	'account.confirmEmail': {
+		group: 'account',
+		label: 'Aviso: confirme seu e-mail',
+		default: 'Enviamos um link para o seu e-mail. Confirme para entrar.'
+	},
+	'account.mine.title': { group: 'account', label: 'Minha conta: título', default: 'Minha conta' },
+	'account.mine.save': { group: 'account', label: 'Botão salvar dados', default: 'Salvar' },
+	'account.mine.saved': { group: 'account', label: 'Dados salvos', default: 'Dados salvos.' },
+	'account.mine.orders': {
+		group: 'account',
+		label: 'Título meus pedidos',
+		default: 'Meus pedidos'
+	},
+	'account.mine.noOrders': {
+		group: 'account',
+		label: 'Sem pedidos',
+		default: 'Você ainda não fez pedidos.'
+	},
+	'account.mine.track': {
+		group: 'account',
+		label: 'Link acompanhar pedido',
+		default: 'Acompanhar'
+	},
+	'account.mine.logout': { group: 'account', label: 'Botão sair', default: 'Sair' },
+
 	// Notices and errors
 	'errors.offline.title': { group: 'errors', label: 'Sem conexão: título', default: 'Sem conexão' },
 	'errors.offline': {

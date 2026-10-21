@@ -24,6 +24,8 @@ const schema = z.object({
 	IFOOD_CLIENT_SECRET: z.string().optional(),
 	IFOOD_MERCHANT_ID: z.string().optional(),
 	IFOOD_API_BASE: z.string().url().default('https://merchant-api.ifood.com.br'),
+	// Shows the Google button on the customer login. Enable it in Supabase Auth first.
+	GOOGLE_LOGIN_ENABLED: flag,
 	PRINT_AGENT_TOKEN: z.string().optional()
 });
 
