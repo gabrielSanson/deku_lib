@@ -81,6 +81,7 @@
 			: [])
 	]);
 
+	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
 	const tabs = $derived([
 		{ href: '/', label: t('header.nav.home'), icon: 'home' as const, active: isHome },
 		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'menu' as const, active: isMenu },
@@ -93,7 +94,13 @@
 						active: path.startsWith('/orders')
 					}
 				]
-			: [])
+			: []),
+		{
+			href: accountHref,
+			label: t('account.tab'),
+			icon: 'user' as const,
+			active: path.startsWith('/conta')
+		}
 	]);
 </script>
 
@@ -128,6 +135,18 @@
 					</a>
 				{/each}
 			</nav>
+			<a
+				href={accountHref}
+				class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line md:grid {path.startsWith(
+					'/conta'
+				)
+					? 'text-brand-500'
+					: ''}"
+				aria-label={t('account.tab')}
+				aria-current={path.startsWith('/conta') ? 'page' : undefined}
+			>
+				<Icon name="user" class="size-7" strokeWidth={1.75} />
+			</a>
 			<button
 				class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
 				onclick={openCart}

@@ -1,22 +1,28 @@
 import { createServerClient } from '@supabase/ssr';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { randomUUID } from 'node:crypto';
+import { loadCustomer } from '#lib/server/auth/customer.ts';
 import { loadStaff } from '#lib/server/auth/staff.ts';
 import { config, supabaseServerUrl } from '#lib/server/config.ts';
 import { SUPABASE_COOKIE_OPTIONS } from '#lib/supabase-cookie.ts';
 
 const STAFF_PREFIXES = ['/staff', '/kitchen'];
+// Assets and health checks never need the sign-in state.
+const NO_SESSION = /^\/(api|media|health|offline)(\/|$)|\.webmanifest$/;
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.requestId = event.request.headers.get('x-request-id') ?? randomUUID();
 	event.locals.staff = null;
 	event.locals.supabase = null;
+	event.locals.customer = null;
 
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	const path = event.url.pathname;
-	const needsSession = STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
+	const isStaff = STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
+	// Shop pages read the customer's sign-in too (the account button, /conta).
+	const withSession = !NO_SESSION.test(path);
 
-	if (needsSession && PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY) {
+	if (withSession && PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY) {
 		const supabase = createServerClient(
 			supabaseServerUrl() ?? PUBLIC_SUPABASE_URL,
 			PUBLIC_SUPABASE_ANON_KEY,
@@ -37,10 +43,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const { data } = await supabase.auth.getClaims();
 		const claims = data?.claims;
 		if (claims?.sub) {
-			event.locals.staff = await loadStaff(
-				claims.sub,
-				(claims.email as string | undefined) ?? null
-			);
+			if (isStaff) {
+				event.locals.staff = await loadStaff(
+					claims.sub,
+					(claims.email as string | undefined) ?? null
+				);
+			} else {
+				event.locals.customer = await loadCustomer(claims.sub);
+			}
 		}
 	}
 
@@ -52,7 +62,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('x-content-type-options', 'nosniff');
 	response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
 	response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
-	if (needsSession) {
+	if (isStaff) {
 		response.headers.set('x-frame-options', 'DENY');
 		response.headers.set('cache-control', 'no-store');
 	}
