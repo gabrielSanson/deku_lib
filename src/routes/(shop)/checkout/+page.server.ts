@@ -27,9 +27,14 @@ import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
 	const provider = paymentProvider();
-	return { onlineMethods: provider?.methods ?? [] };
+	// Signed-in customers get their details filled in; they can still change them.
+	const c = locals.customer;
+	return {
+		onlineMethods: provider?.methods ?? [],
+		prefill: { name: c?.name ?? '', phone: c?.phone ?? '', email: c?.email ?? '' }
+	};
 };
 
 const address = z.object({
