@@ -149,9 +149,6 @@
 												? `, ${o.customerLabel}`
 												: ''}">{t('staff.call')}</button
 										>
-										{#if o.calledAt}<span class="mt-1 block text-center text-xs text-muted"
-												>{t('staff.called', { time: formatTime(o.calledAt) })}</span
-											>{/if}
 									</form>
 								{/if}
 							</li>
