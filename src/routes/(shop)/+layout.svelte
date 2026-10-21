@@ -84,7 +84,7 @@
 </svelte:head>
 
 <div class="flex min-h-dvh flex-col">
-	<header class="sticky top-0 z-30 border-b border-night-line bg-night text-white">
+	<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
 		<div
 			class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 lg:px-6"
 		>
@@ -100,9 +100,9 @@
 				{#each nav as n (n.href)}
 					<a
 						href={n.href}
-						class="flex items-center gap-2 border-b-2 px-4 py-6 text-[15px] font-semibold transition-colors {n.active
-							? 'border-brand-500 text-brand-500'
-							: 'border-transparent text-white hover:text-brand-400'}"
+						class="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors {n.active
+							? 'bg-brand-500 text-black'
+							: 'text-stone-100 hover:bg-night-2 hover:text-brand-400'}"
 						aria-current={n.active ? 'page' : undefined}
 					>
 						<Icon name={n.icon} />{n.label}
@@ -110,7 +110,7 @@
 				{/each}
 			</nav>
 			<button
-				class="relative grid size-12 place-items-center rounded-full hover:bg-night-2"
+				class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
 				onclick={openCart}
 				aria-label={t('header.cart', { count: cart.count, items })}
 			>
@@ -141,7 +141,7 @@
 		</div>
 	{/if}
 
-	<footer class="bg-night text-stone-300">
+	<footer class="bg-night text-stone-400">
 		<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
 			<p
 				class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
@@ -150,7 +150,7 @@
 					class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
 				></span>
 			</p>
-			<nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+			<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
 				<a href="/p/sobre" class="hover:text-white">{t('footer.about')}</a>
 				<a href="/p/alergenicos" class="hover:text-white">{t('footer.allergens')}</a>
 				<a href="/p/privacidade" class="hover:text-white">{t('footer.privacy')}</a>
