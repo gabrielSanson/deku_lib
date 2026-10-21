@@ -14,7 +14,7 @@
 
 <div class="space-y-4">
 	<div class="flex items-center justify-between">
-		<h1 class="text-xl font-bold">Áreas e taxas de entrega</h1>
+		<h1 class="page-title">Áreas e taxas de entrega</h1>
 		<button
 			class="btn-primary"
 			onclick={() => (editing = { matchKind: 'neighborhood', enabled: true, priority: 100 })}

@@ -23,7 +23,7 @@
 
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="text-xl font-bold">Disponibilidade do cardápio</h1>
+		<h1 class="page-title">Disponibilidade do cardápio</h1>
 		{#if data.staff.role === 'admin'}
 			<a class="btn-secondary" href="/staff/menu/edit">Editar cardápio</a>
 		{/if}

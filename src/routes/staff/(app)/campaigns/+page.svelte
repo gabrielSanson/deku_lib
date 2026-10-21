@@ -22,7 +22,7 @@
 
 <div class="space-y-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="text-xl font-bold">Campanhas e cupons</h1>
+		<h1 class="page-title">Campanhas e cupons</h1>
 		<a class="btn-primary" href="/staff/campaigns/new">Nova campanha</a>
 	</div>
 	<p class="text-sm text-muted">

@@ -45,7 +45,7 @@
 	class="space-y-4"
 >
 	<input type="hidden" name="payload" value={payload} />
-	<h1 class="text-xl font-bold">Horário de funcionamento</h1>
+	<h1 class="page-title">Horário de funcionamento</h1>
 
 	<label class="flex min-h-11 items-start gap-3 card p-4"
 		><input type="checkbox" class="mt-1 size-5" bind:checked={s.enabled} />

@@ -190,7 +190,7 @@
 	}}
 >
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="text-xl font-bold">{c ? c.name : 'Nova campanha'}</h1>
+		<h1 class="page-title">{c ? c.name : 'Nova campanha'}</h1>
 		<a class="btn-ghost" href="/staff/campaigns">Voltar</a>
 	</div>
 	{#if c && c.uses > 0}

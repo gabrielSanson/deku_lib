@@ -33,7 +33,7 @@
 <svelte:head><title>Configuração · {labels[data.step]}</title></svelte:head>
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
-	<h1 class="text-2xl font-black">Configurar a loja</h1>
+	<h1 class="page-title">Configurar a loja</h1>
 	<nav aria-label="Passos" class="flex flex-wrap gap-1 text-sm">
 		{#each data.steps as s, i (s)}
 			<a

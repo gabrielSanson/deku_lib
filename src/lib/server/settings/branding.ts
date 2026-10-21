@@ -13,7 +13,7 @@ export type ImageKey = (typeof IMAGE_KEYS)[number];
 export const DEFAULT_COLORS: Record<ColorKey, string> = {
 	primary: '#ffbc00',
 	dark: '#0b0b0b',
-	background: '#f6f2e9'
+	background: '#faf7f0'
 };
 export const DEFAULT_IMAGES: Record<ImageKey, string> = {
 	logo: '/brand/deku-mark.png',

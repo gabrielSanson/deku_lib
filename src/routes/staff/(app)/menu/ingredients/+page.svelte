@@ -11,7 +11,7 @@
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
 	<div>
-		<h1 class="text-xl font-bold">Ingredientes</h1>
+		<h1 class="page-title">Ingredientes</h1>
 		<p class="text-sm text-muted">
 			Cadastre aqui o que vai nos produtos e marque em cada produto quais ingredientes ele usa. Os
 			alergênicos dos ingredientes aparecem sozinhos no produto. Quando um ingrediente acabar,
