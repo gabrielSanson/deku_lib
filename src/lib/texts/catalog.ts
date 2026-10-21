@@ -854,6 +854,21 @@ export const TEXTS = {
 		default: 'Preparando'
 	},
 	'kitchen.lane.ready': { group: 'staff', label: 'Quadro: coluna prontos', default: 'Pronto' },
+	'kitchen.rule.confirmed': {
+		group: 'staff',
+		label: 'Quadro: regra coluna novos',
+		default: 'Ainda não iniciados. Toque em Visto para marcar que viu.'
+	},
+	'kitchen.rule.preparing': {
+		group: 'staff',
+		label: 'Quadro: regra coluna em preparo',
+		default: 'Em produção agora.'
+	},
+	'kitchen.rule.ready': {
+		group: 'staff',
+		label: 'Quadro: regra coluna prontos',
+		default: 'Aguardando retirada. Chame o cliente pelo código.'
+	},
 	'kitchen.waiting': {
 		group: 'staff',
 		label: 'Quadro: pronto há mais de 10 min',

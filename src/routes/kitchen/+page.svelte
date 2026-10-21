@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { enhance } from '$app/forms';
-	import Age from '#lib/components/atoms/Age.svelte';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import OrderCard from '#lib/components/organisms/OrderCard.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
-	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
-	import { pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -98,7 +95,7 @@
 		...new Set(data.orders.flatMap((o) => o.items.map((i) => i.prepStation)))
 	]);
 	const stationLabel: Record<string, string> = {
-		all: 'Todas',
+		all: 'Todos',
 		grill: 'Chapa',
 		fryer: 'Fritadeira',
 		counter: 'Balcão'
@@ -109,18 +106,21 @@
 	});
 	const lanes = $derived([
 		{
-			key: 'confirmed',
+			key: 'confirmed' as const,
 			title: t('kitchen.lane.new'),
+			rule: t('kitchen.rule.confirmed'),
 			orders: data.orders.filter((o) => o.status === 'confirmed').map(visible)
 		},
 		{
-			key: 'preparing',
+			key: 'preparing' as const,
 			title: t('kitchen.lane.preparing'),
+			rule: t('kitchen.rule.preparing'),
 			orders: data.orders.filter((o) => o.status === 'preparing').map(visible)
 		},
 		{
-			key: 'ready',
+			key: 'ready' as const,
 			title: t('kitchen.lane.ready'),
+			rule: t('kitchen.rule.ready'),
 			// Waiting-for-pickup orders sink below the fresh ones.
 			orders: data.orders
 				.filter((o) => o.status === 'ready')
@@ -129,8 +129,8 @@
 		}
 	]);
 	const nextAction: Record<string, { to: string; label: string } | undefined> = {
-		confirmed: { to: 'preparing', label: 'Iniciar' },
-		preparing: { to: 'ready', label: 'Pronto' },
+		confirmed: { to: 'preparing', label: 'Iniciar preparo' },
+		preparing: { to: 'ready', label: 'Marcar pronto' },
 		ready: { to: 'completed', label: 'Entregue' }
 	};
 </script>
@@ -180,111 +180,21 @@
 	<main class="grid gap-3 p-3 md:grid-cols-3">
 		{#each lanes as lane (lane.key)}
 			<section aria-labelledby="lane-{lane.key}">
-				<h2 id="lane-{lane.key}" class="mb-2 flex justify-between text-lg font-bold">
+				<h2 id="lane-{lane.key}" class="mb-1 flex justify-between text-lg font-bold">
 					{lane.title}<span class="text-stone-400 tabular-nums">{lane.orders.length}</span>
 				</h2>
+				<p class="mb-2 text-sm text-stone-400">{lane.rule}</p>
 				<div class="space-y-3">
 					{#each lane.orders as o (o.id)}
 						{#if o.items.length}
-							<article
-								class="rounded-xl border-2 p-3 {lane.key === 'confirmed' && !o.kitchenSeenAt
-									? 'animate-pulse border-brand-500 bg-stone-900'
-									: lane.key === 'ready' && justCalled(o)
-										? 'border-4 border-yellow-300 bg-stone-900 motion-safe:animate-pulse'
-										: waiting(o)
-											? 'border-stone-800 bg-stone-900/60 text-sm'
-											: 'border-stone-700 bg-stone-900'}"
-								data-called={lane.key === 'ready' && justCalled(o) ? '' : undefined}
-							>
-								{#if waiting(o)}<p
-										class="mb-1 text-xs font-bold tracking-wider text-stone-400 uppercase"
-									>
-										{t('kitchen.waiting')}
-									</p>{/if}
-								<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-									<!-- Read across the room on the TV: ready codes are at least 64 px. -->
-									<span
-										class="font-black tabular-nums {lane.key === 'ready' && !waiting(o)
-											? 'text-7xl text-yellow-300'
-											: 'text-3xl'}">#{pickupCode(o.orderNumber)}</span
-									>
-									<span class="text-xs font-bold tracking-wider text-brand-400">
-										{o.channel === 'ifood'
-											? `IFOOD ${o.channelDisplayId ?? ''} · `
-											: o.channel === 'web'
-												? 'SITE · '
-												: ''}{fulfillmentLabel(o.fulfillmentType, o.tableLabel).toUpperCase()}
-									</span>
-									<span class="text-lg"
-										><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span
-									>
-								</header>
-								{#if o.customerLabel}<p class="mb-1 text-sm text-stone-300">
-										{o.customerLabel}
-									</p>{/if}
-								<ul class="space-y-1.5">
-									{#each o.items as item (item.id)}
-										<li>
-											<p class="text-lg leading-tight font-bold">
-												{item.quantity}× {item.productName}
-												{#if item.discountCents}<span
-														class="ml-1 rounded bg-yellow-300 px-1.5 text-xs font-black text-black uppercase"
-														>promo</span
-													>{/if}
-											</p>
-											{#each item.modifiers as m, i (i)}
-												<p
-													class="pl-4 text-base {m.optionName.startsWith('Sem ')
-														? 'font-semibold text-red-300'
-														: 'text-stone-200'}"
-												>
-													{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
-												</p>
-											{/each}
-											{#if item.allergyFlag}<p class="pl-4 font-black text-red-400">
-													⚠ ALERGIA
-												</p>{/if}
-											{#if item.note}<p class="pl-4 text-yellow-200 italic">“{item.note}”</p>{/if}
-										</li>
-									{/each}
-								</ul>
-								{#if o.notes}<p class="mt-2 rounded bg-yellow-900/60 p-2 text-sm">{o.notes}</p>{/if}
-								<footer class="mt-3 flex gap-2">
-									{#if lane.key === 'confirmed' && !o.kitchenSeenAt}
-										<form method="POST" action="?/seen" use:enhance class="flex-1">
-											<input type="hidden" name="orderId" value={o.id} />
-											<button class="min-h-12 w-full rounded-lg bg-stone-700 font-bold"
-												>Visto</button
-											>
-										</form>
-									{/if}
-									{#if lane.key === 'ready'}
-										<form method="POST" action="?/call" use:enhance class="flex-1">
-											<input type="hidden" name="orderId" value={o.id} />
-											<button class="min-h-12 w-full rounded-lg bg-stone-700 text-lg font-black"
-												>{t('staff.call')}</button
-											>
-										</form>
-									{/if}
-									{#if nextAction[lane.key]}
-										<form method="POST" action="?/move" use:enhance class="flex-1">
-											<input type="hidden" name="orderId" value={o.id} />
-											<input type="hidden" name="to" value={nextAction[lane.key]?.to} />
-											<button
-												class="min-h-12 w-full rounded-lg bg-brand-500 text-lg font-black text-black"
-											>
-												{nextAction[lane.key]?.label}
-											</button>
-										</form>
-									{/if}
-								</footer>
-								{#if lane.key === 'ready' && o.calledAt}<p class="mt-1 text-sm text-stone-300">
-										{t('staff.called', { time: formatTime(o.calledAt) })}
-									</p>{/if}
-								{#if o.promisedAt}<p class="mt-1 text-right text-xs text-stone-400">
-										Prometido {formatTime(o.promisedAt)}
-									</p>{/if}
-							</article>
+							<OrderCard
+								order={o}
+								lane={lane.key}
+								waiting={waiting(o)}
+								called={lane.key === 'ready' && justCalled(o)}
+								fresh={lane.key === 'confirmed' && !o.kitchenSeenAt}
+								nextAction={nextAction[lane.key]}
+							/>
 						{/if}
 					{:else}
 						<p
