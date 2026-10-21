@@ -89,7 +89,9 @@
 				<span>{t('order.delivery')}</span><Money cents={o.deliveryFeeCents} />
 			</div>{/if}
 		{#if o.discountCents}<div class="flex justify-between">
-				<span>{t('order.discount')}</span><span>−<Money cents={o.discountCents} /></span>
+				<span>{t('order.discount')}{o.offerName ? ` · ${o.offerName}` : ''}</span><span
+					>−<Money cents={o.discountCents} /></span
+				>
 			</div>{/if}
 		<div class="flex justify-between border-t border-line pt-2 text-base font-bold">
 			<span>{t('order.total')}</span><Money cents={o.totalCents} />

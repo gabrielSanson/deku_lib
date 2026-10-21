@@ -17,12 +17,14 @@ import {
 	type PricedCart
 } from '#lib/domain/pricing.ts';
 import { audit, type Actor } from '../audit';
+import { evalCart, findOffer, offerMessage, type OfferResult } from '../campaigns/service';
 import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalog/service';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
+import { getTexts } from '../settings/texts';
 
 export type SourceMode = 'staff_pos' | 'web' | 'kiosk' | 'ifood_api' | 'ifood_manual';
 export type FulfillmentType = 'counter' | 'pickup' | 'delivery' | 'dine_in';
@@ -62,7 +64,10 @@ export interface CreateOrderInput {
 	address?: AddressInput;
 	deliveryRule?: DeliveryRule | null;
 	notes?: string | null;
+	/** A manual discount typed by staff. When set, no campaign applies (one discount per order). */
 	discountCents?: number;
+	/** A coupon code typed by the customer or staff; campaigns are evaluated here, never trusted from the client. */
+	couponCode?: string | null;
 	idempotencyKey: string;
 	initialStatus?: 'new' | 'confirmed';
 	channelOrderId?: string | null;
@@ -150,11 +155,6 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				throw new DomainError('Pedido abaixo do mínimo para entrega neste endereço.', 'min_order');
 			}
 		}
-		const discount = Math.min(
-			external?.discountCents ?? input.discountCents ?? 0,
-			cart.subtotalCents
-		);
-		const total = cart.subtotalCents - discount + deliveryFee;
 		const status: OrderStatus = input.initialStatus ?? 'new';
 		const now = new Date();
 		const promisedAt = new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
@@ -172,13 +172,38 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			customerId = c.id;
 		}
 
+		// One discount per order: iFood's own, a manual one typed by staff, or the best campaign.
+		const manualDiscount = external?.discountCents ?? input.discountCents ?? 0;
+		let offer: OfferResult | null = null;
+		if (!external && input.channel !== 'ifood' && manualDiscount === 0) {
+			offer = await findOffer(tx, {
+				cart: evalCart(catalog!, cart, deliveryFee),
+				customerId,
+				couponCode: input.couponCode,
+				now,
+				lock: true
+			});
+			if (input.couponCode && offer.couponProblem && offer.couponProblem !== 'better_offer') {
+				const message = offerMessage(
+					await getTexts(tx),
+					offer.couponProblem,
+					offer.couponMinOrderCents
+				);
+				throw new DomainError(message, 'coupon', 409);
+			}
+		}
+		const applied = offer?.applied ?? null;
+		const discount = Math.min(applied?.discountCents ?? manualDiscount, cart.subtotalCents);
+		const total = cart.subtotalCents - discount + deliveryFee;
+
 		const staffId = input.actor.type === 'staff' ? input.actor.id : null;
 		const inserted = await tx<{ id: string; order_number: number; public_token: string }[]>`
 			insert into orders (
 				channel, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
-				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label
+				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label,
+				campaign_id, coupon_id
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -189,7 +214,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${cart.catalogVersion}, ${input.idempotencyKey}, ${input.isTest ?? false},
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
 				${input.paymentPlan ?? (input.channel === 'ifood' ? 'channel' : 'counter')},
-				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null}
+				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null},
+				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}
 			)
 			on conflict (idempotency_key) do nothing
 			returning id, order_number, public_token`;
@@ -204,10 +230,12 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		for (const line of cart.lines) {
 			const [item] = await tx<{ id: string }[]>`
 				insert into order_items (order_id, position, product_sku, product_name, category_name, quantity,
-					unit_price_cents, modifiers_unit_cents, line_total_cents, note, allergy_flag, prep_station)
+					unit_price_cents, modifiers_unit_cents, line_total_cents, note, allergy_flag, prep_station,
+					discount_cents)
 				values (${order.id}, ${line.position}, ${line.productSku}, ${line.productName}, ${line.categoryName},
 					${line.quantity}, ${line.unitPriceCents}, ${line.modifiersUnitCents}, ${line.lineTotalCents},
-					${line.note}, ${line.allergyFlag}, ${line.prepStation})
+					${line.note}, ${line.allergyFlag}, ${line.prepStation},
+					${applied?.lineDiscounts[line.position] ?? 0})
 				returning id`;
 			for (const m of line.modifiers) {
 				await tx`
@@ -236,7 +264,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		await audit(tx, input.actor, 'order.created', 'order', order.id, {
 			channel: input.channel,
 			total_cents: total,
-			discount_cents: discount
+			discount_cents: discount,
+			campaign_id: applied?.campaignId ?? null
 		});
 		await enqueue(
 			tx,

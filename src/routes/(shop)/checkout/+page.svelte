@@ -11,6 +11,10 @@
 	type Quote = {
 		subtotalCents: number;
 		deliveryFeeCents: number;
+		discountCents: number;
+		offerName: string | null;
+		couponError: string | null;
+		couponBlocks: boolean;
 		totalCents: number;
 		deliveryError: string | null;
 		lines: { sku: string; name: string; quantity: number; lineTotalCents: number }[];
@@ -22,6 +26,8 @@
 	let phone = $state('');
 	let email = $state('');
 	let marketingConsent = $state(false);
+	let couponInput = $state('');
+	let couponCode = $state('');
 	let addr = $state({
 		cep: '',
 		street: '',
@@ -77,6 +83,7 @@
 			email,
 			marketingConsent,
 			payment,
+			couponCode: couponCode || undefined,
 			idempotencyKey
 		})
 	);
@@ -85,18 +92,8 @@
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
 		const body = new FormData();
-		const p = JSON.parse(payload);
-		// Quote needs only cart + address; send placeholders for the rest.
-		body.set(
-			'payload',
-			JSON.stringify({
-				...p,
-				name: p.name || 'xx',
-				phone: p.phone || '11999999999',
-				email: '',
-				payment: 'on_fulfillment'
-			})
-		);
+		// The quote reads the cart, address, coupon and phone (for once-per-customer offers).
+		body.set('payload', payload);
 		if (!cart.ready || cart.lines.length === 0) return;
 		if (fulfillmentType === 'delivery' && !/^\d{5}-?\d{3}$/.test(addr.cep)) {
 			quote = null;
@@ -141,6 +138,7 @@
 			data.store.open &&
 			quote !== null &&
 			!quote.deliveryError &&
+			!(couponCode && quote.couponBlocks) &&
 			name.trim().length >= 2 &&
 			phone.trim().length >= 8
 	);
@@ -405,6 +403,49 @@
 				{/each}
 			</fieldset>
 
+			<div class="card p-4">
+				<label class="label" for="coupon">{t('checkout.coupon')}</label>
+				<div class="flex gap-2">
+					<input
+						id="coupon"
+						class="field uppercase"
+						maxlength="24"
+						autocomplete="off"
+						autocapitalize="characters"
+						bind:value={couponInput}
+						readonly={!!couponCode}
+						onkeydown={(e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								couponCode = couponInput.trim();
+							}
+						}}
+					/>
+					{#if couponCode}
+						<button
+							type="button"
+							class="btn-secondary"
+							onclick={() => {
+								couponCode = '';
+								couponInput = '';
+							}}>{t('checkout.coupon.remove')}</button
+						>
+					{:else}
+						<button
+							type="button"
+							class="btn-secondary"
+							disabled={!couponInput.trim()}
+							onclick={() => (couponCode = couponInput.trim())}>{t('checkout.coupon.apply')}</button
+						>
+					{/if}
+				</div>
+				{#if couponCode && quote?.couponError}
+					<p class="mt-2 {quote.couponBlocks ? 'alert-error' : 'text-sm text-muted'}" role="status">
+						{quote.couponError}
+					</p>
+				{/if}
+			</div>
+
 			<section class="space-y-1 card p-4" aria-live="polite">
 				<h2 class="mb-2 font-semibold">{t('checkout.summary')}</h2>
 				{#if quote}
@@ -416,6 +457,13 @@
 					<div class="flex justify-between border-t border-line pt-2 text-sm">
 						<span>{t('cart.subtotal')}</span><Money cents={quote.subtotalCents} />
 					</div>
+					{#if quote.discountCents > 0}
+						<div class="flex justify-between text-sm font-semibold text-ok">
+							<span
+								>{t('checkout.discountLine')}{quote.offerName ? ` · ${quote.offerName}` : ''}</span
+							><span>− <Money cents={quote.discountCents} /></span>
+						</div>
+					{/if}
 					{#if fulfillmentType === 'delivery'}
 						<div class="flex justify-between text-sm">
 							<span>{t('checkout.deliveryLine')}</span>{#if quote.deliveryError}<span>—</span

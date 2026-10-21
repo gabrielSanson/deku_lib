@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { deserialize, enhance } from '$app/forms';
 	import FormError from '#lib/components/FormError.svelte';
 	import Money from '#lib/components/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
@@ -21,6 +21,14 @@
 	let customerLabel = $state('');
 	let notes = $state('');
 	let discountText = $state('');
+	let couponInput = $state('');
+	let couponCode = $state('');
+	let offer = $state<{
+		name: string | null;
+		discountCents: number;
+		couponError: string | null;
+		couponBlocks: boolean;
+	} | null>(null);
 	let busy = $state(false);
 	// One key per cart: a double tap or a retry after a timeout cannot create two orders.
 	let idempotencyKey = $state(crypto.randomUUID());
@@ -33,8 +41,40 @@
 		)
 	);
 	const subtotal = $derived(lines.reduce((n, l) => n + lineUnitCents(l) * l.quantity, 0));
-	const discount = $derived(Math.min(parseBRL(discountText) ?? 0, subtotal));
+	const manualDiscount = $derived(Math.min(parseBRL(discountText) ?? 0, subtotal));
+	// One discount per order: a manual discount replaces any promotion.
+	const discount = $derived(
+		manualDiscount || (fulfillmentType === 'ifood' ? 0 : (offer?.discountCents ?? 0))
+	);
 	const total = $derived(subtotal - discount);
+
+	// Ask the server which promotion applies (automatic ones and the typed code).
+	let quoteTimer: ReturnType<typeof setTimeout> | undefined;
+	$effect(() => {
+		const body = new FormData();
+		body.set(
+			'payload',
+			JSON.stringify({ lines: toPayload(lines), couponCode: couponCode || undefined })
+		);
+		clearTimeout(quoteTimer);
+		if (!lines.length) {
+			offer = null;
+			return;
+		}
+		quoteTimer = setTimeout(async () => {
+			try {
+				const res = await fetch('?/quote', {
+					method: 'POST',
+					body,
+					headers: { 'x-sveltekit-action': 'true' }
+				});
+				const result = deserialize(await res.text());
+				offer = result.type === 'success' ? (result.data as { offer: typeof offer }).offer : null;
+			} catch {
+				offer = null;
+			}
+		}, 250);
+	});
 
 	function pick(p: Product) {
 		if (soldOut.has(p.sku)) return;
@@ -68,7 +108,8 @@
 			ifoodCode: fulfillmentType === 'ifood' ? ifoodCode : undefined,
 			customerLabel: customerLabel || undefined,
 			notes: notes || undefined,
-			discountCents: discount,
+			discountCents: manualDiscount,
+			couponCode: couponCode || undefined,
 			idempotencyKey
 		})
 	);
@@ -166,6 +207,7 @@
 
 		<form
 			method="POST"
+			action="?/create"
 			class="space-y-2 border-t border-line p-3"
 			use:enhance={() => {
 				busy = true;
@@ -223,13 +265,54 @@
 				bind:value={notes}
 				aria-label="Observação do pedido"
 			/>
+			{#if fulfillmentType !== 'ifood'}
+				<div class="flex gap-2">
+					<input
+						class="field uppercase"
+						placeholder="Cupom"
+						maxlength="24"
+						autocomplete="off"
+						bind:value={couponInput}
+						readonly={!!couponCode}
+						aria-label="Cupom"
+						onkeydown={(e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								couponCode = couponInput.trim();
+							}
+						}}
+					/>
+					{#if couponCode}
+						<button
+							type="button"
+							class="btn-secondary"
+							onclick={() => {
+								couponCode = '';
+								couponInput = '';
+							}}>Remover</button
+						>
+					{:else}
+						<button
+							type="button"
+							class="btn-secondary"
+							disabled={!couponInput.trim()}
+							onclick={() => (couponCode = couponInput.trim())}>Aplicar</button
+						>
+					{/if}
+				</div>
+				{#if couponCode && offer?.couponError}
+					<p class="text-sm {offer.couponBlocks ? 'text-bad' : 'text-muted'}" role="status">
+						{offer.couponError}
+					</p>
+				{/if}
+			{/if}
 			{#if canDiscount}
 				<input
 					class="field"
 					inputmode="decimal"
-					placeholder="Desconto (R$)"
+					placeholder="Desconto manual (R$)"
 					bind:value={discountText}
-					aria-label="Desconto em reais"
+					aria-label="Desconto manual em reais"
 				/>
 			{/if}
 			<FormError message={form?.error} />
@@ -239,7 +322,9 @@
 					<dd><Money cents={subtotal} /></dd>
 				</div>
 				{#if discount}<div class="flex justify-between text-ok">
-						<dt>Desconto</dt>
+						<dt>
+							{!manualDiscount && offer?.name ? `Promoção · ${offer.name}` : 'Desconto'}
+						</dt>
 						<dd>−<Money cents={discount} /></dd>
 					</div>{/if}
 				<div class="flex justify-between text-lg font-bold">
@@ -257,7 +342,15 @@
 						idempotencyKey = crypto.randomUUID();
 					}}>Limpar</button
 				>
-				<button class="btn-primary flex-1 text-lg" disabled={!lines.length || busy}>
+				<button
+					class="btn-primary flex-1 text-lg"
+					disabled={!lines.length ||
+						busy ||
+						(!!couponCode &&
+							!manualDiscount &&
+							fulfillmentType !== 'ifood' &&
+							!!offer?.couponBlocks)}
+				>
 					{busy ? 'Enviando…' : fulfillmentType === 'ifood' ? 'Lançar pedido iFood' : 'Cobrar'}
 				</button>
 			</div>
