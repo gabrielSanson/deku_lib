@@ -3,8 +3,12 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 
 	let { data, form } = $props();
-	const roleLabel: Record<string, string> = { admin: 'Admin', kitchen: 'Cozinha' };
-	const assignable = ['admin', 'kitchen'];
+	const roleLabel: Record<string, string> = {
+		admin: 'Admin',
+		attendant: 'Atendente',
+		kitchen: 'Cozinha'
+	};
+	const assignable = ['admin', 'attendant', 'kitchen'];
 </script>
 
 <svelte:head><title>Equipe · Configurações</title></svelte:head>

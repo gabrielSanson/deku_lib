@@ -22,8 +22,11 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-/** Admins run everything; kitchen accounts only see the kitchen screen. Customers have no account. */
-export type StaffRole = 'admin' | 'kitchen';
+/**
+ * Admins run everything. Attendants run the counter and the order board, but not the back office.
+ * Kitchen accounts only see the kitchen screen. Customers have no account.
+ */
+export type StaffRole = 'admin' | 'attendant' | 'kitchen';
 
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 	new: ['confirmed', 'rejected', 'cancelled'],

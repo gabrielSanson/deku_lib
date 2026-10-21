@@ -10,7 +10,7 @@ import {
 import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-const ROLES: StaffRole[] = ['admin', 'kitchen'];
+const ROLES: StaffRole[] = ['admin', 'attendant', 'kitchen'];
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);

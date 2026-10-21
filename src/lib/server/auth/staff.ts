@@ -33,6 +33,8 @@ export function requireStaff(
 
 /** Admins run the shop: menu, prices, settings, team and the till. */
 export const ADMIN: StaffRole[] = ['admin'];
+/** The counter: POS sales and payments. Attendants take them; reports and settings stay admin-only. */
+export const COUNTER: StaffRole[] = ['admin', 'attendant'];
 
 export function staffActor(staff: StaffSession) {
 	return { type: 'staff' as const, id: staff.id, role: staff.role };

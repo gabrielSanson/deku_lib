@@ -57,6 +57,18 @@ export const NAV: NavGroup[] = [
 	}
 ];
 
+/** What an attendant sees in the menu: the counter, the orders and the kitchen screen. */
+const ATTENDANT_HREFS = new Set(['/staff', '/staff/pos', '/staff/orders', '/kitchen']);
+
+/** The menu for a role. Admins see everything; attendants only the counter and orders. */
+export function navFor(role: 'admin' | 'attendant' | 'kitchen'): NavGroup[] {
+	if (role === 'admin') return NAV;
+	return NAV.map((g) => ({
+		...g,
+		links: g.links.filter((l) => ATTENDANT_HREFS.has(l.href))
+	})).filter((g) => g.links.length);
+}
+
 /** The settings pages, shown as a sub-menu inside Configurações. */
 export const SETTINGS_LINKS: NavLink[] = [
 	{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
