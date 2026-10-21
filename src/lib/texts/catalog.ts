@@ -241,6 +241,11 @@ export const TEXTS = {
 		label: 'Destaques: chamada',
 		default: 'Nossos destaques'
 	},
+	'home.mostOrdered.title': {
+		group: 'home',
+		label: 'Seção: mais pedidos',
+		default: 'Mais pedidos'
+	},
 	'home.featured.title': {
 		group: 'home',
 		label: 'Destaques: título',
