@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import ProductCard from '#lib/components/molecules/ProductCard.svelte';
+	import { cart } from '#lib/client/cart.svelte.ts';
 	import { heroMotion } from '#lib/client/hero-motion.ts';
 	import { categoryIcon } from '#lib/domain/category-icon.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -23,6 +25,11 @@
 		const pool = pick ? pick.products : categories.flatMap((c) => c.products);
 		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, 8);
 	});
+	// The first two featured dishes are "Mais pedidos" (cream cards); the row shows the rest.
+	const mostOrdered = $derived(featured.slice(0, 2));
+	const highlights = $derived(featured.slice(2));
+	const needsChoice = (p: (typeof featured)[number]) =>
+		p.modifierGroups.length > 0 || p.ingredients.some((i) => i.removable);
 	const titleLines = $derived(t('home.hero.title').split('\n'));
 
 	const modes = $derived(
@@ -48,6 +55,15 @@
 				},
 		{ icon: 'pin', title: t('home.howTo.3.title'), text: t('home.howTo.3.text') }
 	]);
+	let justAdded = $state<string | null>(null);
+	let addedTimer: ReturnType<typeof setTimeout> | undefined;
+	function quickAdd(p: (typeof featured)[number]) {
+		if (needsChoice(p)) return;
+		cart.add(p, 1, [], '');
+		justAdded = p.sku;
+		clearTimeout(addedTimer);
+		addedTimer = setTimeout(() => (justAdded = null), 1500);
+	}
 </script>
 
 <svelte:head>
@@ -160,7 +176,7 @@
 			</div>
 			<ul class="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
 				{#each categories as c (c.id)}
-					{@const photo = c.products.find((p) => p.imageUrl)?.imageUrl}
+					{@const photo = c.imageUrl ?? c.products.find((p) => p.imageUrl)?.imageUrl}
 					<li class="w-32 shrink-0 snap-start sm:w-40">
 						<a
 							href="/cardapio?categoria={c.slug}"
@@ -188,8 +204,30 @@
 		</section>
 	{/if}
 
+	<!-- Most ordered: two cream cards (mockup 01) -->
+	{#if mostOrdered.length}
+		<section aria-labelledby="home-mais-pedidos">
+			<h2 id="home-mais-pedidos" class="mb-4 font-display text-2xl sm:text-3xl">
+				{t('home.mostOrdered.title')}
+			</h2>
+			<ul class="grid gap-5 sm:grid-cols-2">
+				{#each mostOrdered as p (p.sku)}
+					<ProductCard
+						product={p}
+						out={soldOut.has(p.sku)}
+						needsChoice={needsChoice(p)}
+						open={data.store.open}
+						added={justAdded === p.sku}
+						logo={data.branding.images.logo}
+						onadd={() => quickAdd(p)}
+					/>
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
 	<!-- Featured row (mockup 01 "Nossos destaques") -->
-	{#if featured.length}
+	{#if highlights.length}
 		<section aria-labelledby="home-destaques">
 			<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 				<div>
@@ -207,7 +245,7 @@
 			<ul
 				class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:auto-cols-[40%] sm:px-0 lg:auto-cols-[calc((100%-3rem)/4)]"
 			>
-				{#each featured as p (p.sku)}
+				{#each highlights as p (p.sku)}
 					<li class="snap-start">
 						<a
 							href="/menu/{p.slug}"

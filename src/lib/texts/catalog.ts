@@ -43,6 +43,62 @@ export const TEXTS = {
 		label: 'Dica da senha',
 		default: 'Mínimo de 8 caracteres.'
 	},
+	'account.recover.forgot': {
+		group: 'account',
+		label: 'Recuperar: link esqueci',
+		default: 'Esqueci a senha'
+	},
+	'account.recover.title': {
+		group: 'account',
+		label: 'Recuperar: título',
+		default: 'Recuperar senha'
+	},
+	'account.recover.text': {
+		group: 'account',
+		label: 'Recuperar: texto',
+		default: 'Informe o e-mail da sua conta. Enviaremos um link para criar uma nova senha.'
+	},
+	'account.recover.submit': {
+		group: 'account',
+		label: 'Recuperar: botão enviar',
+		default: 'Enviar link'
+	},
+	'account.recover.sent': {
+		group: 'account',
+		label: 'Recuperar: confirmação',
+		default:
+			'Se existir uma conta com esse e-mail, você receberá um link para criar uma nova senha.'
+	},
+	'account.recover.back': {
+		group: 'account',
+		label: 'Recuperar: voltar',
+		default: 'Voltar para entrar'
+	},
+	'account.recover.newTitle': {
+		group: 'account',
+		label: 'Nova senha: título',
+		default: 'Nova senha'
+	},
+	'account.recover.newPassword': {
+		group: 'account',
+		label: 'Nova senha: campo',
+		default: 'Nova senha'
+	},
+	'account.recover.confirmPassword': {
+		group: 'account',
+		label: 'Nova senha: confirmar',
+		default: 'Confirme a nova senha'
+	},
+	'account.recover.save': {
+		group: 'account',
+		label: 'Nova senha: botão salvar',
+		default: 'Salvar nova senha'
+	},
+	'account.recover.mismatch': {
+		group: 'account',
+		label: 'Nova senha: senhas diferentes',
+		default: 'As senhas não são iguais.'
+	},
 	'account.submitLogin': { group: 'account', label: 'Botão entrar', default: 'Continuar' },
 	'account.submitSignup': { group: 'account', label: 'Botão criar conta', default: 'Criar conta' },
 	'account.or': { group: 'account', label: 'Divisor "ou"', default: 'ou' },
@@ -240,6 +296,11 @@ export const TEXTS = {
 		group: 'home',
 		label: 'Destaques: chamada',
 		default: 'Nossos destaques'
+	},
+	'home.mostOrdered.title': {
+		group: 'home',
+		label: 'Seção: mais pedidos',
+		default: 'Mais pedidos'
 	},
 	'home.featured.title': {
 		group: 'home',

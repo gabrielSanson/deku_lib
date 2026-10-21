@@ -178,6 +178,7 @@
 <form
 	method="POST"
 	action="?/save"
+	enctype="multipart/form-data"
 	class="max-w-3xl space-y-5"
 	use:enhance={({ formData, submitter, cancel }) => {
 		const body = payload(submitter?.getAttribute('value') === 'activate');
@@ -215,6 +216,24 @@
 				bind:value={tagline}
 				placeholder="Ex.: Almoço com 10% de desconto"
 			/>
+		</div>
+		<div class="flex flex-wrap items-center gap-3 sm:col-span-2">
+			{#if c?.imageUrl}<img src={c.imageUrl} alt="" class="size-16 rounded-lg object-cover" />{/if}
+			<div class="min-w-0 flex-1">
+				<label class="label" for="campaign-photo">Foto da campanha (opcional)</label>
+				<input
+					id="campaign-photo"
+					class="field"
+					type="file"
+					name="photo"
+					accept="image/jpeg,image/png,image/webp"
+				/>
+			</div>
+			{#if c?.imageUrl}
+				<label class="flex items-center gap-1 text-sm text-muted">
+					<input type="checkbox" name="removePhoto" value="1" /> Tirar foto
+				</label>
+			{/if}
 		</div>
 		<fieldset class="sm:col-span-2">
 			<legend class="label">Tipo de promoção</legend>

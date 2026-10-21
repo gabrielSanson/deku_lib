@@ -127,7 +127,9 @@
 					/>
 					{#if mode === 'criar'}<p class="mt-1 text-xs text-muted">
 							{t('account.passwordHint')}
-						</p>{/if}
+						</p>{:else}<a href="/conta/recuperar" class="mt-1 block text-sm underline"
+							>{t('account.recover.forgot')}</a
+						>{/if}
 				</div>
 				<button class="btn-primary w-full" disabled={!data.configured}>
 					{t(mode === 'criar' ? 'account.submitSignup' : 'account.submitLogin')}

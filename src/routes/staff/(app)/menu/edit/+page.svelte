@@ -48,6 +48,7 @@
 						<form
 							method="POST"
 							action="?/category"
+							enctype="multipart/form-data"
 							use:enhance={() =>
 								async ({ update }) => {
 									await update();
@@ -57,6 +58,18 @@
 						>
 							<input type="hidden" name="id" value={c.id} />
 							<input class="field flex-1" name="name" value={c.name} required maxlength="80" />
+							<input
+								class="field w-56 text-sm"
+								type="file"
+								name="photo"
+								accept="image/jpeg,image/png,image/webp"
+								aria-label="Foto da categoria"
+							/>
+							{#if c.imageUrl}
+								<label class="flex items-center gap-1 text-sm text-muted">
+									<input type="checkbox" name="removePhoto" value="1" /> Tirar foto
+								</label>
+							{/if}
 							<input
 								class="field w-24"
 								name="position"
@@ -74,6 +87,9 @@
 							>
 						</form>
 					{:else}
+						{#if c.imageUrl}
+							<img src={c.imageUrl} alt="" class="size-10 rounded object-cover" />
+						{/if}
 						<h3 class="flex-1 font-semibold">
 							{c.name}
 							{#if !c.active}<span class="text-xs font-normal text-muted">(oculta)</span>{/if}
@@ -115,13 +131,26 @@
 				</ul>
 			</div>
 		{/each}
-		<form method="POST" action="?/category" use:enhance class="flex gap-2 card p-3">
+		<form
+			method="POST"
+			action="?/category"
+			enctype="multipart/form-data"
+			use:enhance
+			class="flex flex-wrap gap-2 card p-3"
+		>
 			<input
 				class="field flex-1"
 				name="name"
 				placeholder="Nova categoria, por exemplo Bebidas"
 				required
 				maxlength="80"
+			/>
+			<input
+				class="field w-56 text-sm"
+				type="file"
+				name="photo"
+				accept="image/jpeg,image/png,image/webp"
+				aria-label="Foto da categoria"
 			/>
 			<input type="hidden" name="position" value={data.categories.length + 1} />
 			<button class="btn-secondary">Adicionar categoria</button>

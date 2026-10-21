@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { applyAction, deserialize, enhance } from '$app/forms';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -23,9 +24,9 @@
 
 	let fulfillmentType = $state<'dine_in' | 'pickup' | 'delivery'>('pickup');
 	let tableLabel = $state('');
-	let name = $state('');
-	let phone = $state('');
-	let email = $state('');
+	let name = $state(untrack(() => data.prefill.name));
+	let phone = $state(untrack(() => data.prefill.phone));
+	let email = $state(untrack(() => data.prefill.email));
 	let marketingConsent = $state(false);
 	let couponInput = $state('');
 	let couponCode = $state('');
