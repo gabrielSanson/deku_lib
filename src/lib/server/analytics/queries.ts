@@ -347,3 +347,23 @@ export async function reconciliation(day: string, sql: Db = db()) {
 		ifood: { count: ifood.n, amountCents: Number(ifood.amount) }
 	};
 }
+
+export interface HourPoint {
+	hour: number;
+	orders: number;
+	grossCents: number;
+}
+
+/** Today's orders by shop-local hour, for the dashboard chart. Cancelled orders are left out. */
+export async function salesByHour(day: string, sql: Db = db()): Promise<HourPoint[]> {
+	const rows = await sql<{ hour: number; orders: number; gross: number }[]>`
+		select extract(hour from created_at at time zone ${SHOP_TZ})::int as hour,
+			count(*)::int as orders,
+			coalesce(sum(subtotal_cents + delivery_fee_cents), 0)::bigint as gross
+		from orders
+		where not is_test and status not in ('cancelled','rejected')
+			and created_at >= (${day}::timestamp at time zone ${SHOP_TZ})
+			and created_at < ((${day}::timestamp + interval '1 day') at time zone ${SHOP_TZ})
+		group by 1 order by 1`;
+	return rows.map((r) => ({ hour: r.hour, orders: r.orders, grossCents: Number(r.gross) }));
+}

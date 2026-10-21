@@ -1,5 +1,5 @@
-import { overview, salesByDay, todayLocal, topProducts } from '#lib/server/analytics/queries.ts';
 import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { overview, salesByHour, todayLocal } from '#lib/server/analytics/queries.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
@@ -8,17 +8,16 @@ import type { PageServerLoad } from './$types';
 const shift = (day: string, days: number) =>
 	new Date(new Date(`${day}T00:00:00Z`).getTime() + days * 86400_000).toISOString().slice(0, 10);
 
-/** Today's money for owners and managers, next to the same weekday last week. */
+/** Today's money for owners and managers, next to yesterday and the hour-by-hour curve. */
 async function salesToday() {
 	const today = todayLocal();
-	const lastWeek = shift(today, -7);
-	const [now, before, week, top] = await Promise.all([
+	const yesterday = shift(today, -1);
+	const [now, before, hours] = await Promise.all([
 		overview({ from: today, to: today }),
-		overview({ from: lastWeek, to: lastWeek }),
-		salesByDay({ from: shift(today, -13), to: today }),
-		topProducts({ from: today, to: today })
+		overview({ from: yesterday, to: yesterday }),
+		salesByHour(today)
 	]);
-	return { today, now, before, week, top: top.products.slice(0, 5) };
+	return { today, now, before, hours };
 }
 
 export const load: PageServerLoad = async (event) => {
@@ -38,10 +37,14 @@ export const load: PageServerLoad = async (event) => {
 			(select count(*)::int from channel_events where processing_status in ('failed','dead')) as dead
 		from orders where created_at > now() - interval '2 days' or status in ('new','confirmed','preparing','ready')`;
 	const urgent = await listOrders({ statuses: ['new'], limit: 20 });
+	const inProgress = await listOrders({ statuses: ['confirmed', 'preparing'], limit: 60 });
+	const now = Date.now();
+	// Orders past their promised time, latest first, for the "Agora" panel.
+	const late = inProgress.filter((o) => o.promisedAt && o.promisedAt.getTime() < now).slice(0, 10);
 	const ifoodAlerts = await currentIfoodAlerts().catch((err) => {
 		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
 		return [] as string[];
 	});
 	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
-	return { counts, urgent, ifoodAlerts, sales };
+	return { counts, urgent, late, ifoodAlerts, sales };
 };
