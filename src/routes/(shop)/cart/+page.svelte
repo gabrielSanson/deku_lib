@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cart } from '#lib/client/cart.svelte.ts';
-	import Money from '#lib/components/Money.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();

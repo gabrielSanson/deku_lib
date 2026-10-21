@@ -1,7 +1,7 @@
 // Admin navigation, grouped the way the shop works: running the shift, the
 // menu, the shop itself and the back office. Kitchen accounts never see it;
 // they are sent to the kitchen screen.
-import type { IconName } from '#lib/components/Icon.svelte';
+import type { IconName } from '#lib/components/atoms/Icon.svelte';
 
 export interface NavLink {
 	href: string;
@@ -42,26 +42,32 @@ export const NAV: NavGroup[] = [
 		]
 	},
 	{
-		label: 'Loja',
-		links: [
-			{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
-			{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
-			{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
-			{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
-			{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },
-			{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck' },
-			{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid' }
-		]
-	},
-	{
 		label: 'Gestão',
 		links: [
 			{ href: '/staff/analytics', label: 'Relatórios', icon: 'chart' },
 			{ href: '/staff/campaigns', label: 'Campanhas', icon: 'crown' },
 			{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users' },
-			{ href: '/staff/setup', label: 'Configuração inicial', icon: 'settings' }
+			{
+				href: '/staff/settings/store',
+				label: 'Configurações',
+				icon: 'settings',
+				match: ['/staff/settings', '/staff/setup']
+			}
 		]
 	}
+];
+
+/** The settings pages, shown as a sub-menu inside Configurações. */
+export const SETTINGS_LINKS: NavLink[] = [
+	{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
+	{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
+	{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
+	{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
+	{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },
+	{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck' },
+	{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid' },
+	{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users' },
+	{ href: '/staff/setup', label: 'Configuração inicial', icon: 'settings' }
 ];
 
 /** The most specific link for the current path, so "/staff/menu/edit" beats "/staff/menu". */

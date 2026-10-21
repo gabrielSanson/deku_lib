@@ -3,8 +3,8 @@
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import { lastOrder } from '#lib/client/last-order.ts';
-	import Icon from '#lib/components/Icon.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import CartPanel from './CartPanel.svelte';
 

@@ -2,9 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import FormError from '#lib/components/FormError.svelte';
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 
 	let { data, form } = $props();

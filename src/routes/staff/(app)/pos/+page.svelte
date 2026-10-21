@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { deserialize, enhance } from '$app/forms';
-	import FormError from '#lib/components/FormError.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { parseBRL } from '#lib/domain/money.ts';
 	import ProductSheet from './ProductSheet.svelte';

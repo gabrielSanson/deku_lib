@@ -2,9 +2,9 @@
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
-	import Icon from '#lib/components/Icon.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
 	import { categoryIcon } from '#lib/domain/category-icon.ts';
-	import Money from '#lib/components/Money.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 	import CartPanel from '../CartPanel.svelte';

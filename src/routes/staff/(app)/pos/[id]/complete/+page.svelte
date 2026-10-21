@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 
 	let { data } = $props();

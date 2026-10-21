@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cart } from '#lib/client/cart.svelte.ts';
-	import Icon from '#lib/components/Icon.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 

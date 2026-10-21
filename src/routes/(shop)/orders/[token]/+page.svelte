@@ -2,8 +2,8 @@
 	import { onMount, tick } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import { enhance } from '$app/forms';
 	import { getsReadyAlert, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';

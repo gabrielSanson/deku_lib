@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
-	import Money from '#lib/components/Money.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();

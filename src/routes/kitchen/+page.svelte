@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
-	import Age from '#lib/components/Age.svelte';
-	import LiveBanner from '#lib/components/LiveBanner.svelte';
+	import Age from '#lib/components/atoms/Age.svelte';
+	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { pickupCode } from '#lib/domain/pickup.ts';

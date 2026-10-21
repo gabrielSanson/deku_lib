@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import Icon from '#lib/components/Icon.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
 	import { activeHref, NAV } from '#lib/staff/nav.ts';
 
 	let { data, children } = $props();

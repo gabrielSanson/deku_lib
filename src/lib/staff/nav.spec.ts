@@ -9,5 +9,7 @@ describe('admin navigation', () => {
 		expect(activeHref(NAV, '/staff/menu/edit')).toBe('/staff/menu/edit');
 		expect(activeHref(NAV, '/staff/menu/products/X-BURGER')).toBe('/staff/menu/edit');
 		expect(activeHref(NAV, '/staff/menuzinho')).toBeNull();
+		expect(activeHref(NAV, '/staff/settings/hours')).toBe('/staff/settings/store');
+		expect(activeHref(NAV, '/staff/settings/staff')).toBe('/staff/settings/staff');
 	});
 });

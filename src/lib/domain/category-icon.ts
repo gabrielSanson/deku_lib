@@ -1,4 +1,4 @@
-import type { IconName } from '#lib/components/Icon.svelte';
+import type { IconName } from '#lib/components/atoms/Icon.svelte';
 
 /** A line icon for a menu category, guessed from its name. */
 export function categoryIcon(name: string): IconName {

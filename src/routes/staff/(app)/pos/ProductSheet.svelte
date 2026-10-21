@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Modifier picker. Enforces min/max per group before the item can be added.
-	import Money from '#lib/components/Money.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { REMOVE_GROUP, type Product } from '#lib/domain/catalog.ts';
 	import { lineUnitCents, type CartOption } from './cart.svelte.ts';
 

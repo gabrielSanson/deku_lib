@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { cart, type StoredOption } from '#lib/client/cart.svelte.ts';
-	import Money from '#lib/components/Money.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { REMOVE_GROUP } from '#lib/domain/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
