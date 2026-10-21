@@ -9,7 +9,7 @@
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
 	<a class="btn-ghost min-h-9" href="/staff/menu/edit">← Cardápio</a>
-	<h1 class="text-xl font-bold">Páginas do site</h1>
+	<h1 class="page-title">Páginas do site</h1>
 	<p class="text-sm text-muted">
 		Texto simples. Deixe uma linha em branco entre parágrafos. Comece a linha com "## " para um
 		título.

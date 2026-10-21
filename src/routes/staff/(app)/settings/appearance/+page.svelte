@@ -45,7 +45,7 @@
 
 <div class="space-y-4">
 	<header class="space-y-1">
-		<h1 class="text-xl font-bold">Aparência do site</h1>
+		<h1 class="page-title">Aparência do site</h1>
 		<p class="text-sm text-muted">
 			Cores, logos e ícone que o cliente vê. Os textos ficam em
 			<a class="underline" href="/staff/settings/texts">Textos</a>; produtos, fotos, adicionais e

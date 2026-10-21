@@ -11,10 +11,10 @@
 	afterNavigate(() => (drawerOpen = false));
 </script>
 
-{#snippet brand()}
+{#snippet brand(mark = true)}
 	<a href="/staff" class="flex shrink-0 items-center gap-2" aria-label="{data.shopName}, início">
-		<img src={data.branding.images.logo} alt="" class="h-8 w-auto" />
-		<img src={data.branding.images.wordmark} alt={data.shopName} class="h-5 w-auto" />
+		{#if mark}<img src={data.branding.images.logo} alt="" class="h-9 w-auto" />{/if}
+		<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
 	</a>
 {/snippet}
 
@@ -36,25 +36,25 @@
 	{/if}
 {/snippet}
 
-{#snippet navigation()}
-	<nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Principal">
+{#snippet navigation(mascot = false)}
+	<nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Principal">
 		{#each groups as g (g.label)}
 			<div>
-				<p class="px-3 pb-1 text-xs font-semibold tracking-wide text-stone-500 uppercase">
+				<p class="px-3 pb-1.5 text-[13px] font-medium text-stone-400">
 					{g.label}
 				</p>
-				<ul class="space-y-0.5">
+				<ul class="space-y-1">
 					{#each g.links as item (item.href)}
 						<li>
 							<a
 								href={item.href}
-								class="flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium {current ===
+								class="flex min-h-11 items-center gap-3 rounded-(--radius-control) px-3 text-[15px] font-medium transition-colors {current ===
 								item.href
 									? 'bg-brand-500 font-semibold text-black'
-									: 'text-stone-300 hover:bg-night-2 hover:text-white'}"
+									: 'text-stone-200 hover:bg-night-2 hover:text-white'}"
 								aria-current={current === item.href ? 'page' : undefined}
 							>
-								<Icon name={item.icon} class="size-4.5 shrink-0" />
+								<Icon name={item.icon} class="size-5 shrink-0" />
 								{item.label}
 							</a>
 						</li>
@@ -63,9 +63,16 @@
 			</div>
 		{/each}
 	</nav>
+	{#if mascot}
+		<img
+			src={data.branding.images.logo}
+			alt=""
+			class="mx-auto mb-3 hidden h-24 w-auto [@media(min-height:860px)]:block"
+		/>
+	{/if}
 	<form method="POST" action="/staff/logout" class="border-t border-night-line p-3">
 		<button
-			class="flex min-h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-stone-300 hover:bg-night-2 hover:text-white"
+			class="flex min-h-11 w-full items-center gap-3 rounded-(--radius-control) px-3 text-left text-sm text-stone-300 hover:bg-night-2 hover:text-white"
 			title={data.staff.email ?? ''}
 		>
 			<Icon name="logout" class="size-4.5 shrink-0" />
@@ -78,13 +85,14 @@
 <div class="min-h-dvh lg:flex">
 	<!-- Wide screens: fixed sidebar. -->
 	<aside
-		class="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-night-line bg-night text-white lg:flex"
+		class="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-night-line bg-night text-white lg:flex"
 	>
-		<div class="flex items-center justify-between gap-2 px-4 pt-4">
-			{@render brand()}
+		<div class="flex items-center justify-between gap-2 px-5 pt-5">
+			<!-- The mascot sits at the foot of the sidebar instead. -->
+			{@render brand(false)}
 			{@render status()}
 		</div>
-		{@render navigation()}
+		{@render navigation(true)}
 	</aside>
 
 	<!-- Phones and tablets: top bar with a menu drawer. -->

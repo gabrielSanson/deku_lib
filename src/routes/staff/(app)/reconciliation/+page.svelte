@@ -16,7 +16,7 @@
 
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center gap-2">
-		<h1 class="mr-auto text-2xl font-bold">Fechamento do dia</h1>
+		<h1 class="mr-auto page-title">Fechamento do dia</h1>
 		<input
 			class="field w-44"
 			type="date"

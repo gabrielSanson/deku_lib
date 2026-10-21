@@ -18,7 +18,7 @@
 			: 'border-red-300 bg-red-50'}"
 	>
 		<div>
-			<h1 class="text-xl font-bold">{s.acceptingOrders ? 'Loja aberta' : 'Loja pausada'}</h1>
+			<h1 class="page-title">{s.acceptingOrders ? 'Loja aberta' : 'Loja pausada'}</h1>
 			<p class="text-sm text-muted">
 				{s.acceptingOrders ? 'Pedidos online estão sendo aceitos.' : (s.pauseReason ?? '')} · atualizado
 				{formatDateTime(s.updatedAt)}

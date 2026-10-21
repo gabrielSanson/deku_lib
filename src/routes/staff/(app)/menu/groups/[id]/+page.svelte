@@ -23,7 +23,7 @@
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
 	<a class="btn-ghost min-h-9" href="/staff/menu/edit">← Cardápio</a>
-	<h1 class="text-xl font-bold">{data.isNew ? 'Novo grupo de opções' : g.name}</h1>
+	<h1 class="page-title">{data.isNew ? 'Novo grupo de opções' : g.name}</h1>
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">Salvo.</p>{/if}
 

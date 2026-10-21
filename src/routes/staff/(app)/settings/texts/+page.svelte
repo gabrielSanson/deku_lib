@@ -17,7 +17,7 @@
 
 <div class="space-y-4">
 	<header class="space-y-1">
-		<h1 class="text-xl font-bold">Textos do site</h1>
+		<h1 class="page-title">Textos do site</h1>
 		<p class="text-sm text-muted">
 			Tudo o que o cliente lê no site: avisos, botões, títulos e mensagens de erro. Deixe um texto
 			vazio para voltar ao padrão. Palavras entre chaves, como <code>{'{name}'}</code>, são

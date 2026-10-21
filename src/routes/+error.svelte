@@ -12,7 +12,7 @@
 
 <main class="grid min-h-dvh place-items-center bg-canvas p-4 text-center">
 	<div class="max-w-sm space-y-4">
-		<h1 class="font-display text-3xl uppercase">
+		<h1 class="font-display text-3xl">
 			{notFound ? t('errors.notFound.title') : t('errors.generic.title')}
 		</h1>
 		<p class="text-muted">{notFound ? t('errors.notFound') : t('errors.generic')}</p>

@@ -50,7 +50,7 @@
 	<section class="space-y-4">
 		<div class="flex flex-wrap items-center gap-3">
 			<a href="/staff/orders" class="btn-ghost min-h-9">← Pedidos</a>
-			<h1 class="text-3xl font-black">#{o.orderNumber}</h1>
+			<h1 class="page-title">#{o.orderNumber}</h1>
 			<StatusBadge status={o.status} />
 			<PaymentBadge status={o.paymentStatus} />
 		</div>

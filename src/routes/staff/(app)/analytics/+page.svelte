@@ -118,7 +118,7 @@
 
 <main class="mx-auto max-w-6xl space-y-6 p-4">
 	<div class="flex flex-wrap items-end gap-2">
-		<h1 class="mr-auto text-2xl font-bold">Relatórios</h1>
+		<h1 class="mr-auto page-title">Relatórios</h1>
 		{#each presets as [k, l] (k)}
 			<button
 				class="btn min-h-9 text-sm {data.preset === k ? 'bg-ink text-white' : 'btn-secondary'}"

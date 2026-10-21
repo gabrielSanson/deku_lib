@@ -21,7 +21,7 @@
 			};
 		}}
 	>
-		<h1 class="text-2xl font-bold">Acesso da equipe</h1>
+		<h1 class="page-title">Acesso da equipe</h1>
 		{#if !data.configured}
 			<p class="alert-warn">
 				Configure PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY para habilitar o login.

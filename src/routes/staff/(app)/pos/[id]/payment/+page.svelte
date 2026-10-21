@@ -51,7 +51,7 @@
 
 <main class="mx-auto max-w-xl space-y-4 p-4">
 	<div class="flex items-center justify-between">
-		<h1 class="text-2xl font-bold">Pedido #{data.order.orderNumber}</h1>
+		<h1 class="page-title">Pedido #{data.order.orderNumber}</h1>
 		<PaymentBadge status={data.order.paymentStatus} />
 	</div>
 	<div class="space-y-1 card p-4">

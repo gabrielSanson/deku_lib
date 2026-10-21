@@ -14,7 +14,7 @@
 <svelte:head><title>Dados e Pix · Configurações</title></svelte:head>
 
 <div class="space-y-4">
-	<h1 class="text-xl font-bold">Dados da loja e pagamentos</h1>
+	<h1 class="page-title">Dados da loja e pagamentos</h1>
 
 	<form method="POST" action="?/store" use:enhance={keep} class="space-y-4 card p-4">
 		<h2 class="font-semibold">Dados da loja</h2>

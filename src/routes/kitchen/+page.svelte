@@ -142,18 +142,18 @@
 	/></svelte:head
 >
 
-<div class="min-h-dvh bg-stone-950 text-stone-50">
+<div class="min-h-dvh bg-night text-stone-50">
 	<LiveBanner {live} />
 	<header class="flex items-center gap-3 border-b border-stone-800 px-4 py-2">
 		{#if data.staff.role === 'admin'}
-			<a href="/staff" class="font-bold text-orange-400">← Painel</a>
+			<a href="/staff" class="font-bold text-brand-500">← Painel</a>
 		{/if}
 		<h1 class="text-xl font-black tracking-wide">COZINHA</h1>
 		<div class="flex gap-1" role="radiogroup" aria-label="Estação">
 			{#each stations as s (s)}
 				<button
 					class="rounded-md px-3 py-2 text-sm font-semibold {station === s
-						? 'bg-orange-500 text-black'
+						? 'bg-brand-500 text-black'
 						: 'bg-stone-800'}"
 					aria-pressed={station === s}
 					onclick={() => (station = s)}>{stationLabel[s] ?? s}</button
@@ -188,7 +188,7 @@
 						{#if o.items.length}
 							<article
 								class="rounded-xl border-2 p-3 {lane.key === 'confirmed' && !o.kitchenSeenAt
-									? 'animate-pulse border-orange-400 bg-stone-900'
+									? 'animate-pulse border-brand-500 bg-stone-900'
 									: lane.key === 'ready' && justCalled(o)
 										? 'border-4 border-yellow-300 bg-stone-900 motion-safe:animate-pulse'
 										: waiting(o)
@@ -208,7 +208,7 @@
 											? 'text-7xl text-yellow-300'
 											: 'text-3xl'}">#{pickupCode(o.orderNumber)}</span
 									>
-									<span class="text-xs font-bold tracking-wider text-orange-300">
+									<span class="text-xs font-bold tracking-wider text-brand-400">
 										{o.channel === 'ifood'
 											? `IFOOD ${o.channelDisplayId ?? ''} · `
 											: o.channel === 'web'
@@ -271,7 +271,7 @@
 											<input type="hidden" name="orderId" value={o.id} />
 											<input type="hidden" name="to" value={nextAction[lane.key]?.to} />
 											<button
-												class="min-h-12 w-full rounded-lg bg-orange-500 text-lg font-black text-black"
+												class="min-h-12 w-full rounded-lg bg-brand-500 text-lg font-black text-black"
 											>
 												{nextAction[lane.key]?.label}
 											</button>

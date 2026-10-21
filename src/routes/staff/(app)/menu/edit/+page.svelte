@@ -14,7 +14,7 @@
 
 <main class="mx-auto max-w-4xl space-y-5 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="text-xl font-bold">Editar cardápio</h1>
+		<h1 class="page-title">Editar cardápio</h1>
 		<div class="flex flex-wrap gap-2">
 			<a class="btn-ghost" href="/staff/menu">Disponibilidade</a>
 			<a class="btn-ghost" href="/staff/menu/pages">Páginas do site</a>

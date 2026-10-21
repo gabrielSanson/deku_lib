@@ -10,7 +10,7 @@
 <svelte:head><title>Equipe · Configurações</title></svelte:head>
 
 <div class="space-y-4">
-	<h1 class="text-xl font-bold">Equipe</h1>
+	<h1 class="page-title">Equipe</h1>
 	<FormError message={form?.error} />
 	{#if form?.added}<p class="alert-ok">{form.added} adicionado(a).</p>{/if}
 
