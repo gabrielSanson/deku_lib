@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import FormError from '#lib/components/FormError.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { unavailableReason } from '#lib/domain/catalog.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 

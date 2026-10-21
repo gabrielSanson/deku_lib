@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import FormError from '#lib/components/FormError.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
 
 	let { data, form } = $props();

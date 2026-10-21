@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { applyAction, deserialize, enhance } from '$app/forms';
 	import { cart } from '#lib/client/cart.svelte.ts';
-	import FormError from '#lib/components/FormError.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import type { WebPaymentMethod } from '#lib/domain/payment-rules.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 

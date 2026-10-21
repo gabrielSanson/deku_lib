@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Age from '#lib/components/Age.svelte';
-	import LiveBanner from '#lib/components/LiveBanner.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import Age from '#lib/components/atoms/Age.svelte';
+	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 

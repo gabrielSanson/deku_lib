@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Icon, { type IconName } from '#lib/components/Icon.svelte';
-	import Money from '#lib/components/Money.svelte';
+	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
 	import { heroMotion } from '#lib/client/hero-motion.ts';
 	import { categoryIcon } from '#lib/domain/category-icon.ts';
 	import { useTexts } from '#lib/texts/context.ts';

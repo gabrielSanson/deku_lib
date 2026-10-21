@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
-	import FormError from '#lib/components/FormError.svelte';
-	import LiveBanner from '#lib/components/LiveBanner.svelte';
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
-	import StatusBadge from '#lib/components/StatusBadge.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
+	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import {
 		allowedNextStatuses,

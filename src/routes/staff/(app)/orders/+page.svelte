@@ -2,15 +2,15 @@
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import Age from '#lib/components/Age.svelte';
-	import LiveBanner from '#lib/components/LiveBanner.svelte';
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
-	import StatusBadge from '#lib/components/StatusBadge.svelte';
+	import Age from '#lib/components/atoms/Age.svelte';
+	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { mayCall, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
-	import FormError from '#lib/components/FormError.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();

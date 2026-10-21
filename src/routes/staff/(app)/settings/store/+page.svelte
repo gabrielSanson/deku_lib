@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import FormError from '#lib/components/FormError.svelte';
+	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();

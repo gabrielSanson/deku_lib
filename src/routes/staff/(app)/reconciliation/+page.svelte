@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Money from '#lib/components/Money.svelte';
-	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import type { PaymentStatus } from '#lib/domain/order-status.ts';
 
