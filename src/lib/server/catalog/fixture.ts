@@ -61,9 +61,15 @@ const all = ['counter', 'web', 'ifood'] as const;
 export const fixtureCatalog: Catalog = {
 	version: 'fixture-1',
 	categories: [
-		{ id: 'burgers', slug: 'burgers', name: 'Burgers', position: 1 },
-		{ id: 'acompanhamentos', slug: 'acompanhamentos', name: 'Acompanhamentos', position: 2 },
-		{ id: 'bebidas', slug: 'bebidas', name: 'Bebidas', position: 3 }
+		{ id: 'burgers', slug: 'burgers', name: 'Burgers', position: 1, imageUrl: null },
+		{
+			id: 'acompanhamentos',
+			slug: 'acompanhamentos',
+			name: 'Acompanhamentos',
+			position: 2,
+			imageUrl: null
+		},
+		{ id: 'bebidas', slug: 'bebidas', name: 'Bebidas', position: 3, imageUrl: null }
 	],
 	products: [
 		{

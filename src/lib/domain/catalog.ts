@@ -53,6 +53,7 @@ export interface Category {
 	slug: string;
 	name: string;
 	position: number;
+	imageUrl: string | null;
 }
 
 export interface Catalog {

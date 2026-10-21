@@ -48,7 +48,9 @@ export const categoryInput = z.object({
 	id: id.optional(),
 	name: z.string().trim().min(1, 'Informe o nome.').max(80),
 	position: z.number().int().default(0),
-	active: z.boolean().default(true)
+	active: z.boolean().default(true),
+	/** undefined keeps the current photo, null removes it. */
+	imagePath: z.string().regex(IMAGE_PATH).nullable().optional()
 });
 
 export async function saveCategory(input: z.input<typeof categoryInput>, actor: Actor) {
@@ -58,11 +60,14 @@ export async function saveCategory(input: z.input<typeof categoryInput>, actor: 
 			const catId = c.id ?? (slugify(c.name) || 'categoria');
 			if (c.id) {
 				const r = await tx`update menu_categories set name = ${c.name}, position = ${c.position},
-					active = ${c.active}, updated_at = now() where id = ${c.id}`;
+					active = ${c.active}, updated_at = now(),
+					image_path = ${c.imagePath === undefined ? tx`image_path` : c.imagePath}
+					where id = ${c.id}`;
 				if (!r.count) throw new DomainError('Categoria não encontrada.', 'not_found', 404);
 			} else {
-				const r = await tx`insert into menu_categories (id, name, position, active)
-					values (${catId}, ${c.name}, ${c.position}, ${c.active}) on conflict (id) do nothing`;
+				const r = await tx`insert into menu_categories (id, name, position, active, image_path)
+					values (${catId}, ${c.name}, ${c.position}, ${c.active}, ${c.imagePath ?? null})
+					on conflict (id) do nothing`;
 				if (!r.count) throw new DomainError('Já existe uma categoria com esse nome.', 'duplicate');
 			}
 			await changed(

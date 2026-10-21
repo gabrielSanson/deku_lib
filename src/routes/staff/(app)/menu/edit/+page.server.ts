@@ -11,14 +11,24 @@ import {
 import { loadCatalog } from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
+import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);
 	const sql = db();
 	const [catalog, categories, products, groups] = await Promise.all([
 		loadCatalog(sql, { includeInactive: true }),
-		sql<{ id: string; name: string; position: number; active: boolean; products: number }[]>`
-			select c.id, c.name, c.position, c.active,
+		sql<
+			{
+				id: string;
+				name: string;
+				position: number;
+				active: boolean;
+				products: number;
+				image_path: string | null;
+			}[]
+		>`
+			select c.id, c.name, c.position, c.active, c.image_path,
 				(select count(*)::int from menu_products p where p.category_id = c.id) as products
 			from menu_categories c order by c.position, c.name`,
 		sql<{ sku: string; active: boolean }[]>`select sku, active from menu_products`,
@@ -39,7 +49,10 @@ export const load: PageServerLoad = async (event) => {
 	]);
 	return {
 		catalog,
-		categories,
+		categories: categories.map(({ image_path, ...c }) => ({
+			...c,
+			imageUrl: menuImageUrl(image_path)
+		})),
 		groups,
 		hidden: products.filter((p) => !p.active).map((p) => p.sku),
 		empty: await menuIsEmpty(sql)
@@ -51,12 +64,20 @@ export const actions: Actions = {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		return attempt(async () => {
+			const photo = d.get('photo');
+			const imagePath =
+				photo instanceof File && photo.size > 0
+					? await uploadMenuImage(photo)
+					: formString(d, 'removePhoto') === '1'
+						? null
+						: undefined;
 			await saveCategory(
 				{
 					id: formString(d, 'id') || undefined,
 					name: formString(d, 'name'),
 					position: Number(formString(d, 'position') || 0),
-					active: formString(d, 'active') !== '0'
+					active: formString(d, 'active') !== '0',
+					imagePath
 				},
 				staffActor(staff)
 			);

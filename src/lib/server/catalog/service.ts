@@ -14,8 +14,10 @@ export class CatalogUnavailableError extends Error {}
 export async function loadCatalog(sql: Db = db(), { includeInactive = false } = {}) {
 	const [[rev], categories, products, groups, options, links, ingredients] = await Promise.all([
 		sql<{ revision: string }[]>`select revision::text from menu_revision where id = 1`,
-		sql<{ id: string; name: string; position: number; active: boolean }[]>`
-			select id, name, position, active from menu_categories order by position, name`,
+		sql<
+			{ id: string; name: string; position: number; active: boolean; image_path: string | null }[]
+		>`
+			select id, name, position, active, image_path from menu_categories order by position, name`,
 		sql<
 			{
 				sku: string;
@@ -87,7 +89,13 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 		version: `menu-${rev?.revision ?? '0'}`,
 		categories: categories
 			.filter((c) => activeCategories.has(c.id))
-			.map((c) => ({ id: c.id, slug: c.id, name: c.name, position: c.position })),
+			.map((c) => ({
+				id: c.id,
+				slug: c.id,
+				name: c.name,
+				position: c.position,
+				imageUrl: menuImageUrl(c.image_path)
+			})),
 		products: products
 			.filter((p) => (includeInactive || p.active) && activeCategories.has(p.category_id))
 			.map((p) => ({

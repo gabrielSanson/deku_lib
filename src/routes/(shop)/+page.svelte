@@ -160,7 +160,7 @@
 			</div>
 			<ul class="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
 				{#each categories as c (c.id)}
-					{@const photo = c.products.find((p) => p.imageUrl)?.imageUrl}
+					{@const photo = c.imageUrl ?? c.products.find((p) => p.imageUrl)?.imageUrl}
 					<li class="w-32 shrink-0 snap-start sm:w-40">
 						<a
 							href="/cardapio?categoria={c.slug}"
