@@ -191,7 +191,10 @@
 								{/if}
 								{#if mayCall(o.status)}
 									<!-- "Chamar": say the code out loud, then tap; the board and the customer are told. -->
-									<form method="POST" action="?/call" use:enhance class="mt-3">
+									{#if o.calledAt}<p class="mt-3 text-sm text-muted">
+											{t('staff.called', { time: formatTime(o.calledAt) })}
+										</p>{/if}
+									<form method="POST" action="?/call" use:enhance class="mt-2">
 										<input type="hidden" name="orderId" value={o.id} />
 										<button
 											class="btn-primary w-full"
