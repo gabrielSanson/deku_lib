@@ -125,6 +125,9 @@
 
 		<div class="card p-3">
 			<h2 class="mb-2 font-semibold">Histórico</h2>
+			{#if o.pushFailed}<p class="mb-2 text-sm text-bad">
+					Aviso não entregue: o celular do cliente não recebeu a notificação de pronto.
+				</p>{/if}
 			<ol class="space-y-1 text-sm">
 				{#each o.history as h, i (i)}
 					<li class="flex justify-between gap-2">

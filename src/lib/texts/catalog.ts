@@ -606,6 +606,59 @@ export const TEXTS = {
 	'order.total': { group: 'order', label: 'Total', default: 'Total' },
 	'order.payment': { group: 'order', label: 'Pagamento', default: 'Pagamento' },
 	'order.payPix': { group: 'order', label: 'Botão pagar com Pix', default: 'Pagar com Pix' },
+	'order.codeLabel': { group: 'order', label: 'Rótulo da senha', default: 'Sua senha' },
+	'order.readyPickup': {
+		group: 'order',
+		label: 'Pedido pronto (retirada no balcão)',
+		default: 'Pronto! Retire no balcão com a senha #{number}.'
+	},
+	'order.readyTabTitle': {
+		group: 'order',
+		label: 'Título da aba quando pronto',
+		default: '✅ Pronto! #{number}'
+	},
+	'order.notify.cta': {
+		group: 'order',
+		label: 'Aviso de pronto: botão',
+		default: 'Avisar quando ficar pronto'
+	},
+	'order.notify.text': {
+		group: 'order',
+		label: 'Aviso de pronto: explicação',
+		default: 'Mandamos uma notificação neste celular.'
+	},
+	'order.notify.on': {
+		group: 'order',
+		label: 'Aviso de pronto: ligado',
+		default: 'Aviso ligado. Pode sentar, a gente avisa.'
+	},
+	'order.notify.ios': {
+		group: 'order',
+		label: 'Aviso de pronto: dica para iPhone',
+		default:
+			'No iPhone, toque em Compartilhar → Adicionar à Tela de Início para receber o aviso. Ou deixe esta página aberta.'
+	},
+	'order.notify.blocked': {
+		group: 'order',
+		label: 'Aviso de pronto: notificações bloqueadas',
+		default:
+			'Notificações bloqueadas neste celular. Deixe esta página aberta ou fique de olho na TV.'
+	},
+	'order.notify.unsupported': {
+		group: 'order',
+		label: 'Aviso de pronto: sem suporte',
+		default: 'Deixe esta página aberta: ela apita quando ficar pronto.'
+	},
+	'push.ready.title': {
+		group: 'order',
+		label: 'Notificação de pronto: título',
+		default: 'Seu pedido está pronto!'
+	},
+	'push.ready.body': {
+		group: 'order',
+		label: 'Notificação de pronto: texto',
+		default: 'Retire no balcão com a senha #{number}.'
+	},
 
 	// Staff screens (kitchen and orders)
 	'staff.offline': {
@@ -618,6 +671,19 @@ export const TEXTS = {
 		label: 'Atualização ao vivo indisponível',
 		default: 'Atualizando a cada 8 s (última {time}).'
 	},
+	'kitchen.lane.new': { group: 'staff', label: 'Quadro: coluna novos', default: 'Novos' },
+	'kitchen.lane.preparing': {
+		group: 'staff',
+		label: 'Quadro: coluna em preparo',
+		default: 'Preparando'
+	},
+	'kitchen.lane.ready': { group: 'staff', label: 'Quadro: coluna prontos', default: 'Pronto' },
+	'kitchen.waiting': {
+		group: 'staff',
+		label: 'Quadro: pronto há mais de 10 min',
+		default: 'Aguardando retirada'
+	},
+	'kitchen.empty': { group: 'staff', label: 'Quadro: coluna vazia', default: 'Vazio' },
 	'staff.call': { group: 'staff', label: 'Botão chamar pedido pronto', default: 'Chamar' },
 	'staff.called': {
 		group: 'staff',

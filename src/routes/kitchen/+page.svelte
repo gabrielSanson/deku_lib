@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import Age from '#lib/components/Age.svelte';
 	import LiveBanner from '#lib/components/LiveBanner.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
+	import { pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -14,14 +16,19 @@
 	let muted = $state(false);
 	let station = $state('all');
 	let known = new Set<string>();
+	let knownReady = new Set<string>();
+	let knownCalls = new Map<string, number>();
 	let primed = false;
 	let audio: AudioContext | null = null;
+	// The board doubles as the TV near the counter: a ticking clock drives the call pulse.
+	let now = $state(Date.now());
 
-	function chime() {
+	/** New order: two rising tones. Ready or called: three falling tones, so the two never mix up. */
+	function chime(tones = [880, 1320]) {
 		if (muted) return;
 		try {
 			audio ??= new AudioContext();
-			for (const [i, f] of [880, 1320].entries()) {
+			for (const [i, f] of tones.entries()) {
 				const osc = audio.createOscillator();
 				const gain = audio.createGain();
 				osc.frequency.value = f;
@@ -36,13 +43,53 @@
 		}
 	}
 
-	// Chime once per order that enters the queue after the screen loaded.
+	const readyChime = () => chime([1320, 990, 660]);
+
+	// Chime once per order that enters the queue, turns ready or is called after the screen loaded.
 	$effect(() => {
 		const ids = data.orders.filter((o) => o.status === 'confirmed').map((o) => o.id);
-		if (primed && ids.some((id) => !known.has(id))) chime();
+		const ready = data.orders.filter((o) => o.status === 'ready');
+		const calls = new Map(ready.map((o) => [o.id, o.calledAt ? +new Date(o.calledAt) : 0]));
+		if (primed) {
+			if (
+				ready.some((o) => !knownReady.has(o.id)) ||
+				[...calls].some(([id, at]) => at && at !== knownCalls.get(id))
+			)
+				readyChime();
+			else if (ids.some((id) => !known.has(id))) chime();
+		}
 		known = new Set(data.orders.map((o) => o.id));
+		knownReady = new Set(ready.map((o) => o.id));
+		knownCalls = calls;
 		primed = true;
 	});
+
+	onMount(() => {
+		const tick = setInterval(() => (now = Date.now()), 1000);
+		// Keep the TV or tablet awake; the lock drops when the tab is hidden, so take it again.
+		let lock: WakeLockSentinel | null = null;
+		const awake = async () => {
+			try {
+				if (document.visibilityState === 'visible')
+					lock = await navigator.wakeLock?.request('screen');
+			} catch {
+				/* not supported or refused: the screen may sleep */
+			}
+		};
+		awake();
+		document.addEventListener('visibilitychange', awake);
+		return () => {
+			clearInterval(tick);
+			document.removeEventListener('visibilitychange', awake);
+			lock?.release().catch(() => {});
+		};
+	});
+
+	/** Pulse a ready card for 15 s after staff tap "Chamar". */
+	const justCalled = (o: OrderSummary) => !!o.calledAt && now - +new Date(o.calledAt) < 15_000;
+	/** Ready for more than 10 minutes and not collected: shown smaller, at the bottom. */
+	const waiting = (o: OrderSummary) =>
+		o.status === 'ready' && !!o.readyAt && now - +new Date(o.readyAt) > 10 * 60_000;
 
 	const live = useLiveOrders(() => data.live);
 
@@ -63,18 +110,22 @@
 	const lanes = $derived([
 		{
 			key: 'confirmed',
-			title: 'Novos',
+			title: t('kitchen.lane.new'),
 			orders: data.orders.filter((o) => o.status === 'confirmed').map(visible)
 		},
 		{
 			key: 'preparing',
-			title: 'Em preparo',
+			title: t('kitchen.lane.preparing'),
 			orders: data.orders.filter((o) => o.status === 'preparing').map(visible)
 		},
 		{
 			key: 'ready',
-			title: 'Prontos',
-			orders: data.orders.filter((o) => o.status === 'ready').map(visible)
+			title: t('kitchen.lane.ready'),
+			// Waiting-for-pickup orders sink below the fresh ones.
+			orders: data.orders
+				.filter((o) => o.status === 'ready')
+				.sort((a, b) => Number(waiting(a)) - Number(waiting(b)))
+				.map(visible)
 		}
 	]);
 	const nextAction: Record<string, { to: string; label: string } | undefined> = {
@@ -138,10 +189,25 @@
 							<article
 								class="rounded-xl border-2 p-3 {lane.key === 'confirmed' && !o.kitchenSeenAt
 									? 'animate-pulse border-orange-400 bg-stone-900'
-									: 'border-stone-700 bg-stone-900'}"
+									: lane.key === 'ready' && justCalled(o)
+										? 'border-4 border-yellow-300 bg-stone-900 motion-safe:animate-pulse'
+										: waiting(o)
+											? 'border-stone-800 bg-stone-900/60 text-sm'
+											: 'border-stone-700 bg-stone-900'}"
+								data-called={lane.key === 'ready' && justCalled(o) ? '' : undefined}
 							>
-								<header class="mb-2 flex items-baseline justify-between gap-2">
-									<span class="text-3xl font-black tabular-nums">#{o.orderNumber}</span>
+								{#if waiting(o)}<p
+										class="mb-1 text-xs font-bold tracking-wider text-stone-400 uppercase"
+									>
+										{t('kitchen.waiting')}
+									</p>{/if}
+								<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+									<!-- Read across the room on the TV: ready codes are at least 64 px. -->
+									<span
+										class="font-black tabular-nums {lane.key === 'ready' && !waiting(o)
+											? 'text-7xl text-yellow-300'
+											: 'text-3xl'}">#{pickupCode(o.orderNumber)}</span
+									>
 									<span class="text-xs font-bold tracking-wider text-orange-300">
 										{o.channel === 'ifood'
 											? `IFOOD ${o.channelDisplayId ?? ''} · `
@@ -224,7 +290,7 @@
 						<p
 							class="rounded-xl border border-dashed border-stone-700 p-6 text-center text-stone-500"
 						>
-							Vazio
+							{t('kitchen.empty')}
 						</p>
 					{/each}
 				</div>

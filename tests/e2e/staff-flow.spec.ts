@@ -44,7 +44,7 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 	await card.getByRole('button', { name: 'Iniciar' }).click();
 	await expect(
 		kitchen
-			.locator('section', { hasText: 'Em preparo' })
+			.locator('section', { hasText: 'Preparando' })
 			.locator('article', { hasText: orderNumber })
 	).toBeVisible();
 	await kitchen
@@ -52,12 +52,20 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 		.getByRole('button', { name: 'Pronto' })
 		.click();
 	await expect(
-		kitchen.locator('section', { hasText: 'Prontos' }).locator('article', { hasText: orderNumber })
+		kitchen.locator('section', { hasText: 'Pronto' }).locator('article', { hasText: orderNumber })
 	).toBeVisible();
 
 	// The admin's order list picks up the kitchen's change without a reload.
 	await page.goto('/staff/orders?status=ready');
 	await expect(page.getByRole('link', { name: orderNumber })).toBeVisible();
+
+	// The attendant calls the code out and taps "Chamar"; the board shows when it was called.
+	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
+	await page.getByRole('button', { name: new RegExp(`Chamar ${orderNumber}`) }).click();
+	await expect(page.getByText(/Chamado às/)).toBeVisible();
+	await expect(
+		kitchen.locator('article', { hasText: orderNumber }).getByText(/Chamado às/)
+	).toBeVisible({ timeout: 15_000 });
 	await kitchenCtx.close();
 });
 

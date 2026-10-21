@@ -185,8 +185,12 @@ These are deliberate. Nothing below is claimed to work in production yet.
    from HTTP status codes.
 3. **Menu photos need Storage.** Uploads use the self-hosted Supabase Storage
    service. Without `SUPABASE_SERVICE_ROLE_KEY` the editor works but refuses photos.
-4. **Notifications and printing.** The `order-placed` job is the hook for
-   WhatsApp/e-mail messages and an optional print agent. Neither is connected.
+4. **Notifications and printing.** The customer can turn on a phone alert for
+   "ready" on the order page (web push, `order-ready` job, sent on Pronto and on
+   each "Chamar"). It needs `APP_SECRET` (the VAPID keys are made on first use
+   and stored encrypted) and HTTPS; on iPhone it works only after "Adicionar à
+   Tela de Início". The page also beeps while open. WhatsApp/e-mail messages and
+   a print agent are not connected (`order-placed` is their hook).
 5. **Fiscal documents (NFC-e/SAT)** are out of scope. Use the shop's existing
    fiscal solution.
 
