@@ -65,7 +65,7 @@
 		tried = true;
 		if (missing.length || out) return;
 		cart.add(p, quantity, options, note.trim());
-		goto('/');
+		goto('/cardapio');
 	}
 </script>
 
@@ -77,7 +77,7 @@
 >
 
 <article class="space-y-5 py-4">
-	<a href="/" class="text-sm text-muted">{t('product.back')}</a>
+	<a href="/cardapio" class="text-sm text-muted">{t('product.back')}</a>
 	{#if p.imageUrl}<img
 			src={p.imageUrl}
 			alt={p.name}

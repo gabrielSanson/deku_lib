@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 test('customer orders on the site, pays with Pix and the order reaches the kitchen @phone', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto('/cardapio');
 	await page.waitForLoadState('networkidle');
 	await page
 		.getByRole('link', { name: /Clássico/ })
@@ -14,7 +14,7 @@ test('customer orders on the site, pays with Pix and the order reaches the kitch
 	await page.waitForLoadState('networkidle');
 	await page.getByRole('button', { name: 'Ao ponto' }).click();
 	await page.getByRole('button', { name: /^Adicionar/ }).click();
-	await page.waitForURL((u) => u.pathname === '/');
+	await page.waitForURL((u) => u.pathname === '/cardapio');
 
 	await page.goto('/checkout');
 	await page.waitForLoadState('networkidle');

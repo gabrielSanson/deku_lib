@@ -183,7 +183,7 @@
 	{#if cart.ready && cart.lines.length === 0}
 		<div class="card p-6 text-center">
 			<p class="mb-3 text-muted">{t('cart.empty')}</p>
-			<a class="btn-primary" href="/">{t('cart.seeMenu')}</a>
+			<a class="btn-primary" href="/cardapio">{t('cart.seeMenu')}</a>
 		</div>
 	{:else}
 		<form

@@ -38,7 +38,7 @@
 
 	{#if data.tenderStatus === 'cancelled' || data.tenderStatus === 'failed' || remaining === 0}
 		<p class="alert-error">{t('payment.failed')}</p>
-		<a class="btn-primary" href="/">{t('errors.backToMenu')}</a>
+		<a class="btn-primary" href="/cardapio">{t('errors.backToMenu')}</a>
 	{:else if data.pixSvg}
 		<p class="text-muted">
 			{data.shopPix ? t('payment.instructions.shop') : t('payment.instructions.auto')}

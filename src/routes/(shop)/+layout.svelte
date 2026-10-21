@@ -29,6 +29,7 @@
 
 	const path = $derived(page.url.pathname);
 	const isHome = $derived(path === '/');
+	const isMenu = $derived(path === '/cardapio');
 	const onCheckout = $derived(
 		path.startsWith('/cart') || path.startsWith('/checkout') || path.startsWith('/orders')
 	);
@@ -38,7 +39,7 @@
 	// header button points there instead of opening the drawer.
 	function openCart() {
 		const docked = document.getElementById('seu-pedido');
-		if (isHome && docked && matchMedia('(min-width: 1024px)').matches) {
+		if (isMenu && docked && matchMedia('(min-width: 1024px)').matches) {
 			docked.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 			docked.focus({ preventScroll: true });
 		} else cart.panelOpen = true;
@@ -63,7 +64,7 @@
 	});
 
 	const nav = $derived([
-		{ href: '/', label: t('header.nav.menu'), icon: 'burger' as const, active: isHome },
+		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'burger' as const, active: isMenu },
 		{ href: '/#como-pedir', label: t('header.nav.howTo'), icon: 'receipt' as const, active: false },
 		...(orderToken
 			? [
@@ -71,6 +72,21 @@
 						href: `/orders/${orderToken}`,
 						label: t('header.nav.track'),
 						icon: 'pin' as const,
+						active: path.startsWith('/orders')
+					}
+				]
+			: [])
+	]);
+
+	const tabs = $derived([
+		{ href: '/', label: t('header.nav.home'), icon: 'home' as const, active: isHome },
+		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'menu' as const, active: isMenu },
+		...(orderToken
+			? [
+					{
+						href: `/orders/${orderToken}`,
+						label: t('header.nav.track'),
+						icon: 'receipt' as const,
 						active: path.startsWith('/orders')
 					}
 				]
@@ -133,7 +149,7 @@
 		{/if}
 	</header>
 
-	{#if isHome}
+	{#if isHome || isMenu}
 		<div class="flex-1">{@render children()}</div>
 	{:else}
 		<div class="mx-auto w-full max-w-3xl flex-1 px-4 pb-28">
@@ -141,7 +157,7 @@
 		</div>
 	{/if}
 
-	<footer class="bg-night text-stone-400">
+	<footer class="bg-night pb-16 text-stone-400 md:pb-0">
 		<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
 			<p
 				class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
@@ -159,10 +175,34 @@
 		</div>
 	</footer>
 
+	<!-- Bottom tabs on phones (mockup 03) -->
+	{#if !onCheckout || path.startsWith('/orders')}
+		<nav
+			class="fixed inset-x-0 bottom-0 z-30 border-t border-night-line bg-night pb-[env(safe-area-inset-bottom)] text-stone-300 md:hidden"
+			aria-label={t('header.nav.tabs')}
+		>
+			<ul class="mx-auto flex max-w-md">
+				{#each tabs as tab (tab.href)}
+					<li class="flex-1">
+						<a
+							href={tab.href}
+							class="flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold {tab.active
+								? 'text-brand-500'
+								: 'hover:text-white'}"
+							aria-current={tab.active ? 'page' : undefined}
+						>
+							<Icon name={tab.icon} class="size-6" />{tab.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+	{/if}
+
 	{#if showCartBar}
 		<button
 			onclick={() => (cart.panelOpen = true)}
-			class="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10 {isHome
+			class="fixed inset-x-4 bottom-20 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10 md:bottom-4 {isMenu
 				? 'lg:hidden'
 				: ''}"
 		>
