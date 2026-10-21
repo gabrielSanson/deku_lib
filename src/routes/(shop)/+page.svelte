@@ -200,7 +200,7 @@
 
 				{#each shown as s (s.id)}
 					<section id={s.slug} class="mb-10 scroll-mt-40">
-						{#if !selected}<h2 class="mb-4 font-display text-2xl uppercase">{s.name}</h2>{/if}
+						{#if !selected}<h2 class="mb-5 section-label">{s.name}</h2>{/if}
 						<ul class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 							{#each s.products as p (p.sku)}
 								{@const out = soldOut.has(p.sku)}
@@ -208,7 +208,7 @@
 									p.modifierGroups.length > 0 ||
 									p.ingredients.some((i) => i.removable && missingIngredients.has(i.id))}
 								<li
-									class="flex flex-col overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line transition-shadow hover:shadow-lg {out
+									class="flex flex-col overflow-hidden card transition-shadow hover:shadow-lg {out
 										? 'opacity-60'
 										: ''}"
 								>
@@ -240,11 +240,11 @@
 										{/if}
 									</a>
 									<div class="flex flex-1 flex-col p-5">
-										<h3 class="text-lg font-bold">
+										<h3 class="text-xl font-bold tracking-tight">
 											<a href="/menu/{p.slug}" class="hover:underline">{p.name}</a>
 										</h3>
 										<p class="mt-1 line-clamp-3 text-sm text-muted">{p.description}</p>
-										<p class="mt-auto pt-4 text-2xl font-extrabold">
+										<p class="mt-auto pt-4 text-2xl font-black tabular-nums">
 											{#if needsChoice}<span class="text-sm font-semibold text-muted"
 													>{t('home.from')}&nbsp;</span
 												>{/if}<Money cents={p.priceCents} />
