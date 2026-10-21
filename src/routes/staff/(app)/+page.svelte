@@ -85,7 +85,14 @@
 <LiveBanner {live} />
 
 <main class="mx-auto max-w-5xl space-y-7 p-4 sm:p-6">
-	<h1 class="page-title">Início</h1>
+	<div>
+		<h1 class="page-title">Início</h1>
+		<p class="mt-1 text-sm text-muted">
+			{new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(
+				new Date(now)
+			)}
+		</p>
+	</div>
 	{#if !data.setupDone && data.staff.role === 'admin'}
 		<div class="flex flex-wrap items-center justify-between gap-3 alert-warn">
 			<span><strong>Falta terminar a configuração da loja.</strong> Leva poucos minutos.</span>
@@ -130,11 +137,11 @@
 			<a
 				href={t.href}
 				class="card p-5 transition-colors hover:border-brand-500 {t.alert
-					? 'border-amber-400 bg-amber-50'
+					? 'border-bad bg-bad-tint'
 					: ''}"
 			>
-				<div class="text-sm font-medium text-muted">{t.label}</div>
-				<div class="font-display text-4xl font-extrabold tabular-nums">{t.value}</div>
+				<div class="text-sm font-semibold text-muted">{t.label}</div>
+				<div class="font-display text-5xl font-black tabular-nums">{t.value}</div>
 			</a>
 		{/each}
 	</section>
@@ -152,7 +159,7 @@
 				{#each salesTiles as t (t.label)}
 					<div class="card p-5">
 						<div class="text-sm font-medium text-muted">{t.label}</div>
-						<div class="font-display text-3xl font-extrabold tabular-nums">{t.value}</div>
+						<div class="font-display text-4xl font-black tabular-nums">{t.value}</div>
 						{#if t.d !== null}
 							<div class="text-xs {t.d >= 0 ? 'text-ok' : 'text-bad'}">
 								{t.d >= 0 ? '+' : ''}{t.d}% vs. mesmo dia da semana passada
