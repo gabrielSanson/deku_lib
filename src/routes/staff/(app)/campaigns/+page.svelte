@@ -20,7 +20,7 @@
 
 <svelte:head><title>Campanhas · Equipe</title></svelte:head>
 
-<div class="space-y-4">
+<main class="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<h1 class="page-title">Campanhas e cupons</h1>
 		<a class="btn-primary" href="/staff/campaigns/new">Nova campanha</a>
@@ -116,4 +116,4 @@
 			</tbody>
 		</table>
 	</div>
-</div>
+</main>
