@@ -333,6 +333,12 @@ export const TEXTS = {
 	// Menu page
 	'menu.pageTitle': { group: 'menu', label: 'Título da aba', default: 'Cardápio · {name}' },
 	'menu.title': { group: 'menu', label: 'Título', default: 'Cardápio' },
+	'menu.subtitle': {
+		group: 'menu',
+		label: 'Subtítulo',
+		default: 'Sabor brasileiro em cada mordida.'
+	},
+	'menu.addShort': { group: 'menu', label: 'Botão curto adicionar', default: '+ Adicionar' },
 	'menu.search': { group: 'menu', label: 'Busca', default: 'Buscar no cardápio' },
 	'menu.noResults': { group: 'menu', label: 'Busca sem resultado', default: 'Nada encontrado.' },
 
