@@ -1,7 +1,9 @@
-import { requireStaff } from '#lib/server/auth/staff.ts';
+import { attempt, formString } from '#lib/server/actions.ts';
+import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
+import { callOrder } from '#lib/server/orders/service.ts';
 import type { OrderStatus } from '#lib/domain/order-status.ts';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 const FILTERS: Record<string, OrderStatus[] | undefined> = {
 	new: ['new'],
@@ -25,4 +27,16 @@ export const load: PageServerLoad = async (event) => {
 		limit: 200
 	});
 	return { orders, status, channel: channel ?? '' };
+};
+
+export const actions: Actions = {
+	/** "Chamar": the attendant called a ready order out loud. */
+	call: async (event) => {
+		const staff = requireStaff(event);
+		const id = formString(await event.request.formData(), 'orderId');
+		return attempt(async () => {
+			await callOrder(id, staffActor(staff));
+			return { ok: true };
+		});
+	}
 };

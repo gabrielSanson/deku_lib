@@ -6,8 +6,10 @@
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	let muted = $state(false);
 	let station = $state('all');
@@ -190,6 +192,14 @@
 											>
 										</form>
 									{/if}
+									{#if lane.key === 'ready'}
+										<form method="POST" action="?/call" use:enhance class="flex-1">
+											<input type="hidden" name="orderId" value={o.id} />
+											<button class="min-h-12 w-full rounded-lg bg-stone-700 text-lg font-black"
+												>{t('staff.call')}</button
+											>
+										</form>
+									{/if}
 									{#if nextAction[lane.key]}
 										<form method="POST" action="?/move" use:enhance class="flex-1">
 											<input type="hidden" name="orderId" value={o.id} />
@@ -202,6 +212,9 @@
 										</form>
 									{/if}
 								</footer>
+								{#if lane.key === 'ready' && o.calledAt}<p class="mt-1 text-sm text-stone-300">
+										{t('staff.called', { time: formatTime(o.calledAt) })}
+									</p>{/if}
 								{#if o.promisedAt}<p class="mt-1 text-right text-xs text-stone-400">
 										Prometido {formatTime(o.promisedAt)}
 									</p>{/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
+	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import Age from '#lib/components/Age.svelte';
 	import LiveBanner from '#lib/components/LiveBanner.svelte';
@@ -7,9 +8,13 @@
 	import PaymentBadge from '#lib/components/PaymentBadge.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
+	import { mayCall, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
+	import FormError from '#lib/components/FormError.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 
-	let { data } = $props();
+	let { data, form } = $props();
+	const t = useTexts();
 	const live = useLiveOrders(() => data.live);
 
 	const tabs = [
@@ -60,6 +65,7 @@
 		</select>
 	</div>
 
+	<FormError message={form?.error} />
 	<div class="overflow-x-auto card">
 		<table class="w-full text-sm">
 			<thead class="bg-stone-50 text-left text-xs text-muted uppercase">
@@ -80,7 +86,25 @@
 						onclick={() => goto(`/staff/orders/${o.id}`)}
 					>
 						<td class="p-3 font-bold"><a href="/staff/orders/{o.id}">#{o.orderNumber}</a></td>
-						<td class="p-3"><StatusBadge status={o.status} /></td>
+						<td class="p-3">
+							<StatusBadge status={o.status} />
+							{#if mayCall(o.status)}
+								<!-- "Chamar": say the code out loud, then tap; the board and the customer are told. -->
+								<form method="POST" action="?/call" use:enhance class="mt-1">
+									<input type="hidden" name="orderId" value={o.id} />
+									<button
+										onclick={(e) => e.stopPropagation()}
+										class="btn-primary min-h-9 text-sm"
+										aria-label="{t('staff.call')} {pickupCode(o.orderNumber)}{o.customerLabel
+											? `, ${o.customerLabel}`
+											: ''}">{t('staff.call')}</button
+									>
+									{#if o.calledAt}<span class="block text-xs text-muted"
+											>{t('staff.called', { time: formatTime(o.calledAt) })}</span
+										>{/if}
+								</form>
+							{/if}
+						</td>
 						<td class="p-3"
 							>{channelLabel[o.channel]} · {fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</td
 						>

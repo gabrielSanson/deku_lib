@@ -46,6 +46,8 @@ export interface OrderSummary {
 	acceptedAt: Date | null;
 	readyAt: Date | null;
 	kitchenSeenAt: Date | null;
+	/** Last time staff tapped "Chamar". */
+	calledAt: Date | null;
 	version: number;
 	items: OrderItemView[];
 }
@@ -70,6 +72,7 @@ interface OrderRow {
 	accepted_at: Date | null;
 	ready_at: Date | null;
 	kitchen_seen_at: Date | null;
+	called_at: Date | null;
 	version: number;
 }
 
@@ -126,6 +129,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 		acceptedAt: r.accepted_at,
 		readyAt: r.ready_at,
 		kitchenSeenAt: r.kitchen_seen_at,
+		calledAt: r.called_at,
 		version: r.version,
 		items: items
 			.filter((i) => i.order_id === r.id)
@@ -168,7 +172,7 @@ export async function listOrders(
 	const rows = await sql<OrderRow[]>`
 		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
-			kitchen_seen_at, version
+			kitchen_seen_at, called_at, version
 		from orders
 		where (${statuses}::text[] is null or status = any(${statuses}::text[]))
 			and (${filter.channel ?? null}::text is null or channel = ${filter.channel ?? null})
@@ -183,7 +187,7 @@ export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]>
 	const rows = await sql<OrderRow[]>`
 		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
-			kitchen_seen_at, version
+			kitchen_seen_at, called_at, version
 		from orders
 		where status in ('confirmed', 'preparing', 'ready')
 			or (status = 'completed' and completed_at > now() - interval '10 minutes')

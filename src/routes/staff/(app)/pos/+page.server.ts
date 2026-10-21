@@ -4,7 +4,13 @@ import { cartLineInput, priceCart } from '#lib/domain/pricing.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { unavailableReason } from '#lib/domain/catalog.ts';
-import { evalCart, findOffer, offerMessage } from '#lib/server/campaigns/service.ts';
+import { normalizeBrPhone } from '#lib/domain/phone.ts';
+import {
+	customerIdByPhone,
+	evalCart,
+	findOffer,
+	offerMessage
+} from '#lib/server/campaigns/service.ts';
 import {
 	getCatalog,
 	getCatalogForPricing,
@@ -36,9 +42,11 @@ export const load: PageServerLoad = async (event) => {
 
 const orderForm = z.object({
 	lines: z.array(cartLineInput).min(1),
-	fulfillmentType: z.enum(['counter', 'pickup', 'ifood']),
+	fulfillmentType: z.enum(['dine_in', 'pickup', 'ifood']),
 	ifoodCode: z.string().trim().max(20).optional(),
 	customerLabel: z.string().trim().max(60).optional(),
+	tableLabel: z.string().trim().max(20).optional(),
+	phone: z.string().trim().max(25).optional(),
 	notes: z.string().trim().max(300).optional(),
 	discountCents: z.number().int().min(0).default(0),
 	couponCode: z.string().trim().max(30).optional(),
@@ -47,11 +55,12 @@ const orderForm = z.object({
 
 const quoteForm = z.object({
 	lines: z.array(cartLineInput).min(1),
-	couponCode: z.string().trim().max(30).optional()
+	couponCode: z.string().trim().max(30).optional(),
+	phone: z.string().trim().max(25).optional()
 });
 
 export const actions: Actions = {
-	/** Which promotion the cart gets, so staff charge the right amount. Counter sales are anonymous. */
+	/** Which promotion the cart gets, so staff charge the right amount. The phone is optional. */
 	quote: async (event) => {
 		requireStaff(event, ADMIN);
 		const data = await event.request.formData();
@@ -73,7 +82,7 @@ export const actions: Actions = {
 			});
 			const offer = await findOffer(sql, {
 				cart: evalCart(catalog, cart, 0),
-				customerId: null,
+				customerId: await customerIdByPhone(sql, normalizeBrPhone(parsed.data.phone ?? '')),
 				couponCode: parsed.data.couponCode
 			});
 			const texts = await getTexts();
@@ -104,6 +113,12 @@ export const actions: Actions = {
 		const ifood = parsed.fulfillmentType === 'ifood';
 		if (ifood && !parsed.ifoodCode)
 			return fail(400, { error: 'Informe o código do pedido no iFood.' });
+		// An optional phone links the sale to the customer, for coupons, stamps and the ready alert.
+		const phone = !ifood && parsed.phone ? normalizeBrPhone(parsed.phone) : null;
+		if (!ifood && parsed.phone && !phone)
+			return fail(400, { error: 'Telefone inválido. Use DDD + número.' });
+		const name = parsed.customerLabel || null;
+		if (phone && !name) return fail(400, { error: 'Informe o nome do cliente.' });
 		const result = await attempt(() =>
 			createOrder({
 				channel: ifood ? 'ifood' : 'counter',
@@ -114,7 +129,9 @@ export const actions: Actions = {
 				channelDisplayId: ifood ? parsed.ifoodCode : null,
 				paymentStatus: ifood ? 'paid' : undefined,
 				paymentPlan: ifood ? 'channel' : undefined,
-				customerLabel: parsed.customerLabel || null,
+				customerLabel: name,
+				tableLabel: parsed.tableLabel || null,
+				customer: phone && name ? { name, phoneE164: phone } : undefined,
 				notes: parsed.notes || null,
 				discountCents: parsed.discountCents,
 				couponCode: ifood ? null : parsed.couponCode || null,

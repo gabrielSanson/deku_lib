@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { attempt, formString } from '#lib/server/actions.ts';
 import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { listKitchenOrders } from '#lib/server/orders/queries.ts';
-import { markKitchenSeen, transitionOrder } from '#lib/server/orders/service.ts';
+import { callOrder, markKitchenSeen, transitionOrder } from '#lib/server/orders/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -17,6 +17,14 @@ export const actions: Actions = {
 		const id = formString(await event.request.formData(), 'orderId');
 		await markKitchenSeen(id, staffActor(staff));
 		return { ok: true };
+	},
+	call: async (event) => {
+		const staff = requireStaff(event);
+		const id = formString(await event.request.formData(), 'orderId');
+		return attempt(async () => {
+			await callOrder(id, staffActor(staff));
+			return { ok: true };
+		});
 	},
 	move: async (event) => {
 		const staff = requireStaff(event);

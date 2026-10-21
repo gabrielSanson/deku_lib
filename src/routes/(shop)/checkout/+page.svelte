@@ -140,7 +140,10 @@
 			!quote.deliveryError &&
 			!(couponCode && quote.couponBlocks) &&
 			name.trim().length >= 2 &&
-			phone.trim().length >= 8
+			// Eating in only needs a name to call out; the phone is optional.
+			(fulfillmentType === 'dine_in'
+				? phone.trim().length === 0 || phone.trim().length >= 8
+				: phone.trim().length >= 8)
 	);
 	const methods = $derived([
 		...(data.onlineMethods.includes('pix')
@@ -335,15 +338,23 @@
 					/>
 				</div>
 				<div>
-					<label class="label" for="phone">{t('checkout.phone')}</label><input
+					<label class="label" for="phone"
+						>{fulfillmentType === 'dine_in'
+							? t('checkout.phoneOptional')
+							: t('checkout.phone')}</label
+					><input
 						id="phone"
 						class="field"
 						type="tel"
 						autocomplete="tel"
 						bind:value={phone}
 						placeholder="(11) 98765-4321"
-						required
+						required={fulfillmentType !== 'dine_in'}
+						aria-describedby={fulfillmentType === 'dine_in' ? 'phone-hint' : undefined}
 					/>
+					{#if fulfillmentType === 'dine_in'}<p id="phone-hint" class="mt-1 text-xs text-muted">
+							{t('checkout.phoneOptional.hint')}
+						</p>{/if}
 				</div>
 				<div>
 					<label class="label" for="email">{t('checkout.email')}</label><input

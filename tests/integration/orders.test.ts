@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
-import { createOrder, transitionOrder } from '#lib/server/orders/service.ts';
+import { callOrder, createOrder, transitionOrder } from '#lib/server/orders/service.ts';
 import { getOrderDetail, getPublicOrder, listKitchenOrders } from '#lib/server/orders/queries.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
 import { setSoldOut, updateStoreSettings } from '#lib/server/settings/service.ts';
@@ -385,5 +385,38 @@ describe('paid before the kitchen', () => {
 		expect(order.totalCents).toBe(0);
 		expect(order.status).toBe('confirmed');
 		expect((await getOrderDetail(order.id))?.paymentStatus).toBe('paid');
+	});
+});
+
+describe('calling a ready order', () => {
+	it('records each call and only works once the order is ready', async () => {
+		const order = await counterOrder();
+		await expect(callOrder(order.id, cashier)).rejects.toThrow(/prontos/);
+		await transitionOrder({ orderId: order.id, to: 'preparing', actor: kitchen });
+		await transitionOrder({ orderId: order.id, to: 'ready', actor: kitchen });
+		const first = await callOrder(order.id, cashier);
+		const second = await callOrder(order.id, kitchen);
+		expect(first.count).toBe(1);
+		expect(second.count).toBe(2);
+		const kds = await listKitchenOrders();
+		expect(kds.find((o) => o.id === order.id)?.calledAt).toEqual(second.calledAt);
+	});
+
+	it('keeps the table and the customer for an attendant dine-in order', async () => {
+		const order = await createOrder({
+			channel: 'counter',
+			sourceMode: 'staff_pos',
+			lines: [classic],
+			fulfillmentType: 'dine_in',
+			customerLabel: 'Ana',
+			tableLabel: '7',
+			customer: { name: 'Ana', phoneE164: '+5511955554444' },
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		const detail = await getOrderDetail(order.id);
+		expect(detail?.fulfillmentType).toBe('dine_in');
+		expect(detail?.tableLabel).toBe('7');
+		expect(detail?.customerLabel).toBe('Ana');
 	});
 });
