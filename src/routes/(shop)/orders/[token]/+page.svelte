@@ -139,11 +139,15 @@
 
 <section class="space-y-5 py-6">
 	{#if isNew}<p class="alert-ok">{t('order.sent')}</p>{/if}
-	<div class="text-center">
+	<div class="rounded-(--radius-card) bg-night p-6 text-center text-white">
 		<!-- Collected at the counter: the order number is the code that is called out. -->
-		<p class="text-sm text-muted">{collects ? t('order.codeLabel') : t('order.label')}</p>
-		<h1 class="font-black tabular-nums {collects ? 'text-7xl' : 'text-5xl'}">#{code}</h1>
-		{#if o.promisedAt && idx >= 0 && idx < 4}<p class="mt-1 text-muted">
+		<p class="text-sm font-semibold tracking-wide text-stone-300">
+			{collects ? t('order.codeLabel') : t('order.label')}
+		</p>
+		<h1 class="font-display text-7xl font-black tracking-tight text-brand-500 tabular-nums">
+			#{code}
+		</h1>
+		{#if o.promisedAt && idx >= 0 && idx < 4}<p class="mt-2 text-stone-300">
 				{t('order.eta', { time: formatTime(o.promisedAt) })}
 			</p>{/if}
 	</div>
@@ -198,26 +202,35 @@
 			{t('order.cancelled')}
 		</p>
 	{:else}
-		<ol class="space-y-2" aria-label={t('order.progress')}>
+		<ol class="space-y-0 card p-5" aria-label={t('order.progress')}>
 			{#each steps as s, i (s.key)}
 				<li
-					class="flex items-center gap-3 {i <= idx ? '' : 'opacity-40'}"
+					class="relative flex items-center gap-4 pb-5 last:pb-0 {i <= idx ? '' : 'opacity-50'}"
 					aria-current={i === idx ? 'step' : undefined}
 				>
+					{#if i < steps.length - 1}
+						<span
+							class="absolute top-9 left-4 h-[calc(100%-1.25rem)] w-0.5 {i < idx
+								? 'bg-ok'
+								: 'bg-line'}"
+							aria-hidden="true"
+						></span>
+					{/if}
 					<span
-						class="grid size-8 place-items-center rounded-full text-sm font-bold {i < idx
+						class="relative grid size-9 shrink-0 place-items-center rounded-full text-sm font-black {i <
+						idx
 							? 'bg-ok text-white'
 							: i === idx
-								? 'bg-brand-500 text-black'
-								: 'bg-stone-200'}">{i < idx ? '✓' : i + 1}</span
+								? 'bg-brand-500 text-black ring-4 ring-brand-100'
+								: 'bg-quiet text-stone-500'}">{i < idx ? '✓' : i + 1}</span
 					>
-					<span class={i === idx ? 'font-bold' : ''}>{s.label}</span>
+					<span class={i === idx ? 'text-lg font-extrabold' : 'font-medium'}>{s.label}</span>
 				</li>
 			{/each}
 		</ol>
 	{/if}
 
-	<div class="space-y-1 card p-4 text-sm">
+	<div class="space-y-1 card p-5 text-sm">
 		{#each o.items as item, i (i)}
 			<div class="flex justify-between gap-2">
 				<span
