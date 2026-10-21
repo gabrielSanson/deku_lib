@@ -3,6 +3,7 @@
 // Every handler is idempotent because pg-boss delivers at least once.
 import { db } from '../db';
 import { getBoss, QUEUES } from '../jobs';
+import { sendReadyPush } from '../notifications/push';
 import { expireUnpaidCheckouts, processPaymentEvent } from '../payments/online';
 
 function log(msg: string, extra: Record<string, unknown> = {}) {
@@ -24,6 +25,12 @@ export async function handleOrderPlaced(data: { orderId: string }) {
 		channel: o.channel,
 		status: o.status
 	});
+}
+
+/** The kitchen marked the order ready, or staff tapped "Chamar": tell the customer's phone. */
+export async function handleOrderReady(data: { orderId: string }) {
+	const result = await sendReadyPush(data.orderId);
+	if (result.sent || result.failed) log('ready alert', { orderId: data.orderId, ...result });
 }
 
 export async function handlePaymentEvent(data: { paymentEventId: string }) {
@@ -55,6 +62,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 	const boss = await getBoss();
 	const handlers: Record<string, Handler> = {
 		[QUEUES.orderPlaced]: handleOrderPlaced as Handler,
+		[QUEUES.orderReady]: handleOrderReady as Handler,
 		[QUEUES.paymentEvent]: handlePaymentEvent as Handler,
 		[QUEUES.staleOrders]: handleStaleOrders as Handler,
 		...extra

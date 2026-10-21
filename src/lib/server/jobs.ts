@@ -8,6 +8,7 @@ import type { Db } from './db';
 
 export const QUEUES = {
 	orderPlaced: 'order-placed',
+	orderReady: 'order-ready',
 	staleOrders: 'stale-orders',
 	ifoodPoll: 'ifood-poll',
 	ifoodEvent: 'ifood-event',
