@@ -40,6 +40,33 @@
 		goto(`?${u}`, { replace: true });
 	}
 	const channelLabel: Record<string, string> = { counter: 'Balcão', web: 'Site', ifood: 'iFood' };
+
+	// Board lanes, as in the mockup: novos, em preparo, prontos. Only for the active view.
+	const lanes = $derived([
+		{
+			key: 'new',
+			title: 'Novos',
+			hint: 'Aguardando início de preparo',
+			orders: data.orders.filter((o: { status: string }) => ['new', 'confirmed'].includes(o.status))
+		},
+		{
+			key: 'preparing',
+			title: 'Em preparo',
+			hint: 'Pedidos em produção na cozinha',
+			orders: data.orders.filter((o: { status: string }) => o.status === 'preparing')
+		},
+		{
+			key: 'ready',
+			title: 'Prontos',
+			hint: 'Aguardando retirada ou entrega',
+			orders: data.orders.filter((o: { status: string }) => o.status === 'ready')
+		}
+	]);
+	const laneTone: Record<string, string> = {
+		new: 'bg-bad-tint',
+		preparing: 'bg-brand-tint',
+		ready: 'bg-ok-tint'
+	};
 </script>
 
 <svelte:head><title>Pedidos · Equipe</title></svelte:head>
@@ -67,6 +94,78 @@
 	</div>
 
 	<FormError message={form?.error} />
+
+	{#if data.status === 'active'}
+		<div class="grid gap-4 lg:grid-cols-3">
+			{#each lanes as lane (lane.key)}
+				<section
+					class="rounded-(--radius-card) p-3 {laneTone[lane.key]}"
+					aria-labelledby="lane-{lane.key}"
+				>
+					<header class="mb-3 flex items-center justify-between gap-2 px-1">
+						<div>
+							<h2 id="lane-{lane.key}" class="font-display text-xl font-extrabold">{lane.title}</h2>
+							<p class="text-sm text-muted">{lane.hint}</p>
+						</div>
+						<span class="count">{lane.orders.length}</span>
+					</header>
+					<ul class="space-y-3">
+						{#each lane.orders as o (o.id)}
+							<li class="card p-4">
+								<a href="/staff/orders/{o.id}" class="block">
+									<div class="flex items-start justify-between gap-2">
+										<span class="font-display text-3xl font-extrabold tabular-nums"
+											>#{o.orderNumber}</span
+										>
+										<Age
+											since={o.createdAt}
+											warnAfter={o.status === 'new' ? 3 : 15}
+											lateAfter={o.status === 'new' ? 6 : 25}
+										/>
+									</div>
+									<p class="mt-1 text-sm text-muted">
+										{channelLabel[o.channel]} · {fulfillmentLabel(
+											o.fulfillmentType,
+											o.tableLabel
+										)}{o.customerLabel ? ` · ${o.customerLabel}` : ''}
+									</p>
+									<ul class="mt-2 space-y-0.5 text-sm font-medium">
+										{#each o.items as item, i (i)}
+											<li>{item.quantity}× {item.productName}</li>
+										{/each}
+									</ul>
+									<div class="mt-3 flex items-center justify-between gap-2">
+										<PaymentBadge status={o.paymentStatus} />
+										<Money cents={o.totalCents} class="font-bold" />
+									</div>
+								</a>
+								{#if mayCall(o.status)}
+									<!-- "Chamar": say the code out loud, then tap; the board and the customer are told. -->
+									<form method="POST" action="?/call" use:enhance class="mt-3">
+										<input type="hidden" name="orderId" value={o.id} />
+										<button
+											class="btn-primary w-full"
+											aria-label="{t('staff.call')} {pickupCode(o.orderNumber)}{o.customerLabel
+												? `, ${o.customerLabel}`
+												: ''}">{t('staff.call')}</button
+										>
+									</form>
+								{/if}
+							</li>
+						{:else}
+							<li
+								class="rounded-(--radius-card) border border-dashed border-line p-6 text-center text-sm text-muted"
+							>
+								Nenhum pedido aqui.
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/each}
+		</div>
+		<h2 class="section-label pt-2">Lista de pedidos</h2>
+	{/if}
+
 	<div class="overflow-hidden overflow-x-auto card">
 		<table class="w-full text-sm">
 			<thead class="bg-quiet text-left text-xs font-semibold tracking-wide text-muted">
