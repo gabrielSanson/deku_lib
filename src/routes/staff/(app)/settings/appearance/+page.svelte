@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const look = $derived(data.look);
@@ -35,10 +37,27 @@
 			hint: 'Aba do navegador e atalho no celular. Quadrado, 512×512 px.'
 		}
 	] as const;
-	const keep =
-		() =>
-		async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) =>
-			update({ reset: false });
+	const t = useTexts();
+	let formEl = $state<HTMLFormElement>();
+	const guard = guardUnsaved(
+		() => formEl,
+		() => t('unsaved.confirm')
+	);
+	// The colour form also tells the page guard when a save went through.
+	const keepColors = () => {
+		guard.saving();
+		return async ({
+			result,
+			update
+		}: {
+			result: { type: string };
+			update: (o?: { reset?: boolean }) => Promise<void>;
+		}) => {
+			await update({ reset: false });
+			if (result.type === 'success') guard.saved();
+			else guard.failed();
+		};
+	};
 </script>
 
 <svelte:head><title>Aparência · Configurações</title></svelte:head>
@@ -69,7 +88,13 @@
 		<div class="p-4 text-sm" style="background:{colors.background}">Cardápio</div>
 	</div>
 
-	<form method="POST" action="?/colors" class="space-y-4 card p-4" use:enhance={keep}>
+	<form
+		method="POST"
+		action="?/colors"
+		class="space-y-4 card p-4"
+		bind:this={formEl}
+		use:enhance={keepColors}
+	>
 		<h2 class="font-semibold">Cores</h2>
 		<div class="grid gap-4 sm:grid-cols-3">
 			{#each colorFields as c (c.key)}

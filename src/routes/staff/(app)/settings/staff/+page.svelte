@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
+	let formEl = $state<HTMLFormElement>();
+	const guard = guardUnsaved(
+		() => formEl,
+		() => t('unsaved.confirm')
+	);
 	const roleLabel: Record<string, string> = {
 		admin: 'Admin',
 		attendant: 'Atendente',
@@ -56,7 +64,20 @@
 		Desativar uma pessoa encerra o acesso imediatamente, em todos os aparelhos.
 	</p>
 
-	<form method="POST" action="?/add" use:enhance class="grid gap-3 card p-4 sm:grid-cols-2">
+	<form
+		method="POST"
+		action="?/add"
+		bind:this={formEl}
+		use:enhance={() => {
+			guard.saving();
+			return async ({ result, update }) => {
+				await update({ reset: true });
+				if (result.type === 'success') guard.saved();
+				else guard.failed();
+			};
+		}}
+		class="grid gap-3 card p-4 sm:grid-cols-2"
+	>
 		<h2 class="font-semibold sm:col-span-2">Adicionar pessoa</h2>
 		<div>
 			<label class="label" for="dn">Nome</label><input
