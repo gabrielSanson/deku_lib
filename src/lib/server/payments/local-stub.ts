@@ -42,7 +42,7 @@ export const localStubProvider: PaymentProvider = {
 			given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected))
 		);
 	},
-	parseWebhook(rawBody) {
+	async parseWebhook(rawBody) {
 		const body = JSON.parse(new TextDecoder().decode(rawBody)) as {
 			id: string;
 			type: string;

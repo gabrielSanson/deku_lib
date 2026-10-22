@@ -266,7 +266,14 @@
 						placeError = navigator.onLine ? t('errors.generic') : t('errors.offline');
 						return;
 					}
-					if (result.type === 'redirect') cart.clear();
+					if (result.type === 'redirect') {
+						cart.clear();
+						// Card payments continue on the provider's own page.
+						if (new URL(result.location, location.href).origin !== location.origin) {
+							location.href = result.location;
+							return;
+						}
+					}
 					await applyAction(result);
 				};
 			}}

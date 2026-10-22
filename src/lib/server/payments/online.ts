@@ -45,9 +45,13 @@ export async function startOnlinePayment(input: {
 			status: string;
 			payment_status: string;
 			customer_label: string | null;
+			email: string | null;
+			phone_e164: string | null;
 		}[]
 	>`
-		select order_number, total_cents, status, payment_status, customer_label from orders where id = ${input.orderId}`;
+		select o.order_number, o.total_cents, o.status, o.payment_status, o.customer_label, c.email, c.phone_e164
+		from orders o left join customers c on c.id = o.customer_id
+		where o.id = ${input.orderId}`;
 	if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
 	if (order.payment_status === 'paid')
 		throw new DomainError('Este pedido já está pago.', 'paid', 409);
@@ -60,7 +64,11 @@ export async function startOnlinePayment(input: {
 		amountCents: order.total_cents,
 		method: input.method,
 		idempotencyKey: input.idempotencyKey,
-		customer: { name: order.customer_label ?? 'Cliente' },
+		customer: {
+			name: order.customer_label ?? 'Cliente',
+			email: order.email,
+			phoneE164: order.phone_e164
+		},
 		returnUrl: input.returnUrl
 	});
 	const payload = { pixCode: checkout.pixCode, redirectUrl: checkout.redirectUrl };
@@ -90,7 +98,8 @@ export async function receivePaymentWebhook(
 		);
 		return { status: 401 };
 	}
-	const event = provider.parseWebhook(rawBody);
+	const event = await provider.parseWebhook(rawBody);
+	if (!event) return { status: 200 };
 	await db().begin(async (tx) => {
 		const inserted = await tx<{ id: string }[]>`
 			insert into payment_events (provider, provider_event_id, event_type, signature_valid, payload)

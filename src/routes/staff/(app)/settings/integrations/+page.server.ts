@@ -20,6 +20,7 @@ export const load: PageServerLoad = async (event) => {
 		ifoodAlerts: await currentIfoodAlerts(),
 		shopPix: profile.pix.enabled,
 		paymentProvider: c.PAYMENT_PROVIDER,
+		webhookSecretSet: !!c.MERCADOPAGO_WEBHOOK_SECRET,
 		production: c.NODE_ENV === 'production'
 	};
 };
