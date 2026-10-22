@@ -1211,6 +1211,196 @@ export const TEXTS = {
 		label: 'Início: rótulo dos atalhos',
 		default: 'Atalhos'
 	},
+	'orders.tab.active': {
+		group: 'staff',
+		label: 'Pedidos: aba em andamento',
+		default: 'Em andamento'
+	},
+	'orders.tab.new': {
+		group: 'staff',
+		label: 'Pedidos: aba novos',
+		default: 'Novos'
+	},
+	'orders.tab.open': {
+		group: 'staff',
+		label: 'Pedidos: aba em produção',
+		default: 'Em produção'
+	},
+	'orders.tab.ready': {
+		group: 'staff',
+		label: 'Pedidos: aba prontos',
+		default: 'Prontos'
+	},
+	'orders.tab.done': {
+		group: 'staff',
+		label: 'Pedidos: aba concluídos',
+		default: 'Concluídos'
+	},
+	'orders.tab.cancelled': {
+		group: 'staff',
+		label: 'Pedidos: aba cancelados',
+		default: 'Cancelados'
+	},
+	'orders.tab.all': {
+		group: 'staff',
+		label: 'Pedidos: aba histórico',
+		default: 'Histórico'
+	},
+	'orders.channel.all': {
+		group: 'staff',
+		label: 'Pedidos: filtro todos os canais',
+		default: 'Todos os canais'
+	},
+	'orders.channel.counter': {
+		group: 'staff',
+		label: 'Pedidos: canal balcão',
+		default: 'Balcão'
+	},
+	'orders.channel.web': {
+		group: 'staff',
+		label: 'Pedidos: canal site',
+		default: 'Site'
+	},
+	'orders.channel.ifood': {
+		group: 'staff',
+		label: 'Pedidos: canal iFood',
+		default: 'iFood'
+	},
+	'orders.lane.new': {
+		group: 'staff',
+		label: 'Pedidos: coluna novos',
+		default: 'Novos'
+	},
+	'orders.lane.newHint': {
+		group: 'staff',
+		label: 'Pedidos: dica da coluna novos',
+		default: 'Aguardando início de preparo'
+	},
+	'orders.lane.preparing': {
+		group: 'staff',
+		label: 'Pedidos: coluna em preparo',
+		default: 'Em preparo'
+	},
+	'orders.lane.preparingHint': {
+		group: 'staff',
+		label: 'Pedidos: dica da coluna em preparo',
+		default: 'Pedidos em produção na cozinha'
+	},
+	'orders.lane.ready': {
+		group: 'staff',
+		label: 'Pedidos: coluna prontos',
+		default: 'Prontos'
+	},
+	'orders.lane.readyHint': {
+		group: 'staff',
+		label: 'Pedidos: dica da coluna prontos',
+		default: 'Aguardando retirada ou entrega'
+	},
+	'orders.subtitle': {
+		group: 'staff',
+		label: 'Pedidos: subtítulo',
+		default: 'Acompanhe cada pedido da entrada até a retirada.'
+	},
+	'orders.updated': {
+		group: 'staff',
+		label: 'Pedidos: atualizado',
+		default: 'Atualizado agora'
+	},
+	'orders.filter': {
+		group: 'staff',
+		label: 'Pedidos: rótulo das abas',
+		default: 'Filtrar pedidos'
+	},
+	'orders.searchLabel': {
+		group: 'staff',
+		label: 'Pedidos: rótulo da busca',
+		default: 'Buscar pedido'
+	},
+	'orders.searchPlaceholder': {
+		group: 'staff',
+		label: 'Pedidos: busca',
+		default: 'Nº do pedido, cliente ou mesa'
+	},
+	'orders.channelLabel': {
+		group: 'staff',
+		label: 'Pedidos: rótulo do canal',
+		default: 'Canal'
+	},
+	'orders.startPrep': {
+		group: 'staff',
+		label: 'Pedidos: botão iniciar preparo',
+		default: 'Iniciar preparo'
+	},
+	'orders.laneEmpty': {
+		group: 'staff',
+		label: 'Pedidos: coluna vazia',
+		default: 'Nenhum pedido aqui.'
+	},
+	'orders.filterEmpty': {
+		group: 'staff',
+		label: 'Pedidos: tabela vazia',
+		default: 'Nenhum pedido neste filtro.'
+	},
+	'orders.col.number': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho número',
+		default: 'Nº'
+	},
+	'orders.col.status': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho status',
+		default: 'Status'
+	},
+	'orders.col.channel': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho canal',
+		default: 'Canal'
+	},
+	'orders.col.customer': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho cliente',
+		default: 'Cliente'
+	},
+	'orders.col.items': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho itens',
+		default: 'Itens'
+	},
+	'orders.col.payment': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho pagamento',
+		default: 'Pagamento'
+	},
+	'orders.col.total': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho total',
+		default: 'Total'
+	},
+	'orders.col.promised': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho prometido',
+		default: 'Prometido'
+	},
+	'orders.col.age': {
+		group: 'staff',
+		label: 'Pedidos: cabeçalho idade',
+		default: 'Idade'
+	},
+	'orders.itemsCount': {
+		group: 'staff',
+		label: 'Pedidos: contagem de itens',
+		default: '{n} itens'
+	},
+	'orders.title': {
+		group: 'staff',
+		label: 'Pedidos: título',
+		default: 'Pedidos'
+	},
+	'orders.tabTitle': {
+		group: 'staff',
+		label: 'Pedidos: título da aba do navegador',
+		default: 'Pedidos · Equipe'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',

@@ -14,6 +14,7 @@
 	import { mayCall, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import type { TextKey } from '#lib/texts/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
@@ -22,30 +23,35 @@
 	const t = useTexts();
 	const live = useLiveOrders(() => data.live);
 
-	const tabDefs: { key: string; label: string; icon: IconName }[] = [
-		{ key: 'active', label: 'Em andamento', icon: 'flame' },
-		{ key: 'new', label: 'Novos', icon: 'bag' },
-		{ key: 'open', label: 'Em produção', icon: 'chef' },
-		{ key: 'ready', label: 'Prontos', icon: 'check' },
-		{ key: 'done', label: 'Concluídos', icon: 'receipt' },
-		{ key: 'cancelled', label: 'Cancelados', icon: 'close' },
-		{ key: 'all', label: 'Histórico', icon: 'book' }
+	const tabDefs: { key: string; label: TextKey; icon: IconName }[] = [
+		{ key: 'active', label: 'orders.tab.active', icon: 'flame' },
+		{ key: 'new', label: 'orders.tab.new', icon: 'bag' },
+		{ key: 'open', label: 'orders.tab.open', icon: 'chef' },
+		{ key: 'ready', label: 'orders.tab.ready', icon: 'check' },
+		{ key: 'done', label: 'orders.tab.done', icon: 'receipt' },
+		{ key: 'cancelled', label: 'orders.tab.cancelled', icon: 'close' },
+		{ key: 'all', label: 'orders.tab.all', icon: 'book' }
 	];
 	const tabs = $derived(
 		tabDefs.map((tab) => ({
 			...tab,
+			label: t(tab.label),
 			count: data.tabCounts[tab.key] ?? 0,
 			href: `?${linkParams({ status: tab.key })}`
 		}))
 	);
 
-	const channels = [
-		['', 'Todos os canais'],
-		['counter', 'Balcão'],
-		['web', 'Site'],
-		['ifood', 'iFood']
-	];
-	const channelLabel: Record<string, string> = { counter: 'Balcão', web: 'Site', ifood: 'iFood' };
+	const channels = $derived([
+		['', t('orders.channel.all')],
+		['counter', t('orders.channel.counter')],
+		['web', t('orders.channel.web')],
+		['ifood', t('orders.channel.ifood')]
+	]);
+	const channelLabel = $derived<Record<string, string>>({
+		counter: t('orders.channel.counter'),
+		web: t('orders.channel.web'),
+		ifood: t('orders.channel.ifood')
+	});
 
 	/** Current filters as a query string, with one key overridden. */
 	function linkParams(over: Record<string, string>) {
@@ -64,22 +70,22 @@
 	const lanes = $derived([
 		{
 			key: 'new',
-			title: 'Novos',
-			hint: 'Aguardando início de preparo',
+			title: t('orders.lane.new'),
+			hint: t('orders.lane.newHint'),
 			icon: 'bag' as IconName,
 			orders: data.orders.filter((o: { status: string }) => ['new', 'confirmed'].includes(o.status))
 		},
 		{
 			key: 'preparing',
-			title: 'Em preparo',
-			hint: 'Pedidos em produção na cozinha',
+			title: t('orders.lane.preparing'),
+			hint: t('orders.lane.preparingHint'),
 			icon: 'chef' as IconName,
 			orders: data.orders.filter((o: { status: string }) => o.status === 'preparing')
 		},
 		{
 			key: 'ready',
-			title: 'Prontos',
-			hint: 'Aguardando retirada ou entrega',
+			title: t('orders.lane.ready'),
+			hint: t('orders.lane.readyHint'),
 			icon: 'check' as IconName,
 			orders: data.orders.filter((o: { status: string }) => o.status === 'ready')
 		}
@@ -91,25 +97,25 @@
 	};
 </script>
 
-<svelte:head><title>Pedidos · Equipe</title></svelte:head>
+<svelte:head><title>{t('orders.tabTitle')}</title></svelte:head>
 <LiveBanner {live} />
 
 <main class="space-y-4 p-4 sm:p-6">
 	<header class="flex flex-wrap items-end justify-between gap-3">
 		<div>
-			<h1 class="page-title">Pedidos</h1>
-			<p class="text-sm text-muted">Acompanhe cada pedido da entrada até a retirada.</p>
+			<h1 class="page-title">{t('orders.title')}</h1>
+			<p class="text-sm text-muted">{t('orders.subtitle')}</p>
 		</div>
-		<span class="text-sm text-muted">Atualizado agora</span>
+		<span class="text-sm text-muted">{t('orders.updated')}</span>
 	</header>
 
 	<div class="flex flex-wrap items-center gap-3">
-		<SegmentedTabs {tabs} active={data.status} label="Filtrar pedidos" />
+		<SegmentedTabs {tabs} active={data.status} label={t('orders.filter')} />
 		<form method="GET" class="flex flex-1 flex-wrap items-center gap-2 sm:justify-end">
 			<input type="hidden" name="status" value={data.status} />
 			<input type="hidden" name="channel" value={data.channel} />
 			<label class="relative min-w-56 flex-1 sm:max-w-80">
-				<span class="sr-only">Buscar pedido</span>
+				<span class="sr-only">{t('orders.searchLabel')}</span>
 				<Icon
 					name="search"
 					class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted"
@@ -119,14 +125,14 @@
 					type="search"
 					name="q"
 					value={data.q}
-					placeholder="Nº do pedido, cliente ou mesa"
+					placeholder={t('orders.searchPlaceholder')}
 				/>
 			</label>
 			<select
 				class="field max-w-48"
 				value={data.channel}
 				onchange={(e) => setFilter('channel', e.currentTarget.value)}
-				aria-label="Canal"
+				aria-label={t('orders.channelLabel')}
 			>
 				{#each channels as [v, l] (v)}<option value={v}>{l}</option>{/each}
 			</select>
@@ -178,7 +184,7 @@
 							{#if o.status === 'confirmed'}
 								<form method="POST" action="?/start" use:enhance class="mt-3">
 									<input type="hidden" name="orderId" value={o.id} />
-									<button class="btn-secondary w-full">Iniciar preparo</button>
+									<button class="btn-secondary w-full">{t('orders.startPrep')}</button>
 								</form>
 							{/if}
 							{#if mayCall(o.status)}
@@ -201,7 +207,7 @@
 						<li
 							class="rounded-(--radius-card) border border-dashed border-line p-6 text-center text-sm text-muted"
 						>
-							Nenhum pedido aqui.
+							{t('orders.laneEmpty')}
 						</li>
 					{/each}
 				</OrderLane>
@@ -212,13 +218,9 @@
 			<table class="w-full text-sm">
 				<thead class="bg-quiet text-left text-xs font-semibold tracking-wide text-muted">
 					<tr>
-						<th class="p-3">Nº</th><th class="p-3">Status</th><th class="p-3">Canal</th><th
-							class="p-3">Cliente</th
-						>
-						<th class="p-3">Itens</th><th class="p-3">Pagamento</th><th class="p-3 text-right"
-							>Total</th
-						>
-						<th class="p-3">Prometido</th><th class="p-3">Idade</th>
+						{#each ['number', 'status', 'channel', 'customer', 'items', 'payment', 'total', 'promised', 'age'] as const as c (c)}
+							<th class="p-3 {c === 'total' ? 'text-right' : ''}">{t(`orders.col.${c}`)}</th>
+						{/each}
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-line">
@@ -248,7 +250,9 @@
 								>{channelLabel[o.channel]} · {fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</td
 							>
 							<td class="p-3">{o.customerLabel ?? '—'}</td>
-							<td class="p-3 text-muted">{o.items.reduce((n, i) => n + i.quantity, 0)} itens</td>
+							<td class="p-3 text-muted"
+								>{t('orders.itemsCount', { n: o.items.reduce((n, i) => n + i.quantity, 0) })}</td
+							>
 							<td class="p-3"><PaymentBadge status={o.paymentStatus} /></td>
 							<td class="p-3 text-right"><Money cents={o.totalCents} /></td>
 							<td class="p-3">{formatTime(o.promisedAt)}</td>
@@ -264,7 +268,7 @@
 						</tr>
 					{:else}
 						<tr
-							><td colspan="9" class="p-10 text-center text-muted">Nenhum pedido neste filtro.</td
+							><td colspan="9" class="p-10 text-center text-muted">{t('orders.filterEmpty')}</td
 							></tr
 						>
 					{/each}
