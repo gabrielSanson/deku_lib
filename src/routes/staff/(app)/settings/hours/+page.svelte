@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 
@@ -22,6 +24,13 @@
 	});
 	let s = $state(init());
 
+	const t = useTexts();
+	let formEl = $state<HTMLFormElement>();
+	const guard = guardUnsaved(
+		() => formEl,
+		() => t('unsaved.confirm')
+	);
+
 	const payload = $derived(
 		JSON.stringify({
 			enabled: s.enabled,
@@ -39,9 +48,15 @@
 <form
 	method="POST"
 	action="?/save"
-	use:enhance={() =>
-		async ({ update }) =>
-			update({ reset: false })}
+	bind:this={formEl}
+	use:enhance={() => {
+		guard.saving();
+		return async ({ result, update }) => {
+			await update({ reset: false });
+			if (result.type === 'success') guard.saved();
+			else guard.failed();
+		};
+	}}
 	class="space-y-4"
 >
 	<input type="hidden" name="payload" value={payload} />

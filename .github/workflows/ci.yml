@@ -1,9 +1,8 @@
 name: CI
 
+# Paused: runs only when started by hand (Actions tab > CI > Run workflow).
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
