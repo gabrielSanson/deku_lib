@@ -23,13 +23,13 @@ screens and their components, so a rollback is a normal `git revert`.
 - **Reports:** `AnalyticsMetric` and `DailySalesChart` (a34d386); reconciliation reuses the tile (c6aaea6).
 - **Counter (Caixa):** `POSProductGrid` and `POSTicketLines` (e6b622c).
 - **Campaigns:** ending a campaign asks in a dialog (ef09a54).
+- **Product photos:** a picked photo is centre-cropped to the menu's 4:3 shape and shrunk in the browser before upload.
 - **Kitchen and setup wizard:** all copy now comes from the text catalog, so it can be edited in
   Configurações → Textos (#38, #41). The setup progress rail is its own component (#40).
 
 ## Not done
 
 - Pixel-baseline sign-off for the visual tests (needs the owner).
-- Image cropping in the product editor (replace, remove and the fallback tile exist).
 - Reorder button on the customer account page (waiting on a product decision).
 - Keyboard-journey and responsive review passes beyond what the e2e and accessibility scans cover.
 

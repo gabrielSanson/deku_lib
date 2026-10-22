@@ -5,6 +5,7 @@
 	import { untrack } from 'svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
+	import { cropTo43 } from '#lib/client/image-crop.ts';
 	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -35,10 +36,22 @@
 		if (el.id === 'name' || el.id === 'description' || el.id === 'price') live[el.id] = el.value;
 	}
 
-	function pick(e: Event) {
-		const file = (e.currentTarget as HTMLInputElement).files?.[0];
+	async function pick(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
 		if (preview) URL.revokeObjectURL(preview);
-		preview = file ? URL.createObjectURL(file) : null;
+		if (!file) {
+			preview = null;
+			return;
+		}
+		// Cut to the menu's 4:3 shape and shrink it before it is uploaded.
+		const cropped = await cropTo43(file);
+		if (cropped !== file) {
+			const files = new DataTransfer();
+			files.items.add(cropped);
+			input.files = files.files;
+		}
+		preview = URL.createObjectURL(cropped);
 	}
 </script>
 
@@ -147,7 +160,9 @@
 					><input type="checkbox" name="removePhoto" value="1" /> Remover foto</label
 				>
 			{/if}
-			<p class="mt-1 text-xs text-muted">JPG, PNG ou WebP, até 5 MB.</p>
+			<p class="mt-1 text-xs text-muted">
+				JPG, PNG ou WebP, até 5 MB. A foto é cortada no centro no formato do cardápio (4:3).
+			</p>
 		</fieldset>
 
 		<fieldset>
