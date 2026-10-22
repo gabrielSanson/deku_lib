@@ -1496,6 +1496,292 @@ export const TEXTS = {
 		label: 'Tema: botão para o modo escuro',
 		default: 'Mudar para o modo escuro'
 	},
+	'analytics.title': {
+		group: 'staff',
+		label: 'Relatórios: título',
+		default: 'Relatórios'
+	},
+	'analytics.tabTitle': {
+		group: 'staff',
+		label: 'Relatórios: título da aba do navegador',
+		default: 'Relatórios · Equipe'
+	},
+	'analytics.preset.today': {
+		group: 'staff',
+		label: 'Relatórios: período hoje',
+		default: 'Hoje'
+	},
+	'analytics.preset.yesterday': {
+		group: 'staff',
+		label: 'Relatórios: período ontem',
+		default: 'Ontem'
+	},
+	'analytics.preset.7d': {
+		group: 'staff',
+		label: 'Relatórios: período 7 dias',
+		default: '7 dias'
+	},
+	'analytics.preset.28d': {
+		group: 'staff',
+		label: 'Relatórios: período 28 dias',
+		default: '28 dias'
+	},
+	'analytics.preset.30d': {
+		group: 'staff',
+		label: 'Relatórios: período 30 dias',
+		default: '30 dias'
+	},
+	'analytics.preset.month': {
+		group: 'staff',
+		label: 'Relatórios: período este mês',
+		default: 'Este mês'
+	},
+	'analytics.from': {
+		group: 'staff',
+		label: 'Relatórios: campo data inicial',
+		default: 'De'
+	},
+	'analytics.to': {
+		group: 'staff',
+		label: 'Relatórios: campo data final',
+		default: 'Até'
+	},
+	'analytics.apply': {
+		group: 'staff',
+		label: 'Relatórios: botão aplicar',
+		default: 'Aplicar'
+	},
+	'analytics.channel': {
+		group: 'staff',
+		label: 'Relatórios: rótulo do canal',
+		default: 'Canal'
+	},
+	'analytics.allChannels': {
+		group: 'staff',
+		label: 'Relatórios: todos os canais',
+		default: 'Todos os canais'
+	},
+	'analytics.exportCsv': {
+		group: 'staff',
+		label: 'Relatórios: botão exportar',
+		default: 'Exportar CSV'
+	},
+	'analytics.rangeNote': {
+		group: 'staff',
+		label: 'Relatórios: nota do período',
+		default:
+			'{from} a {to} (horário de Brasília), comparado com {pfrom} a {pto}. Gerado {generated}. Valores operacionais, não contábeis.'
+	},
+	'analytics.metrics': {
+		group: 'staff',
+		label: 'Relatórios: rótulo dos indicadores',
+		default: 'Indicadores'
+	},
+	'analytics.m.placed': {
+		group: 'staff',
+		label: 'Relatórios: indicador pedidos',
+		default: 'Pedidos'
+	},
+	'analytics.m.gross': {
+		group: 'staff',
+		label: 'Relatórios: indicador vendas brutas',
+		default: 'Vendas brutas'
+	},
+	'analytics.m.net': {
+		group: 'staff',
+		label: 'Relatórios: indicador vendas líquidas',
+		default: 'Vendas líquidas'
+	},
+	'analytics.m.aov': {
+		group: 'staff',
+		label: 'Relatórios: indicador ticket médio',
+		default: 'Ticket médio'
+	},
+	'analytics.m.collected': {
+		group: 'staff',
+		label: 'Relatórios: indicador recebido',
+		default: 'Recebido'
+	},
+	'analytics.m.cancellationRate': {
+		group: 'staff',
+		label: 'Relatórios: indicador cancelamentos',
+		default: 'Cancelamentos'
+	},
+	'analytics.m.prepTime': {
+		group: 'staff',
+		label: 'Relatórios: indicador preparo',
+		default: 'Preparo (mediana / p90)'
+	},
+	'analytics.m.onTime': {
+		group: 'staff',
+		label: 'Relatórios: indicador no prazo',
+		default: 'No prazo'
+	},
+	'analytics.ordersNote': {
+		group: 'staff',
+		label: 'Relatórios: nota de contagem de pedidos',
+		default: '{n} pedidos'
+	},
+	'analytics.paymentExceptions': {
+		group: 'staff',
+		label: 'Relatórios: aviso de pagamento',
+		default: '{n} pedido(s) com pagamento falho ou desconhecido no período.'
+	},
+	'analytics.ifoodPaid': {
+		group: 'staff',
+		label: 'Relatórios: pago via iFood',
+		default: 'Pago via iFood (fora do caixa):'
+	},
+	'analytics.daily': {
+		group: 'staff',
+		label: 'Relatórios: título vendas por dia',
+		default: 'Vendas por dia'
+	},
+	'analytics.channels': {
+		group: 'staff',
+		label: 'Relatórios: título canais',
+		default: 'Canais'
+	},
+	'analytics.channel.counter': {
+		group: 'staff',
+		label: 'Relatórios: canal balcão',
+		default: 'Balcão'
+	},
+	'analytics.channel.web': {
+		group: 'staff',
+		label: 'Relatórios: canal site',
+		default: 'Site'
+	},
+	'analytics.channel.ifood': {
+		group: 'staff',
+		label: 'Relatórios: canal iFood',
+		default: 'iFood'
+	},
+	'analytics.fulfil.counter': {
+		group: 'staff',
+		label: 'Relatórios: forma balcão',
+		default: 'balcão'
+	},
+	'analytics.fulfil.pickup': {
+		group: 'staff',
+		label: 'Relatórios: forma retirada',
+		default: 'retirada'
+	},
+	'analytics.fulfil.delivery': {
+		group: 'staff',
+		label: 'Relatórios: forma entrega',
+		default: 'entrega'
+	},
+	'analytics.sales': {
+		group: 'staff',
+		label: 'Relatórios: coluna vendas',
+		default: 'Vendas'
+	},
+	'analytics.noData': {
+		group: 'staff',
+		label: 'Relatórios: sem dados',
+		default: 'Sem dados.'
+	},
+	'analytics.methods': {
+		group: 'staff',
+		label: 'Relatórios: título formas de pagamento',
+		default: 'Formas de pagamento'
+	},
+	'analytics.method': {
+		group: 'staff',
+		label: 'Relatórios: coluna forma',
+		default: 'Forma'
+	},
+	'analytics.status': {
+		group: 'staff',
+		label: 'Relatórios: coluna status',
+		default: 'Status'
+	},
+	'analytics.qty': {
+		group: 'staff',
+		label: 'Relatórios: coluna quantidade',
+		default: 'Qtd.'
+	},
+	'analytics.amount': {
+		group: 'staff',
+		label: 'Relatórios: coluna valor',
+		default: 'Valor'
+	},
+	'analytics.peaks': {
+		group: 'staff',
+		label: 'Relatórios: título horários de pico',
+		default: 'Horários de pico'
+	},
+	'analytics.products': {
+		group: 'staff',
+		label: 'Relatórios: título produtos',
+		default: 'Produtos'
+	},
+	'analytics.product': {
+		group: 'staff',
+		label: 'Relatórios: coluna produto',
+		default: 'Produto'
+	},
+	'analytics.units': {
+		group: 'staff',
+		label: 'Relatórios: coluna unidades',
+		default: 'Un.'
+	},
+	'analytics.pctOrders': {
+		group: 'staff',
+		label: 'Relatórios: coluna % de pedidos',
+		default: '% pedidos'
+	},
+	'analytics.modifiers': {
+		group: 'staff',
+		label: 'Relatórios: título adicionais',
+		default: 'Adicionais e opções mais pedidos'
+	},
+	'analytics.option': {
+		group: 'staff',
+		label: 'Relatórios: coluna opção',
+		default: 'Opção'
+	},
+	'analytics.glossary': {
+		group: 'staff',
+		label: 'Relatórios: título glossário',
+		default: 'Glossário'
+	},
+	'analytics.day.0': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 0',
+		default: 'Dom'
+	},
+	'analytics.day.1': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 1',
+		default: 'Seg'
+	},
+	'analytics.day.2': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 2',
+		default: 'Ter'
+	},
+	'analytics.day.3': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 3',
+		default: 'Qua'
+	},
+	'analytics.day.4': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 4',
+		default: 'Qui'
+	},
+	'analytics.day.5': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 5',
+		default: 'Sex'
+	},
+	'analytics.day.6': {
+		group: 'staff',
+		label: 'Relatórios: dia da semana 6',
+		default: 'Sáb'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',

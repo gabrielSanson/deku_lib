@@ -6,8 +6,11 @@
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
+	import type { TextKey } from '#lib/texts/catalog.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
+	const t = useTexts();
 	const c = $derived(data.current);
 	const p = $derived(data.previous);
 
@@ -36,60 +39,60 @@
 	const cards = $derived([
 		{
 			key: 'placed',
-			label: 'Pedidos',
+			label: t('analytics.m.placed'),
 			value: String(c.placed),
 			d: delta(c.placed, p.placed),
 			href: '/staff/orders?status=all'
 		},
 		{
 			key: 'gross',
-			label: 'Vendas brutas',
+			label: t('analytics.m.gross'),
 			value: formatBRL(c.grossCents),
 			d: delta(c.grossCents, p.grossCents)
 		},
 		{
 			key: 'net',
-			label: 'Vendas líquidas',
+			label: t('analytics.m.net'),
 			value: formatBRL(c.netCents),
 			d: delta(c.netCents, p.netCents)
 		},
 		{
 			key: 'aov',
-			label: 'Ticket médio',
+			label: t('analytics.m.aov'),
 			value: c.aovCents === null ? '—' : formatBRL(c.aovCents),
 			d: c.aovCents && p.aovCents ? delta(c.aovCents, p.aovCents) : null
 		},
 		{
 			key: 'collected',
-			label: 'Recebido',
+			label: t('analytics.m.collected'),
 			value: formatBRL(c.collectedCents),
 			d: delta(c.collectedCents, p.collectedCents),
 			href: '/staff/reconciliation'
 		},
 		{
 			key: 'cancellationRate',
-			label: 'Cancelamentos',
+			label: t('analytics.m.cancellationRate'),
 			value: `${c.cancelled} (${pct(c.cancellationRate)})`,
 			d: null,
 			href: '/staff/orders?status=cancelled'
 		},
 		{
 			key: 'prepTime',
-			label: 'Preparo (mediana / p90)',
+			label: t('analytics.m.prepTime'),
 			value: c.prep.medianMin === null ? '—' : `${c.prep.medianMin} / ${c.prep.p90Min} min`,
 			d: null,
-			note: `${c.prep.n} pedidos`
+			note: t('analytics.ordersNote', { n: c.prep.n })
 		},
 		{
 			key: 'onTime',
-			label: 'No prazo',
+			label: t('analytics.m.onTime'),
 			value: pct(c.onTime.rate),
 			d: null,
-			note: `${c.onTime.n} pedidos`
+			note: t('analytics.ordersNote', { n: c.onTime.n })
 		}
 	]);
 
-	const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+	const days = $derived([0, 1, 2, 3, 4, 5, 6].map((i) => t(`analytics.day.${i}` as TextKey)));
 	const hours = $derived.by(() => {
 		const hs = data.peaks.map((x) => x.hour);
 		const min = hs.length ? Math.min(...hs, 10) : 10;
@@ -100,56 +103,72 @@
 	const maxPeak = $derived(Math.max(1, ...data.peaks.map((x) => x.n)));
 	const channelLabel = (k: string) => {
 		const [ch, f] = k.split(':');
-		return `${{ counter: 'Balcão', web: 'Site', ifood: 'iFood' }[ch] ?? ch} · ${{ counter: 'balcão', pickup: 'retirada', delivery: 'entrega' }[f] ?? f}`;
+		const chName = (['counter', 'web', 'ifood'] as const).includes(ch as 'counter')
+			? t(`analytics.channel.${ch as 'counter' | 'web' | 'ifood'}`)
+			: ch;
+		const fName = (['counter', 'pickup', 'delivery'] as const).includes(f as 'counter')
+			? t(`analytics.fulfil.${f as 'counter' | 'pickup' | 'delivery'}`)
+			: f;
+		return `${chName} · ${fName}`;
 	};
-	const presets = [
-		['today', 'Hoje'],
-		['yesterday', 'Ontem'],
-		['7d', '7 dias'],
-		['28d', '28 dias'],
-		['30d', '30 dias'],
-		['month', 'Este mês']
-	];
+	const presets = $derived(
+		(['today', 'yesterday', '7d', '28d', '30d', 'month'] as const).map(
+			(k) => [k, t(`analytics.preset.${k}`)] as const
+		)
+	);
 	const exportHref = $derived(
 		`/staff/analytics/export?range=custom&from=${data.range.from}&to=${data.range.to}`
 	);
 </script>
 
-<svelte:head><title>Relatórios · Equipe</title></svelte:head>
+<svelte:head><title>{t('analytics.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-6xl space-y-6 p-4">
 	<div class="flex flex-wrap items-end gap-2">
-		<h1 class="mr-auto page-title">Relatórios</h1>
+		<h1 class="mr-auto page-title">{t('analytics.title')}</h1>
 		{#each presets as [k, l] (k)}
 			<button
 				class="btn min-h-9 text-sm {data.preset === k ? 'bg-ink text-white' : 'btn-secondary'}"
 				onclick={() => set({ range: k, from: '', to: '' })}>{l}</button
 			>
 		{/each}
-		<input class="field w-40" type="date" bind:value={customFrom} aria-label="De" />
-		<input class="field w-40" type="date" bind:value={customTo} aria-label="Até" />
+		<input
+			class="field w-40"
+			type="date"
+			bind:value={customFrom}
+			aria-label={t('analytics.from')}
+		/>
+		<input class="field w-40" type="date" bind:value={customTo} aria-label={t('analytics.to')} />
 		<button
 			class="btn-secondary min-h-9 text-sm"
-			onclick={() => set({ range: 'custom', from: customFrom, to: customTo })}>Aplicar</button
+			onclick={() => set({ range: 'custom', from: customFrom, to: customTo })}
+			>{t('analytics.apply')}</button
 		>
 		<select
 			class="field w-40"
 			value={data.filters.channel ?? ''}
 			onchange={(e) => set({ channel: e.currentTarget.value })}
-			aria-label="Canal"
+			aria-label={t('analytics.channel')}
 		>
-			<option value="">Todos os canais</option><option value="counter">Balcão</option><option
-				value="web">Site</option
-			><option value="ifood">iFood</option>
+			<option value="">{t('analytics.allChannels')}</option><option value="counter"
+				>{t('analytics.channel.counter')}</option
+			><option value="web">{t('analytics.channel.web')}</option><option value="ifood"
+				>{t('analytics.channel.ifood')}</option
+			>
 		</select>
-		<a class="btn-secondary min-h-9 text-sm" href={exportHref}>Exportar CSV</a>
+		<a class="btn-secondary min-h-9 text-sm" href={exportHref}>{t('analytics.exportCsv')}</a>
 	</div>
 	<p class="text-sm text-muted">
-		{data.range.from} a {data.range.to} (horário de Brasília), comparado com {data.prev.from} a {data
-			.prev.to}. Gerado {formatDateTime(data.generatedAt)}. Valores operacionais, não contábeis.
+		{t('analytics.rangeNote', {
+			from: data.range.from,
+			to: data.range.to,
+			pfrom: data.prev.from,
+			pto: data.prev.to,
+			generated: formatDateTime(data.generatedAt)
+		})}
 	</p>
 
-	<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Indicadores">
+	<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('analytics.metrics')}>
 		{#each cards as card (card.key)}
 			<AnalyticsMetric
 				label={card.label}
@@ -162,24 +181,27 @@
 		{/each}
 	</section>
 	{#if c.paymentExceptions}<p class="alert-warn">
-			{c.paymentExceptions} pedido(s) com pagamento falho ou desconhecido no período.
+			{t('analytics.paymentExceptions', { n: c.paymentExceptions })}
 		</p>{/if}
 	{#if c.ifoodPaidCents}<p class="text-sm text-muted">
-			Pago via iFood (fora do caixa): <Money cents={c.ifoodPaidCents} />
+			{t('analytics.ifoodPaid')}
+			<Money cents={c.ifoodPaidCents} />
 		</p>{/if}
 
 	<section class="card p-4">
-		<h2 class="mb-3 font-semibold">Vendas por dia</h2>
+		<h2 class="mb-3 font-semibold">{t('analytics.daily')}</h2>
 		<DailySalesChart days={data.daily} />
 	</section>
 
 	<div class="grid gap-4 lg:grid-cols-2">
 		<section class="card p-4">
-			<h2 class="mb-3 font-semibold">Canais</h2>
+			<h2 class="mb-3 font-semibold">{t('analytics.channels')}</h2>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Canal</th><th>Pedidos</th><th class="text-right">Vendas</th></tr
+						><th>{t('analytics.channel')}</th><th>{t('analytics.m.placed')}</th><th
+							class="text-right">{t('analytics.sales')}</th
+						></tr
 					></thead
 				>
 				<tbody>
@@ -187,17 +209,20 @@
 							><td class="py-1">{channelLabel(ch.key)}</td><td>{ch.orders}</td><td
 								class="text-right"><Money cents={ch.grossCents} /></td
 							></tr
-						>{:else}<tr><td colspan="3" class="py-4 text-center text-muted">Sem dados.</td></tr
+						>{:else}<tr
+							><td colspan="3" class="py-4 text-center text-muted">{t('analytics.noData')}</td></tr
 						>{/each}
 				</tbody>
 			</table>
 		</section>
 		<section class="card p-4">
-			<h2 class="mb-3 font-semibold">Formas de pagamento</h2>
+			<h2 class="mb-3 font-semibold">{t('analytics.methods')}</h2>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Forma</th><th>Status</th><th>Qtd.</th><th class="text-right">Valor</th></tr
+						><th>{t('analytics.method')}</th><th>{t('analytics.status')}</th><th
+							>{t('analytics.qty')}</th
+						><th class="text-right">{t('analytics.amount')}</th></tr
 					></thead
 				>
 				<tbody>
@@ -207,7 +232,8 @@
 							><td>{m.status}</td><td>{m.count}</td><td class="text-right"
 								><Money cents={m.amountCents} /></td
 							></tr
-						>{:else}<tr><td colspan="4" class="py-4 text-center text-muted">Sem dados.</td></tr
+						>{:else}<tr
+							><td colspan="4" class="py-4 text-center text-muted">{t('analytics.noData')}</td></tr
 						>{/each}
 				</tbody>
 			</table>
@@ -215,7 +241,7 @@
 	</div>
 
 	<section class="overflow-x-auto card p-4">
-		<h2 class="mb-1 font-semibold">Horários de pico</h2>
+		<h2 class="mb-1 font-semibold">{t('analytics.peaks')}</h2>
 		<p class="mb-3 text-xs text-muted">{data.definitions.peakHour}</p>
 		<table class="text-xs">
 			<thead
@@ -245,11 +271,13 @@
 
 	<div class="grid gap-4 lg:grid-cols-2">
 		<section class="card p-4">
-			<h2 class="mb-3 font-semibold">Produtos</h2>
+			<h2 class="mb-3 font-semibold">{t('analytics.products')}</h2>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Produto</th><th>Un.</th><th>% pedidos</th><th class="text-right">Vendas</th></tr
+						><th>{t('analytics.product')}</th><th>{t('analytics.units')}</th><th
+							>{t('analytics.pctOrders')}</th
+						><th class="text-right">{t('analytics.sales')}</th></tr
 					></thead
 				>
 				<tbody>
@@ -261,16 +289,20 @@
 									: 0}%</td
 							><td class="text-right"><Money cents={pr.salesCents} /></td></tr
 						>
-					{:else}<tr><td colspan="4" class="py-4 text-center text-muted">Sem dados.</td></tr>{/each}
+					{:else}<tr
+							><td colspan="4" class="py-4 text-center text-muted">{t('analytics.noData')}</td></tr
+						>{/each}
 				</tbody>
 			</table>
 		</section>
 		<section class="card p-4">
-			<h2 class="mb-3 font-semibold">Adicionais e opções mais pedidos</h2>
+			<h2 class="mb-3 font-semibold">{t('analytics.modifiers')}</h2>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Opção</th><th>Un.</th><th class="text-right">Vendas</th></tr
+						><th>{t('analytics.option')}</th><th>{t('analytics.units')}</th><th class="text-right"
+							>{t('analytics.sales')}</th
+						></tr
 					></thead
 				>
 				<tbody>
@@ -278,7 +310,8 @@
 							><td class="py-1">{m.name}</td><td>{m.units}</td><td class="text-right"
 								><Money cents={m.salesCents} /></td
 							></tr
-						>{:else}<tr><td colspan="3" class="py-4 text-center text-muted">Sem dados.</td></tr
+						>{:else}<tr
+							><td colspan="3" class="py-4 text-center text-muted">{t('analytics.noData')}</td></tr
 						>{/each}
 				</tbody>
 			</table>
@@ -286,7 +319,7 @@
 	</div>
 
 	<section class="card p-4 text-sm">
-		<h2 class="mb-2 font-semibold">Glossário</h2>
+		<h2 class="mb-2 font-semibold">{t('analytics.glossary')}</h2>
 		<dl class="grid gap-2 md:grid-cols-2">
 			{#each Object.entries(data.definitions) as [k, v] (k)}
 				<div>
