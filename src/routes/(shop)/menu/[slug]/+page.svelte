@@ -76,7 +76,7 @@
 	/></svelte:head
 >
 
-<article class="space-y-5 py-4">
+<article class="space-y-5 pt-4 pb-44">
 	<a href="/cardapio" class="text-sm text-muted">{t('product.back')}</a>
 	{#if p.imageUrl}<img
 			src={p.imageUrl}
@@ -100,11 +100,13 @@
 			<legend class="mb-2 flex w-full items-center justify-between font-semibold">
 				<span>{g.name}</span>
 				<span
-					class="rounded-full px-2 py-0.5 text-xs {g.minSelections && count(g.id) < g.minSelections
-						? tried
-							? 'bg-red-100 text-bad'
-							: 'bg-stone-100'
-						: 'bg-stone-100 text-muted'}"
+					class="pill {!g.minSelections
+						? 'bg-quiet text-muted'
+						: count(g.id) >= g.minSelections
+							? 'bg-ok-tint text-ok'
+							: tried
+								? 'bg-bad-tint text-bad'
+								: 'bg-brand-tint text-brand-700'}"
 				>
 					{g.minSelections ? t('product.required') : t('product.upTo', { max: g.maxSelections })}
 				</span>
@@ -143,9 +145,7 @@
 		<fieldset>
 			<legend class="mb-2 flex w-full items-center justify-between font-semibold">
 				<span>{t('product.removeTitle')}</span>
-				<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-muted"
-					>{t('product.optional')}</span
-				>
+				<span class="pill bg-quiet text-muted">{t('product.optional')}</span>
 			</legend>
 			<div class="divide-y divide-line card">
 				{#each removable as i (i.id)}
@@ -181,30 +181,33 @@
 			bind:value={note}
 			placeholder={t('product.notePlaceholder')}></textarea>
 	</div>
-	{#if tried && missing.length}<p class="alert-error" role="alert">
-			{t('product.missing', { list: missing.map((g) => g.name).join(', ') })}
-		</p>{/if}
-
-	<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4">
-		<div class="mx-auto flex max-w-3xl items-center gap-3">
-			<div class="flex items-center rounded-lg border border-line">
-				<button
-					class="btn-ghost"
-					onclick={() => (quantity = Math.max(1, quantity - 1))}
-					aria-label={t('product.less')}>−</button
-				>
-				<span class="w-8 text-center font-semibold" aria-live="polite">{quantity}</span>
-				<button
-					class="btn-ghost"
-					onclick={() => (quantity = Math.min(50, quantity + 1))}
-					aria-label={t('product.more')}>+</button
-				>
+	<div
+		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4 shadow-(--shadow-card)"
+	>
+		<div class="mx-auto max-w-3xl space-y-2">
+			{#if tried && missing.length}<p class="alert-error" role="alert">
+					{t('product.missing', { list: missing.map((g) => g.name).join(', ') })}
+				</p>{/if}
+			<div class="flex items-center gap-3">
+				<div class="flex items-center rounded-lg border border-line">
+					<button
+						class="btn-ghost"
+						onclick={() => (quantity = Math.max(1, quantity - 1))}
+						aria-label={t('product.less')}>−</button
+					>
+					<span class="w-8 text-center font-semibold" aria-live="polite">{quantity}</span>
+					<button
+						class="btn-ghost"
+						onclick={() => (quantity = Math.min(50, quantity + 1))}
+						aria-label={t('product.more')}>+</button
+					>
+				</div>
+				<button class="btn-primary flex-1 text-lg" disabled={out || !data.store.open} onclick={add}>
+					{out ? t('product.soldOut') : !data.store.open ? t('product.closed') : t('product.add')} · <Money
+						cents={unit * quantity}
+					/>
+				</button>
 			</div>
-			<button class="btn-primary flex-1 text-lg" disabled={out || !data.store.open} onclick={add}>
-				{out ? t('product.soldOut') : !data.store.open ? t('product.closed') : t('product.add')} · <Money
-					cents={unit * quantity}
-				/>
-			</button>
 		</div>
 	</div>
 </article>
