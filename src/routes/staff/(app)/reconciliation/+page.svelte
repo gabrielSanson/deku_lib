@@ -2,6 +2,8 @@
 	import { goto } from '$app/navigation';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import AnalyticsMetric from '#lib/components/molecules/AnalyticsMetric.svelte';
+	import { formatBRL } from '#lib/domain/money.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import type { PaymentStatus } from '#lib/domain/order-status.ts';
 
@@ -31,18 +33,12 @@
 	</p>
 
 	<section class="grid gap-3 sm:grid-cols-3">
-		<div class="card p-4">
-			<div class="text-sm text-muted">Total recebido</div>
-			<Money cents={totalPaid} class="text-2xl font-bold" />
-		</div>
-		<div class="card p-4">
-			<div class="text-sm text-muted">Dinheiro esperado na gaveta</div>
-			<Money cents={cash} class="text-2xl font-bold" />
-		</div>
-		<div class="card p-4">
-			<div class="text-sm text-muted">iFood ({data.ifood.count} pedidos, pago no app)</div>
-			<Money cents={data.ifood.amountCents} class="text-2xl font-bold" />
-		</div>
+		<AnalyticsMetric label="Total recebido" value={formatBRL(totalPaid)} />
+		<AnalyticsMetric label="Dinheiro esperado na gaveta" value={formatBRL(cash)} />
+		<AnalyticsMetric
+			label="iFood ({data.ifood.count} pedidos, pago no app)"
+			value={formatBRL(data.ifood.amountCents)}
+		/>
 	</section>
 
 	<section class="card p-4">
