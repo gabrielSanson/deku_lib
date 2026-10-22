@@ -238,12 +238,6 @@ export const TEXTS = {
 		default: 'Navegação'
 	},
 	'header.nav.menu': { group: 'header', label: 'Menu: Cardápio', default: 'Cardápio' },
-	'header.nav.howTo': { group: 'header', label: 'Menu: Como pedir', default: 'Como pedir' },
-	'header.nav.howToFull': {
-		group: 'header',
-		label: 'Menu: Como funciona (desktop)',
-		default: 'Como funciona'
-	},
 	'header.nav.mine': { group: 'header', label: 'Menu: Meus pedidos', default: 'Meus pedidos' },
 	'header.order': { group: 'header', label: 'Botão Fazer pedido', default: 'Fazer pedido' },
 	'header.nav.track': {
@@ -313,11 +307,6 @@ export const TEXTS = {
 		group: 'home',
 		label: 'Destaque: selo loja fechada',
 		default: '{name} · fechado'
-	},
-	'home.hero.secondary': {
-		group: 'home',
-		label: 'Destaque: segundo botão',
-		default: 'Como funciona'
 	},
 	'home.mode.pickup': { group: 'home', label: 'Modo: retirada', default: 'Retirada' },
 	'home.mode.delivery': { group: 'home', label: 'Modo: entrega', default: 'Entrega' },
@@ -411,39 +400,6 @@ export const TEXTS = {
 	'home.closed': { group: 'home', label: 'Botão com loja fechada', default: 'Loja fechada' },
 	'home.add': { group: 'home', label: 'Botão de adicionar', default: 'Adicionar ao carrinho' },
 	'home.added': { group: 'home', label: 'Botão depois de adicionar', default: 'Adicionado!' },
-	'home.howTo.title': { group: 'home', label: 'Como pedir: título', default: 'Como pedir' },
-	'home.howTo.1.title': { group: 'home', label: 'Como pedir 1: título', default: 'Escolha' },
-	'home.howTo.1.text': {
-		group: 'home',
-		label: 'Como pedir 1: texto',
-		default: 'Monte seu pedido no cardápio e ajuste os adicionais.'
-	},
-	'home.howTo.2.delivery.title': {
-		group: 'home',
-		label: 'Como pedir 2 (com entrega): título',
-		default: 'Entrega ou retirada'
-	},
-	'home.howTo.2.delivery.text': {
-		group: 'home',
-		label: 'Como pedir 2 (com entrega): texto',
-		default: 'Informe o CEP para ver a taxa, ou retire na loja.'
-	},
-	'home.howTo.2.pickup.title': {
-		group: 'home',
-		label: 'Como pedir 2 (só retirada): título',
-		default: 'Retirada'
-	},
-	'home.howTo.2.pickup.text': {
-		group: 'home',
-		label: 'Como pedir 2 (só retirada): texto',
-		default: 'Passe na loja quando estiver pronto.'
-	},
-	'home.howTo.3.title': { group: 'home', label: 'Como pedir 3: título', default: 'Acompanhe' },
-	'home.howTo.3.text': {
-		group: 'home',
-		label: 'Como pedir 3: texto',
-		default: 'Você recebe um link para seguir o pedido em tempo real.'
-	},
 
 	// Menu page
 	'menu.pageTitle': { group: 'menu', label: 'Título da aba', default: 'Cardápio · {name}' },

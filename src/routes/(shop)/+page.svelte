@@ -33,22 +33,6 @@
 			data.store.dineIn && { icon: 'store', label: t('home.mode.dineIn') }
 		].filter(Boolean) as { icon: IconName; label: string }[]
 	);
-
-	const howTo = $derived([
-		{ icon: 'burger', title: t('home.howTo.1.title'), text: t('home.howTo.1.text') },
-		data.store.delivery
-			? {
-					icon: 'truck',
-					title: t('home.howTo.2.delivery.title'),
-					text: t('home.howTo.2.delivery.text')
-				}
-			: {
-					icon: 'truck',
-					title: t('home.howTo.2.pickup.title'),
-					text: t('home.howTo.2.pickup.text')
-				},
-		{ icon: 'pin', title: t('home.howTo.3.title'), text: t('home.howTo.3.text') }
-	]);
 </script>
 
 <svelte:head>
@@ -108,11 +92,6 @@
 					{t('home.hero.cta')}
 					<Icon name="arrow" />
 				</a>
-				<a
-					href="#como-pedir"
-					class="font-semibold text-white underline decoration-brand-500 decoration-2 underline-offset-8 hover:text-brand-400"
-					>{t('home.hero.secondary')}</a
-				>
 			</div>
 			<ul data-hero-in class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200">
 				{#each modes as m (m.label)}
@@ -194,25 +173,4 @@
 			</div>
 		</section>
 	{/if}
-
-	<!-- How to order -->
-	<section id="como-pedir" class="scroll-mt-24 rounded-2xl bg-night p-6 text-white sm:p-8">
-		<h2 class="font-display text-2xl text-brand-500">{t('home.howTo.title')}</h2>
-		<ol class="mt-5 grid gap-5 sm:grid-cols-3">
-			{#each howTo as step, i (i)}
-				<li class="flex gap-4">
-					<span
-						class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 font-display text-xl text-black"
-						>{i + 1}</span
-					>
-					<div>
-						<p class="flex items-center gap-2 font-bold">
-							<Icon name={step.icon as IconName} class="size-5 text-brand-500" />{step.title}
-						</p>
-						<p class="mt-1 text-sm text-stone-300">{step.text}</p>
-					</div>
-				</li>
-			{/each}
-		</ol>
-	</section>
 </div>

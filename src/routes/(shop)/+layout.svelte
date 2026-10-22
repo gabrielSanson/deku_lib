@@ -60,7 +60,6 @@
 
 	const nav = $derived([
 		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'burger' as const, active: isMenu },
-		{ href: '/#como-pedir', label: t('header.nav.howTo'), icon: 'receipt' as const, active: false },
 		...(orderToken
 			? [
 					{
@@ -73,15 +72,9 @@
 			: [])
 	]);
 
-	// Desktop header: Cardápio, Como funciona, Meus pedidos (the account page lists orders).
+	// Desktop header: Cardápio, Meus pedidos (the account page lists orders).
 	const desktopNav = $derived([
 		nav[0],
-		{
-			href: '/#como-pedir',
-			label: t('header.nav.howToFull'),
-			icon: 'receipt' as const,
-			active: false
-		},
 		{
 			href: data.customer ? '/conta' : '/conta/entrar',
 			label: t('header.nav.mine'),
