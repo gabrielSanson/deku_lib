@@ -8,6 +8,12 @@ for (const route of routes) {
 	test(`${route} has no serious or critical accessibility issues`, async ({ page }) => {
 		await page.goto(route);
 		await page.waitForLoadState('networkidle');
+		// Scan the settled page: the hero fades its copy in, and a half-faded button looks low-contrast.
+		await page.waitForFunction(() =>
+			[...document.querySelectorAll('[data-hero-in], [data-hero-bg], [data-hero-burger]')].every(
+				(el) => getComputedStyle(el).opacity === '1'
+			)
+		);
 
 		const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 		const serious = results.violations.filter(
