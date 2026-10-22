@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
-	import FormError from '#lib/components/molecules/FormError.svelte';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import OrderActionBar from '#lib/components/organisms/OrderActionBar.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import {
 		allowedNextStatuses,
-		requiresReason,
 		roleMayTransition,
-		STATUS_LABEL_PT,
-		type OrderStatus
+		STATUS_LABEL_PT
 	} from '#lib/domain/order-status.ts';
 	import { mayConfirm } from '#lib/domain/payment-rules.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
@@ -30,17 +28,7 @@
 		)
 	);
 	const manager = $derived(data.staff.role === 'admin');
-	let reasonFor = $state<OrderStatus | null>(null);
 	let refunding = $state<string | null>(null);
-
-	const actionLabel: Partial<Record<OrderStatus, string>> = {
-		confirmed: 'Confirmar pedido',
-		preparing: 'Iniciar preparo',
-		ready: 'Marcar como pronto',
-		completed: 'Entregue ao cliente',
-		cancelled: 'Cancelar',
-		rejected: 'Recusar'
-	};
 </script>
 
 <svelte:head><title>Pedido #{o.orderNumber}</title></svelte:head>
@@ -147,50 +135,7 @@
 	</section>
 
 	<aside class="space-y-4">
-		<div class="space-y-2 card p-3">
-			<h2 class="font-semibold">Ações</h2>
-			<FormError message={form?.error} />
-			{#each next as to (to)}
-				{#if requiresReason(to)}
-					{#if reasonFor === to}
-						<form
-							method="POST"
-							action="?/transition"
-							use:enhance={() =>
-								async ({ update }) => {
-									await update();
-									reasonFor = null;
-								}}
-							class="space-y-2"
-						>
-							<input type="hidden" name="to" value={to} />
-							<input type="hidden" name="version" value={o.version} />
-							<input class="field" name="reason" placeholder="Motivo (obrigatório)" required />
-							<div class="flex gap-2">
-								<button
-									type="button"
-									class="btn-secondary flex-1"
-									onclick={() => (reasonFor = null)}>Voltar</button
-								>
-								<button class="btn-danger flex-1">{actionLabel[to]}</button>
-							</div>
-						</form>
-					{:else}
-						<button class="btn-secondary w-full text-bad" onclick={() => (reasonFor = to)}
-							>{actionLabel[to]}</button
-						>
-					{/if}
-				{:else}
-					<form method="POST" action="?/transition" use:enhance>
-						<input type="hidden" name="to" value={to} />
-						<input type="hidden" name="version" value={o.version} />
-						<button class="btn-primary w-full">{actionLabel[to]}</button>
-					</form>
-				{/if}
-			{:else}
-				<p class="text-sm text-muted">Nenhuma ação disponível.</p>
-			{/each}
-		</div>
+		<OrderActionBar {next} version={o.version} error={form?.error} />
 
 		<div class="space-y-2 card p-3">
 			<h2 class="font-semibold">Pagamentos</h2>
