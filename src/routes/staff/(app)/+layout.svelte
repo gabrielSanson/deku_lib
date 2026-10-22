@@ -25,17 +25,13 @@
 	{#if data.settings.acceptingOrders && !data.inHours}
 		<a
 			href="/staff/settings/hours"
-			class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"
+			class="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-warn"
 			>Fora do horário</a
 		>
 	{:else if data.settings.acceptingOrders}
-		<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
-			>Aberto</span
-		>
+		<span class="rounded-full bg-ok-tint px-2 py-0.5 text-xs font-semibold text-ok">Aberto</span>
 	{:else}
-		<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800"
-			>Pausado</span
-		>
+		<span class="rounded-full bg-bad-tint px-2 py-0.5 text-xs font-semibold text-bad">Pausado</span>
 	{/if}
 {/snippet}
 

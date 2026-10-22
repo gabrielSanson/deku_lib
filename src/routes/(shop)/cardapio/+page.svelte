@@ -64,7 +64,7 @@
 	<meta name="description" content={t('home.metaDescription')} />
 </svelte:head>
 
-<div class="relative overflow-x-clip lg:bg-brand-500">
+<div class="relative overflow-x-clip lg:bg-brand-500 dark:lg:bg-canvas">
 	<!-- brush strokes behind the menu, as in the brand art -->
 	<svg
 		class="pointer-events-none absolute -right-24 bottom-0 hidden h-[60%] w-[55%] text-black/90 lg:block"
@@ -165,13 +165,13 @@
 		min-height: 3rem;
 		padding: 0 1.4rem;
 		border-radius: 9999px;
-		background: #ece6da;
+		background: var(--color-quiet);
 		font-weight: 600;
 		white-space: nowrap;
 		transition: background-color 150ms;
 	}
 	.pill:hover {
-		background: #e2dacb;
+		background: var(--color-line);
 	}
 	.pill-on,
 	.pill-on:hover {

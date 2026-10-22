@@ -196,12 +196,13 @@
 				>
 			</div>
 			<div class="flex gap-2 overflow-x-auto pb-1">
-				<button class={category === null ? 'chip-active' : 'chip'} onclick={() => (category = null)}
-					>{t('pos.all')}</button
+				<button
+					class="chip {category === null ? 'chip-active' : ''}"
+					onclick={() => (category = null)}>{t('pos.all')}</button
 				>
 				{#each data.catalog.categories as c (c.id)}
 					<button
-						class={category === c.id ? 'chip-active' : 'chip'}
+						class="chip {category === c.id ? 'chip-active' : ''}"
 						onclick={() => (category = c.id)}>{c.name}</button
 					>
 				{/each}

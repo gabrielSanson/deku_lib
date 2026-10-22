@@ -32,6 +32,10 @@
 	--color-warn: #b45309;
 	--color-bad: #c62828;
 	--color-bad-tint: #fbedea;
+	/* Fills behind white text (btn-success, btn-danger); ok/bad are text colours and get
+	   too light for that in the dark theme. */
+	--color-ok-strong: #15803d;
+	--color-bad-strong: #c62828;
 	--color-brand-tint: #fff4cc;
 	--color-info: #1d4ed8;
 	--color-info-tint: #e6eefc;
@@ -46,6 +50,9 @@
 	--color-leaf: var(--color-ok);
 }
 
+/* dark: follows the site's theme switch, not the operating system's setting. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 :root {
 	color-scheme: light;
 	accent-color: var(--color-brand-500);
@@ -54,7 +61,7 @@
 /* Dark theme (the default; app.html sets data-theme before first paint, the toggle in the
    headers switches it). Only the neutral and status tokens change, so every utility built on
    them follows. Brand yellow stays; brand-700, the "readable yellow text on light", turns
-   into a bright yellow here. Cream kitchen tickets keep dark text through text-night. */
+   into a bright yellow here. Kitchen tickets pin their own text tokens (.on-cream, .on-night). */
 :root[data-theme='dark'] {
 	color-scheme: dark;
 	--color-ink: #f5efe6;
@@ -71,10 +78,30 @@
 	--color-warn: #fbbf24;
 	--color-bad: #f87171;
 	--color-bad-tint: #3a1816;
+	--color-ok-strong: #15803d;
+	--color-bad-strong: #b91c1c;
 	--color-brand-tint: #352a08;
 	--color-info: #7aa7ff;
 	--color-info-tint: #14234a;
 	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+/* Kitchen tickets keep their own background in either theme (cream for new and preparing,
+   near-black for ready), so the text tokens used on them (Age, the channel tag) are pinned
+   to the values that read on that background. */
+.on-cream {
+	--color-muted: #5c5650;
+	--color-brand-700: #8a5a00;
+	--color-ok: #15803d;
+	--color-warn: #b45309;
+	--color-bad: #c62828;
+}
+.on-night {
+	--color-muted: #b8b0a4;
+	--color-brand-700: #ffca28;
+	--color-ok: #4ade80;
+	--color-warn: #fbbf24;
+	--color-bad: #f87171;
 }
 
 html,
@@ -122,11 +149,11 @@ body {
 }
 
 @utility btn-success {
-	@apply btn bg-ok font-bold text-white hover:bg-green-800;
+	@apply btn bg-ok-strong font-bold text-white hover:bg-green-800;
 }
 
 @utility btn-danger {
-	@apply btn bg-bad text-white hover:bg-red-800;
+	@apply btn bg-bad-strong text-white hover:bg-red-800;
 }
 
 @utility btn-ghost {

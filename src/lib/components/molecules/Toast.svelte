@@ -4,7 +4,7 @@
 
 	let { message, tone = 'ok' }: { message: string | null; tone?: 'ok' | 'bad' } = $props();
 
-	const tones = { ok: 'bg-ink text-cream', bad: 'bg-bad text-white' };
+	const tones = { ok: 'bg-ink text-canvas', bad: 'bg-bad-strong text-white' };
 </script>
 
 <div

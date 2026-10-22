@@ -16,7 +16,7 @@
 	<section
 		class="flex flex-wrap items-center justify-between gap-3 card p-4 {s.acceptingOrders
 			? ''
-			: 'border-red-300 bg-bad-tint'}"
+			: 'border-bad/40 bg-bad-tint'}"
 	>
 		<div>
 			<h1 class="page-title">{s.acceptingOrders ? 'Loja aberta' : 'Loja pausada'}</h1>

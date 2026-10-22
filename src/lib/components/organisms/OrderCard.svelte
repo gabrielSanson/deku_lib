@@ -37,13 +37,13 @@
 <article
 	class="rounded-xl border-2 p-3 {dark
 		? waiting
-			? 'border-stone-800 bg-stone-900/60 text-sm text-stone-50'
+			? 'on-night border-stone-800 bg-stone-900/60 text-sm text-stone-50'
 			: called
-				? 'border-4 border-yellow-300 bg-stone-900 text-stone-50 motion-safe:animate-pulse'
-				: 'border-stone-700 bg-stone-900 text-stone-50'
+				? 'on-night border-4 border-yellow-300 bg-stone-900 text-stone-50 motion-safe:animate-pulse'
+				: 'on-night border-stone-700 bg-stone-900 text-stone-50'
 		: fresh
-			? 'animate-pulse border-brand-500 bg-cream text-night'
-			: 'border-cream bg-cream text-night'}"
+			? 'on-cream animate-pulse border-brand-500 bg-cream text-night'
+			: 'on-cream border-cream bg-cream text-night'}"
 	data-called={called ? '' : undefined}
 >
 	{#if waiting}<p class="mb-1 text-xs font-bold tracking-wider text-stone-400 uppercase">
@@ -55,7 +55,7 @@
 			class="font-black tabular-nums {dark && !waiting ? 'text-7xl text-yellow-300' : 'text-3xl'}"
 			>#{pickupCode(o.orderNumber)}</span
 		>
-		<span class="text-xs font-bold tracking-wider {dark ? 'text-brand-400' : 'text-[#8a5a00]'}">
+		<span class="text-xs font-bold tracking-wider text-brand-700">
 			{o.channel === 'ifood'
 				? `IFOOD ${o.channelDisplayId ?? ''} · `
 				: o.channel === 'web'
@@ -82,7 +82,7 @@
 				{#each item.modifiers as m, i (i)}
 					<p
 						class="pl-4 text-base {m.optionName.startsWith('Sem ')
-							? 'font-semibold text-red-700 dark:text-red-300'
+							? `font-semibold ${dark ? 'text-red-300' : 'text-red-700'}`
 							: dark
 								? 'text-stone-200'
 								: 'text-night/80'}"
@@ -90,10 +90,10 @@
 						{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
 					</p>
 				{/each}
-				{#if item.allergyFlag}<p class="pl-4 font-black text-red-600 dark:text-red-400">
+				{#if item.allergyFlag}<p class="pl-4 font-black {dark ? 'text-red-400' : 'text-red-600'}">
 						⚠ ALERGIA
 					</p>{/if}
-				{#if item.note}<p class="pl-4 text-yellow-800 italic dark:text-yellow-200">
+				{#if item.note}<p class="pl-4 italic {dark ? 'text-yellow-200' : 'text-yellow-800'}">
 						“{item.note}”
 					</p>{/if}
 			</li>

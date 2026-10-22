@@ -62,7 +62,7 @@
 					data-sveltekit-reset="false"
 					class="grid min-h-11 place-items-center rounded-(--radius-control) text-sm font-semibold {mode ===
 					'entrar'
-						? 'bg-brand-500 text-ink'
+						? 'bg-brand-500 text-black'
 						: 'text-ink hover:bg-quiet'}">{t('account.tabLogin')}</a
 				>
 				<a
@@ -73,7 +73,7 @@
 					data-sveltekit-reset="false"
 					class="grid min-h-11 place-items-center rounded-(--radius-control) text-sm font-semibold {mode ===
 					'criar'
-						? 'bg-brand-500 text-ink'
+						? 'bg-brand-500 text-black'
 						: 'text-ink hover:bg-quiet'}">{t('account.tabSignup')}</a
 				>
 			</div>

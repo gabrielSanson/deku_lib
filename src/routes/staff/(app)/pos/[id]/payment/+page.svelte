@@ -104,7 +104,7 @@
 				{#each methods as m (m.id)}
 					<button
 						type="button"
-						class="btn {method === m.id ? 'bg-ink text-white' : 'btn-secondary'}"
+						class="btn {method === m.id ? 'bg-ink text-canvas' : 'btn-secondary'}"
 						aria-pressed={method === m.id}
 						onclick={() => (method = m.id)}>{m.label}</button
 					>

@@ -160,7 +160,7 @@
 					>
 						<span
 							class="grid size-6 place-items-center rounded-md border-2 {off
-								? 'border-bad bg-bad text-white'
+								? 'border-bad-strong bg-bad-strong text-white'
 								: 'border-line'}">{off ? '✕' : ''}</span
 						>
 						<span class={off ? 'line-through' : ''}>{i.name}</span>

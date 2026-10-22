@@ -128,7 +128,7 @@
 		<h1 class="mr-auto page-title">{t('analytics.title')}</h1>
 		{#each presets as [k, l] (k)}
 			<button
-				class="btn min-h-9 text-sm {data.preset === k ? 'bg-ink text-white' : 'btn-secondary'}"
+				class="btn min-h-9 text-sm {data.preset === k ? 'bg-ink text-canvas' : 'btn-secondary'}"
 				onclick={() => set({ range: k, from: '', to: '' })}>{l}</button
 			>
 		{/each}

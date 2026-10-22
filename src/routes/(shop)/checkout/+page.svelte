@@ -280,7 +280,7 @@
 						{#if data.store.dineIn}
 							<button
 								type="button"
-								class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-white' : 'btn-secondary'}"
+								class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 								aria-pressed={fulfillmentType === 'dine_in'}
 								onclick={() => (fulfillmentType = 'dine_in')}>{t('checkout.dineIn')}</button
 							>
@@ -288,14 +288,14 @@
 						<button
 							type="button"
 							disabled={!data.store.pickup}
-							class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-white' : 'btn-secondary'}"
+							class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 							aria-pressed={fulfillmentType === 'pickup'}
 							onclick={() => (fulfillmentType = 'pickup')}>{t('checkout.pickup')}</button
 						>
 						<button
 							type="button"
 							disabled={!data.store.delivery}
-							class="btn {fulfillmentType === 'delivery' ? 'bg-ink text-white' : 'btn-secondary'}"
+							class="btn {fulfillmentType === 'delivery' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 							aria-pressed={fulfillmentType === 'delivery'}
 							onclick={() => (fulfillmentType = 'delivery')}>{t('checkout.delivery')}</button
 						>

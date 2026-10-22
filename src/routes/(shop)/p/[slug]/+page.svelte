@@ -10,7 +10,7 @@
 		{#if block.type === 'heading'}
 			<h2 class="text-lg font-bold">{block.text}</h2>
 		{:else}
-			<p class="whitespace-pre-line text-stone-700">{block.text}</p>
+			<p class="whitespace-pre-line text-muted">{block.text}</p>
 		{/if}
 	{/each}
 </article>

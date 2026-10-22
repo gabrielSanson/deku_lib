@@ -146,9 +146,9 @@
 	/></svelte:head
 >
 
-<div class="min-h-dvh bg-night text-stone-50">
+<div class="on-night min-h-dvh bg-night text-stone-50">
 	<LiveBanner {live} />
-	<header class="flex items-center gap-3 border-b border-stone-800 px-4 py-2">
+	<header class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-stone-800 px-4 py-2">
 		{#if data.staff.role === 'admin'}
 			<a href="/staff" class="font-bold text-brand-500">{t('kitchen.back')}</a>
 		{/if}

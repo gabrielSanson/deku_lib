@@ -65,7 +65,7 @@
 								</p>{/if}
 						</div>
 						<Money cents={p.priceCents} class="text-sm text-muted" />
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}"
+						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
 							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
 						>
 					</form>
@@ -93,7 +93,9 @@
 								</p>{/if}
 						</div>
 						<button
-							class="btn min-h-9 text-sm {ing.available ? 'btn-secondary' : 'bg-bad text-white'}"
+							class="btn min-h-9 text-sm {ing.available
+								? 'btn-secondary'
+								: 'bg-bad-strong text-white'}"
 							>{ing.available ? 'Marcar em falta' : 'Em falta · voltar'}</button
 						>
 					</form>
@@ -112,7 +114,7 @@
 						<input type="hidden" name="sku" value={opt.sku} />
 						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
 						<p class="flex-1 font-medium">{opt.name}</p>
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad text-white' : 'btn-secondary'}"
+						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
 							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
 						>
 					</form>

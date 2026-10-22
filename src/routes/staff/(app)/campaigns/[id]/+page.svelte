@@ -240,13 +240,13 @@
 			<div class="grid grid-cols-2 gap-2">
 				<button
 					type="button"
-					class="btn {templateKey === 'code_discount' ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn {templateKey === 'code_discount' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={templateKey === 'code_discount'}
 					onclick={() => (templateKey = 'code_discount')}>Desconto no pedido</button
 				>
 				<button
 					type="button"
-					class="btn {templateKey === 'buy_x_get_y' ? 'bg-ink text-white' : 'btn-secondary'}"
+					class="btn {templateKey === 'buy_x_get_y' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={templateKey === 'buy_x_get_y'}
 					onclick={() => (templateKey = 'buy_x_get_y')}>Leve X, ganhe Y</button
 				>
