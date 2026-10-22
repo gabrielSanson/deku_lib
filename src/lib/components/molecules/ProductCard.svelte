@@ -65,9 +65,9 @@
 			<a href="/menu/{p.slug}" class="hover:underline">{p.name}</a>
 		</h3>
 		<p class="mt-1 line-clamp-3 text-sm text-muted">{p.description}</p>
-		<div class="mt-auto flex items-center justify-between gap-3 pt-4">
-			<p class="text-2xl font-black tabular-nums">
-				{#if needsChoice}<span class="text-sm font-semibold text-muted">{t('home.from')}&nbsp;</span
+		<div class="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-2 pt-4">
+			<p class="flex flex-col text-2xl leading-tight font-black whitespace-nowrap tabular-nums">
+				{#if needsChoice}<span class="text-xs font-semibold text-muted">{t('home.from')}</span
 					>{/if}<Money cents={p.priceCents} />
 			</p>
 			{#if out || !open}
@@ -76,7 +76,7 @@
 				>
 			{:else if needsChoice}
 				<a href="/menu/{p.slug}" class="btn-primary rounded-full px-4 text-sm whitespace-nowrap">
-					<Icon name="cart" class="size-4" />
+					<Icon name="plus" class="size-4" strokeWidth={3} />
 					{t('menu.addShort')}
 				</a>
 			{:else}
@@ -86,7 +86,7 @@
 					aria-live="polite"
 				>
 					{#if added}<Icon name="check" class="size-4" />
-						{t('home.added')}{:else}<Icon name="cart" class="size-4" />
+						{t('home.added')}{:else}<Icon name="plus" class="size-4" strokeWidth={3} />
 						{t('menu.addShort')}{/if}
 				</button>
 			{/if}
