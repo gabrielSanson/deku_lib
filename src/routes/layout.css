@@ -38,6 +38,12 @@
 	--radius-card: 1rem;
 	--radius-control: 0.75rem;
 	--shadow-card: 0 1px 2px rgb(20 16 8 / 0.04), 0 8px 24px rgb(20 16 8 / 0.06);
+	/* Spec names for the same colours, so new components can use the mockup vocabulary.
+	   They point at the existing tokens, so changing a brand colour updates both. */
+	--color-paper: var(--color-canvas);
+	--color-mustard: var(--color-brand-500);
+	--color-tomato: var(--color-bad);
+	--color-leaf: var(--color-ok);
 }
 
 :root {
