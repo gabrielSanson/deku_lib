@@ -46,6 +46,10 @@ export function guardUnsaved(getForm: () => HTMLFormElement | undefined, message
 		saving() {
 			saving = true;
 		},
+		/** Call when a save did not go through: the edits are still unsaved. */
+		failed() {
+			saving = false;
+		},
 		/** Call when a save finishes: the form now shows the saved state. */
 		saved() {
 			saving = false;

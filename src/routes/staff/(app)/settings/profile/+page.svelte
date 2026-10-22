@@ -1,14 +1,10 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 
 	let { data, form } = $props();
 	const p = $derived(data.profile);
 	let pixEnabled = $derived(data.profile.pix.enabled);
-	const keep =
-		() =>
-		async ({ update }: { update: (o?: { reset?: boolean }) => Promise<void> }) =>
-			update({ reset: false });
 </script>
 
 <svelte:head><title>Dados e Pix · Configurações</title></svelte:head>
@@ -16,9 +12,13 @@
 <div class="space-y-4">
 	<h1 class="page-title">Dados da loja e pagamentos</h1>
 
-	<form method="POST" action="?/store" use:enhance={keep} class="space-y-4 card p-4">
-		<h2 class="font-semibold">Dados da loja</h2>
-		<p class="text-sm text-muted">Aparecem no site, no app instalado e nos comprovantes.</p>
+	<SettingsSection
+		title="Dados da loja"
+		hint="Aparecem no site, no app instalado e nos comprovantes."
+		action="?/store"
+		saveLabel="Salvar dados"
+		saved={form?.ok === 'store' ? 'Dados salvos.' : undefined}
+	>
 		<div>
 			<label class="label" for="displayName">Nome da loja</label>
 			<input
@@ -57,15 +57,16 @@
 				placeholder="Rua Exemplo, 123 - Centro"
 			/>
 		</div>
-		{#if form?.ok === 'store'}<p class="alert-ok">Dados salvos.</p>{/if}
-		<button class="btn-primary">Salvar dados</button>
-	</form>
+	</SettingsSection>
 
-	<form method="POST" action="?/payments" use:enhance={keep} class="space-y-4 card p-4">
-		<h2 class="font-semibold">Como o cliente do site paga</h2>
-		<p class="text-sm text-muted">
-			Todo pedido do site é pago na hora, antes de ir para a cozinha.
-		</p>
+	<SettingsSection
+		title="Como o cliente do site paga"
+		hint="Todo pedido do site é pago na hora, antes de ir para a cozinha."
+		action="?/payments"
+		saveLabel="Salvar pagamentos"
+		saved={form?.ok === 'payments' ? 'Pagamentos salvos.' : undefined}
+		warning={form?.ok === 'payments' ? form.warning : undefined}
+	>
 		<fieldset class="space-y-4">
 			<label class="flex min-h-11 items-start gap-3"
 				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
@@ -131,11 +132,6 @@
 				? `Provedor ativo: ${data.onlineProvider}.`
 				: 'Nenhum está conectado; isso é opcional.'}
 		</p>
-		{#if form?.ok === 'payments'}
-			<p class="alert-ok">Pagamentos salvos.</p>
-			{#if form.warning}<p class="alert-warn">{form.warning}</p>{/if}
-		{/if}
-		<button class="btn-primary">Salvar pagamentos</button>
-	</form>
+	</SettingsSection>
 	<FormError message={form?.error} />
 </div>
