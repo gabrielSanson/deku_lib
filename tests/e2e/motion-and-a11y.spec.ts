@@ -13,6 +13,13 @@ for (const route of routes) {
 		const serious = results.violations.filter(
 			(v) => v.impact === 'serious' || v.impact === 'critical'
 		);
+		// Print the failing elements to the job log, so the cause is visible without downloading the report.
+		for (const v of serious) {
+			for (const n of v.nodes) {
+				console.log(`[axe] ${route} ${v.id} ${n.target.join(' ')} :: ${n.html.slice(0, 300)}`);
+				console.log(`[axe] ${route} ${v.id} summary :: ${n.failureSummary?.replace(/\s+/g, ' ')}`);
+			}
+		}
 		expect(
 			serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`),
 			`serious or critical issues on ${route}`
