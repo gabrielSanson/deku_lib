@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { invalidate } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -109,8 +109,27 @@
 		else if (Notification.permission === 'granted' && remembered()) notify = 'on';
 	});
 
+	// At the totem the screen goes back to the menu for the next customer.
+	const KIOSK_SECONDS = 45;
+	let kioskLeft = $state(KIOSK_SECONDS);
+	$effect(() => {
+		if (!data.kiosk) return;
+		const tick = setInterval(() => {
+			kioskLeft -= 1;
+			if (kioskLeft <= 0) goto('/cardapio');
+		}, 1000);
+		// Any touch gives the customer more time to read.
+		const more = () => (kioskLeft = KIOSK_SECONDS);
+		window.addEventListener('pointerdown', more);
+		return () => {
+			clearInterval(tick);
+			window.removeEventListener('pointerdown', more);
+		};
+	});
+
 	onMount(() => {
-		if (page.params.token) rememberOrder(page.params.token);
+		// The totem is shared: it must not offer this order to the next customer.
+		if (page.params.token && !data.kiosk) rememberOrder(page.params.token);
 		const t = setInterval(
 			() => document.visibilityState === 'visible' && invalidate('app:public-order'),
 			10_000
@@ -195,7 +214,7 @@
 		<h1 class="page-title">{t('order.track.title')}</h1>
 		<p class="mt-1 text-muted">{t('order.track.subtitle')}</p>
 	</div>
-	{#if isNew}<p class="alert-ok">{t('order.sent')}</p>{/if}
+	{#if isNew && !data.kiosk}<p class="alert-ok">{t('order.sent')}</p>{/if}
 
 	<div class="space-y-5 rounded-(--radius-card) bg-night p-6 text-white">
 		<div class="flex flex-wrap items-start justify-between gap-3">
@@ -216,6 +235,13 @@
 
 		{#if cancelled}
 			<p class="alert-error text-center">{t('order.cancelled')}</p>
+		{:else if waitingPayment && o.paymentPlan === 'counter'}
+			<p
+				class="rounded-(--radius-control) bg-brand-500 p-4 text-center text-xl font-black text-black"
+				role="status"
+			>
+				{t('order.kiosk.payAtCounter', { number: code })}
+			</p>
 		{:else if waitingPayment}
 			<p class="rounded-(--radius-control) bg-night-2 p-4 text-center text-stone-200">
 				{t('order.track.waitingPayment')}
@@ -240,7 +266,7 @@
 		<p class="rounded-xl bg-brand-500 p-5 text-center text-xl font-black text-black" role="alert">
 			{t('order.readyPickup', { number: code })}
 		</p>
-	{:else if collects && open}
+	{:else if collects && open && !data.kiosk}
 		<form
 			method="POST"
 			action="?/notify"
@@ -317,7 +343,14 @@
 		>
 	{/if}
 	<a class="relative btn-primary btn-lg w-full" href="/cardapio">
-		<Icon name="burger" class="size-6" />{t('order.track.menuCta')}
+		<Icon name="burger" class="size-6" />{t(
+			data.kiosk ? 'order.kiosk.newOrder' : 'order.track.menuCta'
+		)}
 		<Icon name="arrow" class="absolute right-5 size-5" />
 	</a>
+	{#if data.kiosk}
+		<p class="text-center text-sm text-muted" aria-live="polite">
+			{t('order.kiosk.returning', { seconds: kioskLeft })}
+		</p>
+	{/if}
 </section>

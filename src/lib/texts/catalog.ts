@@ -586,6 +586,16 @@ export const TEXTS = {
 		label: 'Pix na chave da loja: explicação',
 		default: 'Pague agora com QR Code. A loja confere o Pix recebido e confirma o pedido.'
 	},
+	'checkout.method.counter': {
+		group: 'checkout',
+		label: 'Totem: pagar no caixa',
+		default: 'Pagar no caixa'
+	},
+	'checkout.method.counter.hint': {
+		group: 'checkout',
+		label: 'Totem: pagar no caixa, explicação',
+		default: 'Dinheiro ou cartão no caixa. A cozinha começa assim que você pagar.'
+	},
 	'checkout.method.card': { group: 'checkout', label: 'Cartão online', default: 'Cartão online' },
 	'checkout.method.card.hint': {
 		group: 'checkout',
@@ -676,6 +686,11 @@ export const TEXTS = {
 		default: 'Informe o CEP para calcular a entrega.'
 	},
 	'checkout.sending': { group: 'checkout', label: 'Enviando', default: 'Enviando…' },
+	'checkout.placeAtCounter': {
+		group: 'checkout',
+		label: 'Totem: botão fazer pedido (pagar no caixa)',
+		default: 'Fazer pedido'
+	},
 	'checkout.goPay': {
 		group: 'checkout',
 		label: 'Botão ir para o pagamento',
@@ -834,6 +849,18 @@ export const TEXTS = {
 		default: 'Itens do pedido'
 	},
 	'order.track.menuCta': { group: 'order', label: 'Botão ver cardápio', default: 'Ver cardápio' },
+	'order.kiosk.payAtCounter': {
+		group: 'order',
+		label: 'Totem: pague no caixa',
+		default: 'Vá ao caixa e diga o número {number}. A cozinha começa assim que você pagar.'
+	},
+	'order.kiosk.newOrder': { group: 'order', label: 'Totem: novo pedido', default: 'Novo pedido' },
+	'order.kiosk.returning': {
+		group: 'order',
+		label: 'Totem: voltando ao início',
+		default: 'A tela volta ao cardápio em {seconds} s.'
+	},
+	'header.kiosk.restart': { group: 'header', label: 'Totem: recomeçar', default: 'Recomeçar' },
 	'order.cancelled': {
 		group: 'order',
 		label: 'Pedido cancelado',

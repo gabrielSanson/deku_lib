@@ -96,6 +96,12 @@ To try online checkout locally set `PAYMENT_PROVIDER=local_stub`. The payment
 page then shows a "simulate approved payment" button that sends a signed webhook,
 just like a PSP would. The stub is refused when `NODE_ENV=production`.
 
+## In-store totem
+
+Open `/totem` once on the totem's browser to put it in totem mode (dine-in or
+takeaway, Pix or "Pagar no caixa", resets itself for the next customer). Full
+screen setup for a Windows PC: [docs/totem.md](docs/totem.md).
+
 ## Environment variables
 
 See [`.env.example`](.env.example). The web app and the worker read the same

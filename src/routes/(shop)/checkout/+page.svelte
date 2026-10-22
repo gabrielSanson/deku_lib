@@ -4,7 +4,7 @@
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
-	import type { WebPaymentMethod } from '#lib/domain/payment-rules.ts';
+	import type { CheckoutPaymentMethod } from '#lib/domain/payment-rules.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
@@ -58,7 +58,7 @@
 		state: 'SP',
 		instructions: ''
 	});
-	let payment = $state<WebPaymentMethod>('pix_key');
+	let payment = $state<CheckoutPaymentMethod>('pix_key');
 	let idempotencyKey = $state(crypto.randomUUID());
 	let quote = $state<Quote | null>(null);
 	let quoteError = $state<string | null>(null);
@@ -76,11 +76,14 @@
 		if (data.store.dineIn && table) {
 			fulfillmentType = 'dine_in';
 			tableLabel = table;
+		} else if (data.kiosk && data.store.dineIn) {
+			fulfillmentType = 'dine_in';
 		} else if (!data.store.pickup) {
 			fulfillmentType = data.store.dineIn ? 'dine_in' : 'delivery';
 		}
 		if (data.onlineMethods.includes('pix')) payment = 'pix';
 		else if (data.store.pixKey) payment = 'pix_key';
+		else if (data.kiosk) payment = 'counter';
 		else if (data.onlineMethods.length) payment = data.onlineMethods[0];
 	});
 
@@ -152,8 +155,10 @@
 		}, 350);
 	});
 
+	// At the totem, and when eating in, the order is called by number: the phone is optional.
+	const phoneOptional = $derived(fulfillmentType === 'dine_in' || data.kiosk);
 	const phoneOk = $derived(
-		fulfillmentType === 'dine_in'
+		phoneOptional
 			? // Eating in only needs a name to call out; the phone is optional.
 				phone.trim().length === 0 || phone.trim().length >= 8
 			: phone.trim().length >= 8
@@ -194,12 +199,22 @@
 						}
 					]
 				: []),
-		...(data.onlineMethods.includes('online_card')
+		// Typing a card on a shared screen is not offered at the totem; the counter takes cards.
+		...(data.onlineMethods.includes('online_card') && !data.kiosk
 			? [
 					{
 						id: 'online_card',
 						label: t('checkout.method.card'),
 						hint: t('checkout.method.card.hint')
+					}
+				]
+			: []),
+		...(data.kiosk
+			? [
+					{
+						id: 'counter',
+						label: t('checkout.method.counter'),
+						hint: t('checkout.method.counter.hint')
 					}
 				]
 			: [])
@@ -213,13 +228,17 @@
 		payment: methods.length > 0,
 		review: canPlace
 	});
-	const index = $derived(STEPS.indexOf(step));
-	const isLast = $derived(index === STEPS.length - 1);
+	// The totem never delivers, so it skips the address step.
+	const steps = $derived<readonly StepKey[]>(
+		data.kiosk ? STEPS.filter((s) => s !== 'address') : STEPS
+	);
+	const index = $derived(steps.indexOf(step));
+	const isLast = $derived(index === steps.length - 1);
 	function next() {
-		if (stepDone[step] && index < STEPS.length - 1) step = STEPS[index + 1];
+		if (stepDone[step] && index < steps.length - 1) step = steps[index + 1];
 	}
 	function back() {
-		if (index > 0) step = STEPS[index - 1];
+		if (index > 0) step = steps[index - 1];
 	}
 </script>
 
@@ -236,9 +255,9 @@
 	{:else}
 		<ol
 			class="flex gap-2 text-xs font-semibold"
-			aria-label={t('checkout.stepOf', { current: index + 1, total: STEPS.length })}
+			aria-label={t('checkout.stepOf', { current: index + 1, total: steps.length })}
 		>
-			{#each STEPS as s, i (s)}
+			{#each steps as s, i (s)}
 				<li
 					class="flex-1 rounded-full px-2 py-1 text-center {i === index
 						? 'bg-brand-500 text-black'
@@ -283,7 +302,9 @@
 			{#if step === 'receive'}
 				<fieldset class="space-y-2">
 					<legend class="mb-2 text-lg font-bold">{t('checkout.how')}</legend>
-					<div class="grid gap-2 {data.store.dineIn ? 'grid-cols-3' : 'grid-cols-2'}">
+					<div
+						class="grid gap-2 {data.store.dineIn && !data.kiosk ? 'grid-cols-3' : 'grid-cols-2'}"
+					>
 						{#if data.store.dineIn}
 							<button
 								type="button"
@@ -299,13 +320,17 @@
 							aria-pressed={fulfillmentType === 'pickup'}
 							onclick={() => (fulfillmentType = 'pickup')}>{t('checkout.pickup')}</button
 						>
-						<button
-							type="button"
-							disabled={!data.store.delivery}
-							class="btn {fulfillmentType === 'delivery' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-							aria-pressed={fulfillmentType === 'delivery'}
-							onclick={() => (fulfillmentType = 'delivery')}>{t('checkout.delivery')}</button
-						>
+						{#if !data.kiosk}
+							<button
+								type="button"
+								disabled={!data.store.delivery}
+								class="btn {fulfillmentType === 'delivery'
+									? 'bg-ink text-canvas'
+									: 'btn-secondary'}"
+								aria-pressed={fulfillmentType === 'delivery'}
+								onclick={() => (fulfillmentType = 'delivery')}>{t('checkout.delivery')}</button
+							>
+						{/if}
 					</div>
 					{#if fulfillmentType === 'dine_in'}
 						<div>
@@ -415,9 +440,7 @@
 					</div>
 					<div>
 						<label class="label" for="phone"
-							>{fulfillmentType === 'dine_in'
-								? t('checkout.phoneOptional')
-								: t('checkout.phone')}</label
+							>{phoneOptional ? t('checkout.phoneOptional') : t('checkout.phone')}</label
 						><input
 							id="phone"
 							class="field"
@@ -425,10 +448,10 @@
 							autocomplete="tel"
 							bind:value={phone}
 							placeholder="(11) 98765-4321"
-							required={fulfillmentType !== 'dine_in'}
-							aria-describedby={fulfillmentType === 'dine_in' ? 'phone-hint' : undefined}
+							required={!phoneOptional}
+							aria-describedby={phoneOptional ? 'phone-hint' : undefined}
 						/>
-						{#if fulfillmentType === 'dine_in'}<p id="phone-hint" class="mt-1 text-xs text-muted">
+						{#if phoneOptional}<p id="phone-hint" class="mt-1 text-xs text-muted">
 								{t('checkout.phoneOptional.hint')}
 							</p>{/if}
 					</div>
@@ -585,7 +608,9 @@
 							class="btn-primary text-lg"
 							disabled={!canPlace || busy || methods.length === 0}
 						>
-							{busy ? t('checkout.sending') : t('checkout.goPay')}
+							{busy
+								? t('checkout.sending')
+								: t(payment === 'counter' ? 'checkout.placeAtCounter' : 'checkout.goPay')}
 						</button>
 					{:else}
 						<button type="button" class="btn-primary" disabled={!stepDone[step]} onclick={next}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import { lastOrder } from '#lib/client/last-order.ts';
@@ -25,7 +26,43 @@
 				/* private mode: the customer types the table at checkout */
 			}
 		}
-		orderToken = lastOrder();
+		// The totem is shared: no "your last order" link for the next customer.
+		orderToken = data.kiosk ? null : lastOrder();
+	});
+
+	// Totem: start over for the next customer.
+	function restart() {
+		cart.clear();
+		cart.panelOpen = false;
+		try {
+			sessionStorage.removeItem('deku-mesa');
+		} catch {
+			/* nothing stored */
+		}
+		goto('/cardapio');
+	}
+	// Totem: an abandoned order is cleared after a while without a touch. The Pix
+	// screen gets longer (the customer is paying on their phone); the order page
+	// counts down on its own.
+	$effect(() => {
+		if (!data.kiosk) return;
+		let last = Date.now();
+		const touch = () => (last = Date.now());
+		const events = ['pointerdown', 'keydown', 'scroll'] as const;
+		for (const e of events) window.addEventListener(e, touch, { passive: true });
+		const timer = setInterval(() => {
+			const p = page.url.pathname;
+			if (p.startsWith('/orders/') || (p === '/cardapio' && cart.count === 0)) return;
+			const limit = p.startsWith('/checkout/payment/') ? 5 * 60_000 : 2 * 60_000;
+			if (Date.now() - last > limit) {
+				last = Date.now();
+				restart();
+			}
+		}, 5_000);
+		return () => {
+			clearInterval(timer);
+			for (const e of events) window.removeEventListener(e, touch);
+		};
 	});
 
 	const path = $derived(page.url.pathname);
@@ -35,7 +72,7 @@
 		path.startsWith('/cart') || path.startsWith('/checkout') || path.startsWith('/orders')
 	);
 	const showTabs = $derived(
-		path.startsWith('/orders') || !(onCheckout || path.startsWith('/menu/'))
+		!data.kiosk && (path.startsWith('/orders') || !(onCheckout || path.startsWith('/menu/')))
 	);
 	const showCartBar = $derived(cart.count > 0 && !onCheckout && !cart.panelOpen);
 
@@ -75,12 +112,16 @@
 	// Desktop header: Cardápio, Meus pedidos (the account page lists orders).
 	const desktopNav = $derived([
 		nav[0],
-		{
-			href: data.customer ? '/conta' : '/conta/entrar',
-			label: t('header.nav.mine'),
-			icon: 'bag' as const,
-			active: path.startsWith('/conta')
-		}
+		...(data.kiosk
+			? []
+			: [
+					{
+						href: data.customer ? '/conta' : '/conta/entrar',
+						label: t('header.nav.mine'),
+						icon: 'bag' as const,
+						active: path.startsWith('/conta')
+					}
+				])
 	]);
 
 	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
@@ -165,13 +206,18 @@
 					class="hidden shrink-0 items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-[15px] font-black text-black transition-colors hover:bg-brand-400 md:flex"
 					>{t('header.order')}</a
 				>
+				{#if data.kiosk}
+					<button
+						type="button"
+						class="flex shrink-0 items-center gap-2 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
+						onclick={restart}>{t('header.kiosk.restart')}</button
+					>
+				{/if}
 				<a
 					href={accountHref}
-					class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line md:grid {path.startsWith(
-						'/conta'
-					)
-						? 'text-brand-500'
-						: ''}"
+					class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line {data.kiosk
+						? ''
+						: 'md:grid'} {path.startsWith('/conta') ? 'text-brand-500' : ''}"
 					aria-label={t('account.tab')}
 					aria-current={path.startsWith('/conta') ? 'page' : undefined}
 				>
