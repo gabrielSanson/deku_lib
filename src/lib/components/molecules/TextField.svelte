@@ -43,7 +43,7 @@
 		{autocomplete}
 		{placeholder}
 		bind:value
-		class="field {error ? 'border-bad' : ''}"
+		class="field"
 		aria-invalid={error ? 'true' : undefined}
 		aria-describedby={describedBy}
 	/>
