@@ -2,11 +2,19 @@
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import type { DeliveryRule } from '#lib/domain/pricing.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	let editing = $state<Partial<DeliveryRule> | null>(null);
+	const t = useTexts();
+	let formEl = $state<HTMLFormElement>();
+	const guard = guardUnsaved(
+		() => formEl,
+		() => t('unsaved.confirm')
+	);
 	const brl = (c: number) => formatBRL(c).replace(/[R$\s]/g, '');
 </script>
 
@@ -31,11 +39,17 @@
 		<form
 			method="POST"
 			action="?/save"
-			use:enhance={() =>
-				async ({ update, result }) => {
+			bind:this={formEl}
+			use:enhance={() => {
+				guard.saving();
+				return async ({ update, result }) => {
 					await update();
-					if (result.type === 'success') editing = null;
-				}}
+					if (result.type === 'success') {
+						guard.saved();
+						editing = null;
+					} else guard.failed();
+				};
+			}}
 			class="grid gap-3 card p-4 sm:grid-cols-2"
 		>
 			<input type="hidden" name="id" value={editing.id ?? ''} />
