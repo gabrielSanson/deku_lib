@@ -72,7 +72,7 @@
 		>
 		<label class="flex min-h-11 items-center gap-3"
 			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} /> Comer no
-			local (o cliente pede pelo celular na mesa)</label
+			salão (o cliente escolhe "Comer aqui" no pedido)</label
 		>
 		{#if s.dineInEnabled}
 			<p class="-mt-2 pl-8 text-sm text-muted">
