@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import AnalyticsMetric from '#lib/components/molecules/AnalyticsMetric.svelte';
+	import DailySalesChart from '#lib/components/organisms/DailySalesChart.svelte';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
@@ -87,7 +89,6 @@
 		}
 	]);
 
-	const maxDaily = $derived(Math.max(1, ...data.daily.map((d) => d.grossCents)));
 	const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 	const hours = $derived.by(() => {
 		const hs = data.peaks.map((x) => x.hour);
@@ -150,23 +151,14 @@
 
 	<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Indicadores">
 		{#each cards as card (card.key)}
-			<svelte:element
-				this={card.href ? 'a' : 'div'}
+			<AnalyticsMetric
+				label={card.label}
+				value={card.value}
+				delta={card.d}
+				note={card.note}
 				href={card.href}
-				class="card p-4 {card.href ? 'hover:border-brand-500' : ''}"
 				title={data.definitions[card.key as keyof typeof data.definitions]}
-			>
-				<div class="text-sm text-muted">{card.label}</div>
-				<div class="text-2xl font-bold tabular-nums">{card.value}</div>
-				{#if card.d !== null}
-					<div class="text-xs {card.d >= 0 ? 'text-ok' : 'text-bad'}">
-						{card.d >= 0 ? '▲' : '▼'}
-						{Math.abs(Math.round(card.d * 100))}% vs. período anterior
-					</div>
-				{:else if card.note}
-					<div class="text-xs text-muted">{card.note}</div>
-				{/if}
-			</svelte:element>
+			/>
 		{/each}
 	</section>
 	{#if c.paymentExceptions}<p class="alert-warn">
@@ -178,33 +170,7 @@
 
 	<section class="card p-4">
 		<h2 class="mb-3 font-semibold">Vendas por dia</h2>
-		<div class="flex h-48 items-end gap-1" aria-hidden="true">
-			{#each data.daily as d (d.day)}
-				<div class="group relative flex-1">
-					<div
-						class="rounded-t bg-brand-500"
-						style="height: {Math.max(2, (d.grossCents / maxDaily) * 180)}px"
-					></div>
-				</div>
-			{/each}
-		</div>
-		<details class="mt-2 text-sm">
-			<summary class="cursor-pointer text-muted">Ver tabela</summary>
-			<table class="mt-2 w-full">
-				<thead
-					><tr class="text-left text-muted"
-						><th>Dia</th><th>Pedidos</th><th class="text-right">Vendas brutas</th></tr
-					></thead
-				>
-				<tbody
-					>{#each data.daily as d (d.day)}<tr
-							><td>{d.day}</td><td>{d.orders}</td><td class="text-right"
-								><Money cents={d.grossCents} /></td
-							></tr
-						>{/each}</tbody
-				>
-			</table>
-		</details>
+		<DailySalesChart days={data.daily} />
 	</section>
 
 	<div class="grid gap-4 lg:grid-cols-2">
