@@ -130,7 +130,7 @@
 									? 'rounded-full'
 									: 'rounded-md'} border-2 {q
 									? 'border-brand-500 bg-brand-500 text-black'
-									: 'border-stone-300'}">{q > 1 ? q : q ? '✓' : ''}</span
+									: 'border-line'}">{q > 1 ? q : q ? '✓' : ''}</span
 							>
 							{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
 						</span>
@@ -161,7 +161,7 @@
 						<span
 							class="grid size-6 place-items-center rounded-md border-2 {off
 								? 'border-bad bg-bad text-white'
-								: 'border-stone-300'}">{off ? '✕' : ''}</span
+								: 'border-line'}">{off ? '✕' : ''}</span
 						>
 						<span class={off ? 'line-through' : ''}>{i.name}</span>
 						{#if out}<span class="text-xs text-muted">{t('product.ingredientOut')}</span>{/if}

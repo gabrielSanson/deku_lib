@@ -1530,6 +1530,16 @@ export const TEXTS = {
 		label: 'Pedido: título da aba',
 		default: 'Pedido #{n}'
 	},
+	'theme.toLight': {
+		group: 'header',
+		label: 'Tema: botão para o modo claro',
+		default: 'Mudar para o modo claro'
+	},
+	'theme.toDark': {
+		group: 'header',
+		label: 'Tema: botão para o modo escuro',
+		default: 'Mudar para o modo escuro'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',

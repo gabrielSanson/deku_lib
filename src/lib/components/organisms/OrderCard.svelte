@@ -42,8 +42,8 @@
 				? 'border-4 border-yellow-300 bg-stone-900 text-stone-50 motion-safe:animate-pulse'
 				: 'border-stone-700 bg-stone-900 text-stone-50'
 		: fresh
-			? 'animate-pulse border-brand-500 bg-cream text-ink'
-			: 'border-cream bg-cream text-ink'}"
+			? 'animate-pulse border-brand-500 bg-cream text-night'
+			: 'border-cream bg-cream text-night'}"
 	data-called={called ? '' : undefined}
 >
 	{#if waiting}<p class="mb-1 text-xs font-bold tracking-wider text-stone-400 uppercase">
@@ -55,7 +55,7 @@
 			class="font-black tabular-nums {dark && !waiting ? 'text-7xl text-yellow-300' : 'text-3xl'}"
 			>#{pickupCode(o.orderNumber)}</span
 		>
-		<span class="text-xs font-bold tracking-wider {dark ? 'text-brand-400' : 'text-brand-700'}">
+		<span class="text-xs font-bold tracking-wider {dark ? 'text-brand-400' : 'text-[#8a5a00]'}">
 			{o.channel === 'ifood'
 				? `IFOOD ${o.channelDisplayId ?? ''} · `
 				: o.channel === 'web'
@@ -66,7 +66,7 @@
 			><Age since={o.acceptedAt ?? o.createdAt} warnAfter={12} lateAfter={20} /></span
 		>
 	</header>
-	{#if o.customerLabel}<p class="mb-1 text-sm {dark ? 'text-stone-300' : 'text-muted'}">
+	{#if o.customerLabel}<p class="mb-1 text-sm {dark ? 'text-stone-300' : 'text-night/60'}">
 			{o.customerLabel}
 		</p>{/if}
 	<ul class="space-y-1.5">
@@ -85,7 +85,7 @@
 							? 'font-semibold text-red-700 dark:text-red-300'
 							: dark
 								? 'text-stone-200'
-								: 'text-ink/80'}"
+								: 'text-night/80'}"
 					>
 						{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
 					</p>
@@ -99,12 +99,12 @@
 			</li>
 		{/each}
 	</ul>
-	{#if o.notes}<p class="mt-2 rounded bg-yellow-200 p-2 text-sm text-ink">{o.notes}</p>{/if}
+	{#if o.notes}<p class="mt-2 rounded bg-yellow-200 p-2 text-sm text-night">{o.notes}</p>{/if}
 	<footer class="mt-3 flex gap-2">
 		{#if lane === 'confirmed' && !o.kitchenSeenAt}
 			<form method="POST" action="?/seen" use:enhance class="flex-1">
 				<input type="hidden" name="orderId" value={o.id} />
-				<button class="min-h-12 w-full rounded-lg bg-ink font-bold text-cream">Visto</button>
+				<button class="min-h-12 w-full rounded-lg bg-night font-bold text-cream">Visto</button>
 			</form>
 		{/if}
 		{#if lane === 'ready'}
@@ -128,7 +128,7 @@
 	{#if lane === 'ready' && o.calledAt}<p class="mt-1 text-sm text-stone-300">
 			{t('staff.called', { time: formatTime(o.calledAt) })}
 		</p>{/if}
-	{#if o.promisedAt}<p class="mt-1 text-right text-xs {dark ? 'text-stone-400' : 'text-muted'}">
+	{#if o.promisedAt}<p class="mt-1 text-right text-xs {dark ? 'text-stone-400' : 'text-night/60'}">
 			Prometido {formatTime(o.promisedAt)}
 		</p>{/if}
 </article>

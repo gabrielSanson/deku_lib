@@ -125,6 +125,9 @@ export function themeCss(colors: Branding['colors']): string {
 			`--color-night-line:color-mix(in oklab,${dark} 82%,white)`
 		);
 	}
-	if (background && HEX.test(background)) vars.push(`--color-canvas:${background}`);
-	return vars.length ? `:root{${vars.join(';')}}` : '';
+	const light =
+		background && HEX.test(background)
+			? `:root:not([data-theme='dark']){--color-canvas:${background}}`
+			: '';
+	return (vars.length ? `:root{${vars.join(';')}}` : '') + light;
 }

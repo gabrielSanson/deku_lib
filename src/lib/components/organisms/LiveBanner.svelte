@@ -24,10 +24,7 @@
 		{t('staff.offline')}
 	</div>
 {:else if !live.connected}
-	<div
-		class="bg-amber-100 px-4 py-1.5 text-center text-xs font-medium text-amber-900"
-		role="status"
-	>
+	<div class="bg-brand-tint px-4 py-1.5 text-center text-xs font-medium text-warn" role="status">
 		{t('staff.polling', { time: formatTime(live.lastRefresh) })}
 	</div>
 {/if}

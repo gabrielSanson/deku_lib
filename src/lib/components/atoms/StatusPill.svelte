@@ -5,11 +5,11 @@
 
 	const tones: Record<PillTone, { pill: string; dot: string }> = {
 		ok: { pill: 'bg-ok-tint text-ok', dot: 'bg-ok' },
-		warn: { pill: 'bg-amber-50 text-warn', dot: 'bg-warn' },
+		warn: { pill: 'bg-brand-tint text-warn', dot: 'bg-warn' },
 		bad: { pill: 'bg-bad-tint text-bad', dot: 'bg-bad' },
 		brand: { pill: 'bg-brand-tint text-brand-700', dot: 'bg-brand-500' },
 		info: { pill: 'bg-info-tint text-info', dot: 'bg-info' },
-		quiet: { pill: 'bg-quiet text-stone-600', dot: 'bg-stone-400' }
+		quiet: { pill: 'bg-quiet text-muted', dot: 'bg-stone-400' }
 	};
 </script>
 

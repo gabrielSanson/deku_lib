@@ -51,6 +51,32 @@
 	accent-color: var(--color-brand-500);
 }
 
+/* Dark theme (the default; app.html sets data-theme before first paint, the toggle in the
+   headers switches it). Only the neutral and status tokens change, so every utility built on
+   them follows. Brand yellow stays; brand-700, the "readable yellow text on light", turns
+   into a bright yellow here. Cream kitchen tickets keep dark text through text-night. */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--color-ink: #f5efe6;
+	--color-muted: #b8b0a4;
+	--color-line: #34302a;
+	--color-surface: #1b1915;
+	--color-quiet: #26231d;
+	--color-canvas: #100f0d;
+	--color-brand-700: #ffca28;
+	--color-brand-50: #2b2208;
+	--color-brand-100: #3a2d06;
+	--color-ok: #4ade80;
+	--color-ok-tint: #12301c;
+	--color-warn: #fbbf24;
+	--color-bad: #f87171;
+	--color-bad-tint: #3a1816;
+	--color-brand-tint: #352a08;
+	--color-info: #7aa7ff;
+	--color-info-tint: #14234a;
+	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
 html,
 body {
 	background: var(--color-canvas);
@@ -92,7 +118,7 @@ body {
 
 /* Low-key action inside a card, e.g. "Marcar como pronto". */
 @utility btn-quiet {
-	@apply btn bg-quiet text-ink hover:bg-stone-200;
+	@apply btn bg-quiet text-ink hover:bg-line;
 }
 
 @utility btn-success {
@@ -112,7 +138,7 @@ body {
 }
 
 @utility field {
-	@apply min-h-12 w-full rounded-(--radius-control) border border-line bg-surface px-3.5 py-2 text-base placeholder:text-stone-400;
+	@apply min-h-12 w-full rounded-(--radius-control) border border-line bg-surface px-3.5 py-2 text-base placeholder:text-muted/70;
 }
 
 /* Interaction states, defined once for every control (F4).
@@ -168,7 +194,7 @@ body {
 
 /* Small round counter next to a tab or lane title. */
 @utility count {
-	@apply inline-grid min-w-6 place-items-center rounded-full bg-black/8 px-1.5 text-xs leading-6 font-bold tabular-nums;
+	@apply inline-grid min-w-6 place-items-center rounded-full bg-ink/10 px-1.5 text-xs leading-6 font-bold tabular-nums;
 }
 
 @utility page-title {
@@ -181,15 +207,15 @@ body {
 }
 
 @utility alert-error {
-	@apply rounded-(--radius-control) border border-red-200 bg-bad-tint px-3 py-2 text-sm text-bad;
+	@apply rounded-(--radius-control) border border-bad/30 bg-bad-tint px-3 py-2 text-sm text-bad;
 }
 
 @utility alert-warn {
-	@apply rounded-(--radius-control) border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-warn;
+	@apply rounded-(--radius-control) border border-warn/30 bg-brand-tint px-3 py-2 text-sm text-warn;
 }
 
 @utility alert-ok {
-	@apply rounded-(--radius-control) border border-green-200 bg-ok-tint px-3 py-2 text-sm text-ok;
+	@apply rounded-(--radius-control) border border-ok/30 bg-ok-tint px-3 py-2 text-sm text-ok;
 }
 
 @utility font-display {

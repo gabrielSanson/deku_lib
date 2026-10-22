@@ -110,12 +110,12 @@
 						<li>
 							<a
 								href="/staff/menu/products/{p.sku}"
-								class="flex items-center gap-3 p-3 hover:bg-stone-50"
+								class="flex items-center gap-3 p-3 hover:bg-quiet"
 							>
 								{#if p.imageUrl}
 									<img src={p.imageUrl} alt="" class="size-10 rounded object-cover" />
 								{:else}
-									<span class="size-10 rounded bg-stone-100"></span>
+									<span class="size-10 rounded bg-quiet"></span>
 								{/if}
 								<span class="flex-1">
 									<span class="font-medium">{p.name}</span>
@@ -168,7 +168,7 @@
 		<ul class="divide-y divide-line card">
 			{#each data.groups as g (g.id)}
 				<li>
-					<a href="/staff/menu/groups/{g.id}" class="flex items-center gap-3 p-3 hover:bg-stone-50">
+					<a href="/staff/menu/groups/{g.id}" class="flex items-center gap-3 p-3 hover:bg-quiet">
 						<span class="flex-1 font-medium">{g.name}</span>
 						<span class="text-xs text-muted"
 							>{g.options} opções · escolhe {g.min_selections === g.max_selections

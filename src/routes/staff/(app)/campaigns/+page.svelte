@@ -124,7 +124,7 @@
 
 	<div class="overflow-x-auto card">
 		<table class="w-full text-sm">
-			<thead class="bg-stone-50 text-left text-xs text-muted uppercase">
+			<thead class="bg-quiet text-left text-xs text-muted uppercase">
 				<tr>
 					<th class="p-3">Campanha</th>
 					<th class="p-3">Benefício</th>

@@ -16,7 +16,7 @@
 	<section
 		class="flex flex-wrap items-center justify-between gap-3 card p-4 {s.acceptingOrders
 			? ''
-			: 'border-red-300 bg-red-50'}"
+			: 'border-red-300 bg-bad-tint'}"
 	>
 		<div>
 			<h1 class="page-title">{s.acceptingOrders ? 'Loja aberta' : 'Loja pausada'}</h1>
@@ -76,7 +76,7 @@
 		>
 		{#if s.dineInEnabled}
 			<p class="-mt-2 pl-8 text-sm text-muted">
-				Cole em cada mesa um QR Code com o link <code class="rounded bg-stone-100 px-1"
+				Cole em cada mesa um QR Code com o link <code class="rounded bg-quiet px-1"
 					>{page.url.origin}/?mesa=7</code
 				> (troque o 7 pelo número da mesa). O pedido já chega com a mesa preenchida.
 			</p>

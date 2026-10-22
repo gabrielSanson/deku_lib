@@ -141,7 +141,7 @@
 							type="button"
 							disabled={out}
 							class="flex min-h-12 items-center rounded-lg border px-3 text-left text-sm {off
-								? 'border-bad bg-red-50 font-semibold text-bad'
+								? 'border-bad bg-bad-tint font-semibold text-bad'
 								: 'border-line'}"
 							aria-pressed={off}
 							onclick={() => toggleRemoved(i.id)}

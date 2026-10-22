@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import { lastOrder } from '#lib/client/last-order.ts';
+	import ThemeToggle from '#lib/components/molecules/ThemeToggle.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -183,6 +184,9 @@
 				>
 					<Icon name="user" class="size-7" strokeWidth={1.75} />
 				</a>
+				<ThemeToggle
+					class="grid size-10 place-items-center rounded-full bg-night-2 text-white transition-colors hover:bg-night-line md:size-12"
+				/>
 				<button
 					class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
 					onclick={() => (cart.panelOpen = true)}

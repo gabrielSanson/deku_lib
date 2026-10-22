@@ -106,7 +106,7 @@
 								<p class="font-medium">
 									{ing.name}
 									{#if !ing.available}<span
-											class="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-bad"
+											class="ml-1 rounded-full bg-bad-tint px-2 py-0.5 text-xs font-semibold text-bad"
 											>Em falta</span
 										>{/if}
 								</p>

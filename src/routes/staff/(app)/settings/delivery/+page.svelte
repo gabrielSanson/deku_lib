@@ -120,7 +120,7 @@
 
 	<div class="overflow-x-auto card">
 		<table class="w-full text-sm">
-			<thead class="bg-stone-50 text-left text-xs text-muted uppercase">
+			<thead class="bg-quiet text-left text-xs text-muted uppercase">
 				<tr
 					><th class="p-3">Nome</th><th class="p-3">Área</th><th class="p-3">Taxa</th><th
 						class="p-3">Mínimo</th

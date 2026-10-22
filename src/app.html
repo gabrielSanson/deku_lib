@@ -4,6 +4,15 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<script>
+			// Dark is the default; the choice made with the toggle is remembered on this device.
+			try {
+				var m = localStorage.getItem('theme');
+				document.documentElement.dataset.theme = m === 'light' ? 'light' : 'dark';
+			} catch (e) {
+				document.documentElement.dataset.theme = 'dark';
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

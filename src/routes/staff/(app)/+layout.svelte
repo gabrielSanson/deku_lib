@@ -2,6 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
+	import ThemeToggle from '#lib/components/molecules/ThemeToggle.svelte';
 	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
 	import StaffTopbar from '#lib/components/organisms/StaffTopbar.svelte';
 	import { activeHref, navFor } from '#lib/staff/nav.ts';
@@ -48,7 +49,14 @@
 					class="mx-auto mb-3 hidden h-24 w-auto [@media(min-height:860px)]:block"
 				/>
 			{/if}
-			<form method="POST" action="/staff/logout" class="border-t border-night-line p-3">
+			<div
+				class="flex items-center justify-between border-t border-night-line px-6 pt-3 text-sm text-stone-300"
+			>
+				<ThemeToggle
+					class="grid size-9 place-items-center rounded-full hover:bg-night-2 hover:text-white"
+				/>
+			</div>
+			<form method="POST" action="/staff/logout" class="p-3">
 				<button
 					class="flex min-h-11 w-full items-center gap-3 rounded-(--radius-control) px-3 text-left text-sm text-stone-300 hover:bg-night-2 hover:text-white"
 					title={data.staff.email ?? ''}

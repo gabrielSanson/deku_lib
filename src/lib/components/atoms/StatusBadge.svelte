@@ -5,10 +5,10 @@
 
 	const tone: Record<OrderStatus, string> = {
 		new: 'bg-bad-tint text-bad',
-		confirmed: 'bg-sky-50 text-sky-800',
+		confirmed: 'bg-info-tint text-info',
 		preparing: 'bg-brand-100 text-brand-700',
 		ready: 'bg-ok-tint text-ok',
-		completed: 'bg-quiet text-stone-600',
+		completed: 'bg-quiet text-muted',
 		cancelled: 'bg-quiet text-bad',
 		rejected: 'bg-quiet text-bad'
 	};
