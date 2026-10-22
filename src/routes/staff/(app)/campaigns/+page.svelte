@@ -4,6 +4,7 @@
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
 	import StatusPill, { type PillTone } from '#lib/components/atoms/StatusPill.svelte';
+	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import RowMenu from '#lib/components/molecules/RowMenu.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
@@ -12,6 +13,11 @@
 	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();
+
+	// Ending a campaign asks first, in a dialog.
+	let ending = $state<{ id: string; name: string } | null>(null);
+	let endOpen = $state(false);
+	let endForm = $state<HTMLFormElement>();
 
 	const STATUS: Record<CampaignStatus, { label: string; tone: PillTone }> = {
 		draft: { label: 'Rascunho', tone: 'quiet' },
@@ -173,12 +179,11 @@
 									{/if}
 									{#if c.status !== 'ended'}
 										<button
-											name="status"
-											value="ended"
+											type="button"
 											class="text-bad"
-											onclick={(e) => {
-												if (!confirm('Encerrar a campanha? Os pedidos já feitos não mudam.'))
-													e.preventDefault();
+											onclick={() => {
+												ending = { id: c.id, name: c.name };
+												endOpen = true;
 											}}>Encerrar</button
 										>
 									{/if}
@@ -199,6 +204,19 @@
 		</table>
 	</div>
 	<p class="text-sm text-muted">Mostrando {data.campaigns.length} de {data.total} campanhas.</p>
+
+	<form method="POST" action="?/status" use:enhance bind:this={endForm} hidden>
+		<input type="hidden" name="id" value={ending?.id ?? ''} />
+		<input type="hidden" name="status" value="ended" />
+	</form>
+	<ConfirmDialog
+		bind:open={endOpen}
+		title="Encerrar a campanha?"
+		text="{ending?.name ?? 'A campanha'} deixa de valer. Os pedidos já feitos não mudam."
+		confirmLabel="Encerrar"
+		danger
+		onconfirm={() => endForm?.requestSubmit()}
+	/>
 
 	<details class="card p-4 text-sm text-muted">
 		<summary class="cursor-pointer font-semibold text-ink">Como funcionam as campanhas</summary>
