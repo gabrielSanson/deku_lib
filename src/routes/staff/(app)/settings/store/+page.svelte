@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();
@@ -40,16 +41,13 @@
 		</form>
 	</section>
 
-	<form
-		method="POST"
+	<SettingsSection
+		title="Operação"
 		action="?/save"
-		use:enhance={() =>
-			async ({ update }) =>
-				update({ reset: false })}
-		class="space-y-4 card p-4"
+		saveLabel="Salvar"
+		saved={form?.ok ? 'Salvo.' : undefined}
 	>
 		<input type="hidden" name="version" value={s.version} />
-		<h2 class="font-semibold">Operação</h2>
 		<label class="flex min-h-11 items-center gap-3"
 			><input type="checkbox" class="size-5" name="acceptingOrders" checked={s.acceptingOrders} /> Aceitando
 			pedidos</label
@@ -119,9 +117,7 @@
 			</div>
 		</div>
 		<FormError message={form?.error} />
-		{#if form?.ok}<p class="alert-ok">Salvo.</p>{/if}
-		<button class="btn-primary">Salvar</button>
-	</form>
+	</SettingsSection>
 	<p class="text-sm text-muted">
 		Cardápio, fotos e preços ficam em <a class="underline" href="/staff/menu/edit"
 			>Editar cardápio</a
