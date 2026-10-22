@@ -7,6 +7,7 @@
 	import StatTile from '#lib/components/molecules/StatTile.svelte';
 	import HourlyChart from '#lib/components/organisms/HourlyChart.svelte';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import UrgentAlertStrip from '#lib/components/organisms/UrgentAlertStrip.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 
@@ -116,36 +117,14 @@
 <LiveBanner {live} />
 
 <main class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-	{#if !data.setupDone && isAdmin}
-		<div class="flex flex-wrap items-center justify-between gap-3 alert-warn">
-			<span><strong>Falta terminar a configuração da loja.</strong> Leva poucos minutos.</span>
-			<a class="btn-primary min-h-9" href="/staff/setup">Continuar configuração</a>
-		</div>
-	{/if}
-	{#each data.ifoodAlerts as alert, i (i)}
-		<div class="flex flex-wrap items-center justify-between gap-3 alert-error" role="alert">
-			<span><strong>iFood:</strong> {alert}</span>
-			{#if isAdmin}
-				<a class="btn-secondary min-h-9" href="/staff/settings/integrations">Ver detalhes</a>
-			{/if}
-		</div>
-	{/each}
-	{#if ifoodLate.length}
-		<p class="alert-error" role="alert">
-			<strong>{ifoodLate.length} pedido(s) do iFood aguardando há mais de 5 min.</strong> Confirme antes
-			de 8 min para o iFood não cancelar.
-		</p>
-	{/if}
-	{#if data.counts.unpaid > 0}
-		<a href="/staff/reconciliation" class="block alert-warn">
-			{data.counts.unpaid} pedido(s) das últimas 24 h com pagamento pendente ou desconhecido.
-		</a>
-	{/if}
-	{#if data.counts.dead > 0}
-		<p class="alert-error">
-			{data.counts.dead} evento(s) de integração com falha. Veja a página de integrações.
-		</p>
-	{/if}
+	<UrgentAlertStrip
+		setupPending={!data.setupDone && isAdmin}
+		{isAdmin}
+		ifoodAlerts={data.ifoodAlerts}
+		ifoodLate={ifoodLate.length}
+		unpaid={data.counts.unpaid}
+		dead={data.counts.dead}
+	/>
 
 	<header class="flex flex-wrap items-end justify-between gap-3">
 		<div>
