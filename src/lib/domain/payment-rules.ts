@@ -12,7 +12,11 @@ export type PaymentPlan = 'counter' | 'online' | 'pix_key' | 'channel' | 'on_ful
 export const WEB_PAYMENT_METHODS = ['pix', 'online_card', 'pix_key'] as const;
 export type WebPaymentMethod = (typeof WEB_PAYMENT_METHODS)[number];
 
-export function webPaymentPlan(method: WebPaymentMethod): PaymentPlan {
+/** The totem can also take the order now and leave payment to the counter. */
+export type CheckoutPaymentMethod = WebPaymentMethod | 'counter';
+
+export function webPaymentPlan(method: CheckoutPaymentMethod): PaymentPlan {
+	if (method === 'counter') return 'counter';
 	return method === 'pix_key' ? 'pix_key' : 'online';
 }
 

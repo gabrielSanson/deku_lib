@@ -17,6 +17,7 @@ import {
 	soldOutSkus
 } from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
+import { isKiosk } from '#lib/server/kiosk.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
 import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
@@ -58,7 +59,7 @@ const checkout = z.object({
 	phone: z.string().trim().max(25).default(''),
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
-	payment: z.enum(WEB_PAYMENT_METHODS),
+	payment: z.enum([...WEB_PAYMENT_METHODS, 'counter']),
 	couponCode: z.string().trim().max(30).optional(),
 	idempotencyKey: z.string().uuid()
 });
@@ -136,7 +137,7 @@ export const actions: Actions = {
 		});
 	},
 
-	place: async ({ request, getClientAddress, url }) => {
+	place: async ({ request, getClientAddress, url, cookies }) => {
 		const texts = await getTexts();
 		if (!rateLimit(`checkout:${getClientAddress()}`, 10, 10 * 60_000)) {
 			return fail(429, { error: texts['checkout.error.tooMany'] });
@@ -145,9 +146,15 @@ export const actions: Actions = {
 		const parsed = parse(checkout, String(data.get('payload') ?? ''));
 		if (!parsed?.success) return fail(400, { error: texts['checkout.error.review'] });
 		const input = parsed.data;
+		const kiosk = isKiosk(cookies);
 		const phone = input.phone ? normalizeBrPhone(input.phone) : null;
-		if (!phone && (input.phone || input.fulfillmentType !== 'dine_in'))
+		// At the totem the order is called by its number, so the phone is optional.
+		if (!phone && (input.phone || (input.fulfillmentType !== 'dine_in' && !kiosk)))
 			return fail(400, { error: texts['checkout.error.phone'] });
+		if (kiosk && input.fulfillmentType === 'delivery')
+			return fail(400, { error: texts['checkout.error.review'] });
+		if (input.payment === 'counter' && !kiosk)
+			return fail(400, { error: texts['checkout.error.review'] });
 		if (input.fulfillmentType === 'delivery' && !input.address)
 			return fail(400, { error: texts['checkout.error.address'] });
 
@@ -170,7 +177,7 @@ export const actions: Actions = {
 		const result = await attempt(() =>
 			createOrder({
 				channel: 'web',
-				sourceMode: 'web',
+				sourceMode: kiosk ? 'kiosk' : 'web',
 				lines: input.lines,
 				fulfillmentType: input.fulfillmentType,
 				tableLabel: input.tableLabel || null,
@@ -202,6 +209,7 @@ export const actions: Actions = {
 		if (result.status !== 'new') redirect(303, `/orders/${result.publicToken}?novo=1`);
 		const method = input.payment;
 		if (method === 'pix_key') redirect(303, `/checkout/payment/${result.publicToken}`);
+		if (method === 'counter') redirect(303, `/orders/${result.publicToken}?novo=1`);
 
 		const payment = await attempt(() =>
 			startOnlinePayment({
