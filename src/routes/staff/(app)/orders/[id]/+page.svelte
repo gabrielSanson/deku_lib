@@ -15,8 +15,10 @@
 	import { mayConfirm } from '#lib/domain/payment-rules.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 	const live = useLiveOrders(() => data.live);
 	const o = $derived(data.order);
 	const next = $derived(
@@ -31,31 +33,35 @@
 	let refunding = $state<string | null>(null);
 </script>
 
-<svelte:head><title>Pedido #{o.orderNumber}</title></svelte:head>
+<svelte:head><title>{t('orderDetail.detailTitle', { n: o.orderNumber })}</title></svelte:head>
 <LiveBanner {live} />
 
 <main class="mx-auto grid max-w-5xl gap-4 p-4 lg:grid-cols-[1fr_320px]">
 	<section class="space-y-4">
 		<div class="flex flex-wrap items-center gap-3">
-			<a href="/staff/orders" class="btn-ghost min-h-9">← Pedidos</a>
+			<a href="/staff/orders" class="btn-ghost min-h-9">{t('orderDetail.back')}</a>
 			<h1 class="page-title">#{o.orderNumber}</h1>
 			<StatusBadge status={o.status} />
 			<PaymentBadge status={o.paymentStatus} />
 		</div>
 		<p class="text-sm text-muted">
-			{o.channel === 'ifood'
-				? `iFood ${o.channelDisplayId ?? ''}`
-				: o.channel === 'web'
-					? 'Site'
-					: 'Balcão'} ·
-			{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}
-			{o.fulfillmentProvider === 'ifood_courier' ? '(entregador iFood)' : ''} · criado {formatDateTime(
-				o.createdAt
-			)} · prometido {formatTime(o.promisedAt)}
+			{t('orderDetail.meta', {
+				channel:
+					o.channel === 'ifood'
+						? t('orderDetail.channelIfood', { id: o.channelDisplayId ?? '' })
+						: t(o.channel === 'web' ? 'orderDetail.channelWeb' : 'orderDetail.channelCounter'),
+				fulfillment: fulfillmentLabel(o.fulfillmentType, o.tableLabel),
+				courier:
+					o.fulfillmentProvider === 'ifood_courier' ? `${t('orderDetail.ifoodCourier')} ` : '',
+				created: formatDateTime(o.createdAt),
+				promised: formatTime(o.promisedAt)
+			})}
 		</p>
 		{#if o.customerLabel}<p class="text-lg font-semibold">{o.customerLabel}</p>{/if}
 		{#if o.notes}<p class="alert-warn">{o.notes}</p>{/if}
-		{#if o.cancelReason}<p class="alert-error">Motivo: {o.cancelReason}</p>{/if}
+		{#if o.cancelReason}<p class="alert-error">
+				{t('orderDetail.reason', { reason: o.cancelReason })}
+			</p>{/if}
 
 		<div class="divide-y divide-line card">
 			{#each o.items as item (item.id)}
@@ -71,28 +77,31 @@
 					{/each}
 					{#if item.discountCents}
 						<div class="flex justify-between text-sm text-ok">
-							<span>Promoção</span><span>−<Money cents={item.discountCents} /></span>
+							<span>{t('orderDetail.promo')}</span><span>−<Money cents={item.discountCents} /></span
+							>
 						</div>
 					{/if}
-					{#if item.allergyFlag}<p class="text-sm font-bold text-bad">⚠ Alergia / atenção</p>{/if}
+					{#if item.allergyFlag}<p class="text-sm font-bold text-bad">
+							{t('orderDetail.allergy')}
+						</p>{/if}
 					{#if item.note}<p class="text-sm italic">“{item.note}”</p>{/if}
 				</div>
 			{/each}
 			<dl class="space-y-1 p-3 text-sm">
 				<div class="flex justify-between">
-					<dt>Subtotal</dt>
+					<dt>{t('orderDetail.subtotal')}</dt>
 					<dd><Money cents={o.subtotalCents} /></dd>
 				</div>
 				{#if o.discountCents}<div class="flex justify-between">
-						<dt>Desconto{o.offerName ? ` · ${o.offerName}` : ''}</dt>
+						<dt>{t('orderDetail.discount')}{o.offerName ? ` · ${o.offerName}` : ''}</dt>
 						<dd>−<Money cents={o.discountCents} /></dd>
 					</div>{/if}
 				{#if o.deliveryFeeCents}<div class="flex justify-between">
-						<dt>Entrega</dt>
+						<dt>{t('orderDetail.delivery')}</dt>
 						<dd><Money cents={o.deliveryFeeCents} /></dd>
 					</div>{/if}
 				<div class="flex justify-between text-base font-bold">
-					<dt>Total</dt>
+					<dt>{t('orderDetail.total')}</dt>
 					<dd><Money cents={o.totalCents} /></dd>
 				</div>
 			</dl>
@@ -100,21 +109,27 @@
 
 		{#if o.address}
 			<div class="card p-3 text-sm">
-				<h2 class="mb-1 font-semibold">Endereço</h2>
+				<h2 class="mb-1 font-semibold">{t('orderDetail.address')}</h2>
 				<p>{o.address.recipient}</p>
 				<p>
 					{o.address.street}, {o.address.number}
 					{o.address.complement ?? ''} · {o.address.neighborhood}
 				</p>
-				<p>{o.address.city}/{o.address.state} · CEP {o.address.cep}</p>
+				<p>
+					{t('orderDetail.cep', {
+						city: o.address.city,
+						state: o.address.state,
+						cep: o.address.cep
+					})}
+				</p>
 				{#if o.address.instructions}<p class="text-muted">{o.address.instructions}</p>{/if}
 			</div>
 		{/if}
 
 		<div class="card p-3">
-			<h2 class="mb-2 font-semibold">Histórico</h2>
+			<h2 class="mb-2 font-semibold">{t('orderDetail.history')}</h2>
 			{#if o.pushFailed}<p class="mb-2 text-sm text-bad">
-					Aviso não entregue: o celular do cliente não recebeu a notificação de pronto.
+					{t('orderDetail.pushFailed')}
 				</p>{/if}
 			<ol class="space-y-1 text-sm">
 				{#each o.history as h, i (i)}
@@ -138,21 +153,24 @@
 		<OrderActionBar {next} version={o.version} error={form?.error} />
 
 		<div class="space-y-2 card p-3">
-			<h2 class="font-semibold">Pagamentos</h2>
-			{#each o.tenders as t (t.id)}
+			<h2 class="font-semibold">{t('orderDetail.payments')}</h2>
+			{#each o.tenders as tender (tender.id)}
 				<div class="text-sm">
 					<div class="flex justify-between">
-						<span>{METHOD_LABEL_PT[t.method as keyof typeof METHOD_LABEL_PT] ?? t.method}</span
-						><Money cents={t.amountCents} />
+						<span
+							>{METHOD_LABEL_PT[tender.method as keyof typeof METHOD_LABEL_PT] ??
+								tender.method}</span
+						><Money cents={tender.amountCents} />
 					</div>
 					<div class="flex justify-between text-xs text-muted">
 						<span
-							>{t.providerReference ?? ''} {t.recordedByName ? `· ${t.recordedByName}` : ''}</span
+							>{tender.providerReference ?? ''}
+							{tender.recordedByName ? `· ${tender.recordedByName}` : ''}</span
 						>
-						<PaymentBadge status={t.status} />
+						<PaymentBadge status={tender.status} />
 					</div>
-					{#if manager && t.status === 'paid' && t.provider === 'manual'}
-						{#if refunding === t.id}
+					{#if manager && tender.status === 'paid' && tender.provider === 'manual'}
+						{#if refunding === tender.id}
 							<form
 								method="POST"
 								action="?/refund"
@@ -163,19 +181,27 @@
 									}}
 								class="mt-1 space-y-1"
 							>
-								<input type="hidden" name="tenderId" value={t.id} />
-								<input class="field" name="reason" placeholder="Motivo do estorno" required />
-								<button class="btn-danger min-h-9 w-full text-sm">Confirmar estorno</button>
+								<input type="hidden" name="tenderId" value={tender.id} />
+								<input
+									class="field"
+									name="reason"
+									placeholder={t('orderDetail.refundReason')}
+									required
+								/>
+								<button class="btn-danger min-h-9 w-full text-sm"
+									>{t('orderDetail.refundConfirm')}</button
+								>
 							</form>
 						{:else}
-							<button class="btn-ghost min-h-8 text-xs text-bad" onclick={() => (refunding = t.id)}
-								>Estornar</button
+							<button
+								class="btn-ghost min-h-8 text-xs text-bad"
+								onclick={() => (refunding = tender.id)}>{t('orderDetail.refund')}</button
 							>
 						{/if}
 					{/if}
 				</div>
 			{:else}
-				<p class="text-sm text-muted">Nenhum pagamento registrado.</p>
+				<p class="text-sm text-muted">{t('orderDetail.noPayments')}</p>
 			{/each}
 			{#if o.paymentPlan === 'pix_key' && o.paymentStatus !== 'paid' && !['cancelled', 'rejected'].includes(o.status)}
 				<p class="alert-warn text-sm">
@@ -189,7 +215,10 @@
 					class="btn-secondary w-full"
 					href="/staff/pos/{o.id}/payment{o.paymentPlan === 'pix_key'
 						? '?method=external_pix'
-						: ''}">{o.paymentPlan === 'pix_key' ? 'Registrar Pix recebido' : 'Receber pagamento'}</a
+						: ''}"
+					>{t(
+						o.paymentPlan === 'pix_key' ? 'orderDetail.registerPix' : 'orderDetail.receivePay'
+					)}</a
 				>
 			{/if}
 		</div>

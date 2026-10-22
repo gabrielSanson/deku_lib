@@ -1405,6 +1405,131 @@ export const TEXTS = {
 		label: 'Pedidos: título da aba do navegador',
 		default: 'Pedidos · Equipe'
 	},
+	'orderDetail.back': {
+		group: 'staff',
+		label: 'Pedido: voltar',
+		default: '← Pedidos'
+	},
+	'orderDetail.channelWeb': {
+		group: 'staff',
+		label: 'Pedido: canal site',
+		default: 'Site'
+	},
+	'orderDetail.channelCounter': {
+		group: 'staff',
+		label: 'Pedido: canal balcão',
+		default: 'Balcão'
+	},
+	'orderDetail.channelIfood': {
+		group: 'staff',
+		label: 'Pedido: canal iFood',
+		default: 'iFood {id}'
+	},
+	'orderDetail.ifoodCourier': {
+		group: 'staff',
+		label: 'Pedido: entregador iFood',
+		default: '(entregador iFood)'
+	},
+	'orderDetail.meta': {
+		group: 'staff',
+		label: 'Pedido: linha de informações',
+		default: '{channel} · {fulfillment} {courier}· criado {created} · prometido {promised}'
+	},
+	'orderDetail.reason': {
+		group: 'staff',
+		label: 'Pedido: motivo do cancelamento',
+		default: 'Motivo: {reason}'
+	},
+	'orderDetail.promo': {
+		group: 'staff',
+		label: 'Pedido: linha de promoção',
+		default: 'Promoção'
+	},
+	'orderDetail.allergy': {
+		group: 'staff',
+		label: 'Pedido: alerta de alergia',
+		default: '⚠ Alergia / atenção'
+	},
+	'orderDetail.subtotal': {
+		group: 'staff',
+		label: 'Pedido: subtotal',
+		default: 'Subtotal'
+	},
+	'orderDetail.discount': {
+		group: 'staff',
+		label: 'Pedido: desconto',
+		default: 'Desconto'
+	},
+	'orderDetail.delivery': {
+		group: 'staff',
+		label: 'Pedido: taxa de entrega',
+		default: 'Entrega'
+	},
+	'orderDetail.total': {
+		group: 'staff',
+		label: 'Pedido: total',
+		default: 'Total'
+	},
+	'orderDetail.address': {
+		group: 'staff',
+		label: 'Pedido: título endereço',
+		default: 'Endereço'
+	},
+	'orderDetail.cep': {
+		group: 'staff',
+		label: 'Pedido: cidade e CEP',
+		default: '{city}/{state} · CEP {cep}'
+	},
+	'orderDetail.history': {
+		group: 'staff',
+		label: 'Pedido: título histórico',
+		default: 'Histórico'
+	},
+	'orderDetail.pushFailed': {
+		group: 'staff',
+		label: 'Pedido: aviso push falhou',
+		default: 'Aviso não entregue: o celular do cliente não recebeu a notificação de pronto.'
+	},
+	'orderDetail.payments': {
+		group: 'staff',
+		label: 'Pedido: título pagamentos',
+		default: 'Pagamentos'
+	},
+	'orderDetail.refundReason': {
+		group: 'staff',
+		label: 'Pedido: campo motivo do estorno',
+		default: 'Motivo do estorno'
+	},
+	'orderDetail.refundConfirm': {
+		group: 'staff',
+		label: 'Pedido: botão confirmar estorno',
+		default: 'Confirmar estorno'
+	},
+	'orderDetail.refund': {
+		group: 'staff',
+		label: 'Pedido: botão estornar',
+		default: 'Estornar'
+	},
+	'orderDetail.noPayments': {
+		group: 'staff',
+		label: 'Pedido: sem pagamentos',
+		default: 'Nenhum pagamento registrado.'
+	},
+	'orderDetail.receivePay': {
+		group: 'staff',
+		label: 'Pedido: botão receber pagamento',
+		default: 'Receber pagamento'
+	},
+	'orderDetail.registerPix': {
+		group: 'staff',
+		label: 'Pedido: botão registrar Pix',
+		default: 'Registrar Pix recebido'
+	},
+	'orderDetail.detailTitle': {
+		group: 'staff',
+		label: 'Pedido: título da aba',
+		default: 'Pedido #{n}'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',
