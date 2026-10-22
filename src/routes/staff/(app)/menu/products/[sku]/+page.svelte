@@ -3,8 +3,16 @@
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { formatBRL } from '#lib/domain/money.ts';
+	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
+	let formEl = $state<HTMLFormElement>();
+	const guard = guardUnsaved(
+		() => formEl,
+		() => t('unsaved.confirm')
+	);
 	const p = $derived(data.product);
 	const channels = [
 		{ id: 'counter', label: 'Caixa' },
@@ -31,14 +39,17 @@
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">Salvo.</p>{/if}
 
 	<form
+		bind:this={formEl}
 		method="POST"
 		action="?/save"
 		enctype="multipart/form-data"
 		use:enhance={() => {
 			busy = true;
+			guard.saving();
 			return async ({ update }) => {
 				await update({ reset: false });
 				busy = false;
+				guard.saved();
 			};
 		}}
 		class="space-y-4 card p-4"

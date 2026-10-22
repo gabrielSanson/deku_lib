@@ -961,6 +961,11 @@ export const TEXTS = {
 	},
 	'kitchen.empty': { group: 'staff', label: 'Quadro: coluna vazia', default: 'Vazio' },
 	'kitchen.title': { group: 'staff', label: 'Cozinha: título', default: 'Cozinha' },
+	'unsaved.confirm': {
+		group: 'staff',
+		label: 'Editor: aviso ao sair sem salvar',
+		default: 'Sair sem salvar? As alterações feitas aqui se perdem.'
+	},
 	'kitchen.back': { group: 'staff', label: 'Cozinha: voltar ao painel', default: '← Painel' },
 	'kitchen.logout': { group: 'staff', label: 'Cozinha: sair', default: 'Sair' },
 	'kitchen.station': { group: 'staff', label: 'Cozinha: estações', default: 'Estação' },
