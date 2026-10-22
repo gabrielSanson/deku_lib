@@ -11,8 +11,18 @@
 
 <section class="grid gap-6 py-4 lg:grid-cols-2 lg:gap-0 lg:py-10">
 	<div
-		class="hidden flex-col justify-between rounded-l-(--radius-card) bg-night p-10 text-white lg:flex"
+		class="relative isolate hidden flex-col justify-between overflow-hidden rounded-l-(--radius-card) bg-night p-10 text-white lg:flex"
 	>
+		<img
+			src="/hero/background-1920.webp"
+			srcset="/hero/background-960.webp 960w, /hero/background-1920.webp 1920w"
+			sizes="50vw"
+			alt=""
+			class="absolute inset-0 -z-10 size-full object-cover"
+		/>
+		<div
+			class="absolute inset-0 -z-10 bg-gradient-to-b from-black/50 via-black/30 to-black/70"
+		></div>
 		<img src={data.branding.images.wordmark} alt="" class="h-10 w-auto self-start" />
 		<div>
 			<p class="font-display text-5xl leading-none font-black text-brand-500">
