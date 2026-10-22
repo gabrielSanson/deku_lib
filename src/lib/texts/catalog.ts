@@ -112,6 +112,41 @@ export const TEXTS = {
 		label: 'Aviso de dados',
 		default: 'Seus dados ficam protegidos'
 	},
+	'account.tagline': {
+		group: 'account',
+		label: 'Entrar: frase sobre a foto',
+		default: 'Mais que burgers.\nÉ a nossa essência.'
+	},
+	'account.emailPlaceholder': {
+		group: 'account',
+		label: 'Exemplo no campo e-mail',
+		default: 'seu@email.com'
+	},
+	'account.passwordPlaceholder': {
+		group: 'account',
+		label: 'Exemplo no campo senha',
+		default: 'Sua senha'
+	},
+	'account.showPassword': {
+		group: 'account',
+		label: 'Botão mostrar senha',
+		default: 'Mostrar senha'
+	},
+	'account.hidePassword': {
+		group: 'account',
+		label: 'Botão ocultar senha',
+		default: 'Ocultar senha'
+	},
+	'account.noAccount': {
+		group: 'account',
+		label: 'Entrar: convite para criar conta',
+		default: 'Ainda não tem conta?'
+	},
+	'account.haveAccount': {
+		group: 'account',
+		label: 'Criar conta: convite para entrar',
+		default: 'Já tem conta?'
+	},
 	'account.error.invalid': {
 		group: 'account',
 		label: 'Erro: dados inválidos',
