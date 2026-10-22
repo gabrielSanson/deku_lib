@@ -32,32 +32,39 @@
 
 <svelte:head><title>{t('payment.pageTitle', { number: data.orderNumber })}</title></svelte:head>
 
-<section class="space-y-5 py-6 text-center">
-	<h1 class="text-2xl font-black">{t('payment.order', { number: data.orderNumber })}</h1>
-	<p class="text-lg">{t('payment.total')} <Money cents={data.totalCents} class="font-bold" /></p>
+<section class="mx-auto max-w-md space-y-5 py-6 text-center">
+	<header class="space-y-1">
+		<p class="section-label">{t('payment.order', { number: data.orderNumber })}</p>
+		<h1 class="page-title">
+			{t('payment.total')}
+			<Money cents={data.totalCents} />
+		</h1>
+	</header>
 
 	{#if data.tenderStatus === 'cancelled' || data.tenderStatus === 'failed' || remaining === 0}
 		<p class="alert-error">{t('payment.failed')}</p>
 		<a class="btn-primary" href="/cardapio">{t('errors.backToMenu')}</a>
 	{:else if data.pixSvg}
-		<p class="text-muted">
-			{data.shopPix ? t('payment.instructions.shop') : t('payment.instructions.auto')}
-		</p>
-		<div class="mx-auto w-60 rounded-xl bg-white p-2">
-			<!-- QR generated on our server from the provider's Pix payload -->
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -- SVG built on our server by the qrcode library -->
-			{@html data.pixSvg}
-		</div>
-		<button class="btn-secondary w-full" onclick={copy}
-			>{copied ? t('payment.copied') : t('payment.copy')}</button
-		>
-		{#if remaining !== null}
-			<p class="text-sm text-muted" aria-live="polite">
-				{t('payment.expires', {
-					time: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`
-				})}
+		<div class="space-y-4 card p-5">
+			<p class="text-muted">
+				{data.shopPix ? t('payment.instructions.shop') : t('payment.instructions.auto')}
 			</p>
-		{/if}
+			<div class="mx-auto w-60 rounded-xl border border-line bg-white p-2">
+				<!-- QR generated on our server from the provider's Pix payload -->
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -- SVG built on our server by the qrcode library -->
+				{@html data.pixSvg}
+			</div>
+			<button class="btn-primary w-full" onclick={copy}
+				>{copied ? t('payment.copied') : t('payment.copy')}</button
+			>
+			{#if remaining !== null}
+				<p class="mx-auto pill bg-quiet text-muted" aria-live="polite">
+					{t('payment.expires', {
+						time: `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`
+					})}
+				</p>
+			{/if}
+		</div>
 		<p class="flex items-center justify-center gap-2 text-sm text-muted">
 			<span class="size-2 animate-pulse rounded-full bg-brand-500"></span>
 			{data.shopPix ? t('payment.waiting.shop') : t('payment.waiting.auto')}
