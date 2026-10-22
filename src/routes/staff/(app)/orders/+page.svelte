@@ -5,6 +5,7 @@
 	import Age from '#lib/components/atoms/Age.svelte';
 	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
+	import OrderLane from '#lib/components/organisms/OrderLane.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
@@ -137,83 +138,73 @@
 	{#if data.status === 'active'}
 		<div class="grid gap-4 lg:grid-cols-3">
 			{#each lanes as lane (lane.key)}
-				<section
-					class="rounded-(--radius-card) p-3 {laneTone[lane.key]}"
-					aria-labelledby="lane-{lane.key}"
+				<OrderLane
+					id={lane.key}
+					title={lane.title}
+					hint={lane.hint}
+					icon={lane.icon}
+					tone={laneTone[lane.key]}
+					count={lane.orders.length}
 				>
-					<header class="mb-3 flex items-center justify-between gap-2 px-1">
-						<div class="flex items-start gap-2">
-							<Icon name={lane.icon} class="mt-1 size-5 text-ink" />
-							<div>
-								<h2 id="lane-{lane.key}" class="font-display text-xl font-extrabold">
-									{lane.title}
-								</h2>
-								<p class="text-sm text-muted">{lane.hint}</p>
-							</div>
-						</div>
-						<span class="count">{lane.orders.length}</span>
-					</header>
-					<ul class="space-y-3">
-						{#each lane.orders as o (o.id)}
-							<li class="card p-4">
-								<a href="/staff/orders/{o.id}" class="block">
-									<div class="flex items-start justify-between gap-2">
-										<span class="font-display text-3xl font-extrabold tabular-nums"
-											>#{o.orderNumber}</span
-										>
-										<Age
-											since={o.createdAt}
-											warnAfter={o.status === 'new' ? 3 : 15}
-											lateAfter={o.status === 'new' ? 6 : 25}
-										/>
-									</div>
-									<!-- Meta chips: channel, fulfilment and customer, one line each. -->
-									<ul class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
-										<li class="chip">{channelLabel[o.channel]}</li>
-										<li class="chip">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</li>
-										{#if o.customerLabel}<li class="chip">{o.customerLabel}</li>{/if}
-									</ul>
-									<ul class="mt-2 space-y-0.5 text-sm font-medium">
-										{#each o.items as item, i (i)}
-											<li>{item.quantity}× {item.productName}</li>
-										{/each}
-									</ul>
-									<div class="mt-3 flex items-center justify-between gap-2">
-										<PaymentBadge status={o.paymentStatus} />
-										<Money cents={o.totalCents} class="font-bold" />
-									</div>
-								</a>
-								{#if o.status === 'confirmed'}
-									<form method="POST" action="?/start" use:enhance class="mt-3">
-										<input type="hidden" name="orderId" value={o.id} />
-										<button class="btn-secondary w-full">Iniciar preparo</button>
-									</form>
-								{/if}
-								{#if mayCall(o.status)}
-									<!-- "Chamar": say the code out loud, then tap; the board and the customer are told. -->
-									{#if o.calledAt}<p class="mt-3 text-sm text-muted">
-											{t('staff.called', { time: formatTime(o.calledAt) })}
-										</p>{/if}
-									<form method="POST" action="?/call" use:enhance class="mt-2">
-										<input type="hidden" name="orderId" value={o.id} />
-										<button
-											class="btn-primary w-full"
-											aria-label="{t('staff.call')} {pickupCode(o.orderNumber)}{o.customerLabel
-												? `, ${o.customerLabel}`
-												: ''}">{t('staff.call')}</button
-										>
-									</form>
-								{/if}
-							</li>
-						{:else}
-							<li
-								class="rounded-(--radius-card) border border-dashed border-line p-6 text-center text-sm text-muted"
-							>
-								Nenhum pedido aqui.
-							</li>
-						{/each}
-					</ul>
-				</section>
+					{#each lane.orders as o (o.id)}
+						<li class="card p-4">
+							<a href="/staff/orders/{o.id}" class="block">
+								<div class="flex items-start justify-between gap-2">
+									<span class="font-display text-3xl font-extrabold tabular-nums"
+										>#{o.orderNumber}</span
+									>
+									<Age
+										since={o.createdAt}
+										warnAfter={o.status === 'new' ? 3 : 15}
+										lateAfter={o.status === 'new' ? 6 : 25}
+									/>
+								</div>
+								<!-- Meta chips: channel, fulfilment and customer, one line each. -->
+								<ul class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+									<li class="chip">{channelLabel[o.channel]}</li>
+									<li class="chip">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</li>
+									{#if o.customerLabel}<li class="chip">{o.customerLabel}</li>{/if}
+								</ul>
+								<ul class="mt-2 space-y-0.5 text-sm font-medium">
+									{#each o.items as item, i (i)}
+										<li>{item.quantity}× {item.productName}</li>
+									{/each}
+								</ul>
+								<div class="mt-3 flex items-center justify-between gap-2">
+									<PaymentBadge status={o.paymentStatus} />
+									<Money cents={o.totalCents} class="font-bold" />
+								</div>
+							</a>
+							{#if o.status === 'confirmed'}
+								<form method="POST" action="?/start" use:enhance class="mt-3">
+									<input type="hidden" name="orderId" value={o.id} />
+									<button class="btn-secondary w-full">Iniciar preparo</button>
+								</form>
+							{/if}
+							{#if mayCall(o.status)}
+								<!-- "Chamar": say the code out loud, then tap; the board and the customer are told. -->
+								{#if o.calledAt}<p class="mt-3 text-sm text-muted">
+										{t('staff.called', { time: formatTime(o.calledAt) })}
+									</p>{/if}
+								<form method="POST" action="?/call" use:enhance class="mt-2">
+									<input type="hidden" name="orderId" value={o.id} />
+									<button
+										class="btn-primary w-full"
+										aria-label="{t('staff.call')} {pickupCode(o.orderNumber)}{o.customerLabel
+											? `, ${o.customerLabel}`
+											: ''}">{t('staff.call')}</button
+									>
+								</form>
+							{/if}
+						</li>
+					{:else}
+						<li
+							class="rounded-(--radius-card) border border-dashed border-line p-6 text-center text-sm text-muted"
+						>
+							Nenhum pedido aqui.
+						</li>
+					{/each}
+				</OrderLane>
 			{/each}
 		</div>
 	{:else}
