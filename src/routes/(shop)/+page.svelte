@@ -2,7 +2,6 @@
 	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { heroMotion } from '#lib/client/hero-motion.ts';
-	import { categoryIcon } from '#lib/domain/category-icon.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
@@ -62,8 +61,8 @@
 <section class="relative isolate overflow-hidden bg-night text-white" {@attach heroMotion}>
 	<img
 		data-hero-bg
-		src="/hero/background-1920.webp"
-		srcset="/hero/background-960.webp 960w, /hero/background-1920.webp 1920w"
+		src="/hero/banner-1920.webp"
+		srcset="/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w"
 		sizes="100vw"
 		alt=""
 		class="absolute inset-x-0 -top-[10%] -z-10 h-[120%] w-full object-cover"
@@ -129,65 +128,12 @@
 				{/if}
 			</ul>
 		</div>
-		<!-- The owner can swap this picture in Configurações > Aparência ("Imagem do destaque"). -->
-		<img
-			data-hero-burger
-			src={data.branding.images.heroLogo}
-			srcset={data.branding.custom.heroLogo
-				? undefined
-				: '/hero/burger-640.webp 640w, /hero/burger-1200.webp 1200w'}
-			sizes="(min-width: 768px) 55vw, 90vw"
-			alt=""
-			class="order-first mx-auto w-full max-w-xs drop-shadow-[0_30px_40px_rgb(0_0_0/0.6)] sm:max-w-sm md:order-none md:max-w-none"
-			fetchpriority="high"
-		/>
 	</div>
 </section>
 
 <div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
 	{#if categories.length === 0}
 		<p class="py-10 text-center text-muted">{t('home.emptyMenu')}</p>
-	{/if}
-
-	<!-- Categories, as tiles (mockup 03) -->
-	{#if categories.length}
-		<section aria-labelledby="home-categorias">
-			<div class="mb-4 flex items-end justify-between gap-4">
-				<h2 id="home-categorias" class="font-display text-2xl sm:text-3xl">
-					{t('home.categoriesTitle')}
-				</h2>
-				<a href="/cardapio" class="flex items-center gap-1 text-sm font-semibold hover:underline"
-					>{t('home.seeAll')}<Icon name="arrow" class="size-4" /></a
-				>
-			</div>
-			<ul class="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-				{#each categories as c (c.id)}
-					{@const photo = c.imageUrl ?? c.products.find((p) => p.imageUrl)?.imageUrl}
-					<li class="w-32 shrink-0 snap-start sm:w-40">
-						<a
-							href="/cardapio?categoria={c.slug}"
-							class="group flex flex-col items-center gap-2 card p-3 text-center transition-shadow hover:shadow-lg"
-						>
-							<span
-								class="grid aspect-square w-full place-items-center overflow-hidden rounded-xl bg-quiet"
-							>
-								{#if photo}
-									<img
-										src={photo}
-										alt=""
-										class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-										loading="lazy"
-									/>
-								{:else}
-									<Icon name={categoryIcon(c.name)} class="size-10 text-ink" strokeWidth={1.5} />
-								{/if}
-							</span>
-							<span class="text-sm font-bold">{c.name}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</section>
 	{/if}
 
 	<!-- Quick menu: three burgers (mockup 01 "Nossos destaques") -->
@@ -240,6 +186,12 @@
 					</li>
 				{/each}
 			</ul>
+			<div class="mt-8 flex justify-center">
+				<a href="/cardapio" class="btn-primary btn-lg px-7">
+					{t('home.menuButton')}
+					<Icon name="arrow" />
+				</a>
+			</div>
 		</section>
 	{/if}
 

@@ -10,7 +10,7 @@ for (const route of routes) {
 		await page.waitForLoadState('networkidle');
 		// Scan the settled page: the hero fades its copy in, and a half-faded button looks low-contrast.
 		await page.waitForFunction(() =>
-			[...document.querySelectorAll('[data-hero-in], [data-hero-bg], [data-hero-burger]')].every(
+			[...document.querySelectorAll('[data-hero-in], [data-hero-bg]')].every(
 				(el) => getComputedStyle(el).opacity === '1'
 			)
 		);
@@ -40,9 +40,6 @@ test('home hero stays still under reduced motion', async ({ page }) => {
 
 	// GSAP never runs, so the hero layers are not left hidden waiting for an intro animation.
 	const bg = page.locator('[data-hero-bg]').first();
-	const burger = page.locator('[data-hero-burger]').first();
 	await expect(bg).toBeVisible();
-	await expect(burger).toBeVisible();
 	await expect(bg).not.toHaveCSS('opacity', '0');
-	await expect(burger).not.toHaveCSS('opacity', '0');
 });

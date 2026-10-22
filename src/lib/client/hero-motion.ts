@@ -1,5 +1,5 @@
 // Home hero motion: the photo and the copy come in once, then the background and
-// the burger drift at different speeds while the hero scrolls away (parallax).
+// the picture drifts as the hero scrolls away (parallax).
 // GSAP loads only on the home page, and nothing moves for prefers-reduced-motion.
 import type { Attachment } from 'svelte/attachments';
 
@@ -18,12 +18,10 @@ export const heroMotion: Attachment<HTMLElement> = (hero) => {
 				gsap
 					.timeline({ defaults: { ease: 'power3.out' } })
 					.from(q('[data-hero-bg]'), { scale: 1.12, autoAlpha: 0, duration: 1.4 })
-					.from(q('[data-hero-burger]'), { y: 80, scale: 0.9, autoAlpha: 0, duration: 1 }, 0.25)
 					.from(q('[data-hero-in]'), { y: 24, autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.35);
 
 				const scroll = { trigger: hero, start: 'top top', end: 'bottom top', scrub: true };
 				gsap.to(q('[data-hero-bg]'), { yPercent: 18, ease: 'none', scrollTrigger: scroll });
-				gsap.to(q('[data-hero-burger]'), { yPercent: -12, ease: 'none', scrollTrigger: scroll });
 			}, hero);
 			revert = () => ctx.revert();
 		},
