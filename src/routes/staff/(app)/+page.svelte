@@ -10,15 +10,17 @@
 	import UrgentAlertStrip from '#lib/components/organisms/UrgentAlertStrip.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const live = useLiveOrders(() => data.live);
+	const t = useTexts();
 
 	// The clock and the "late" checks refresh every 15 seconds.
 	let now = $state(Date.now());
 	$effect(() => {
-		const t = setInterval(() => (now = Date.now()), 15_000);
-		return () => clearInterval(t);
+		const timer = setInterval(() => (now = Date.now()), 15_000);
+		return () => clearInterval(timer);
 	});
 
 	// iFood cancels orders the shop does not confirm in time; warn well before that.
@@ -31,7 +33,15 @@
 	const awaitingConfirm = $derived(data.urgent.filter((o) => o.paymentStatus === 'paid'));
 
 	const hour = $derived(new Date(now).getHours());
-	const greeting = $derived(hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite');
+	const greeting = $derived(
+		t(
+			hour < 12
+				? 'dash.greeting.morning'
+				: hour < 18
+					? 'dash.greeting.afternoon'
+					: 'dash.greeting.evening'
+		)
+	);
 	const clock = $derived(
 		new Intl.DateTimeFormat('pt-BR', {
 			hour: '2-digit',
@@ -54,9 +64,9 @@
 	const tiles = $derived([
 		{
 			icon: 'cart' as const,
-			label: 'Pedidos hoje',
+			label: t('dash.tile.orders'),
 			value: placedToday === null ? '—' : String(placedToday),
-			hint: `${data.counts.today} no total, com cancelados`,
+			hint: t('dash.tile.ordersHint', { n: data.counts.today }),
 			delta:
 				placedToday === null || placedYesterday === null
 					? null
@@ -65,26 +75,26 @@
 		},
 		{
 			icon: 'cash' as const,
-			label: 'Vendas brutas',
+			label: t('dash.tile.gross'),
 			value: sales ? formatBRL(sales.now.grossCents) : '—',
-			hint: sales ? `Líquido ${formatBRL(sales.now.netCents)}` : undefined,
+			hint: sales ? t('dash.tile.net', { value: formatBRL(sales.now.netCents) }) : undefined,
 			delta: sales ? delta(sales.now.grossCents, sales.before.grossCents) : null,
 			href: '/staff/analytics'
 		},
 		{
 			icon: 'chef' as const,
-			label: 'Em preparo',
+			label: t('dash.tile.preparing'),
 			value: String(data.counts.open),
-			hint: `de ${data.counts.today} pedidos`,
+			hint: t('dash.tile.preparingHint', { n: data.counts.today }),
 			delta: null,
 			href: '/staff/orders'
 		},
 		{
 			icon: 'timer' as const,
-			label: 'Tempo médio',
+			label: t('dash.tile.time'),
 			value:
 				sales?.now.prep.medianMin == null ? '—' : `${Math.round(sales.now.prep.medianMin)} min`,
-			hint: 'do confirmado ao pronto',
+			hint: t('dash.tile.timeHint'),
 			delta: null,
 			href: '/staff/analytics'
 		}
@@ -95,21 +105,40 @@
 			{
 				href: '/staff/pos',
 				icon: 'cart' as const,
-				label: 'Novo pedido',
+				label: t('dash.shortcut.new'),
 				show: data.staff.role !== 'kitchen'
 			},
-			{ href: '/staff/menu/edit', icon: 'burger' as const, label: 'Ver cardápio', show: true },
-			{ href: '/staff/analytics', icon: 'chart' as const, label: 'Relatórios', show: true },
-			{ href: '/staff/settings/staff', icon: 'users' as const, label: 'Equipe', show: true }
+			{
+				href: '/staff/menu/edit',
+				icon: 'burger' as const,
+				label: t('dash.shortcut.menu'),
+				show: true
+			},
+			{
+				href: '/staff/analytics',
+				icon: 'chart' as const,
+				label: t('dash.shortcut.reports'),
+				show: true
+			},
+			{
+				href: '/staff/settings/staff',
+				icon: 'users' as const,
+				label: t('dash.shortcut.team'),
+				show: true
+			}
 		].filter((s) => s.show)
 	);
 
 	const isAdmin = $derived(data.staff.role === 'admin');
 	const channels = $derived([
-		{ on: data.settings.webOrderingEnabled, label: 'Site', icon: 'home' as const },
-		{ on: data.settings.pickupEnabled, label: 'Retirada', icon: 'bag' as const },
-		{ on: data.settings.deliveryEnabled, label: 'Entrega', icon: 'truck' as const },
-		{ on: data.settings.dineInEnabled, label: 'Mesa', icon: 'table' as const }
+		{ on: data.settings.webOrderingEnabled, label: t('dash.channel.site'), icon: 'home' as const },
+		{ on: data.settings.pickupEnabled, label: t('dash.channel.pickup'), icon: 'bag' as const },
+		{
+			on: data.settings.deliveryEnabled,
+			label: t('dash.channel.delivery'),
+			icon: 'truck' as const
+		},
+		{ on: data.settings.dineInEnabled, label: t('dash.channel.table'), icon: 'table' as const }
 	]);
 </script>
 
@@ -129,23 +158,25 @@
 	<header class="flex flex-wrap items-end justify-between gap-3">
 		<div>
 			<p class="text-sm font-medium text-muted capitalize">{dateLabel}</p>
-			<h1 class="page-title">{greeting}, equipe</h1>
+			<h1 class="page-title">{t('dash.greetingTeam', { greeting })}</h1>
 		</div>
-		<p class="font-display text-2xl font-extrabold tabular-nums" aria-label="Hora atual">{clock}</p>
+		<p class="font-display text-2xl font-extrabold tabular-nums" aria-label={t('dash.clock')}>
+			{clock}
+		</p>
 	</header>
 
 	<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
 		<div class="space-y-6">
-			<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumo do dia">
-				{#each tiles as t (t.label)}
-					<a href={t.href} class="block transition-transform hover:-translate-y-0.5">
+			<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('dash.summary')}>
+				{#each tiles as tile (tile.label)}
+					<a href={tile.href} class="block transition-transform hover:-translate-y-0.5">
 						<StatTile
-							icon={t.icon}
-							label={t.label}
-							value={t.value}
-							hint={t.hint}
-							delta={t.delta}
-							deltaLabel="vs. ontem"
+							icon={tile.icon}
+							label={tile.label}
+							value={tile.value}
+							hint={tile.hint}
+							delta={tile.delta}
+							deltaLabel={t('dash.vsYesterday')}
 						/>
 					</a>
 				{/each}
@@ -153,21 +184,21 @@
 
 			<section class="card p-5">
 				<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-					<h2 class="font-semibold">Hoje, hora a hora</h2>
+					<h2 class="font-semibold">{t('dash.hourly')}</h2>
 					<a
 						href="/staff/analytics"
 						class="text-sm font-semibold underline decoration-brand-500 decoration-2 underline-offset-4"
-						>Relatórios</a
+						>{t('dash.shortcut.reports')}</a
 					>
 				</div>
 				{#if sales}
 					<HourlyChart points={sales.hours} />
 				{:else}
-					<p class="text-sm text-muted">Os números de vendas são vistos pelo admin.</p>
+					<p class="text-sm text-muted">{t('dash.adminOnly')}</p>
 				{/if}
 			</section>
 
-			<section class="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Atalhos">
+			<section class="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label={t('dash.shortcuts')}>
 				{#each shortcuts as s (s.href)}
 					<a
 						href={s.href}
@@ -187,12 +218,14 @@
 		<aside class="space-y-6">
 			<section class="card p-5" aria-labelledby="agora">
 				<div class="mb-4 flex items-center justify-between gap-2">
-					<h2 id="agora" class="font-semibold">Agora</h2>
-					<a href="/staff/orders" class="btn-quiet min-h-9 px-3 text-sm">Ver pedidos</a>
+					<h2 id="agora" class="font-semibold">{t('dash.now')}</h2>
+					<a href="/staff/orders" class="btn-quiet min-h-9 px-3 text-sm">{t('dash.viewOrders')}</a>
 				</div>
 
 				{#if data.late.length}
-					<h3 class="mb-2 text-xs font-bold tracking-wide text-muted uppercase">Em produção</h3>
+					<h3 class="mb-2 text-xs font-bold tracking-wide text-muted uppercase">
+						{t('dash.inProduction')}
+					</h3>
 					<ul class="mb-5 space-y-2">
 						{#each data.late as o (o.id)}
 							<li>
@@ -204,22 +237,22 @@
 										<span class="font-semibold">#{o.orderNumber}</span>
 										<span class="block truncate text-sm text-muted"
 											>{o.tableLabel
-												? `Mesa ${o.tableLabel}`
+												? t('dash.tableLabel', { label: o.tableLabel })
 												: (o.customerLabel ?? o.channel)}</span
 										>
 									</span>
-									<StatusPill tone="bad" label="Em atraso" />
+									<StatusPill tone="bad" label={t('dash.late')} />
 								</a>
 							</li>
 						{/each}
 					</ul>
 				{:else}
-					<p class="mb-5 text-sm text-muted">Nenhum pedido atrasado.</p>
+					<p class="mb-5 text-sm text-muted">{t('dash.noneLate')}</p>
 				{/if}
 
 				{#if awaitingPayment.length}
 					<h3 class="mb-2 text-xs font-bold tracking-wide text-muted uppercase">
-						Aguardando pagamento
+						{t('dash.awaitPay')}
 					</h3>
 					<ul class="mb-5 space-y-2">
 						{#each awaitingPayment as o (o.id)}
@@ -231,7 +264,7 @@
 									<span class="font-semibold">#{o.orderNumber}</span>
 									<span class="flex items-center gap-2 text-sm">
 										<Money cents={o.totalCents} />
-										<StatusPill tone="warn" label="Pagamento" />
+										<StatusPill tone="warn" label={t('dash.payment')} />
 									</span>
 								</a>
 							</li>
@@ -241,7 +274,7 @@
 
 				{#if awaitingConfirm.length}
 					<h3 class="mb-2 text-xs font-bold tracking-wide text-muted uppercase">
-						Aguardando confirmação
+						{t('dash.awaitConfirm')}
 					</h3>
 					<ul class="space-y-2">
 						{#each awaitingConfirm as o (o.id)}
@@ -271,16 +304,16 @@
 
 			<section class="space-y-4 card p-5" aria-labelledby="loja">
 				<div class="flex items-center justify-between gap-2">
-					<h2 id="loja" class="font-semibold">Status da loja</h2>
+					<h2 id="loja" class="font-semibold">{t('dash.storeStatus')}</h2>
 					{#if data.settings.acceptingOrders}
-						<StatusPill tone="ok" label="Aberta" />
+						<StatusPill tone="ok" label={t('dash.open')} />
 					{:else}
-						<StatusPill tone="bad" label="Fechada" />
+						<StatusPill tone="bad" label={t('dash.closed')} />
 					{/if}
 				</div>
 				<p class="flex items-center gap-2 text-sm text-muted">
 					<Icon name="clock" class="size-4" />
-					{data.inHours ? 'Dentro do horário de funcionamento' : 'Fora do horário de funcionamento'}
+					{t(data.inHours ? 'dash.inHours' : 'dash.outHours')}
 				</p>
 				{#if !data.settings.acceptingOrders && data.settings.pauseReason}
 					<p class="text-sm text-muted">{data.settings.pauseReason}</p>
@@ -294,13 +327,13 @@
 					{#if data.settings.acceptingOrders}
 						<form method="POST" action="/staff/settings/store?/toggle">
 							<input type="hidden" name="open" value="0" />
-							<input type="hidden" name="pauseReason" value="Fechado pela equipe" />
-							<button class="btn-danger w-full">Fechar loja</button>
+							<input type="hidden" name="pauseReason" value={t('dash.closedByTeam')} />
+							<button class="btn-danger w-full">{t('dash.closeStore')}</button>
 						</form>
 					{:else}
 						<form method="POST" action="/staff/settings/store?/toggle">
 							<input type="hidden" name="open" value="1" />
-							<button class="btn-success w-full">Abrir loja</button>
+							<button class="btn-success w-full">{t('dash.openStore')}</button>
 						</form>
 					{/if}
 				{/if}

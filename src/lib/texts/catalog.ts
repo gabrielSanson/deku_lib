@@ -961,6 +961,221 @@ export const TEXTS = {
 	},
 	'kitchen.empty': { group: 'staff', label: 'Quadro: coluna vazia', default: 'Vazio' },
 	'kitchen.title': { group: 'staff', label: 'Cozinha: título', default: 'Cozinha' },
+	'dash.greeting.morning': {
+		group: 'staff',
+		label: 'Início: saudação da manhã',
+		default: 'Bom dia'
+	},
+	'dash.greeting.afternoon': {
+		group: 'staff',
+		label: 'Início: saudação da tarde',
+		default: 'Boa tarde'
+	},
+	'dash.greeting.evening': {
+		group: 'staff',
+		label: 'Início: saudação da noite',
+		default: 'Boa noite'
+	},
+	'dash.greetingTeam': {
+		group: 'staff',
+		label: 'Início: título com saudação',
+		default: '{greeting}, equipe'
+	},
+	'dash.tile.orders': {
+		group: 'staff',
+		label: 'Início: cartão de pedidos',
+		default: 'Pedidos hoje'
+	},
+	'dash.tile.ordersHint': {
+		group: 'staff',
+		label: 'Início: detalhe do cartão de pedidos',
+		default: '{n} no total, com cancelados'
+	},
+	'dash.tile.gross': {
+		group: 'staff',
+		label: 'Início: cartão de vendas',
+		default: 'Vendas brutas'
+	},
+	'dash.tile.net': {
+		group: 'staff',
+		label: 'Início: detalhe do cartão de vendas',
+		default: 'Líquido {value}'
+	},
+	'dash.tile.preparing': {
+		group: 'staff',
+		label: 'Início: cartão em preparo',
+		default: 'Em preparo'
+	},
+	'dash.tile.preparingHint': {
+		group: 'staff',
+		label: 'Início: detalhe do cartão em preparo',
+		default: 'de {n} pedidos'
+	},
+	'dash.tile.time': {
+		group: 'staff',
+		label: 'Início: cartão de tempo médio',
+		default: 'Tempo médio'
+	},
+	'dash.tile.timeHint': {
+		group: 'staff',
+		label: 'Início: detalhe do tempo médio',
+		default: 'do confirmado ao pronto'
+	},
+	'dash.vsYesterday': {
+		group: 'staff',
+		label: 'Início: comparação com ontem',
+		default: 'vs. ontem'
+	},
+	'dash.shortcut.new': {
+		group: 'staff',
+		label: 'Início: atalho novo pedido',
+		default: 'Novo pedido'
+	},
+	'dash.shortcut.menu': {
+		group: 'staff',
+		label: 'Início: atalho cardápio',
+		default: 'Ver cardápio'
+	},
+	'dash.shortcut.reports': {
+		group: 'staff',
+		label: 'Início: atalho relatórios',
+		default: 'Relatórios'
+	},
+	'dash.shortcut.team': {
+		group: 'staff',
+		label: 'Início: atalho equipe',
+		default: 'Equipe'
+	},
+	'dash.channel.site': {
+		group: 'staff',
+		label: 'Início: canal site',
+		default: 'Site'
+	},
+	'dash.channel.pickup': {
+		group: 'staff',
+		label: 'Início: canal retirada',
+		default: 'Retirada'
+	},
+	'dash.channel.delivery': {
+		group: 'staff',
+		label: 'Início: canal entrega',
+		default: 'Entrega'
+	},
+	'dash.channel.table': {
+		group: 'staff',
+		label: 'Início: canal mesa',
+		default: 'Mesa'
+	},
+	'dash.hourly': {
+		group: 'staff',
+		label: 'Início: título do gráfico',
+		default: 'Hoje, hora a hora'
+	},
+	'dash.adminOnly': {
+		group: 'staff',
+		label: 'Início: gráfico sem permissão',
+		default: 'Os números de vendas são vistos pelo admin.'
+	},
+	'dash.now': {
+		group: 'staff',
+		label: 'Início: título Agora',
+		default: 'Agora'
+	},
+	'dash.viewOrders': {
+		group: 'staff',
+		label: 'Início: link ver pedidos',
+		default: 'Ver pedidos'
+	},
+	'dash.inProduction': {
+		group: 'staff',
+		label: 'Início: seção em produção',
+		default: 'Em produção'
+	},
+	'dash.late': {
+		group: 'staff',
+		label: 'Início: selo em atraso',
+		default: 'Em atraso'
+	},
+	'dash.noneLate': {
+		group: 'staff',
+		label: 'Início: nada atrasado',
+		default: 'Nenhum pedido atrasado.'
+	},
+	'dash.awaitPay': {
+		group: 'staff',
+		label: 'Início: seção aguardando pagamento',
+		default: 'Aguardando pagamento'
+	},
+	'dash.payment': {
+		group: 'staff',
+		label: 'Início: selo pagamento',
+		default: 'Pagamento'
+	},
+	'dash.awaitConfirm': {
+		group: 'staff',
+		label: 'Início: seção aguardando confirmação',
+		default: 'Aguardando confirmação'
+	},
+	'dash.storeStatus': {
+		group: 'staff',
+		label: 'Início: título status da loja',
+		default: 'Status da loja'
+	},
+	'dash.open': {
+		group: 'staff',
+		label: 'Início: loja aberta',
+		default: 'Aberta'
+	},
+	'dash.closed': {
+		group: 'staff',
+		label: 'Início: loja fechada',
+		default: 'Fechada'
+	},
+	'dash.inHours': {
+		group: 'staff',
+		label: 'Início: dentro do horário',
+		default: 'Dentro do horário de funcionamento'
+	},
+	'dash.outHours': {
+		group: 'staff',
+		label: 'Início: fora do horário',
+		default: 'Fora do horário de funcionamento'
+	},
+	'dash.closeStore': {
+		group: 'staff',
+		label: 'Início: botão fechar loja',
+		default: 'Fechar loja'
+	},
+	'dash.closedByTeam': {
+		group: 'staff',
+		label: 'Início: motivo padrão ao fechar',
+		default: 'Fechado pela equipe'
+	},
+	'dash.openStore': {
+		group: 'staff',
+		label: 'Início: botão abrir loja',
+		default: 'Abrir loja'
+	},
+	'dash.tableLabel': {
+		group: 'staff',
+		label: 'Início: rótulo de mesa',
+		default: 'Mesa {label}'
+	},
+	'dash.clock': {
+		group: 'staff',
+		label: 'Início: rótulo do relógio',
+		default: 'Hora atual'
+	},
+	'dash.summary': {
+		group: 'staff',
+		label: 'Início: rótulo do resumo',
+		default: 'Resumo do dia'
+	},
+	'dash.shortcuts': {
+		group: 'staff',
+		label: 'Início: rótulo dos atalhos',
+		default: 'Atalhos'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',
