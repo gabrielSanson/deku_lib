@@ -1782,6 +1782,181 @@ export const TEXTS = {
 		label: 'Relatórios: dia da semana 6',
 		default: 'Sáb'
 	},
+	'pos.title': {
+		group: 'staff',
+		label: 'Caixa: título',
+		default: 'Caixa'
+	},
+	'pos.tabTitle': {
+		group: 'staff',
+		label: 'Caixa: título da aba do navegador',
+		default: 'Caixa · Equipe'
+	},
+	'pos.subtitle': {
+		group: 'staff',
+		label: 'Caixa: subtítulo',
+		default: 'Atendimento no balcão, para viagem ou delivery manual.'
+	},
+	'pos.type.dine_in': {
+		group: 'staff',
+		label: 'Caixa: tipo balcão',
+		default: 'Balcão'
+	},
+	'pos.type.pickup': {
+		group: 'staff',
+		label: 'Caixa: tipo para viagem',
+		default: 'Para viagem'
+	},
+	'pos.type.ifood': {
+		group: 'staff',
+		label: 'Caixa: tipo iFood',
+		default: 'iFood (manual)'
+	},
+	'pos.typeLabel': {
+		group: 'staff',
+		label: 'Caixa: rótulo do tipo de pedido',
+		default: 'Tipo de pedido'
+	},
+	'pos.search': {
+		group: 'staff',
+		label: 'Caixa: busca de produto',
+		default: 'Buscar produto'
+	},
+	'pos.shortcut': {
+		group: 'staff',
+		label: 'Caixa: dica do atalho',
+		default: 'Atalho:'
+	},
+	'pos.all': {
+		group: 'staff',
+		label: 'Caixa: filtro todos',
+		default: 'Todos'
+	},
+	'pos.current': {
+		group: 'staff',
+		label: 'Caixa: título pedido atual',
+		default: 'Pedido atual'
+	},
+	'pos.item': {
+		group: 'staff',
+		label: 'Caixa: item (singular)',
+		default: 'item'
+	},
+	'pos.items': {
+		group: 'staff',
+		label: 'Caixa: itens (plural)',
+		default: 'itens'
+	},
+	'pos.empty': {
+		group: 'staff',
+		label: 'Caixa: pedido vazio',
+		default: 'Toque em um produto para começar.'
+	},
+	'pos.ifoodCode': {
+		group: 'staff',
+		label: 'Caixa: código do pedido iFood',
+		default: 'Código do pedido no iFood'
+	},
+	'pos.nameField': {
+		group: 'staff',
+		label: 'Caixa: campo nome ou mesa',
+		default: 'Nome ou mesa (opcional)'
+	},
+	'pos.nameLabel': {
+		group: 'staff',
+		label: 'Caixa: rótulo do nome',
+		default: 'Nome'
+	},
+	'pos.nameHint': {
+		group: 'staff',
+		label: 'Caixa: dica do nome',
+		default: 'Para chamar quando ficar pronto.'
+	},
+	'pos.more': {
+		group: 'staff',
+		label: 'Caixa: mais opções',
+		default: 'Mais opções'
+	},
+	'pos.table': {
+		group: 'staff',
+		label: 'Caixa: campo mesa',
+		default: 'Mesa (opcional)'
+	},
+	'pos.phone': {
+		group: 'staff',
+		label: 'Caixa: campo celular',
+		default: 'Celular do cliente (opcional)'
+	},
+	'pos.coupon': {
+		group: 'staff',
+		label: 'Caixa: campo cupom',
+		default: 'Cupom'
+	},
+	'pos.apply': {
+		group: 'staff',
+		label: 'Caixa: botão aplicar cupom',
+		default: 'Aplicar'
+	},
+	'pos.note': {
+		group: 'staff',
+		label: 'Caixa: campo observação',
+		default: 'Observação do pedido'
+	},
+	'pos.manualDiscount': {
+		group: 'staff',
+		label: 'Caixa: campo desconto autorizado',
+		default: 'Desconto autorizado (R$)'
+	},
+	'pos.manualDiscountLabel': {
+		group: 'staff',
+		label: 'Caixa: rótulo do desconto manual',
+		default: 'Desconto manual em reais'
+	},
+	'pos.subtotal': {
+		group: 'staff',
+		label: 'Caixa: subtotal',
+		default: 'Subtotal ({n} {unit})'
+	},
+	'pos.promo': {
+		group: 'staff',
+		label: 'Caixa: linha de promoção',
+		default: 'Promoção · {name}'
+	},
+	'pos.discountAuth': {
+		group: 'staff',
+		label: 'Caixa: linha de desconto autorizado',
+		default: 'Desconto (autorizado)'
+	},
+	'pos.total': {
+		group: 'staff',
+		label: 'Caixa: total',
+		default: 'Total'
+	},
+	'pos.clear': {
+		group: 'staff',
+		label: 'Caixa: botão limpar',
+		default: 'Limpar'
+	},
+	'pos.sending': {
+		group: 'staff',
+		label: 'Caixa: botão enviando',
+		default: 'Enviando…'
+	},
+	'pos.placeIfood': {
+		group: 'staff',
+		label: 'Caixa: botão lançar pedido iFood',
+		default: 'Lançar pedido iFood'
+	},
+	'pos.charge': {
+		group: 'staff',
+		label: 'Caixa: botão cobrar',
+		default: 'Cobrar'
+	},
+	'pos.remove': {
+		group: 'staff',
+		label: 'Caixa: botão remover cupom',
+		default: 'Remover'
+	},
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',

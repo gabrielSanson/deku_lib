@@ -5,12 +5,14 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { parseBRL } from '#lib/domain/money.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 	import POSProductGrid from './POSProductGrid.svelte';
 	import POSTicketLines from './POSTicketLines.svelte';
 	import ProductSheet from './ProductSheet.svelte';
 	import { lineUnitCents, toPayload, type CartLine } from './cart.svelte.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	const soldOut = $derived(new Set(data.soldOut));
 	const canDiscount = $derived(data.staff.role === 'admin');
@@ -87,11 +89,12 @@
 		}, 250);
 	});
 
-	const types = [
-		{ value: 'dine_in', label: 'Balcão', icon: 'table' },
-		{ value: 'pickup', label: 'Para viagem', icon: 'bag' },
-		{ value: 'ifood', label: 'iFood (manual)', icon: 'truck' }
-	] as const;
+	const types = $derived([
+		{ value: 'dine_in', label: t('pos.type.dine_in'), icon: 'table' },
+		{ value: 'pickup', label: t('pos.type.pickup'), icon: 'bag' },
+		{ value: 'ifood', label: t('pos.type.ifood'), icon: 'truck' }
+	] as const);
+	const itemsLabel = (n: number) => t(n === 1 ? 'pos.item' : 'pos.items');
 	const itemCount = $derived(lines.reduce((n, l) => n + l.quantity, 0));
 
 	// "/" jumps to the search box and F9 opens the payment step, as on the mockup.
@@ -147,29 +150,29 @@
 	);
 </script>
 
-<svelte:head><title>Caixa · Equipe</title></svelte:head>
+<svelte:head><title>{t('pos.tabTitle')}</title></svelte:head>
 <svelte:window onkeydown={onKey} />
 
 <div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_380px]">
 	<section class="flex min-h-0 flex-col">
 		<header class="space-y-3 border-b border-line bg-surface p-4">
 			<div>
-				<h1 class="page-title">Caixa</h1>
-				<p class="text-sm text-muted">Atendimento no balcão, para viagem ou delivery manual.</p>
+				<h1 class="page-title">{t('pos.title')}</h1>
+				<p class="text-sm text-muted">{t('pos.subtitle')}</p>
 			</div>
-			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de pedido">
-				{#each types as t (t.value)}
+			<div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('pos.typeLabel')}>
+				{#each types as type (type.value)}
 					<button
 						type="button"
 						role="radio"
-						aria-checked={fulfillmentType === t.value}
+						aria-checked={fulfillmentType === type.value}
 						class="flex min-h-14 items-center justify-center gap-2 rounded-(--radius-card) border px-3 font-semibold transition-colors {fulfillmentType ===
-						t.value
+						type.value
 							? 'border-brand-500 bg-brand-500 text-black'
 							: 'border-line bg-surface hover:bg-quiet'}"
-						onclick={() => (fulfillmentType = t.value)}
+						onclick={() => (fulfillmentType = type.value)}
 					>
-						<Icon name={t.icon} class="size-5" />{t.label}
+						<Icon name={type.icon} class="size-5" />{type.label}
 					</button>
 				{/each}
 			</div>
@@ -183,18 +186,18 @@
 						bind:this={searchEl}
 						class="field pl-10"
 						type="search"
-						placeholder="Buscar produto"
+						placeholder={t('pos.search')}
 						bind:value={search}
-						aria-label="Buscar produto"
+						aria-label={t('pos.search')}
 					/>
 				</div>
 				<span class="hidden text-xs text-muted sm:block"
-					>Atalho: <kbd class="rounded border border-line px-1.5">/</kbd></span
+					>{t('pos.shortcut')} <kbd class="rounded border border-line px-1.5">/</kbd></span
 				>
 			</div>
 			<div class="flex gap-2 overflow-x-auto pb-1">
 				<button class={category === null ? 'chip-active' : 'chip'} onclick={() => (category = null)}
-					>Todos</button
+					>{t('pos.all')}</button
 				>
 				{#each data.catalog.categories as c (c.id)}
 					<button
@@ -208,14 +211,17 @@
 		<POSProductGrid {products} {soldOut} onpick={pick} />
 	</section>
 
-	<aside class="flex min-h-0 flex-col border-l border-line bg-surface" aria-label="Pedido atual">
+	<aside
+		class="flex min-h-0 flex-col border-l border-line bg-surface"
+		aria-label={t('pos.current')}
+	>
 		<div class="flex-1 space-y-3 overflow-y-auto p-4">
 			<div class="flex items-baseline justify-between">
-				<h2 class="font-display text-2xl font-extrabold">Pedido atual</h2>
-				<span class="text-sm text-muted">{itemCount} {itemCount === 1 ? 'item' : 'itens'}</span>
+				<h2 class="font-display text-2xl font-extrabold">{t('pos.current')}</h2>
+				<span class="text-sm text-muted">{itemCount} {itemsLabel(itemCount)}</span>
 			</div>
 			{#if lines.length === 0}
-				<p class="py-10 text-center text-muted">Toque em um produto para começar.</p>
+				<p class="py-10 text-center text-muted">{t('pos.empty')}</p>
 			{/if}
 			<POSTicketLines
 				{lines}
@@ -240,10 +246,10 @@
 			{#if fulfillmentType === 'ifood'}
 				<input
 					class="field"
-					placeholder="Código do pedido no iFood"
+					placeholder={t('pos.ifoodCode')}
 					maxlength="20"
 					bind:value={ifoodCode}
-					aria-label="Código do pedido no iFood"
+					aria-label={t('pos.ifoodCode')}
 					required
 				/>
 				<p class="text-xs text-muted">
@@ -252,23 +258,23 @@
 			{/if}
 			<input
 				class="field"
-				placeholder="Nome ou mesa (opcional)"
+				placeholder={t('pos.nameField')}
 				maxlength="60"
 				bind:value={customerLabel}
-				aria-label="Nome"
+				aria-label={t('pos.nameLabel')}
 			/>
-			<p class="text-xs text-muted">Para chamar quando ficar pronto.</p>
+			<p class="text-xs text-muted">{t('pos.nameHint')}</p>
 
 			<details class="rounded-(--radius-control) border border-line p-3">
-				<summary class="cursor-pointer text-sm font-semibold">Mais opções</summary>
+				<summary class="cursor-pointer text-sm font-semibold">{t('pos.more')}</summary>
 				<div class="mt-3 space-y-2">
 					{#if fulfillmentType === 'dine_in'}
 						<input
 							class="field"
-							placeholder="Mesa (opcional)"
+							placeholder={t('pos.table')}
 							maxlength="20"
 							bind:value={tableLabel}
-							aria-label="Mesa (opcional)"
+							aria-label={t('pos.table')}
 						/>
 					{/if}
 					{#if fulfillmentType !== 'ifood'}
@@ -277,20 +283,20 @@
 							type="tel"
 							inputmode="tel"
 							autocomplete="off"
-							placeholder="Celular do cliente (opcional)"
+							placeholder={t('pos.phone')}
 							maxlength="25"
 							bind:value={phone}
-							aria-label="Celular do cliente (opcional)"
+							aria-label={t('pos.phone')}
 						/>
 						<div class="flex gap-2">
 							<input
 								class="field uppercase"
-								placeholder="Cupom"
+								placeholder={t('pos.coupon')}
 								maxlength="24"
 								autocomplete="off"
 								bind:value={couponInput}
 								readonly={!!couponCode}
-								aria-label="Cupom"
+								aria-label={t('pos.coupon')}
 								onkeydown={(e) => {
 									if (e.key === 'Enter') {
 										e.preventDefault();
@@ -305,14 +311,14 @@
 									onclick={() => {
 										couponCode = '';
 										couponInput = '';
-									}}>Remover</button
+									}}>{t('pos.remove')}</button
 								>
 							{:else}
 								<button
 									type="button"
 									class="btn-secondary"
 									disabled={!couponInput.trim()}
-									onclick={() => (couponCode = couponInput.trim())}>Aplicar</button
+									onclick={() => (couponCode = couponInput.trim())}>{t('pos.apply')}</button
 								>
 							{/if}
 						</div>
@@ -324,18 +330,18 @@
 					{/if}
 					<input
 						class="field"
-						placeholder="Observação do pedido"
+						placeholder={t('pos.note')}
 						maxlength="300"
 						bind:value={notes}
-						aria-label="Observação do pedido"
+						aria-label={t('pos.note')}
 					/>
 					{#if canDiscount}
 						<input
 							class="field"
 							inputmode="decimal"
-							placeholder="Desconto autorizado (R$)"
+							placeholder={t('pos.manualDiscount')}
 							bind:value={discountText}
-							aria-label="Desconto manual em reais"
+							aria-label={t('pos.manualDiscountLabel')}
 						/>
 					{/if}
 				</div>
@@ -344,19 +350,19 @@
 			<FormError message={form?.error} />
 			<dl class="space-y-1 text-sm">
 				<div class="flex justify-between">
-					<dt>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})</dt>
+					<dt>{t('pos.subtotal', { n: itemCount, unit: itemsLabel(itemCount) })}</dt>
 					<dd><Money cents={subtotal} /></dd>
 				</div>
 				{#if discount}<div class="flex justify-between text-ok">
 						<dt>
 							{!manualDiscount && offer?.name
-								? `Promoção · ${offer.name}`
-								: 'Desconto (autorizado)'}
+								? t('pos.promo', { name: offer.name })
+								: t('pos.discountAuth')}
 						</dt>
 						<dd>−<Money cents={discount} /></dd>
 					</div>{/if}
 				<div class="flex items-baseline justify-between pt-1 text-xl font-bold">
-					<dt>Total</dt>
+					<dt>{t('pos.total')}</dt>
 					<dd><Money cents={total} class="font-display text-3xl font-black" /></dd>
 				</div>
 			</dl>
@@ -370,7 +376,7 @@
 						idempotencyKey = crypto.randomUUID();
 					}}
 				>
-					<Icon name="trash" class="size-5" />Limpar
+					<Icon name="trash" class="size-5" />{t('pos.clear')}
 				</button>
 				<button
 					bind:this={payEl}
@@ -383,7 +389,9 @@
 							!!offer?.couponBlocks)}
 				>
 					<Icon name={fulfillmentType === 'ifood' ? 'truck' : 'card'} class="size-5" />
-					{busy ? 'Enviando…' : fulfillmentType === 'ifood' ? 'Lançar pedido iFood' : 'Cobrar'}
+					{busy
+						? t('pos.sending')
+						: t(fulfillmentType === 'ifood' ? 'pos.placeIfood' : 'pos.charge')}
 					<kbd
 						class="ml-1 hidden rounded border border-black/30 px-1 text-xs font-semibold sm:inline"
 						>F9</kbd
