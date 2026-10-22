@@ -2,7 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
-	import { formatBRL } from '#lib/domain/money.ts';
+	import { untrack } from 'svelte';
+	import Money from '#lib/components/atoms/Money.svelte';
+	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -22,6 +24,16 @@
 	let busy = $state(false);
 	let confirmDelete = $state(false);
 	let preview = $state<string | null>(null);
+	// What the customer sees, updated while the form is edited.
+	const live = $state({
+		name: untrack(() => p.name),
+		description: untrack(() => p.description),
+		price: untrack(() => (p.priceCents ? formatBRL(p.priceCents).replace(/[R$\s]/g, '') : ''))
+	});
+	function track(e: Event) {
+		const el = e.target as HTMLInputElement | HTMLTextAreaElement;
+		if (el.id === 'name' || el.id === 'description' || el.id === 'price') live[el.id] = el.value;
+	}
 
 	function pick(e: Event) {
 		const file = (e.currentTarget as HTMLInputElement).files?.[0];
@@ -38,8 +50,29 @@
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">Salvo.</p>{/if}
 
+	<section class="card p-4" aria-label="Como aparece no cardápio">
+		<p class="mb-3 section-label">Como aparece no cardápio</p>
+		<div class="flex gap-3">
+			{#if preview || p.imageUrl}
+				<img src={preview ?? p.imageUrl} alt="" class="size-24 shrink-0 rounded-lg object-cover" />
+			{:else}
+				<div
+					class="grid size-24 shrink-0 place-items-center rounded-lg bg-night text-xs text-stone-400"
+				>
+					Sem foto
+				</div>
+			{/if}
+			<div class="min-w-0">
+				<p class="font-bold">{live.name || 'Nome do produto'}</p>
+				<p class="line-clamp-2 text-sm text-muted">{live.description}</p>
+				<Money cents={parseBRL(live.price) ?? 0} class="mt-1 block font-black" />
+			</div>
+		</div>
+	</section>
+
 	<form
 		bind:this={formEl}
+		oninput={track}
 		method="POST"
 		action="?/save"
 		enctype="multipart/form-data"
