@@ -19,9 +19,13 @@ test('customer orders on the site, pays with Pix and the order reaches the kitch
 	await page.goto('/checkout');
 	await page.waitForLoadState('networkidle');
 	await page.getByRole('button', { name: 'Para viagem' }).click();
+	await page.getByRole('button', { name: 'Continuar' }).click();
+	await page.getByRole('button', { name: 'Continuar' }).click();
 	await page.getByLabel('Nome').fill('Cliente Teste');
 	await page.getByLabel('Celular (WhatsApp)').fill('(11) 98765-4321');
+	await page.getByRole('button', { name: 'Continuar' }).click();
 	await page.getByRole('radio', { name: /^Pix/ }).check();
+	await page.getByRole('button', { name: 'Continuar' }).click();
 	await expect(page.getByText('Total', { exact: true })).toBeVisible();
 	await expect(page.getByText('R$ 28,90').last()).toBeVisible();
 	await page.getByRole('button', { name: 'Ir para o pagamento' }).click();

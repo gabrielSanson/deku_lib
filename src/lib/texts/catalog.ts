@@ -1376,6 +1376,28 @@ export const TEXTS = {
 		group: 'staff',
 		label: 'Concluir: dica',
 		default: 'Você pode voltar aqui a qualquer momento em Loja → Configuração.'
+	},
+	// Checkout steps
+	'checkout.step.receive': {
+		group: 'checkout',
+		label: 'Passo: como receber',
+		default: 'Como receber'
+	},
+	'checkout.step.address': { group: 'checkout', label: 'Passo: endereço', default: 'Endereço' },
+	'checkout.step.you': { group: 'checkout', label: 'Passo: seus dados', default: 'Seus dados' },
+	'checkout.step.payment': { group: 'checkout', label: 'Passo: pagamento', default: 'Pagamento' },
+	'checkout.step.review': { group: 'checkout', label: 'Passo: revisar', default: 'Revisar' },
+	'checkout.stepOf': {
+		group: 'checkout',
+		label: 'Indicador de passo',
+		default: 'Passo {current} de {total}'
+	},
+	'checkout.next': { group: 'checkout', label: 'Botão continuar', default: 'Continuar' },
+	'checkout.back': { group: 'checkout', label: 'Botão voltar', default: 'Voltar' },
+	'checkout.addressNotNeeded': {
+		group: 'checkout',
+		label: 'Passo endereço: sem entrega',
+		default: 'Esta opção não precisa de endereço.'
 	}
 } as const satisfies Record<string, TextDef>;
 
