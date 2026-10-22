@@ -2,10 +2,11 @@
 	import { deserialize, enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
-	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { parseBRL } from '#lib/domain/money.ts';
+	import POSProductGrid from './POSProductGrid.svelte';
+	import POSTicketLines from './POSTicketLines.svelte';
 	import ProductSheet from './ProductSheet.svelte';
 	import { lineUnitCents, toPayload, type CartLine } from './cart.svelte.ts';
 
@@ -204,36 +205,7 @@
 			</div>
 		</header>
 
-		<div
-			class="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-3 sm:grid-cols-3 xl:grid-cols-4"
-		>
-			{#each products as p (p.sku)}
-				{@const out = soldOut.has(p.sku)}
-				<button
-					class="flex flex-col overflow-hidden card text-left transition-colors hover:border-brand-500 disabled:opacity-50 disabled:hover:border-line"
-					disabled={out}
-					onclick={() => pick(p)}
-				>
-					<ProductImage src={p.imageUrl} class="aspect-[4/3] w-full" />
-					<span class="flex flex-1 flex-col gap-1 p-3">
-						<span class="leading-tight font-bold">{p.name}</span>
-						<span class="line-clamp-2 text-xs text-muted">{p.description}</span>
-						<span class="mt-auto flex items-center justify-between pt-2">
-							<Money cents={p.priceCents} class="font-black" />
-							{#if out}
-								<span class="text-xs font-semibold text-bad">Esgotado</span>
-							{:else}
-								<span class="grid size-9 place-items-center rounded-full bg-brand-500 text-black">
-									<Icon name="plus" class="size-5" strokeWidth={3} />
-								</span>
-							{/if}
-						</span>
-					</span>
-				</button>
-			{:else}
-				<p class="col-span-full p-6 text-center text-muted">Nenhum produto encontrado.</p>
-			{/each}
-		</div>
+		<POSProductGrid {products} {soldOut} onpick={pick} />
 	</section>
 
 	<aside class="flex min-h-0 flex-col border-l border-line bg-surface" aria-label="Pedido atual">
@@ -245,56 +217,11 @@
 			{#if lines.length === 0}
 				<p class="py-10 text-center text-muted">Toque em um produto para começar.</p>
 			{/if}
-			<ul class="space-y-3">
-				{#each lines as line (line.key)}
-					<li class="flex gap-3 rounded-(--radius-control) border border-line p-2">
-						<ProductImage src={line.product.imageUrl} class="size-16 shrink-0 rounded-lg" />
-						<div class="min-w-0 flex-1">
-							<div class="flex items-start justify-between gap-2">
-								<span class="leading-tight font-semibold">{line.product.name}</span>
-								<button
-									class="-mt-1 -mr-2 btn-ghost min-h-9 px-2 text-stone-500"
-									aria-label="Remover {line.product.name}"
-									onclick={() => (lines = lines.filter((l) => l.key !== line.key))}
-								>
-									<Icon name="close" class="size-4" />
-								</button>
-							</div>
-							{#if line.options.length}
-								<p class="text-xs text-muted">
-									{line.options
-										.map((o) => (o.quantity > 1 ? `${o.quantity}× ${o.name}` : o.name))
-										.join(', ')}
-								</p>
-							{/if}
-							{#if line.note || line.allergy}
-								<p class="text-xs {line.allergy ? 'font-semibold text-bad' : 'text-muted'}">
-									{line.allergy ? '⚠ Alergia. ' : ''}{line.note}
-								</p>
-							{/if}
-							<div class="mt-2 flex items-center justify-between gap-2">
-								<div class="flex items-center gap-1">
-									<button
-										class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
-										onclick={() => change(line, -1)}
-										aria-label="Remover um">−</button
-									>
-									<span class="w-7 text-center font-bold tabular-nums">{line.quantity}</span>
-									<button
-										class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
-										onclick={() => change(line, 1)}
-										aria-label="Adicionar um">+</button
-									>
-								</div>
-								<span class="text-right">
-									<Money cents={lineUnitCents(line)} class="block text-xs text-muted" />
-									<Money cents={lineUnitCents(line) * line.quantity} class="font-bold" />
-								</span>
-							</div>
-						</div>
-					</li>
-				{/each}
-			</ul>
+			<POSTicketLines
+				{lines}
+				onchange={change}
+				onremove={(line) => (lines = lines.filter((l) => l.key !== line.key))}
+			/>
 		</div>
 
 		<form
