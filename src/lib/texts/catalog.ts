@@ -251,6 +251,7 @@ export const TEXTS = {
 		label: 'Menu: Acompanhar pedido',
 		default: 'Acompanhar pedido'
 	},
+	'header.tab.track': { group: 'header', label: 'Aba Pedidos (celular)', default: 'Pedidos' },
 	'header.cart': {
 		group: 'header',
 		label: 'Botão do carrinho (leitor de tela)',
@@ -829,7 +830,6 @@ export const TEXTS = {
 		label: 'Pedido enviado',
 		default: 'Pedido enviado! Guarde este link para acompanhar.'
 	},
-	'order.label': { group: 'order', label: 'Rótulo do número', default: 'Pedido' },
 	'order.eta': { group: 'order', label: 'Previsão', default: 'Previsão: {time}' },
 	'order.track.title': { group: 'order', label: 'Título', default: 'Acompanhe seu pedido' },
 	'order.track.subtitle': {
@@ -857,10 +857,15 @@ export const TEXTS = {
 		label: 'Dica: pronto',
 		default: 'Avisamos quando ficar pronto'
 	},
+	'order.track.etaLabel': {
+		group: 'order',
+		label: 'Previsão: rótulo',
+		default: 'Pronto em cerca de'
+	},
 	'order.track.etaMinutes': {
 		group: 'order',
 		label: 'Previsão em minutos',
-		default: 'Pronto em cerca de {min} min'
+		default: '{min} min'
 	},
 	'order.track.etaSoon': {
 		group: 'order',
@@ -902,7 +907,6 @@ export const TEXTS = {
 	'order.total': { group: 'order', label: 'Total', default: 'Total' },
 	'order.payment': { group: 'order', label: 'Pagamento', default: 'Pagamento' },
 	'order.payPix': { group: 'order', label: 'Botão pagar com Pix', default: 'Pagar com Pix' },
-	'order.codeLabel': { group: 'order', label: 'Rótulo da senha', default: 'Sua senha' },
 	'order.readyPickup': {
 		group: 'order',
 		label: 'Pedido pronto (retirada no balcão)',

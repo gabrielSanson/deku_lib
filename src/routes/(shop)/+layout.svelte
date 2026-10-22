@@ -99,7 +99,7 @@
 			? [
 					{
 						href: `/orders/${orderToken}`,
-						label: t('header.nav.track'),
+						label: t('header.tab.track'),
 						icon: 'receipt' as const,
 						active: path.startsWith('/orders')
 					}

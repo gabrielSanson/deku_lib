@@ -175,7 +175,9 @@
 	const eta = $derived.by(() => {
 		if (!o.promisedAt || !open || r >= 3) return null;
 		const min = Math.ceil((new Date(o.promisedAt).getTime() - now) / 60_000);
-		return min > 0 ? t('order.track.etaMinutes', { min }) : t('order.track.etaSoon');
+		return min > 0
+			? { label: t('order.track.etaLabel'), value: t('order.track.etaMinutes', { min }) }
+			: { label: null, value: t('order.track.etaSoon') };
 	});
 	const isNew = $derived(page.url.searchParams.has('novo'));
 </script>
@@ -197,26 +199,20 @@
 
 	<div class="space-y-5 rounded-(--radius-card) bg-night p-6 text-white">
 		<div class="flex flex-wrap items-start justify-between gap-3">
+			<!-- The order number is also the code called out at the counter (pickupCode). -->
 			<div>
-				<p class="text-sm font-semibold text-stone-300">
-					{t('order.track.orderNumber', { number: o.orderNumber })}
-				</p>
-				<p class="text-stone-200">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</p>
+				<h2
+					class="font-display text-2xl font-black tracking-tight whitespace-nowrap tabular-nums min-[400px]:text-3xl sm:text-4xl"
+				>
+					{t('order.track.orderNumber', { number: code })}
+				</h2>
+				<p class="mt-1 text-stone-300">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</p>
 			</div>
-			<span class="pill bg-brand-500 text-black"
+			<span class="pill shrink-0 bg-brand-500 px-4 py-1.5 text-sm font-bold text-black"
 				>{cancelled ? t('order.cancelled') : statusLabel}</span
 			>
 		</div>
-
-		<!-- Collected at the counter: the order number is the code that is called out. -->
-		<div class="text-center">
-			<p class="text-sm font-semibold tracking-wide text-stone-300">
-				{collects ? t('order.codeLabel') : t('order.label')}
-			</p>
-			<h2 class="font-display text-6xl font-black tracking-tight text-brand-500 tabular-nums">
-				#{code}
-			</h2>
-		</div>
+		<hr class="border-night-line" />
 
 		{#if cancelled}
 			<p class="alert-error text-center">{t('order.cancelled')}</p>
@@ -229,9 +225,14 @@
 		{/if}
 
 		{#if eta && !cancelled && !waitingPayment}
-			<p class="flex items-center gap-3 rounded-(--radius-control) bg-night-2 p-4 font-semibold">
-				<Icon name="timer" class="size-6 text-brand-500" />{eta}
-			</p>
+			<div class="flex items-center gap-4 rounded-(--radius-control) bg-night-2 p-4">
+				<Icon name="timer" class="size-8 shrink-0 text-brand-500" />
+				<span class="h-10 w-px bg-night-line" aria-hidden="true"></span>
+				<p class="flex flex-col">
+					{#if eta.label}<span class="text-sm text-stone-300">{eta.label}</span>{/if}
+					<span class="font-display text-3xl leading-tight font-black">{eta.value}</span>
+				</p>
+			</div>
 		{/if}
 	</div>
 
@@ -315,7 +316,8 @@
 			>{t('order.payPix')}</a
 		>
 	{/if}
-	<a class="btn-primary btn-lg w-full" href="/cardapio">
+	<a class="relative btn-primary btn-lg w-full" href="/cardapio">
 		<Icon name="burger" class="size-6" />{t('order.track.menuCta')}
+		<Icon name="arrow" class="absolute right-5 size-5" />
 	</a>
 </section>

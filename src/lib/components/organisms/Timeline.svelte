@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Vertical steps with a yellow check when done and a dashed line between.
+	// Vertical steps with a yellow check when done: a solid line after a done step, dotted ahead.
 	import Icon from '#lib/components/atoms/Icon.svelte';
 
 	export interface Step {
@@ -18,11 +18,11 @@
 		<li class="relative flex gap-3 pb-5 last:pb-0">
 			{#if i < steps.length - 1}
 				<span
-					class="absolute top-8 bottom-1 left-[15px] border-l-2 border-dashed {step.state === 'done'
-						? 'border-brand-500'
+					class="absolute top-8 bottom-0 left-[15px] border-l-2 {step.state === 'done'
+						? 'border-solid border-brand-500'
 						: dark
-							? 'border-night-line'
-							: 'border-line'}"
+							? 'border-dotted border-stone-500'
+							: 'border-dotted border-line'}"
 					aria-hidden="true"
 				></span>
 			{/if}
@@ -33,7 +33,7 @@
 						? 'border-2 border-brand-500 ' +
 							(dark ? 'bg-night text-brand-500' : 'bg-surface text-brand-700')
 						: dark
-							? 'border-2 border-night-line bg-night'
+							? 'border-2 border-stone-500 bg-night'
 							: 'border-2 border-line bg-surface'}"
 			>
 				{#if step.state === 'done'}<Icon
@@ -41,7 +41,7 @@
 						class="size-4.5"
 						strokeWidth={3}
 					/>{:else if step.state === 'current'}<span
-						class="size-2.5 animate-pulse rounded-full bg-brand-500"
+						class="size-3.5 animate-pulse rounded-full bg-brand-500"
 					></span>{/if}
 			</span>
 			<div class="min-w-0 pt-1">
