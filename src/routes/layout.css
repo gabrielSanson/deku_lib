@@ -115,6 +115,39 @@ body {
 	@apply min-h-12 w-full rounded-(--radius-control) border border-line bg-surface px-3.5 py-2 text-base placeholder:text-stone-400;
 }
 
+/* Interaction states, defined once for every control (F4).
+   Hover and focus are set in the utilities above; these cover the rest. */
+.field:disabled,
+[class*='btn-']:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.field[aria-invalid='true'] {
+	border-color: var(--color-bad);
+	background: var(--color-bad-tint);
+}
+
+.field[aria-invalid='true']:focus-visible {
+	outline-color: var(--color-bad);
+}
+
+[class*='btn-']:not(:disabled):active {
+	transform: translateY(1px);
+}
+
+/* Loading: set aria-busy="true" on the control while its request runs. */
+[class*='btn-'][aria-busy='true'],
+[aria-busy='true'] {
+	cursor: progress;
+	opacity: 0.7;
+}
+
+/* Success: a short confirmation next to a field or button. */
+.field[aria-invalid='false'] {
+	border-color: var(--color-ok);
+}
+
 @utility label {
 	@apply mb-1 block text-sm font-medium text-muted;
 }
