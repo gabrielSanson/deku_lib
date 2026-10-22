@@ -960,6 +960,48 @@ export const TEXTS = {
 		default: 'Aguardando retirada'
 	},
 	'kitchen.empty': { group: 'staff', label: 'Quadro: coluna vazia', default: 'Vazio' },
+	'kitchen.title': { group: 'staff', label: 'Cozinha: título', default: 'Cozinha' },
+	'kitchen.back': { group: 'staff', label: 'Cozinha: voltar ao painel', default: '← Painel' },
+	'kitchen.logout': { group: 'staff', label: 'Cozinha: sair', default: 'Sair' },
+	'kitchen.station': { group: 'staff', label: 'Cozinha: estações', default: 'Estação' },
+	'kitchen.station.all': { group: 'staff', label: 'Cozinha: estação todas', default: 'Todos' },
+	'kitchen.station.grill': { group: 'staff', label: 'Cozinha: estação chapa', default: 'Chapa' },
+	'kitchen.station.fryer': {
+		group: 'staff',
+		label: 'Cozinha: estação fritadeira',
+		default: 'Fritadeira'
+	},
+	'kitchen.station.counter': {
+		group: 'staff',
+		label: 'Cozinha: estação balcão',
+		default: 'Balcão'
+	},
+	'kitchen.updated': {
+		group: 'staff',
+		label: 'Cozinha: hora da última atualização',
+		default: 'Atualizado {time}'
+	},
+	'kitchen.sound.on': { group: 'staff', label: 'Cozinha: som ligado', default: '🔔 Som ligado' },
+	'kitchen.sound.off': {
+		group: 'staff',
+		label: 'Cozinha: som desligado',
+		default: '🔇 Som desligado'
+	},
+	'kitchen.action.start': {
+		group: 'staff',
+		label: 'Cozinha: botão iniciar preparo',
+		default: 'Iniciar preparo'
+	},
+	'kitchen.action.ready': {
+		group: 'staff',
+		label: 'Cozinha: botão marcar pronto',
+		default: 'Marcar pronto'
+	},
+	'kitchen.action.delivered': {
+		group: 'staff',
+		label: 'Cozinha: botão entregue',
+		default: 'Entregue'
+	},
 	'staff.call': { group: 'staff', label: 'Botão chamar pedido pronto', default: 'Chamar' },
 	'staff.called': {
 		group: 'staff',

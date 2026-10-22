@@ -94,12 +94,10 @@
 		'all',
 		...new Set(data.orders.flatMap((o) => o.items.map((i) => i.prepStation)))
 	]);
-	const stationLabel: Record<string, string> = {
-		all: 'Todos',
-		grill: 'Chapa',
-		fryer: 'Fritadeira',
-		counter: 'Balcão'
-	};
+	const stationLabel = (s: string) =>
+		s === 'all' || s === 'grill' || s === 'fryer' || s === 'counter'
+			? t(`kitchen.station.${s}`)
+			: s;
 	const visible = (o: OrderSummary) => ({
 		...o,
 		items: station === 'all' ? o.items : o.items.filter((i) => i.prepStation === station)
@@ -128,15 +126,15 @@
 				.map(visible)
 		}
 	]);
-	const nextAction: Record<string, { to: string; label: string } | undefined> = {
-		confirmed: { to: 'preparing', label: 'Iniciar preparo' },
-		preparing: { to: 'ready', label: 'Marcar pronto' },
-		ready: { to: 'completed', label: 'Entregue' }
-	};
+	const nextAction = $derived<Record<string, { to: string; label: string } | undefined>>({
+		confirmed: { to: 'preparing', label: t('kitchen.action.start') },
+		preparing: { to: 'ready', label: t('kitchen.action.ready') },
+		ready: { to: 'completed', label: t('kitchen.action.delivered') }
+	});
 </script>
 
 <svelte:head
-	><title>Cozinha</title><link rel="manifest" href="/kitchen.webmanifest" /><meta
+	><title>{t('kitchen.title')}</title><link rel="manifest" href="/kitchen.webmanifest" /><meta
 		name="theme-color"
 		content="#0c0a09"
 	/></svelte:head
@@ -146,32 +144,36 @@
 	<LiveBanner {live} />
 	<header class="flex items-center gap-3 border-b border-stone-800 px-4 py-2">
 		{#if data.staff.role === 'admin'}
-			<a href="/staff" class="font-bold text-brand-500">← Painel</a>
+			<a href="/staff" class="font-bold text-brand-500">{t('kitchen.back')}</a>
 		{/if}
-		<h1 class="text-xl font-black tracking-wide">COZINHA</h1>
-		<div class="flex gap-1" role="radiogroup" aria-label="Estação">
+		<h1 class="text-xl font-black tracking-wide uppercase">{t('kitchen.title')}</h1>
+		<div class="flex gap-1" role="radiogroup" aria-label={t('kitchen.station')}>
 			{#each stations as s (s)}
 				<button
 					class="rounded-md px-3 py-2 text-sm font-semibold {station === s
 						? 'bg-brand-500 text-black'
 						: 'bg-stone-800'}"
 					aria-pressed={station === s}
-					onclick={() => (station = s)}>{stationLabel[s] ?? s}</button
+					onclick={() => (station = s)}>{stationLabel(s)}</button
 				>
 			{/each}
 		</div>
-		<span class="ml-auto text-sm text-stone-400">Atualizado {formatTime(live.lastRefresh)}</span>
+		<span class="ml-auto text-sm text-stone-400"
+			>{t('kitchen.updated', { time: formatTime(live.lastRefresh) })}</span
+		>
 		<button
 			class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
 			aria-pressed={muted}
 			onclick={() => {
 				muted = !muted;
 				if (!muted) chime();
-			}}>{muted ? '🔇 Som desligado' : '🔔 Som ligado'}</button
+			}}>{muted ? t('kitchen.sound.off') : t('kitchen.sound.on')}</button
 		>
 		{#if data.staff.role === 'kitchen'}
 			<form method="POST" action="/staff/logout">
-				<button class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold">Sair</button>
+				<button class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
+					>{t('kitchen.logout')}</button
+				>
 			</form>
 		{/if}
 	</header>
