@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import SetupProgressRail from '#lib/components/organisms/SetupProgressRail.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();
@@ -34,19 +35,7 @@
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
 	<h1 class="page-title">Configurar a loja</h1>
-	<nav aria-label="Passos" class="flex flex-wrap gap-1 text-sm">
-		{#each data.steps as s, i (s)}
-			<a
-				href="?passo={s}"
-				class="rounded-full px-3 py-1 {s === data.step
-					? 'bg-brand-500 font-semibold text-black'
-					: i < index
-						? 'bg-brand-100 text-brand-700'
-						: 'bg-stone-100 text-muted'}"
-				aria-current={s === data.step ? 'step' : undefined}>{i + 1}. {labels[s]}</a
-			>
-		{/each}
-	</nav>
+	<SetupProgressRail steps={data.steps} {labels} current={data.step} {index} />
 
 	<FormError message={form && 'error' in form ? (form.error as string) : undefined} />
 	{#if form && 'ok' in form && typeof form.ok === 'string'}<p class="alert-ok">{form.ok}</p>{/if}
