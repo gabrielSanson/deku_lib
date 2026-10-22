@@ -37,9 +37,13 @@
 	>
 		<Icon name={icon} class="size-5.5" />
 	</span>
-	<div class="min-w-0">
+	<div class="min-w-0 flex-1">
 		<p class="text-sm font-medium text-muted">{label}</p>
-		<p class="font-display text-2xl leading-tight tabular-nums sm:text-3xl">{value}</p>
+		<p
+			class="font-display text-2xl leading-tight [overflow-wrap:anywhere] tabular-nums sm:text-3xl"
+		>
+			{value}
+		</p>
 		{#if hint}<p class="text-xs text-muted">{hint}</p>{/if}
 		{#if delta != null}
 			<p

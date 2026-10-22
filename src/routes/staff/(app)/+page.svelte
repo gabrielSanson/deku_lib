@@ -167,7 +167,7 @@
 
 	<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
 		<div class="space-y-6">
-			<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('dash.summary')}>
+			<section class="grid grid-cols-2 gap-3 2xl:grid-cols-4" aria-label={t('dash.summary')}>
 				{#each tiles as tile (tile.label)}
 					<a href={tile.href} class="block transition-transform hover:-translate-y-0.5">
 						<StatTile
