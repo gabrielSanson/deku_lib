@@ -7,7 +7,6 @@
 	import { categoryIcon } from '#lib/domain/category-icon.ts';
 	import type { Product } from '#lib/domain/catalog.ts';
 	import { useTexts } from '#lib/texts/context.ts';
-	import CartPanel from '../CartPanel.svelte';
 
 	let { data } = $props();
 	const t = useTexts();
@@ -66,7 +65,7 @@
 </svelte:head>
 
 <div class="relative overflow-x-clip lg:bg-brand-500">
-	<!-- brush strokes behind the docked cart, as in the brand art -->
+	<!-- brush strokes behind the menu, as in the brand art -->
 	<svg
 		class="pointer-events-none absolute -right-24 bottom-0 hidden h-[60%] w-[55%] text-black/90 lg:block"
 		viewBox="0 0 400 300"
@@ -81,9 +80,7 @@
 		/>
 	</svg>
 
-	<div
-		class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6 lg:px-6 lg:py-6"
-	>
+	<div class="relative mx-auto max-w-7xl">
 		<div class="min-w-0">
 			<!-- Menu -->
 			<section
@@ -138,9 +135,7 @@
 				{#each shown as s (s.id)}
 					<section id={s.slug} class="mb-10 scroll-mt-40">
 						{#if !selected || query}<h2 class="mb-5 section-label">{s.name}</h2>{/if}
-						<ul
-							class="grid gap-5 sm:grid-cols-2 {cart.count ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}"
-						>
+						<ul class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 							{#each s.products as p (p.sku)}
 								<ProductCard
 									product={p}
@@ -158,19 +153,6 @@
 				{/each}
 			</section>
 		</div>
-
-		<!-- Docked cart (desktop) -->
-		<aside class="hidden lg:block">
-			<div
-				id="seu-pedido"
-				tabindex="-1"
-				role="region"
-				class="sticky top-26 h-[calc(100dvh-8rem)] max-h-[760px] rounded-3xl outline-none focus-visible:ring-4 focus-visible:ring-black"
-				aria-label={t('cart.title')}
-			>
-				<CartPanel products={data.catalog.products} store={data.store} {logo} />
-			</div>
-		</aside>
 	</div>
 </div>
 

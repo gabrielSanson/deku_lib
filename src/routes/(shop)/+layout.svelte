@@ -38,15 +38,6 @@
 	);
 	const showCartBar = $derived(cart.count > 0 && !onCheckout && !cart.panelOpen);
 
-	// On the menu page at desktop width the cart is docked beside the menu, so the
-	// header button points there instead of opening the drawer.
-	function openCart() {
-		const docked = document.getElementById('seu-pedido');
-		if (isMenu && docked && matchMedia('(min-width: 1024px)').matches) {
-			docked.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-			docked.focus({ preventScroll: true });
-		} else cart.panelOpen = true;
-	}
 	const close = () => (cart.panelOpen = false);
 
 	$effect(() => {
@@ -194,7 +185,7 @@
 				</a>
 				<button
 					class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
-					onclick={openCart}
+					onclick={() => (cart.panelOpen = true)}
 					aria-label={t('header.cart', { count: cart.count, items })}
 				>
 					<Icon name="cart" class="size-8" strokeWidth={1.75} />
@@ -270,9 +261,7 @@
 	{#if showCartBar}
 		<button
 			onclick={() => (cart.panelOpen = true)}
-			class="fixed inset-x-4 bottom-20 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10 md:bottom-4 {isMenu
-				? 'lg:hidden'
-				: ''}"
+			class="fixed inset-x-4 bottom-20 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10 md:bottom-4"
 		>
 			<span class="flex items-center gap-2"
 				><Icon name="cart" /> {t('cart.view', { count: cart.count, items })}</span
