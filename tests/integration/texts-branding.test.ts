@@ -41,10 +41,10 @@ describe('texts', () => {
 
 		const editor = await listTextsForEditor();
 		const cta = editor.flatMap((g) => g.texts).find((x) => x.key === 'home.hero.cta');
-		expect(cta).toMatchObject({ changed: true, value: 'Quero o meu', default: 'Pedir agora' });
+		expect(cta).toMatchObject({ changed: true, value: 'Quero o meu', default: 'Ver cardápio' });
 
 		await saveTexts({ 'home.hero.cta': '  ' }, owner);
-		expect((await getTexts())['home.hero.cta']).toBe('Pedir agora');
+		expect((await getTexts())['home.hero.cta']).toBe('Ver cardápio');
 		const [audit] = await db()<{ summary: { reset: string[] } }[]>`
 			select summary from audit_log where action = 'store.texts_updated' order by id desc limit 1`;
 		expect(audit.summary.reset).toEqual(['home.hero.cta']);

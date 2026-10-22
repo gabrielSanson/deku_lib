@@ -312,7 +312,12 @@ export const TEXTS = {
 		label: 'Destaques: ver cardápio',
 		default: 'Ver todo o cardápio'
 	},
-	'home.hero.cta': { group: 'home', label: 'Destaque: botão', default: 'Pedir agora' },
+	'home.hero.cta': { group: 'home', label: 'Destaque: botão', default: 'Ver cardápio' },
+	'home.menuButton': {
+		group: 'home',
+		label: 'Destaques: botão Ver cardápio',
+		default: 'Ver cardápio'
+	},
 	'home.hero.prepTime': {
 		group: 'home',
 		label: 'Destaque: tempo de preparo',
