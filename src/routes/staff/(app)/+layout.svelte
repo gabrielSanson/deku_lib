@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
+	import StaffTopbar from '#lib/components/organisms/StaffTopbar.svelte';
 	import { activeHref, navFor } from '#lib/staff/nav.ts';
 
 	let { data, children } = $props();
@@ -75,22 +76,7 @@
 	</aside>
 
 	<!-- Phones and tablets: top bar with a menu drawer. -->
-	<header
-		class="sticky top-0 z-20 flex items-center gap-3 border-b border-night-line bg-night px-3 py-2 text-white lg:hidden"
-	>
-		<button
-			class="btn min-h-10 px-2 text-stone-300 hover:bg-night-2 hover:text-white"
-			aria-label="Abrir menu"
-			aria-expanded={drawerOpen}
-			aria-controls="staff-drawer"
-			onclick={() => (drawerOpen = true)}
-		>
-			<Icon name="menu" />
-		</button>
-		{@render brand()}
-		<span class="flex-1"></span>
-		{@render status()}
-	</header>
+	<StaffTopbar menuOpen={drawerOpen} onopen={() => (drawerOpen = true)} {brand} {status} />
 	{#if drawerOpen}
 		<div class="fixed inset-0 z-40 lg:hidden">
 			<button
