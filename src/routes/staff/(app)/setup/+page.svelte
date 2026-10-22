@@ -3,17 +3,19 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SetupProgressRail from '#lib/components/organisms/SetupProgressRail.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
-	const labels: Record<string, string> = {
-		loja: 'Loja',
-		cardapio: 'Cardápio',
-		entrega: 'Retirada e entrega',
-		equipe: 'Equipe',
-		pagamentos: 'Pagamentos',
-		ifood: 'iFood',
-		concluir: 'Concluir'
-	};
+	const t = useTexts();
+	const labels = $derived<Record<string, string>>({
+		loja: t('setup.step.loja'),
+		cardapio: t('setup.step.cardapio'),
+		entrega: t('setup.step.entrega'),
+		equipe: t('setup.step.equipe'),
+		pagamentos: t('setup.step.pagamentos'),
+		ifood: t('setup.step.ifood'),
+		concluir: t('setup.step.concluir')
+	});
 	const index = $derived(data.steps.indexOf(data.step));
 	const nextStep = $derived(data.steps[index + 1]);
 	const prevStep = $derived(data.steps[index - 1]);
@@ -31,10 +33,10 @@
 	);
 </script>
 
-<svelte:head><title>Configuração · {labels[data.step]}</title></svelte:head>
+<svelte:head><title>{t('setup.pageTitle', { step: labels[data.step] })}</title></svelte:head>
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
-	<h1 class="page-title">Configurar a loja</h1>
+	<h1 class="page-title">{t('setup.title')}</h1>
 	<SetupProgressRail steps={data.steps} {labels} current={data.step} {index} />
 
 	<FormError message={form && 'error' in form ? (form.error as string) : undefined} />
@@ -48,10 +50,10 @@
 			use:enhance={keep}
 			class="space-y-4 card p-4"
 		>
-			<h2 class="text-lg font-bold">Dados da loja</h2>
-			<p class="text-sm text-muted">Aparecem no site, no app instalado e nos comprovantes.</p>
+			<h2 class="text-lg font-bold">{t('setup.loja.title')}</h2>
+			<p class="text-sm text-muted">{t('setup.loja.hint')}</p>
 			<div>
-				<label class="label" for="displayName">Nome da loja</label>
+				<label class="label" for="displayName">{t('setup.loja.name')}</label>
 				<input
 					class="field"
 					id="displayName"
@@ -63,54 +65,57 @@
 			</div>
 			<div class="grid gap-3 sm:grid-cols-2">
 				<div>
-					<label class="label" for="phone">Telefone ou WhatsApp</label>
+					<label class="label" for="phone">{t('setup.loja.phone')}</label>
 					<input
 						class="field"
 						id="phone"
 						name="phone"
 						value={p.phone ?? ''}
 						inputmode="tel"
-						placeholder="(11) 99999-9999"
+						placeholder={t('setup.loja.phonePh')}
 					/>
 				</div>
 				<div>
-					<label class="label" for="city">Cidade</label>
-					<input class="field" id="city" name="city" value={p.city ?? ''} placeholder="São Paulo" />
+					<label class="label" for="city">{t('setup.loja.city')}</label>
+					<input
+						class="field"
+						id="city"
+						name="city"
+						value={p.city ?? ''}
+						placeholder={t('setup.loja.cityPh')}
+					/>
 				</div>
 			</div>
 			<div>
-				<label class="label" for="addressLine">Endereço para retirada</label>
+				<label class="label" for="addressLine">{t('setup.loja.address')}</label>
 				<input
 					class="field"
 					id="addressLine"
 					name="addressLine"
 					value={p.addressLine ?? ''}
-					placeholder="Rua Exemplo, 123 - Centro"
+					placeholder={t('setup.loja.addressPh')}
 				/>
 			</div>
-			<button class="btn-primary w-full">Salvar e continuar</button>
+			<button class="btn-primary w-full">{t('setup.next')}</button>
 		</form>
 	{:else if data.step === 'cardapio'}
 		<section class="space-y-3 card p-4">
-			<h2 class="text-lg font-bold">Cardápio</h2>
+			<h2 class="text-lg font-bold">{t('setup.menu.title')}</h2>
 			{#if data.counts.products > 0}
 				<p class="alert-ok">
-					{data.counts.products} produto(s) em {data.counts.categories} categoria(s).
+					{t('setup.menu.count', {
+						products: data.counts.products,
+						categories: data.counts.categories
+					})}
 				</p>
 			{:else}
-				<p class="text-sm">
-					O cardápio está vazio. Cadastre categorias, produtos, fotos e adicionais no editor, ou
-					comece pelo exemplo e ajuste.
-				</p>
+				<p class="text-sm">{t('setup.menu.empty')}</p>
 				<form method="POST" action="?passo={data.step}&/sampleMenu" use:enhance>
-					<button class="btn-secondary w-full">Carregar cardápio de exemplo</button>
+					<button class="btn-secondary w-full">{t('setup.menu.sample')}</button>
 				</form>
 			{/if}
-			<a class="btn-primary w-full" href="/staff/menu/edit">Abrir o editor de cardápio</a>
-			<p class="text-xs text-muted">
-				Dica: cada produto tem um código (SKU). Se você vende no iFood, use o mesmo código como
-				"código externo" no cardápio do iFood para os pedidos chegarem certos na cozinha.
-			</p>
+			<a class="btn-primary w-full" href="/staff/menu/edit">{t('setup.menu.editor')}</a>
+			<p class="text-xs text-muted">{t('setup.menu.tip')}</p>
 		</section>
 	{:else if data.step === 'entrega'}
 		<form
@@ -119,14 +124,15 @@
 			use:enhance={keep}
 			class="space-y-3 card p-4"
 		>
-			<h2 class="text-lg font-bold">Retirada e entrega (pedidos do site)</h2>
+			<h2 class="text-lg font-bold">{t('setup.delivery.title')}</h2>
 			<label class="flex min-h-11 items-center gap-3"
 				><input
 					type="checkbox"
 					class="size-5"
 					name="pickupEnabled"
 					checked={data.settings.pickupEnabled}
-				/> Cliente retira no balcão</label
+				/>
+				{t('setup.delivery.pickup')}</label
 			>
 			<label class="flex min-h-11 items-center gap-3"
 				><input
@@ -134,25 +140,23 @@
 					class="size-5"
 					name="deliveryEnabled"
 					checked={data.settings.deliveryEnabled}
-				/> Entrega própria (seu motoboy)</label
+				/>
+				{t('setup.delivery.own')}</label
 			>
 			<p class="text-sm {data.counts.zones ? 'text-muted' : 'text-warn'}">
 				{data.counts.zones
-					? `${data.counts.zones} área(s) de entrega ativa(s).`
-					: 'Nenhuma área de entrega cadastrada: com a entrega ligada, o site recusa todos os endereços.'}
-				<a class="underline" href="/staff/settings/delivery">Cadastrar áreas e taxas</a>
+					? t('setup.delivery.zones', { count: data.counts.zones })
+					: t('setup.delivery.noZones')}
+				<a class="underline" href="/staff/settings/delivery">{t('setup.delivery.manage')}</a>
 			</p>
-			<button class="btn-primary w-full">Salvar e continuar</button>
+			<button class="btn-primary w-full">{t('setup.next')}</button>
 		</form>
 	{:else if data.step === 'equipe'}
 		<section class="space-y-3 card p-4">
-			<h2 class="text-lg font-bold">Equipe</h2>
-			<p class="text-sm">
-				{data.counts.staff} pessoa(s) com acesso. Crie uma conta para cada pessoa. Admins cuidam da loja;
-				a cozinha vê só a tela de pedidos.
-			</p>
-			<a class="btn-secondary w-full" href="/staff/settings/staff">Gerenciar equipe</a>
-			<a class="btn-primary w-full" href="?passo={nextStep}">Continuar</a>
+			<h2 class="text-lg font-bold">{t('setup.team.title')}</h2>
+			<p class="text-sm">{t('setup.team.text', { count: data.counts.staff })}</p>
+			<a class="btn-secondary w-full" href="/staff/settings/staff">{t('setup.team.manage')}</a>
+			<a class="btn-primary w-full" href="?passo={nextStep}">{t('setup.team.continue')}</a>
 		</section>
 	{:else if data.step === 'pagamentos'}
 		<form
@@ -161,37 +165,31 @@
 			use:enhance={keep}
 			class="space-y-4 card p-4"
 		>
-			<h2 class="text-lg font-bold">Como o cliente do site paga</h2>
-			<p class="text-sm text-muted">
-				Todo pedido do site é pago na hora, antes de ir para a cozinha.
-			</p>
+			<h2 class="text-lg font-bold">{t('setup.pay.title')}</h2>
+			<p class="text-sm text-muted">{t('setup.pay.intro')}</p>
 			<label class="flex min-h-11 items-start gap-3"
 				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
 				<span
-					>Pix na chave da loja
-					<span class="block text-sm text-muted"
-						>O site mostra um QR Code com o valor e o número do pedido. Sem taxa de intermediário. A
-						confirmação não é automática: a equipe confere o Pix no app do banco e registra no
-						pedido.</span
-					></span
+					>{t('setup.pay.pix')}
+					<span class="block text-sm text-muted">{t('setup.pay.pixHint')}</span></span
 				></label
 			>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
 					<div>
-						<label class="label" for="pixKey">Chave Pix</label>
+						<label class="label" for="pixKey">{t('setup.pay.key')}</label>
 						<input
 							class="field"
 							id="pixKey"
 							name="pixKey"
 							value={p.pix.key ?? ''}
-							placeholder="CNPJ, CPF, celular, e-mail ou chave aleatória"
+							placeholder={t('setup.pay.keyPh')}
 							required
 						/>
 					</div>
 					<div class="grid gap-3 sm:grid-cols-2">
 						<div>
-							<label class="label" for="pixMerchantName">Nome do recebedor</label>
+							<label class="label" for="pixMerchantName">{t('setup.pay.recipient')}</label>
 							<input
 								class="field"
 								id="pixMerchantName"
@@ -202,7 +200,7 @@
 							/>
 						</div>
 						<div>
-							<label class="label" for="pixMerchantCity">Cidade do recebedor</label>
+							<label class="label" for="pixMerchantCity">{t('setup.pay.recipientCity')}</label>
 							<input
 								class="field"
 								id="pixMerchantCity"
@@ -213,9 +211,7 @@
 							/>
 						</div>
 					</div>
-					<p class="text-xs text-muted">
-						Faça um pedido de teste e pague R$ 1 para conferir que o Pix cai na conta certa.
-					</p>
+					<p class="text-xs text-muted">{t('setup.pay.test')}</p>
 				</div>
 			{:else}
 				<input type="hidden" name="pixKey" value={p.pix.key ?? ''} />
@@ -223,61 +219,39 @@
 				<input type="hidden" name="pixMerchantCity" value={p.pix.merchantCity ?? ''} />
 			{/if}
 			<p class="text-sm text-muted">
-				Pagamento online com confirmação automática (Pix e cartão) precisa de um provedor de
-				pagamento (PSP).
+				{t('setup.pay.psp')}
 				{data.onlineProvider
-					? `Provedor ativo: ${data.onlineProvider}.`
-					: 'Nenhum está conectado; isso é opcional.'}
+					? t('setup.pay.providerOn', { provider: data.onlineProvider })
+					: t('setup.pay.providerOff')}
 			</p>
-			<button class="btn-primary w-full">Salvar e continuar</button>
+			<button class="btn-primary w-full">{t('setup.next')}</button>
 		</form>
 	{:else if data.step === 'ifood'}
 		<section class="space-y-4 card p-4">
 			<div class="flex items-center justify-between gap-2">
-				<h2 class="text-lg font-bold">iFood (opcional)</h2>
+				<h2 class="text-lg font-bold">{t('setup.ifood.title')}</h2>
 				<span
 					class="rounded-full px-3 py-1 text-xs font-semibold {ifood.enabled
 						? 'bg-ok/15 text-ok'
-						: 'bg-line text-muted'}">{ifood.enabled ? 'Ligado' : 'Desligado'}</span
+						: 'bg-line text-muted'}"
+					>{ifood.enabled ? t('setup.ifood.on') : t('setup.ifood.off')}</span
 				>
 			</div>
-			<p class="text-sm">
-				A loja funciona sem o iFood. Sem a integração, a equipe lança os pedidos do iFood no Caixa
-				em "iFood (manual)". Com ela, os pedidos chegam sozinhos na cozinha e o status volta para o
-				iFood.
-			</p>
-			<p class="alert-warn text-sm">
-				Esta integração foi feita a partir da documentação pública do iFood e ainda não passou pela
-				homologação do iFood. Teste com pedidos de teste antes de depender dela.
-			</p>
+			<p class="text-sm">{t('setup.ifood.intro')}</p>
+			<p class="alert-warn text-sm">{t('setup.ifood.warn')}</p>
 
 			<ol class="list-decimal space-y-2 pl-5 text-sm">
-				<li>
-					No <strong>Portal do Desenvolvedor iFood</strong> (developer.ifood.com.br), crie um
-					aplicativo do tipo "centralizado" para a sua loja e copie o <strong>Client ID</strong> e o
-					<strong>Client Secret</strong>.
-				</li>
-				<li>
-					No <strong>Portal do Parceiro</strong>, autorize esse aplicativo para a loja e copie o
-					<strong>Merchant ID</strong> (código da loja).
-				</li>
-				<li>Cole os três abaixo e clique em "Salvar e testar".</li>
-				<li>
-					No cardápio do iFood, use o código (SKU) de cada produto daqui como "código externo".
-				</li>
+				<li>{t('setup.ifood.step1')}</li>
+				<li>{t('setup.ifood.step2')}</li>
+				<li>{t('setup.ifood.step3')}</li>
+				<li>{t('setup.ifood.step4')}</li>
 			</ol>
 
 			{#if ifood.source === 'env'}
-				<p class="text-sm text-muted">
-					As credenciais atuais vêm das variáveis do servidor (IFOOD_*). Salvar aqui passa a usar as
-					credenciais do app.
-				</p>
+				<p class="text-sm text-muted">{t('setup.ifood.envNote')}</p>
 			{/if}
 			{#if !data.canStoreSecrets}
-				<p class="alert-error text-sm">
-					O servidor não tem APP_SECRET configurado, então não pode guardar o Client Secret com
-					segurança. Rode deploy/setup.sh de novo ou defina APP_SECRET no servidor.
-				</p>
+				<p class="alert-error text-sm">{t('setup.ifood.noSecret')}</p>
 			{/if}
 			{#if ifood.problem}<p class="alert-error text-sm">{ifood.problem}</p>{/if}
 
@@ -288,7 +262,7 @@
 				class="space-y-3"
 			>
 				<div>
-					<label class="label" for="clientId">Client ID</label>
+					<label class="label" for="clientId">{t('setup.ifood.clientId')}</label>
 					<input
 						class="field font-mono"
 						id="clientId"
@@ -299,19 +273,19 @@
 					/>
 				</div>
 				<div>
-					<label class="label" for="clientSecret">Client Secret</label>
+					<label class="label" for="clientSecret">{t('setup.ifood.clientSecret')}</label>
 					<input
 						class="field font-mono"
 						id="clientSecret"
 						name="clientSecret"
 						type="password"
 						autocomplete="new-password"
-						placeholder={ifood.hasSecret ? 'Já salvo. Deixe em branco para manter.' : ''}
+						placeholder={ifood.hasSecret ? t('setup.ifood.secretSaved') : ''}
 						required={!ifood.hasSecret}
 					/>
 				</div>
 				<div>
-					<label class="label" for="merchantId">Merchant ID</label>
+					<label class="label" for="merchantId">{t('setup.ifood.merchantId')}</label>
 					<input
 						class="field font-mono"
 						id="merchantId"
@@ -322,12 +296,14 @@
 					/>
 				</div>
 				<div class="flex flex-wrap gap-2">
-					<button class="btn-primary" disabled={!data.canStoreSecrets}>Salvar e testar</button>
+					<button class="btn-primary" disabled={!data.canStoreSecrets}
+						>{t('setup.ifood.save')}</button
+					>
 				</div>
 			</form>
 			{#if ifood.clientId}
 				<form method="POST" action="?passo={data.step}&/ifoodTest" use:enhance>
-					<button class="btn-secondary">Testar conexão de novo</button>
+					<button class="btn-secondary">{t('setup.ifood.retest')}</button>
 				</form>
 			{/if}
 
@@ -336,21 +312,23 @@
 					<p class="font-semibold">{problem.title}</p>
 					<p>{problem.action}</p>
 					<details class="text-xs">
-						<summary>Detalhe técnico</summary>
+						<summary>{t('setup.ifood.technical')}</summary>
 						<code class="break-all">{problem.detail}</code>
 					</details>
 				</div>
 			{:else if ifood.lastCheckAt}
 				<p class="text-sm {ifood.lastCheckOk ? 'text-ok' : 'text-bad'}">
-					Último teste em {formatDateTime(ifood.lastCheckAt)}:
-					{ifood.lastCheckOk ? 'conexão funcionando.' : ifood.lastCheckError}
+					{t('setup.ifood.lastTest', {
+						when: formatDateTime(ifood.lastCheckAt),
+						result: ifood.lastCheckOk ? t('setup.ifood.ok') : (ifood.lastCheckError ?? '')
+					})}
 				</p>
 			{/if}
 
 			{#if ifood.enabled}
 				<form method="POST" action="?passo={data.step}&/ifoodEnable" use:enhance>
 					<input type="hidden" name="enabled" value="0" />
-					<button class="btn-danger">Desligar iFood</button>
+					<button class="btn-danger">{t('setup.ifood.disable')}</button>
 				</form>
 			{:else if ifood.lastCheckOk && ifood.source === 'app'}
 				<form
@@ -362,42 +340,47 @@
 					<input type="hidden" name="enabled" value="1" />
 					<label class="flex items-start gap-3 text-sm"
 						><input type="checkbox" class="mt-1 size-5" name="understood" required />
-						Entendi que a integração ainda não foi homologada pelo iFood e vou acompanhar os primeiros
-						pedidos também no Gestor de Pedidos do iFood.</label
+						{t('setup.ifood.ack')}</label
 					>
-					<button class="btn-primary">Ligar recebimento automático de pedidos</button>
+					<button class="btn-primary">{t('setup.ifood.enable')}</button>
 				</form>
 			{/if}
 			<p class="text-xs text-muted">
-				Se o iFood pedir um endereço de webhook, use <code class="break-all">{data.webhookUrl}</code
-				>. Mesmo sem webhook, o sistema consulta o iFood a cada 30 segundos.
+				{t('setup.ifood.webhook', { url: data.webhookUrl })}
 			</p>
 			<a class="btn-ghost w-full" href="?passo={nextStep}"
-				>{ifood.enabled ? 'Continuar' : 'Pular por enquanto'}</a
+				>{ifood.enabled ? t('setup.ifood.continue') : t('setup.ifood.skip')}</a
 			>
 		</section>
 	{:else if data.step === 'concluir'}
 		<form method="POST" action="?passo={data.step}&/finish" class="space-y-3 card p-4">
-			<h2 class="text-lg font-bold">Tudo pronto?</h2>
+			<h2 class="text-lg font-bold">{t('setup.done.title')}</h2>
 			<ul class="space-y-1 text-sm">
-				<li>{data.counts.products ? '✓' : '•'} Cardápio: {data.counts.products} produto(s)</li>
 				<li>
-					{data.settings.pickupEnabled || data.counts.zones ? '✓' : '•'} Retirada{data.settings
-						.deliveryEnabled
-						? ` e entrega (${data.counts.zones} área(s))`
+					{data.counts.products ? '✓' : '•'}
+					{t('setup.done.menu', { count: data.counts.products })}
+				</li>
+				<li>
+					{data.settings.pickupEnabled || data.counts.zones ? '✓' : '•'}
+					{t('setup.done.pickup')}{data.settings.deliveryEnabled
+						? t('setup.done.delivery', { count: data.counts.zones })
 						: ''}
 				</li>
-				<li>{data.counts.staff > 1 ? '✓' : '•'} Equipe: {data.counts.staff} pessoa(s)</li>
 				<li>
-					{p.pix.enabled ? '✓' : '•'} Pagamento:
-					{p.pix.enabled ? 'Pix na chave da loja' : 'nenhum para o site'}
+					{data.counts.staff > 1 ? '✓' : '•'}
+					{t('setup.done.team', { count: data.counts.staff })}
 				</li>
 				<li>
-					{ifood.enabled ? '✓ iFood ligado' : '• iFood desligado (use "iFood (manual)" no Caixa)'}
+					{p.pix.enabled ? '✓' : '•'}
+					{t('setup.done.pay')}
+					{p.pix.enabled ? t('setup.done.payOn') : t('setup.done.payOff')}
+				</li>
+				<li>
+					{ifood.enabled ? `✓ ${t('setup.done.ifoodOn')}` : `• ${t('setup.done.ifoodOff')}`}
 				</li>
 			</ul>
 			{#if data.counts.products === 0}
-				<p class="alert-warn text-sm">Sem produtos, o site e o caixa ficam vazios.</p>
+				<p class="alert-warn text-sm">{t('setup.done.noProducts')}</p>
 			{/if}
 			<label class="flex min-h-11 items-center gap-3"
 				><input
@@ -405,20 +388,20 @@
 					class="size-5"
 					name="open"
 					checked={!data.settings.acceptingOrders && data.counts.products > 0}
-				/> Abrir a loja para pedidos pelo site agora</label
+				/>
+				{t('setup.done.open')}</label
 			>
-			<button class="btn-primary w-full">Concluir configuração</button>
-			<p class="text-xs text-muted">
-				Você pode voltar aqui a qualquer momento em Loja → Configuração.
-			</p>
+			<button class="btn-primary w-full">{t('setup.done.submit')}</button>
+			<p class="text-xs text-muted">{t('setup.done.hint')}</p>
 		</form>
 	{/if}
 
 	<div class="flex justify-between">
-		{#if prevStep}<a class="btn-ghost" href="?passo={prevStep}">← {labels[prevStep]}</a>{:else}<span
-			></span>{/if}
+		{#if prevStep}<a class="btn-ghost" href="?passo={prevStep}"
+				>{t('setup.prev', { step: labels[prevStep] })}</a
+			>{:else}<span></span>{/if}
 		{#if nextStep && data.step !== 'concluir'}<a class="btn-ghost" href="?passo={nextStep}"
-				>{labels[nextStep]} →</a
+				>{t('setup.nextLink', { step: labels[nextStep] })}</a
 			>{/if}
 	</div>
 </main>

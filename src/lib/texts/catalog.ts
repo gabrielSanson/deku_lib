@@ -1012,6 +1012,370 @@ export const TEXTS = {
 		group: 'staff',
 		label: 'Pedido já chamado',
 		default: 'Chamado às {time}'
+	},
+	// Staff setup wizard
+	'setup.title': { group: 'staff', label: 'Configuração: título', default: 'Configurar a loja' },
+	'setup.pageTitle': {
+		group: 'staff',
+		label: 'Configuração: título da aba',
+		default: 'Configuração · {step}'
+	},
+	'setup.step.loja': { group: 'staff', label: 'Configuração: etapa Loja', default: 'Loja' },
+	'setup.step.cardapio': {
+		group: 'staff',
+		label: 'Configuração: etapa Cardápio',
+		default: 'Cardápio'
+	},
+	'setup.step.entrega': {
+		group: 'staff',
+		label: 'Configuração: etapa Entrega',
+		default: 'Retirada e entrega'
+	},
+	'setup.step.equipe': { group: 'staff', label: 'Configuração: etapa Equipe', default: 'Equipe' },
+	'setup.step.pagamentos': {
+		group: 'staff',
+		label: 'Configuração: etapa Pagamentos',
+		default: 'Pagamentos'
+	},
+	'setup.step.ifood': { group: 'staff', label: 'Configuração: etapa iFood', default: 'iFood' },
+	'setup.step.concluir': {
+		group: 'staff',
+		label: 'Configuração: etapa Concluir',
+		default: 'Concluir'
+	},
+	'setup.next': {
+		group: 'staff',
+		label: 'Configuração: botão salvar e continuar',
+		default: 'Salvar e continuar'
+	},
+	'setup.prev': { group: 'staff', label: 'Configuração: link voltar', default: '← {step}' },
+	'setup.nextLink': { group: 'staff', label: 'Configuração: link avançar', default: '{step} →' },
+	'setup.loja.title': { group: 'staff', label: 'Loja: título', default: 'Dados da loja' },
+	'setup.loja.hint': {
+		group: 'staff',
+		label: 'Loja: texto de ajuda',
+		default: 'Aparecem no site, no app instalado e nos comprovantes.'
+	},
+	'setup.loja.name': { group: 'staff', label: 'Loja: campo nome', default: 'Nome da loja' },
+	'setup.loja.phone': {
+		group: 'staff',
+		label: 'Loja: campo telefone',
+		default: 'Telefone ou WhatsApp'
+	},
+	'setup.loja.phonePh': {
+		group: 'staff',
+		label: 'Loja: exemplo telefone',
+		default: '(11) 99999-9999'
+	},
+	'setup.loja.city': { group: 'staff', label: 'Loja: campo cidade', default: 'Cidade' },
+	'setup.loja.cityPh': { group: 'staff', label: 'Loja: exemplo cidade', default: 'São Paulo' },
+	'setup.loja.address': {
+		group: 'staff',
+		label: 'Loja: campo endereço',
+		default: 'Endereço para retirada'
+	},
+	'setup.loja.addressPh': {
+		group: 'staff',
+		label: 'Loja: exemplo endereço',
+		default: 'Rua Exemplo, 123 - Centro'
+	},
+	'setup.menu.title': { group: 'staff', label: 'Cardápio: título', default: 'Cardápio' },
+	'setup.menu.count': {
+		group: 'staff',
+		label: 'Cardápio: contagem',
+		default: '{products} produto(s) em {categories} categoria(s).'
+	},
+	'setup.menu.empty': {
+		group: 'staff',
+		label: 'Cardápio: vazio',
+		default:
+			'O cardápio está vazio. Cadastre categorias, produtos, fotos e adicionais no editor, ou comece pelo exemplo e ajuste.'
+	},
+	'setup.menu.sample': {
+		group: 'staff',
+		label: 'Cardápio: botão exemplo',
+		default: 'Carregar cardápio de exemplo'
+	},
+	'setup.menu.editor': {
+		group: 'staff',
+		label: 'Cardápio: botão editor',
+		default: 'Abrir o editor de cardápio'
+	},
+	'setup.menu.tip': {
+		group: 'staff',
+		label: 'Cardápio: dica SKU',
+		default:
+			'Dica: cada produto tem um código (SKU). Se você vende no iFood, use o mesmo código como "código externo" no cardápio do iFood para os pedidos chegarem certos na cozinha.'
+	},
+	'setup.delivery.title': {
+		group: 'staff',
+		label: 'Entrega: título',
+		default: 'Retirada e entrega (pedidos do site)'
+	},
+	'setup.delivery.pickup': {
+		group: 'staff',
+		label: 'Entrega: retirada',
+		default: 'Cliente retira no balcão'
+	},
+	'setup.delivery.own': {
+		group: 'staff',
+		label: 'Entrega: entrega própria',
+		default: 'Entrega própria (seu motoboy)'
+	},
+	'setup.delivery.zones': {
+		group: 'staff',
+		label: 'Entrega: áreas ativas',
+		default: '{count} área(s) de entrega ativa(s).'
+	},
+	'setup.delivery.noZones': {
+		group: 'staff',
+		label: 'Entrega: sem áreas',
+		default:
+			'Nenhuma área de entrega cadastrada: com a entrega ligada, o site recusa todos os endereços.'
+	},
+	'setup.delivery.manage': {
+		group: 'staff',
+		label: 'Entrega: link áreas',
+		default: 'Cadastrar áreas e taxas'
+	},
+	'setup.team.title': { group: 'staff', label: 'Equipe: título', default: 'Equipe' },
+	'setup.team.text': {
+		group: 'staff',
+		label: 'Equipe: texto',
+		default:
+			'{count} pessoa(s) com acesso. Crie uma conta para cada pessoa. Admins cuidam da loja; a cozinha vê só a tela de pedidos.'
+	},
+	'setup.team.manage': {
+		group: 'staff',
+		label: 'Equipe: botão gerenciar',
+		default: 'Gerenciar equipe'
+	},
+	'setup.team.continue': { group: 'staff', label: 'Equipe: botão continuar', default: 'Continuar' },
+	'setup.pay.title': {
+		group: 'staff',
+		label: 'Pagamento: título',
+		default: 'Como o cliente do site paga'
+	},
+	'setup.pay.intro': {
+		group: 'staff',
+		label: 'Pagamento: texto',
+		default: 'Todo pedido do site é pago na hora, antes de ir para a cozinha.'
+	},
+	'setup.pay.pix': {
+		group: 'staff',
+		label: 'Pagamento: Pix ligado',
+		default: 'Pix na chave da loja'
+	},
+	'setup.pay.pixHint': {
+		group: 'staff',
+		label: 'Pagamento: explicação Pix',
+		default:
+			'O site mostra um QR Code com o valor e o número do pedido. Sem taxa de intermediário. A confirmação não é automática: a equipe confere o Pix no app do banco e registra no pedido.'
+	},
+	'setup.pay.key': { group: 'staff', label: 'Pagamento: campo chave', default: 'Chave Pix' },
+	'setup.pay.keyPh': {
+		group: 'staff',
+		label: 'Pagamento: exemplo chave',
+		default: 'CNPJ, CPF, celular, e-mail ou chave aleatória'
+	},
+	'setup.pay.recipient': {
+		group: 'staff',
+		label: 'Pagamento: campo recebedor',
+		default: 'Nome do recebedor'
+	},
+	'setup.pay.recipientCity': {
+		group: 'staff',
+		label: 'Pagamento: campo cidade recebedor',
+		default: 'Cidade do recebedor'
+	},
+	'setup.pay.test': {
+		group: 'staff',
+		label: 'Pagamento: teste Pix',
+		default: 'Faça um pedido de teste e pague R$ 1 para conferir que o Pix cai na conta certa.'
+	},
+	'setup.pay.psp': {
+		group: 'staff',
+		label: 'Pagamento: aviso PSP',
+		default:
+			'Pagamento online com confirmação automática (Pix e cartão) precisa de um provedor de pagamento (PSP).'
+	},
+	'setup.pay.providerOn': {
+		group: 'staff',
+		label: 'Pagamento: provedor ativo',
+		default: 'Provedor ativo: {provider}.'
+	},
+	'setup.pay.providerOff': {
+		group: 'staff',
+		label: 'Pagamento: sem provedor',
+		default: 'Nenhum está conectado; isso é opcional.'
+	},
+	'setup.ifood.title': { group: 'staff', label: 'iFood: título', default: 'iFood (opcional)' },
+	'setup.ifood.on': { group: 'staff', label: 'iFood: status ligado', default: 'Ligado' },
+	'setup.ifood.off': { group: 'staff', label: 'iFood: status desligado', default: 'Desligado' },
+	'setup.ifood.intro': {
+		group: 'staff',
+		label: 'iFood: texto',
+		default:
+			'A loja funciona sem o iFood. Sem a integração, a equipe lança os pedidos do iFood no Caixa em "iFood (manual)". Com ela, os pedidos chegam sozinhos na cozinha e o status volta para o iFood.'
+	},
+	'setup.ifood.warn': {
+		group: 'staff',
+		label: 'iFood: aviso homologação',
+		default:
+			'Esta integração foi feita a partir da documentação pública do iFood e ainda não passou pela homologação do iFood. Teste com pedidos de teste antes de depender dela.'
+	},
+	'setup.ifood.step1': {
+		group: 'staff',
+		label: 'iFood: passo 1',
+		default:
+			'No Portal do Desenvolvedor iFood (developer.ifood.com.br), crie um aplicativo do tipo "centralizado" para a sua loja e copie o Client ID e o Client Secret.'
+	},
+	'setup.ifood.step2': {
+		group: 'staff',
+		label: 'iFood: passo 2',
+		default:
+			'No Portal do Parceiro, autorize esse aplicativo para a loja e copie o Merchant ID (código da loja).'
+	},
+	'setup.ifood.step3': {
+		group: 'staff',
+		label: 'iFood: passo 3',
+		default: 'Cole os três abaixo e clique em "Salvar e testar".'
+	},
+	'setup.ifood.step4': {
+		group: 'staff',
+		label: 'iFood: passo 4',
+		default: 'No cardápio do iFood, use o código (SKU) de cada produto daqui como "código externo".'
+	},
+	'setup.ifood.envNote': {
+		group: 'staff',
+		label: 'iFood: credenciais do servidor',
+		default:
+			'As credenciais atuais vêm das variáveis do servidor (IFOOD_*). Salvar aqui passa a usar as credenciais do app.'
+	},
+	'setup.ifood.noSecret': {
+		group: 'staff',
+		label: 'iFood: sem APP_SECRET',
+		default:
+			'O servidor não tem APP_SECRET configurado, então não pode guardar o Client Secret com segurança. Rode deploy/setup.sh de novo ou defina APP_SECRET no servidor.'
+	},
+	'setup.ifood.clientId': { group: 'staff', label: 'iFood: campo Client ID', default: 'Client ID' },
+	'setup.ifood.clientSecret': {
+		group: 'staff',
+		label: 'iFood: campo Client Secret',
+		default: 'Client Secret'
+	},
+	'setup.ifood.secretSaved': {
+		group: 'staff',
+		label: 'iFood: segredo já salvo',
+		default: 'Já salvo. Deixe em branco para manter.'
+	},
+	'setup.ifood.merchantId': {
+		group: 'staff',
+		label: 'iFood: campo Merchant ID',
+		default: 'Merchant ID'
+	},
+	'setup.ifood.save': {
+		group: 'staff',
+		label: 'iFood: botão salvar e testar',
+		default: 'Salvar e testar'
+	},
+	'setup.ifood.retest': {
+		group: 'staff',
+		label: 'iFood: botão testar de novo',
+		default: 'Testar conexão de novo'
+	},
+	'setup.ifood.technical': {
+		group: 'staff',
+		label: 'iFood: detalhe técnico',
+		default: 'Detalhe técnico'
+	},
+	'setup.ifood.lastTest': {
+		group: 'staff',
+		label: 'iFood: último teste',
+		default: 'Último teste em {when}: {result}'
+	},
+	'setup.ifood.ok': { group: 'staff', label: 'iFood: conexão ok', default: 'conexão funcionando.' },
+	'setup.ifood.disable': {
+		group: 'staff',
+		label: 'iFood: botão desligar',
+		default: 'Desligar iFood'
+	},
+	'setup.ifood.ack': {
+		group: 'staff',
+		label: 'iFood: confirmação',
+		default:
+			'Entendi que a integração ainda não foi homologada pelo iFood e vou acompanhar os primeiros pedidos também no Gestor de Pedidos do iFood.'
+	},
+	'setup.ifood.enable': {
+		group: 'staff',
+		label: 'iFood: botão ligar',
+		default: 'Ligar recebimento automático de pedidos'
+	},
+	'setup.ifood.webhook': {
+		group: 'staff',
+		label: 'iFood: webhook',
+		default:
+			'Se o iFood pedir um endereço de webhook, use {url}. Mesmo sem webhook, o sistema consulta o iFood a cada 30 segundos.'
+	},
+	'setup.ifood.skip': { group: 'staff', label: 'iFood: pular', default: 'Pular por enquanto' },
+	'setup.ifood.continue': { group: 'staff', label: 'iFood: continuar', default: 'Continuar' },
+	'setup.done.title': { group: 'staff', label: 'Concluir: título', default: 'Tudo pronto?' },
+	'setup.done.menu': {
+		group: 'staff',
+		label: 'Concluir: cardápio',
+		default: 'Cardápio: {count} produto(s)'
+	},
+	'setup.done.pickup': { group: 'staff', label: 'Concluir: retirada', default: 'Retirada' },
+	'setup.done.delivery': {
+		group: 'staff',
+		label: 'Concluir: entrega',
+		default: ' e entrega ({count} área(s))'
+	},
+	'setup.done.team': {
+		group: 'staff',
+		label: 'Concluir: equipe',
+		default: 'Equipe: {count} pessoa(s)'
+	},
+	'setup.done.pay': { group: 'staff', label: 'Concluir: pagamento', default: 'Pagamento:' },
+	'setup.done.payOn': {
+		group: 'staff',
+		label: 'Concluir: Pix ligado',
+		default: 'Pix na chave da loja'
+	},
+	'setup.done.payOff': {
+		group: 'staff',
+		label: 'Concluir: sem pagamento no site',
+		default: 'nenhum para o site'
+	},
+	'setup.done.ifoodOn': {
+		group: 'staff',
+		label: 'Concluir: iFood ligado',
+		default: 'iFood ligado'
+	},
+	'setup.done.ifoodOff': {
+		group: 'staff',
+		label: 'Concluir: iFood desligado',
+		default: 'iFood desligado (use "iFood (manual)" no Caixa)'
+	},
+	'setup.done.noProducts': {
+		group: 'staff',
+		label: 'Concluir: sem produtos',
+		default: 'Sem produtos, o site e o caixa ficam vazios.'
+	},
+	'setup.done.open': {
+		group: 'staff',
+		label: 'Concluir: abrir loja',
+		default: 'Abrir a loja para pedidos pelo site agora'
+	},
+	'setup.done.submit': {
+		group: 'staff',
+		label: 'Concluir: botão',
+		default: 'Concluir configuração'
+	},
+	'setup.done.hint': {
+		group: 'staff',
+		label: 'Concluir: dica',
+		default: 'Você pode voltar aqui a qualquer momento em Loja → Configuração.'
 	}
 } as const satisfies Record<string, TextDef>;
 
