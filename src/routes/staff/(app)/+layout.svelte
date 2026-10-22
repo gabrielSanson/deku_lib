@@ -2,6 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
+	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
 	import { activeHref, navFor } from '#lib/staff/nav.ts';
 
 	let { data, children } = $props();
@@ -37,49 +38,27 @@
 {/snippet}
 
 {#snippet navigation(mascot = false)}
-	<nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Principal">
-		{#each groups as g (g.label)}
-			<div>
-				<p class="px-3 pb-1.5 text-[13px] font-medium text-stone-400">
-					{g.label}
-				</p>
-				<ul class="space-y-1">
-					{#each g.links as item (item.href)}
-						<li>
-							<a
-								href={item.href}
-								class="flex min-h-11 items-center gap-3 rounded-(--radius-control) px-3 text-[15px] font-medium transition-colors {current ===
-								item.href
-									? 'bg-brand-500 font-semibold text-black'
-									: 'text-stone-200 hover:bg-night-2 hover:text-white'}"
-								aria-current={current === item.href ? 'page' : undefined}
-							>
-								<Icon name={item.icon} class="size-5 shrink-0" />
-								{item.label}
-							</a>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		{/each}
-	</nav>
-	{#if mascot}
-		<img
-			src={data.branding.images.logo}
-			alt=""
-			class="mx-auto mb-3 hidden h-24 w-auto [@media(min-height:860px)]:block"
-		/>
-	{/if}
-	<form method="POST" action="/staff/logout" class="border-t border-night-line p-3">
-		<button
-			class="flex min-h-11 w-full items-center gap-3 rounded-(--radius-control) px-3 text-left text-sm text-stone-300 hover:bg-night-2 hover:text-white"
-			title={data.staff.email ?? ''}
-		>
-			<Icon name="logout" class="size-4.5 shrink-0" />
-			<span class="flex-1 truncate">{data.staff.displayName}</span>
-			<span class="text-xs">Sair</span>
-		</button>
-	</form>
+	<StaffNav {groups} {current}>
+		{#snippet footer()}
+			{#if mascot}
+				<img
+					src={data.branding.images.logo}
+					alt=""
+					class="mx-auto mb-3 hidden h-24 w-auto [@media(min-height:860px)]:block"
+				/>
+			{/if}
+			<form method="POST" action="/staff/logout" class="border-t border-night-line p-3">
+				<button
+					class="flex min-h-11 w-full items-center gap-3 rounded-(--radius-control) px-3 text-left text-sm text-stone-300 hover:bg-night-2 hover:text-white"
+					title={data.staff.email ?? ''}
+				>
+					<Icon name="logout" class="size-4.5 shrink-0" />
+					<span class="flex-1 truncate">{data.staff.displayName}</span>
+					<span class="text-xs">Sair</span>
+				</button>
+			</form>
+		{/snippet}
+	</StaffNav>
 {/snippet}
 
 <div class="min-h-dvh lg:flex">
