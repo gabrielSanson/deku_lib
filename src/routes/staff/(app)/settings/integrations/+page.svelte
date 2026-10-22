@@ -27,10 +27,23 @@
 		<h2 class="text-lg font-bold">Pagamento online</h2>
 		{#if data.paymentProvider === 'none'}
 			<p class="text-sm">
-				Nenhum provedor de pagamento (PSP) conectado. Clientes do site pagam na retirada ou na
-				entrega{data.shopPix ? ', ou por Pix na chave da loja (a equipe confirma)' : ''}.
+				Nenhum provedor de pagamento (PSP) conectado.
+				{data.shopPix
+					? 'Clientes do site pagam por Pix na chave da loja e a equipe confirma.'
+					: 'Sem a chave Pix da loja, o site não aceita pedidos.'}
 				<a class="underline" href="/staff/setup?passo=pagamentos">Mudar</a>
 			</p>
+		{:else if data.paymentProvider === 'mercadopago'}
+			<p class="text-sm">
+				Mercado Pago conectado: Pix com confirmação automática e cartão de crédito ou débito (página
+				do Mercado Pago). O pedido vai para a cozinha assim que o pagamento é aprovado.
+			</p>
+			{#if !data.webhookSecretSet}
+				<p class="alert-error" role="alert">
+					Falta a assinatura secreta do webhook (MERCADOPAGO_WEBHOOK_SECRET). Sem ela os avisos de
+					pagamento são recusados e os pedidos só confirmam na verificação periódica.
+				</p>
+			{/if}
 		{:else if data.paymentProvider === 'local_stub'}
 			<p class="alert-warn">
 				Simulador local ativo. Nenhum dinheiro real é cobrado. Não é permitido em produção.

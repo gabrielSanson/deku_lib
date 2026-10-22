@@ -13,7 +13,7 @@ shop owner can make. Nothing here needs a paid licence or a cloud host.
 | A way in from the internet                                 | Customers and iFood reach the shop     | Open ports 80/443, or a free Cloudflare Tunnel                             |
 | A Pix key in the shop's bank account (optional)            | Web customers pay by Pix               | Staff confirm each Pix by hand in the bank app                             |
 | iFood Merchant API access (optional)                       | Automatic iFood orders                 | Developer portal app + store authorisation; homologation recommended       |
-| A payment provider (PSP) contract (optional)               | Automatic online Pix/card              | Needs development work first, see section 5                                |
+| A Mercado Pago account (optional)                          | Automatic online Pix/card              | Access token + webhook secret in `.env`, see section 5                     |
 
 ## 2. Install
 
@@ -82,19 +82,33 @@ Before relying on it:
    real payloads (with personal data removed) into `tests/fixtures/ifood/` and run the tests.
 4. Watch Configurações → Integrações: received events, failures, and calls sent to iFood.
 
-### Automatic online payments
+### Automatic online payments (Mercado Pago)
 
 Only needed if you want Pix confirmed automatically or card payments on the site.
+Without it, the site takes Pix to the shop's key and staff confirm it by hand.
 
-1. Implement `PaymentProvider` for the chosen PSP in
-   `src/lib/server/payments/<psp>.ts`. Use `local-stub.ts` as the template. The
-   rules that must hold are already covered by tests for the stub
-   (`tests/integration/payments.test.ts`): idempotent checkout creation, the
-   signature checked on raw bytes, duplicate events ignored, no regression
-   after `paid`, and the provider asked before an unpaid checkout expires.
-2. Add the provider name to `PAYMENT_PROVIDER` in `src/lib/server/config.ts` and to `paymentProvider()`.
-3. Register `https://pedido.example.com/api/v1/payments/webhooks/<psp>` in the PSP dashboard.
-4. Pay real small amounts with Pix and a card, refund one, and compare against `/staff/reconciliation`.
+1. Create a Mercado Pago account for the shop (CNPJ or CPF) and open
+   [Suas integrações](https://www.mercadopago.com.br/developers/panel/app) → **Criar aplicação**
+   (product: "Pagamentos online", "Checkout Pro").
+2. In the app, copy the **Access Token** from _Credenciais de produção_ (`APP_USR-…`).
+   For a dry run use the _Credenciais de teste_ token (`TEST-…`) and test cards.
+3. In the app → **Webhooks**: URL `https://pedido.example.com/api/v1/payments/webhooks/mercadopago`,
+   event **Pagamentos**, save, and copy the **Assinatura secreta**.
+4. Add to `deploy/supabase/.env` and restart (`deploy/shop.sh up -d`):
+
+   ```sh
+   PAYMENT_PROVIDER=mercadopago
+   MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
+   MERCADOPAGO_WEBHOOK_SECRET=...
+   ```
+
+5. Check Configurações → Integrações says "Mercado Pago conectado", then pay real
+   small amounts with Pix and a card, refund one in the Mercado Pago panel, and
+   compare against `/staff/reconciliation`.
+
+Pix gives a "copia e cola" code and QR on the payment page and confirms on its own.
+Card opens Mercado Pago's page (credit or debit, one installment) and comes back
+to the order. Another PSP is one more `PaymentProvider` in `src/lib/server/payments/`.
 
 ## 6. Smoke tests
 

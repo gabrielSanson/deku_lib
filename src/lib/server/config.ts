@@ -18,7 +18,13 @@ const schema = z.object({
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
 	// Encrypts secrets the owner saves in the app (the iFood client secret).
 	APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),
-	PAYMENT_PROVIDER: z.enum(['none', 'local_stub']).default('none'),
+	PAYMENT_PROVIDER: z.enum(['none', 'local_stub', 'mercadopago']).default('none'),
+	// Mercado Pago: Suas integrações → your app → Credenciais de produção / Webhooks.
+	MERCADOPAGO_ACCESS_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+	MERCADOPAGO_WEBHOOK_SECRET: z.preprocess(
+		(v) => (v === '' ? undefined : v),
+		z.string().optional()
+	),
 	IFOOD_ENABLED: flag,
 	IFOOD_CLIENT_ID: z.string().optional(),
 	IFOOD_CLIENT_SECRET: z.string().optional(),
@@ -39,6 +45,9 @@ export function config(): Config {
 		const production = parsed.NODE_ENV === 'production';
 		if (production && parsed.PAYMENT_PROVIDER === 'local_stub') {
 			throw new Error('The local payment stub cannot run in production');
+		}
+		if (parsed.PAYMENT_PROVIDER === 'mercadopago' && !parsed.MERCADOPAGO_ACCESS_TOKEN) {
+			throw new Error('PAYMENT_PROVIDER=mercadopago needs MERCADOPAGO_ACCESS_TOKEN');
 		}
 		if (production && parsed.APP_SECRET?.startsWith('local-development-only')) {
 			throw new Error('APP_SECRET is the development placeholder; generate a real one');
