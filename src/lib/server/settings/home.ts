@@ -3,6 +3,10 @@
 // the arrangement. Anything missing or invalid falls back to the built-in layout.
 import { DomainError } from '../errors';
 
+/** The blocks under the hero, which the owner can put in any order. The hero stays first. */
+export const HOME_BLOCKS = ['featured', 'menuButton'] as const;
+export type HomeBlock = (typeof HOME_BLOCKS)[number];
+
 export interface HomeLayout {
 	/** Where the hero text sits over the photo. */
 	heroAlign: 'left' | 'center';
@@ -23,6 +27,8 @@ export interface HomeLayout {
 	featuredCount: 4 | 8;
 	/** The big "Ver cardápio completo" button under the featured row. */
 	showMenuButton: boolean;
+	/** Order of the blocks under the hero; every block appears once. */
+	blockOrder: HomeBlock[];
 }
 
 export const DEFAULT_HOME: HomeLayout = {
@@ -36,7 +42,8 @@ export const DEFAULT_HOME: HomeLayout = {
 	showFeatured: true,
 	featuredCategoryId: null,
 	featuredCount: 4,
-	showMenuButton: true
+	showMenuButton: true,
+	blockOrder: [...HOME_BLOCKS]
 };
 
 /** A path on this site ("/cardapio", "/p/sobre", "/cardapio#bebidas") or an https address. */
@@ -45,6 +52,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function isLink(v: string): boolean {
 	return v.length <= 300 && LINK.test(v);
+}
+
+/** Known blocks in the given order, without repeats, with any missing ones added at the end. */
+function blockOrder(raw: unknown): HomeBlock[] {
+	const given = Array.isArray(raw) ? raw : [];
+	const known = given.filter(
+		(b, i): b is HomeBlock =>
+			(HOME_BLOCKS as readonly unknown[]).includes(b) && given.indexOf(b) === i
+	);
+	return [...known, ...HOME_BLOCKS.filter((b) => !known.includes(b))];
 }
 
 /** Reads a stored (or posted) layout, keeping the defaults for anything not valid. */
@@ -65,7 +82,8 @@ export function parseHome(raw: unknown): HomeLayout {
 		featuredCategoryId: UUID.test(str('featuredCategoryId')) ? str('featuredCategoryId') : null,
 		// 3 and 6 were the choices before the desktop row went to four (mockup 01).
 		featuredCount: r.featuredCount === 8 || r.featuredCount === 6 ? 8 : 4,
-		showMenuButton: bool('showMenuButton')
+		showMenuButton: bool('showMenuButton'),
+		blockOrder: blockOrder(r.blockOrder)
 	};
 }
 

@@ -217,6 +217,29 @@ export const STAFF_MENU_TEXTS = {
 	'sitePages.published': { group: g, label: 'Páginas: publicada', default: 'Publicada' },
 	'sitePages.pageTitle': { group: g, label: 'Páginas: título de', default: 'Título de {title}' },
 	'sitePages.saved': { group: g, label: 'Páginas: salvo', default: 'Salvo.' },
+	'sitePages.new': { group: g, label: 'Páginas: nova página', default: 'Nova página' },
+	'sitePages.newPlaceholder': {
+		group: g,
+		label: 'Páginas: exemplo de nova página',
+		default: 'Ex.: Trabalhe conosco'
+	},
+	'sitePages.create': { group: g, label: 'Páginas: criar', default: 'Criar página' },
+	'sitePages.created': {
+		group: g,
+		label: 'Páginas: criada',
+		default: 'Página criada. Escreva o texto e marque "Publicada" para ela aparecer no rodapé.'
+	},
+	'sitePages.delete': { group: g, label: 'Páginas: excluir', default: 'Excluir página' },
+	'sitePages.deleteConfirm': {
+		group: g,
+		label: 'Páginas: confirmar exclusão',
+		default: 'Excluir "{title}"?'
+	},
+	'sitePages.deleteText': {
+		group: g,
+		label: 'Páginas: exclusão (aviso)',
+		default: 'O endereço da página deixa de funcionar e ela sai do rodapé.'
+	},
 	'group.tabTitle': { group: g, label: 'Grupo: título da aba', default: '{name} · Cardápio' },
 	'group.new': { group: g, label: 'Grupo: novo (aba)', default: 'Novo grupo' },
 	'group.newTitle': { group: g, label: 'Grupo: novo (título)', default: 'Novo grupo de opções' },

@@ -1,6 +1,12 @@
 import { attempt, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
-import { blocksToText, listPages, savePage } from '#lib/server/catalog/pages.ts';
+import {
+	blocksToText,
+	createPage,
+	deletePage,
+	listPages,
+	savePage
+} from '#lib/server/catalog/pages.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -11,7 +17,8 @@ export const load: PageServerLoad = async (event) => {
 			slug: p.slug,
 			title: p.title,
 			text: blocksToText(p.blocks),
-			published: p.published
+			published: p.published,
+			builtIn: p.builtIn
 		}))
 	};
 };
@@ -31,6 +38,21 @@ export const actions: Actions = {
 				staffActor(staff)
 			);
 			return { ok: formString(d, 'slug') };
+		});
+	},
+	create: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const d = await event.request.formData();
+		return attempt(async () => ({
+			created: await createPage(formString(d, 'title'), staffActor(staff))
+		}));
+	},
+	delete: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const d = await event.request.formData();
+		return attempt(async () => {
+			await deletePage(formString(d, 'slug'), staffActor(staff));
+			return { deleted: true };
 		});
 	}
 };

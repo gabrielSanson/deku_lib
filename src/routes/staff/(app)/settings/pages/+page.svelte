@@ -5,9 +5,12 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 
 	let { data, form } = $props();
 	const t = useTexts();
+	let removing = $state<{ slug: string; title: string } | null>(null);
+	let removeOpen = $state(false);
 </script>
 
 <svelte:head><title>{t('sitePages.tabTitle')}</title></svelte:head>
@@ -18,6 +21,20 @@
 		{t('sitePages.intro')}
 	</p>
 	<FormError message={form?.error} />
+
+	<GuardedForm action="?/create" reset class="flex flex-wrap items-end gap-2 card p-4">
+		<TextField
+			label={t('sitePages.new')}
+			id="new-page"
+			wrapClass="flex-1 min-w-48"
+			name="title"
+			required
+			maxlength={120}
+			placeholder={t('sitePages.newPlaceholder')}
+		/>
+		<button class="btn-secondary">{t('sitePages.create')}</button>
+	</GuardedForm>
+	{#if form?.created}<p class="alert-ok">{t('sitePages.created')}</p>{/if}
 
 	{#each data.pages as p (p.slug)}
 		<GuardedForm action="?/save" class="space-y-2 card p-4">
@@ -53,9 +70,30 @@
 					checked={p.published}
 					class="text-sm"
 				/>
-				<button class="btn-primary">{t('menuEdit.save')}</button>
+				<div class="flex gap-2">
+					{#if !p.builtIn}
+						<button
+							type="button"
+							class="btn-ghost text-bad"
+							onclick={() => {
+								removing = { slug: p.slug, title: p.title };
+								removeOpen = true;
+							}}>{t('sitePages.delete')}</button
+						>
+					{/if}
+					<button class="btn-primary">{t('menuEdit.save')}</button>
+				</div>
 			</div>
 			{#if form?.ok === p.slug}<p class="alert-ok">{t('sitePages.saved')}</p>{/if}
 		</GuardedForm>
 	{/each}
+
+	<ConfirmedPost
+		bind:open={removeOpen}
+		action="?/delete"
+		fields={{ slug: removing?.slug ?? '' }}
+		title={t('sitePages.deleteConfirm', { title: removing?.title ?? '' })}
+		text={t('sitePages.deleteText')}
+		confirmLabel={t('sitePages.delete')}
+	/>
 </div>

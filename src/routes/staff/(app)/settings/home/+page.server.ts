@@ -75,7 +75,8 @@ export const actions: Actions = {
 				showFeatured: on('showFeatured'),
 				featuredCategoryId: formString(d, 'featuredCategoryId'),
 				featuredCount: Number(formString(d, 'featuredCount')),
-				showMenuButton: on('showMenuButton')
+				showMenuButton: on('showMenuButton'),
+				blockOrder: formString(d, 'blockOrder').split(',')
 			});
 			await saveTexts(texts, staffActor(staff));
 			await saveHome(layout, staffActor(staff));

@@ -487,6 +487,16 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Páginas: falta título',
 		default: 'Informe o título.'
 	},
+	'err.menu.pageBuiltIn': {
+		group: 'staffErrors',
+		label: 'Páginas: página fixa',
+		default: 'Esta página vem com o site. Desmarque "Publicada" para escondê-la.'
+	},
+	'err.menu.pageNotFound': {
+		group: 'staffErrors',
+		label: 'Páginas: não encontrada',
+		default: 'Página não encontrada.'
+	},
 	'err.image.noStorage': {
 		group: 'staffErrors',
 		label: 'Fotos: sem Storage',

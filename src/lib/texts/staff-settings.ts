@@ -771,10 +771,36 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Página inicial: quantidade de destaques',
 		default: 'Quantos produtos'
 	},
+	'homeEdit.order': {
+		group: g,
+		label: 'Página inicial: ordem dos blocos',
+		default: 'Ordem abaixo da foto'
+	},
+	'homeEdit.orderHint': {
+		group: g,
+		label: 'Página inicial: ordem dos blocos (dica)',
+		default: 'A foto de abertura fica sempre no topo.'
+	},
+	'homeEdit.block.featured': {
+		group: g,
+		label: 'Página inicial: nome do bloco destaques',
+		default: 'Vitrine de destaques'
+	},
+	'homeEdit.block.menuButton': {
+		group: g,
+		label: 'Página inicial: nome do bloco botão',
+		default: 'Botão do cardápio completo'
+	},
+	'homeEdit.moveUp': { group: g, label: 'Página inicial: subir bloco', default: 'Subir {name}' },
+	'homeEdit.moveDown': {
+		group: g,
+		label: 'Página inicial: descer bloco',
+		default: 'Descer {name}'
+	},
 	'homeEdit.menuButton': {
 		group: g,
 		label: 'Página inicial: mostrar botão do cardápio',
-		default: 'Mostrar o botão do cardápio completo no fim da página'
+		default: 'Mostrar o botão do cardápio completo'
 	},
 	'homeEdit.save': { group: g, label: 'Página inicial: salvar', default: 'Salvar página inicial' },
 	'homeEdit.saved': {

@@ -11,7 +11,7 @@ import {
 	saveProduct
 } from '#lib/server/catalog/editor.ts';
 import { getCatalog, getCatalogForPricing } from '#lib/server/catalog/service.ts';
-import { getPage, savePage } from '#lib/server/catalog/pages.ts';
+import { createPage, deletePage, getPage, listPages, savePage } from '#lib/server/catalog/pages.ts';
 import { resetConfigForTests } from '#lib/server/config.ts';
 import { closeDb, db } from '#lib/server/db.ts';
 import { DomainError } from '#lib/server/errors.ts';
@@ -240,6 +240,24 @@ describe('menu editor', () => {
 			owner
 		);
 		expect((await getPage('entrega'))?.title).toBe('Entrega');
+	});
+
+	it('adds pages the owner names and deletes only those', async () => {
+		const slug = await createPage('Trabalhe conosco', owner);
+		expect(slug).toBe('trabalhe-conosco');
+		expect(await createPage('Trabalhe Conosco!', owner)).toBe('trabalhe-conosco-2');
+		expect(await createPage('Sobre', owner)).toBe('sobre-2');
+		// New pages start hidden and empty, and list after the built-in ones.
+		expect(await getPage(slug)).toBeNull();
+		const pages = await listPages();
+		expect(pages.slice(0, 4).every((p) => p.builtIn)).toBe(true);
+		expect(pages.find((p) => p.slug === slug)).toMatchObject({ builtIn: false, published: false });
+		await savePage({ slug, title: 'Vagas', text: 'Mande seu currículo.', published: true }, owner);
+		expect((await getPage(slug))?.title).toBe('Vagas');
+		await expect(deletePage('sobre', owner)).rejects.toThrow(DomainError);
+		for (const s of [slug, 'trabalhe-conosco-2', 'sobre-2']) await deletePage(s, owner);
+		expect(await getPage(slug)).toBeNull();
+		await expect(createPage('  ', owner)).rejects.toThrow(DomainError);
 	});
 });
 

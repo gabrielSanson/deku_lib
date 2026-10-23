@@ -1,8 +1,10 @@
 // Customer-facing pages, stored as a constrained list of text blocks (no raw
 // HTML or scripts) and edited in the staff area. Until a page is edited, the
 // default below is served; once saved, the saved row decides, so an unpublished
-// page is a 404 rather than the default.
+// page is a 404 rather than the default. The owner can add more pages; only
+// those can be deleted, the four built-in ones can be hidden instead.
 import { z } from 'zod';
+import { slugify } from '#lib/domain/slug.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
@@ -79,7 +81,9 @@ export async function getPage(slug: string, sql: Db = db()): Promise<ContentPage
 }
 
 /** The pages staff can edit: saved ones plus the defaults not yet changed. */
-export async function listPages(sql: Db = db()): Promise<(ContentPage & { published: boolean })[]> {
+export async function listPages(
+	sql: Db = db()
+): Promise<(ContentPage & { published: boolean; builtIn: boolean })[]> {
 	const rows = await sql<{ slug: string; title: string; blocks: unknown; published: boolean }[]>`
 		select slug, title, blocks, published from content_pages order by slug`;
 	const saved = new Map(
@@ -89,8 +93,11 @@ export async function listPages(sql: Db = db()): Promise<(ContentPage & { publis
 		])
 	);
 	return [
-		...PAGE_SLUGS.map((s) => saved.get(s) ?? { ...DEFAULTS[s], published: true }),
-		...[...saved.values()].filter((p) => !DEFAULTS[p.slug])
+		...PAGE_SLUGS.map((s) => ({
+			...(saved.get(s) ?? { ...DEFAULTS[s], published: true }),
+			builtIn: true
+		})),
+		...[...saved.values()].filter((p) => !DEFAULTS[p.slug]).map((p) => ({ ...p, builtIn: false }))
 	];
 }
 
@@ -109,6 +116,42 @@ export async function savePage(
 			on conflict (slug) do update set title = excluded.title, blocks = excluded.blocks,
 				published = excluded.published, updated_at = now()`;
 		await audit(tx, actor, 'page.saved', 'content_page', input.slug, { title });
+	});
+}
+
+/**
+ * Adds a page named by the owner, unpublished and empty, at /p/<slug from the title>.
+ * Returns the slug. A taken slug gets a number ("cardapio-2").
+ */
+export async function createPage(title: string, actor: Actor): Promise<string> {
+	const name = title.trim();
+	if (!name) throw new DomainError('err.menu.pageTitle');
+	if (name.length > 120) throw new DomainError('err.menu.pageTitle');
+	const base = slugify(name, 50) || 'pagina';
+	return db().begin(async (tx) => {
+		const taken = new Set(
+			(
+				await tx<{ slug: string }[]>`
+					select slug from content_pages where slug = ${base} or slug like ${base + '-%'}`
+			).map((r) => r.slug)
+		);
+		let slug = base;
+		for (let n = 2; taken.has(slug) || DEFAULTS[slug]; n++) slug = `${base}-${n}`;
+		await tx`insert into content_pages (slug, title, blocks, published)
+			values (${slug}, ${name}, ${tx.json([])}, false)`;
+		await audit(tx, actor, 'page.created', 'content_page', slug, { title: name });
+		return slug;
+	});
+}
+
+/** Deletes a page the owner added. The built-in pages can only be unpublished. */
+export async function deletePage(slug: string, actor: Actor) {
+	if (DEFAULTS[slug]) throw new DomainError('err.menu.pageBuiltIn');
+	await db().begin(async (tx) => {
+		const r = await tx`delete from content_pages where slug = ${slug}`;
+		if (!r.count)
+			throw new DomainError('err.menu.pageNotFound', { code: 'not_found', status: 404 });
+		await audit(tx, actor, 'page.deleted', 'content_page', slug);
 	});
 }
 

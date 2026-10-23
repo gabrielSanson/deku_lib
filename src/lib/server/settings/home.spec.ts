@@ -27,6 +27,19 @@ describe('home layout', () => {
 		});
 	});
 
+	it('keeps every block once in the order given', () => {
+		expect(parseHome({}).blockOrder).toEqual(['featured', 'menuButton']);
+		expect(parseHome({ blockOrder: ['menuButton', 'featured'] }).blockOrder).toEqual([
+			'menuButton',
+			'featured'
+		]);
+		expect(parseHome({ blockOrder: ['menuButton', 'menuButton', 'x'] }).blockOrder).toEqual([
+			'menuButton',
+			'featured'
+		]);
+		expect(parseHome({ blockOrder: 'menuButton' }).blockOrder).toEqual(['featured', 'menuButton']);
+	});
+
 	it('moves the old 3 and 6 choices to the four-wide row', () => {
 		expect(parseHome({ featuredCount: 3 }).featuredCount).toBe(4);
 		expect(parseHome({ featuredCount: 6 }).featuredCount).toBe(8);

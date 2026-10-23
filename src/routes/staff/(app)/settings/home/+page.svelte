@@ -1,6 +1,7 @@
 <script lang="ts">
 	import BrandImageRow from '#lib/components/organisms/BrandImageRow.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
+	import IconButton from '#lib/components/atoms/IconButton.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import TextArea from '#lib/components/molecules/TextArea.svelte';
@@ -20,6 +21,16 @@
 		{ key: 'heroLogo', label: t('look.heroLogo'), hint: t('look.heroLogoHint') }
 	] as const;
 	const long = (x: { default: string }) => x.default.length > 60 || x.default.includes('\n');
+
+	// Order of the blocks under the hero, moved with the arrows and posted as "a,b".
+	let order = $derived([...data.look.home.blockOrder]);
+	const blockName = (b: (typeof order)[number]) =>
+		b === 'featured' ? t('homeEdit.block.featured') : t('homeEdit.block.menuButton');
+	const move = (i: number, by: -1 | 1) => {
+		const next = [...order];
+		[next[i], next[i + by]] = [next[i + by], next[i]];
+		order = next;
+	};
 </script>
 
 <svelte:head><title>{t('homeEdit.tabTitle')}</title></svelte:head>
@@ -171,6 +182,33 @@
 				label={t('homeEdit.menuButton')}
 			/>
 			{@render textFields(data.blockTexts)}
+			<div class="space-y-2">
+				<p class="label">{t('homeEdit.order')}</p>
+				<p class="text-xs text-muted">{t('homeEdit.orderHint')}</p>
+				<input type="hidden" name="blockOrder" value={order.join(',')} />
+				<ol class="divide-y divide-line rounded-lg border border-line">
+					{#each order as b, i (b)}
+						<li class="flex items-center gap-2 p-2 pl-3 text-sm">
+							<span class="w-5 text-muted tabular-nums">{i + 1}.</span>
+							<span class="flex-1">{blockName(b)}</span>
+							<IconButton
+								icon="up"
+								size="sm"
+								label={t('homeEdit.moveUp', { name: blockName(b) })}
+								disabled={i === 0}
+								onclick={() => move(i, -1)}
+							/>
+							<IconButton
+								icon="down"
+								size="sm"
+								label={t('homeEdit.moveDown', { name: blockName(b) })}
+								disabled={i === order.length - 1}
+								onclick={() => move(i, 1)}
+							/>
+						</li>
+					{/each}
+				</ol>
+			</div>
 		</section>
 
 		{#if form && 'ok' in form}<p class="alert-ok" role="status">{t('homeEdit.saved')}</p>{/if}
