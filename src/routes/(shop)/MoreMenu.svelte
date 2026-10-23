@@ -13,9 +13,17 @@
 		accountHref,
 		signedIn,
 		trackHref,
-		kiosk
-	}: { accountHref: string; signedIn: boolean; trackHref: string | null; kiosk: boolean } =
-		$props();
+		kiosk,
+		cartInBar = false
+	}: {
+		accountHref: string;
+		signedIn: boolean;
+		trackHref: string | null;
+		kiosk: boolean;
+		/** The floating cart bar is showing, so the cart has no entry (or count) here. */
+		cartInBar?: boolean;
+	} = $props();
+	const cartHere = $derived(!cartInBar);
 	const t = useTexts();
 	let open = $state(false);
 	let dark = $state(true);
@@ -61,11 +69,12 @@
 <div class="relative" bind:this={root}>
 	<button
 		bind:this={button}
+		id="shop-more-button"
 		type="button"
 		class="relative grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-night-2 {open
 			? 'bg-night-2'
 			: ''}"
-		aria-label={cart.count
+		aria-label={cartHere && cart.count
 			? `${t('header.more')} · ${t('header.cart', { count: cart.count, items: t(cart.count === 1 ? 'cart.item' : 'cart.items') })}`
 			: t('header.more')}
 		aria-expanded={open}
@@ -73,7 +82,7 @@
 		onclick={toggle}
 	>
 		<Icon name="more" class="size-7" strokeWidth={3} />
-		{#if cart.count}
+		{#if cartHere && cart.count}
 			<span
 				class="absolute top-0.5 right-0.5 grid min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-[11px] leading-5 font-black text-black tabular-nums"
 				aria-hidden="true">{cart.count}</span
@@ -93,18 +102,20 @@
 						>
 					</li>
 				{/if}
-				<li>
-					<button data-item type="button" class={item} onclick={openCart}>
-						<Icon name="cart" class="size-5 text-brand-500" />
-						<span class="flex-1">{t('header.more.cart')}</span>
-						{#if cart.count}
-							<span
-								class="grid min-w-6 place-items-center rounded-full bg-brand-500 px-1.5 text-xs leading-6 font-black text-black tabular-nums"
-								>{cart.count}</span
-							>
-						{/if}
-					</button>
-				</li>
+				{#if cartHere}
+					<li>
+						<button data-item type="button" class={item} onclick={openCart}>
+							<Icon name="cart" class="size-5 text-brand-500" />
+							<span class="flex-1">{t('header.more.cart')}</span>
+							{#if cart.count}
+								<span
+									class="grid min-w-6 place-items-center rounded-full bg-brand-500 px-1.5 text-xs leading-6 font-black text-black tabular-nums"
+									>{cart.count}</span
+								>
+							{/if}
+						</button>
+					</li>
+				{/if}
 				{#if !kiosk}
 					<li>
 						<a data-item href={accountHref} class={item}

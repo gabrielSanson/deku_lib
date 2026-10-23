@@ -52,11 +52,12 @@
 			<span>{t('cart.subtotal')}</span><Money cents={cart.subtotalCents} />
 		</div>
 		<p class="text-sm text-muted">{t('cart.nextStepNote')}</p>
-		<a
-			href="/checkout"
-			class="btn-primary w-full text-lg {data.store.open ? '' : 'pointer-events-none opacity-50'}"
-			aria-disabled={!data.store.open}>{t('cart.continue')}</a
-		>
+		{#if data.store.open}
+			<a href="/checkout" class="btn-primary w-full text-lg">{t('cart.continue')}</a>
+		{:else}
+			<button type="button" class="btn-primary w-full text-lg" disabled>{t('cart.continue')}</button
+			>
+		{/if}
 		<a href="/cardapio" class="btn-ghost w-full">{t('cart.addMore')}</a>
 	{/if}
 </section>

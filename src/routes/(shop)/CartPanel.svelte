@@ -134,17 +134,21 @@
 	{/if}
 
 	<div class="space-y-4 px-6 pt-5 pb-6">
-		<a
-			href="/checkout"
-			class="btn-primary min-h-13 w-full rounded-full text-lg {store.open && cart.count
-				? ''
-				: 'pointer-events-none opacity-50'}"
-			aria-disabled={!store.open || !cart.count}
-			onclick={() => onclose?.()}
-		>
-			{store.open ? t('cart.checkout') : t('cart.closedNow')}
-			<Icon name="arrow" />
-		</a>
+		{#if store.open && cart.count}
+			<a
+				href="/checkout"
+				class="btn-primary min-h-13 w-full rounded-full text-lg"
+				onclick={() => onclose?.()}
+			>
+				{t('cart.checkout')}
+				<Icon name="arrow" />
+			</a>
+		{:else}
+			<button type="button" class="btn-primary min-h-13 w-full rounded-full text-lg" disabled>
+				{store.open ? t('cart.checkout') : t('cart.closedNow')}
+				<Icon name="arrow" />
+			</button>
+		{/if}
 		{#if payHint}
 			<p class="flex items-center gap-3 text-sm">
 				<Icon name="lock" class="size-6 shrink-0 text-brand-500" />

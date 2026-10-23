@@ -87,7 +87,7 @@
 			<!-- Menu -->
 			<section
 				id="cardapio"
-				class="scroll-mt-20 bg-canvas px-4 pt-6 pb-28 sm:px-6 lg:rounded-3xl lg:pb-8"
+				class="scroll-mt-20 bg-canvas px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 lg:rounded-3xl lg:pb-8"
 			>
 				<div class="mb-4">
 					<h1 class="page-title">{t('menu.title')}</h1>

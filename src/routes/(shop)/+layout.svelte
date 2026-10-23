@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
@@ -73,24 +73,53 @@
 	);
 	// The tracking page is a slim shell: the code and the steps, no storefront footer.
 	const slim = $derived(path.startsWith('/orders/'));
-	// The product page has its own bottom bar with the add button.
-	const showCartBar = $derived(
-		cart.count > 0 && !onCheckout && !cart.panelOpen && !path.startsWith('/menu/')
-	);
+	// The product page has its own bottom bar with the add button. The bar stays in place
+	// under the open drawer so focus can return to it. While it shows, it is the only way
+	// to the cart: the ··· menu drops its cart entry.
+	const showCartBar = $derived(cart.count > 0 && !onCheckout && !path.startsWith('/menu/'));
 
 	const close = () => (cart.panelOpen = false);
 
+	// The drawer is a modal dialog: the page behind is inert, Tab cycles inside it, Escape
+	// closes it and focus goes back to what opened it (the ··· button when the menu item
+	// that opened it is gone). Closing because the page changed leaves focus to the router.
 	$effect(() => {
 		if (!cart.panelOpen) return;
-		const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+		const opener = document.activeElement as HTMLElement | null;
+		const openedOn = untrack(() => path);
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') close();
+			else if (e.key === 'Tab' && drawer) trapTab(e, drawer);
+		};
 		window.addEventListener('keydown', onKey);
 		document.body.style.overflow = 'hidden';
 		tick().then(() => drawer?.querySelector<HTMLElement>('button, a')?.focus());
 		return () => {
 			window.removeEventListener('keydown', onKey);
 			document.body.style.overflow = '';
+			if (untrack(() => path) !== openedOn) return;
+			const back = opener?.isConnected && opener !== document.body ? opener : null;
+			tick().then(() => (back ?? document.getElementById('shop-more-button'))?.focus());
 		};
 	});
+	function trapTab(e: KeyboardEvent, box: HTMLElement) {
+		const stops = [
+			...box.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+			)
+		];
+		if (!stops.length) return;
+		const first = stops[0];
+		const last = stops[stops.length - 1];
+		const inside = box.contains(document.activeElement);
+		if (e.shiftKey && (document.activeElement === first || !inside)) {
+			e.preventDefault();
+			last.focus();
+		} else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+			e.preventDefault();
+			first.focus();
+		}
+	}
 	// Leaving the page (e.g. "Finalizar pedido") closes the drawer.
 	$effect(() => {
 		void path;
@@ -113,121 +142,134 @@
 </svelte:head>
 
 <div class="flex min-h-dvh flex-col">
-	{#if slimHeader}
-		<header class="sticky top-0 z-30 bg-night text-white">
-			<div class="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4">
-				<a
-					href="/cardapio"
-					class="grid size-11 place-items-center rounded-full bg-night-2 hover:bg-night-line"
-					aria-label={t('errors.backToMenu')}
-				>
-					<Icon name="back" class="size-5" />
-				</a>
-				<a
-					href="/"
-					class="flex items-center gap-2"
-					aria-label={t('header.home', { name: data.shopName })}
-				>
-					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
-				</a>
-				<img src={data.branding.images.logo} alt="" class="h-10 w-auto" />
-			</div>
-		</header>
-	{:else}
-		<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
-			<div
-				class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
-			>
-				<a
-					href="/"
-					class="flex shrink-0 items-center gap-2.5"
-					aria-label={t('header.home', { name: data.shopName })}
-				>
-					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
-					<img
-						src={data.branding.images.wordmark}
-						alt={data.shopName}
-						class="hidden h-7 w-auto sm:block"
-					/>
-				</a>
-				<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
-					{#each nav as n (n.href)}
-						<a
-							href={n.href}
-							class="relative px-3 py-2 text-[15px] font-semibold transition-colors sm:px-4 {n.active
-								? 'text-white'
-								: 'text-stone-300 hover:text-white'}"
-							aria-current={n.active ? 'page' : undefined}
-						>
-							{n.label}
-							{#if n.active}<span
-									class="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 sm:inset-x-4"
-									aria-hidden="true"
-								></span>{/if}
-						</a>
-					{/each}
-				</nav>
-				{#if data.kiosk}
-					<button
-						type="button"
-						class="shrink-0 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
-						onclick={restart}>{t('header.kiosk.restart')}</button
+	<!-- Everything but the cart drawer; inert while the drawer is open. -->
+	<div class="contents" inert={cart.panelOpen}>
+		{#if slimHeader}
+			<header class="sticky top-0 z-30 bg-night text-white">
+				<div class="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4">
+					<a
+						href="/cardapio"
+						class="grid size-11 place-items-center rounded-full bg-night-2 hover:bg-night-line"
+						aria-label={t('errors.backToMenu')}
 					>
-				{/if}
-				<MoreMenu
-					{accountHref}
-					signedIn={!!data.customer}
-					trackHref={orderToken ? `/orders/${orderToken}` : null}
-					kiosk={data.kiosk}
-				/>
-			</div>
-			{#if !data.store.open}
-				<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
-					{data.store.pauseReason ??
-						(data.store.outOfHours
-							? t('header.closedUntil', { when: data.store.outOfHours })
-							: t('header.closed'))}
-				</p>
-			{/if}
-		</header>
-	{/if}
-
-	{#if isHome || isMenu}
-		<div class="flex-1">{@render children()}</div>
-	{:else}
-		<div class="mx-auto w-full max-w-3xl flex-1 px-4 pb-28">
-			{@render children()}
-		</div>
-	{/if}
-
-	{#if !slim}<footer class="bg-night text-stone-400 {showCartBar ? 'pb-20' : ''}">
-			<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
-				<p
-					class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
-				>
-					<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>{t('footer.tagline')}<span
-						class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
-					></span>
-				</p>
-				<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-					{#each data.pages as p (p.slug)}
-						<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
-					{/each}
-				</nav>
-			</div>
-		</footer>{/if}
-
-	{#if showCartBar}
-		<button
-			onclick={() => (cart.panelOpen = true)}
-			class="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10"
-		>
-			<span class="flex items-center gap-2"
-				><Icon name="cart" /> {t('cart.view', { count: cart.count, items })}</span
+						<Icon name="back" class="size-5" />
+					</a>
+					<a
+						href="/"
+						class="flex items-center gap-2"
+						aria-label={t('header.home', { name: data.shopName })}
+					>
+						<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
+					</a>
+					<img src={data.branding.images.logo} alt="" class="h-10 w-auto" />
+				</div>
+			</header>
+		{:else}
+			<header
+				class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]"
 			>
-			<Money cents={cart.subtotalCents} />
-		</button>
-	{/if}
+				<div
+					class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
+				>
+					<a
+						href="/"
+						class="flex shrink-0 items-center gap-2.5"
+						aria-label={t('header.home', { name: data.shopName })}
+					>
+						<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
+						<img
+							src={data.branding.images.wordmark}
+							alt={data.shopName}
+							class="hidden h-7 w-auto sm:block"
+						/>
+					</a>
+					<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
+						{#each nav as n (n.href)}
+							<a
+								href={n.href}
+								class="relative px-3 py-2 text-[15px] font-semibold transition-colors sm:px-4 {n.active
+									? 'text-white'
+									: 'text-stone-300 hover:text-white'}"
+								aria-current={n.active ? 'page' : undefined}
+							>
+								{n.label}
+								{#if n.active}<span
+										class="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 sm:inset-x-4"
+										aria-hidden="true"
+									></span>{/if}
+							</a>
+						{/each}
+					</nav>
+					{#if data.kiosk}
+						<button
+							type="button"
+							class="shrink-0 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
+							onclick={restart}>{t('header.kiosk.restart')}</button
+						>
+					{/if}
+					<MoreMenu
+						{accountHref}
+						signedIn={!!data.customer}
+						cartInBar={showCartBar}
+						trackHref={orderToken ? `/orders/${orderToken}` : null}
+						kiosk={data.kiosk}
+					/>
+				</div>
+				{#if !data.store.open}
+					<p
+						class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white"
+						role="status"
+					>
+						{data.store.pauseReason ??
+							(data.store.outOfHours
+								? t('header.closedUntil', { when: data.store.outOfHours })
+								: t('header.closed'))}
+					</p>
+				{/if}
+			</header>
+		{/if}
+
+		{#if isHome || isMenu}
+			<div class="flex-1">{@render children()}</div>
+		{:else}
+			<div class="mx-auto w-full max-w-3xl flex-1 px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+				{@render children()}
+			</div>
+		{/if}
+
+		{#if !slim}<footer
+				class="bg-night text-stone-400 {showCartBar
+					? 'pb-[calc(5rem+env(safe-area-inset-bottom))]'
+					: ''}"
+			>
+				<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
+					<p
+						class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
+					>
+						<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>{t('footer.tagline')}<span
+							class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
+						></span>
+					</p>
+					<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+						{#each data.pages as p (p.slug)}
+							<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
+						{/each}
+					</nav>
+				</div>
+			</footer>{/if}
+
+		{#if showCartBar}
+			<button
+				onclick={() => (cart.panelOpen = true)}
+				class="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10"
+			>
+				<span class="flex items-center gap-2"
+					><Icon name="cart" /> {t('cart.view', { count: cart.count, items })}</span
+				>
+				<Money cents={cart.subtotalCents} />
+			</button>
+		{/if}
+	</div>
 
 	{#if cart.panelOpen}
 		<div class="fixed inset-0 z-40">

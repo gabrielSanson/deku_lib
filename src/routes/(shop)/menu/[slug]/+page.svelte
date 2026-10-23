@@ -181,7 +181,7 @@
 		placeholder={t('product.notePlaceholder')}
 	/>
 	<div
-		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4 shadow-(--shadow-card)"
+		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-(--shadow-card)"
 	>
 		<div class="mx-auto max-w-3xl space-y-2">
 			{#if tried && missing.length}<p class="alert-error" role="alert">
