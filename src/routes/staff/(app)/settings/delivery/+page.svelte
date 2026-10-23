@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -41,15 +42,7 @@
 			class="grid gap-3 card p-4 sm:grid-cols-2"
 		>
 			<input type="hidden" name="id" value={editing.id ?? ''} />
-			<div>
-				<label class="label" for="name">{t('delivery.name')}</label><input
-					class="field"
-					id="name"
-					name="name"
-					value={editing.name ?? ''}
-					required
-				/>
-			</div>
+			<TextField label={t('delivery.name')} name="name" value={editing.name ?? ''} required />
 			<div>
 				<label class="label" for="kind">{t('delivery.kind')}</label>
 				<select class="field" id="kind" name="matchKind" value={editing.matchKind}>
@@ -57,43 +50,34 @@
 					<option value="cep_prefix">{t('delivery.cepPrefix')}</option>
 				</select>
 			</div>
-			<div>
-				<label class="label" for="value">{t('delivery.value')}</label><input
-					class="field"
-					id="value"
-					name="matchValue"
-					value={editing.matchValue ?? ''}
-					required
-				/>
-			</div>
-			<div>
-				<label class="label" for="fee">{t('delivery.fee')}</label><input
-					class="field"
-					id="fee"
-					name="fee"
-					inputmode="decimal"
-					value={editing.feeCents !== undefined ? brl(editing.feeCents) : ''}
-					required
-				/>
-			</div>
-			<div>
-				<label class="label" for="min">{t('delivery.min')}</label><input
-					class="field"
-					id="min"
-					name="minOrder"
-					inputmode="decimal"
-					value={editing.minOrderCents !== undefined ? brl(editing.minOrderCents) : ''}
-				/>
-			</div>
-			<div>
-				<label class="label" for="prio">{t('delivery.priority')}</label><input
-					class="field"
-					id="prio"
-					name="priority"
-					type="number"
-					value={editing.priority ?? 100}
-				/>
-			</div>
+			<TextField
+				label={t('delivery.value')}
+				id="value"
+				name="matchValue"
+				value={editing.matchValue ?? ''}
+				required
+			/>
+			<TextField
+				label={t('delivery.fee')}
+				name="fee"
+				inputmode="decimal"
+				value={editing.feeCents !== undefined ? brl(editing.feeCents) : ''}
+				required
+			/>
+			<TextField
+				label={t('delivery.min')}
+				id="min"
+				name="minOrder"
+				inputmode="decimal"
+				value={editing.minOrderCents !== undefined ? brl(editing.minOrderCents) : ''}
+			/>
+			<TextField
+				label={t('delivery.priority')}
+				id="prio"
+				name="priority"
+				type="number"
+				value={editing.priority ?? 100}
+			/>
 			<label class="flex min-h-11 items-center gap-2"
 				><input class="size-5" type="checkbox" name="enabled" checked={editing.enabled} />
 				{t('delivery.active')}</label
@@ -151,22 +135,13 @@
 	</div>
 
 	<form class="flex flex-wrap items-end gap-2 card p-4" method="GET">
-		<div>
-			<label class="label" for="pcep">{t('delivery.testCep')}</label><input
-				class="field"
-				id="pcep"
-				name="cep"
-				value={data.preview?.cep ?? ''}
-			/>
-		</div>
-		<div>
-			<label class="label" for="phood">{t('delivery.testHood')}</label><input
-				class="field"
-				id="phood"
-				name="bairro"
-				value={data.preview?.hood ?? ''}
-			/>
-		</div>
+		<TextField label={t('delivery.testCep')} id="pcep" name="cep" value={data.preview?.cep ?? ''} />
+		<TextField
+			label={t('delivery.testHood')}
+			id="phood"
+			name="bairro"
+			value={data.preview?.hood ?? ''}
+		/>
 		<button class="btn-secondary">{t('delivery.test')}</button>
 		{#if data.preview}
 			<p class="w-full text-sm" role="status">

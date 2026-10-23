@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
@@ -63,17 +64,14 @@
 			<p class="text-sm text-muted">
 				{t('drawer.openText')}
 			</p>
-			<div>
-				<label class="label" for="float">{t('drawer.float')}</label>
-				<input
-					id="float"
-					name="float"
-					class="field text-lg"
-					inputmode="decimal"
-					placeholder="0,00"
-					required
-				/>
-			</div>
+			<TextField
+				label={t('drawer.float')}
+				name="float"
+				inputmode="decimal"
+				placeholder="0,00"
+				required
+				class="text-lg"
+			/>
 			<FormError message={form?.error} />
 			<button class="btn-primary w-full text-lg" disabled={busy}>{t('drawer.open')}</button>
 		</form>
@@ -118,10 +116,13 @@
 				]}
 				bind:value={kind}
 			/>
-			<div>
-				<label class="label" for="amount">{t('drawer.amount')}</label>
-				<input id="amount" name="amount" class="field text-lg" inputmode="decimal" required />
-			</div>
+			<TextField
+				label={t('drawer.amount')}
+				name="amount"
+				inputmode="decimal"
+				required
+				class="text-lg"
+			/>
 			<div>
 				<label class="label" for="reason"
 					>{kind === 'sangria' ? t('drawer.reason') : t('drawer.reasonOptional')}</label
@@ -150,14 +151,14 @@
 			<p class="text-sm text-muted">
 				{t('drawer.closeText')}
 			</p>
-			<div>
-				<label class="label" for="counted">{t('drawer.countedField')}</label>
-				<input id="counted" name="counted" class="field text-lg" inputmode="decimal" required />
-			</div>
-			<div>
-				<label class="label" for="note">{t('drawer.note')}</label>
-				<input id="note" name="note" class="field" />
-			</div>
+			<TextField
+				label={t('drawer.countedField')}
+				name="counted"
+				inputmode="decimal"
+				required
+				class="text-lg"
+			/>
+			<TextField label={t('drawer.note')} name="note" />
 			<label class="flex items-center gap-2 text-sm">
 				<input type="checkbox" bind:checked={confirmClose} />
 				{t('drawer.closeConfirm')}

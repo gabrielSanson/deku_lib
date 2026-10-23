@@ -1,4 +1,6 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
+	import TextArea from '#lib/components/molecules/TextArea.svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -91,29 +93,23 @@
 		after={() => (busy = false)}
 		class="space-y-4 card p-4"
 	>
-		<div>
-			<label class="label" for="name">{t('product.name')}</label>
-			<input class="field" id="name" name="name" value={p.name} required maxlength="120" />
-		</div>
-		<div>
-			<label class="label" for="description">{t('product.description')}</label>
-			<textarea class="field min-h-20" id="description" name="description" maxlength="600"
-				>{p.description}</textarea
-			>
-		</div>
+		<TextField label={t('product.name')} name="name" value={p.name} required maxlength={120} />
+		<TextArea
+			label={t('product.description')}
+			name="description"
+			maxlength={600}
+			value={p.description}
+			class="min-h-20"
+		/>
 		<div class="grid gap-3 sm:grid-cols-2">
-			<div>
-				<label class="label" for="price">{t('product.price')}</label>
-				<input
-					class="field"
-					id="price"
-					name="price"
-					inputmode="decimal"
-					value={p.priceCents ? formatBRL(p.priceCents).replace(/[R$\s]/g, '') : ''}
-					placeholder="29,90"
-					required
-				/>
-			</div>
+			<TextField
+				label={t('product.price')}
+				name="price"
+				inputmode="decimal"
+				value={p.priceCents ? formatBRL(p.priceCents).replace(/[R$\s]/g, '') : ''}
+				placeholder="29,90"
+				required
+			/>
 			<div>
 				<label class="label" for="categoryId">{t('product.category')}</label>
 				<select class="field" id="categoryId" name="categoryId" value={p.categoryId}>
@@ -126,10 +122,7 @@
 					{#each data.stations as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
 				</select>
 			</div>
-			<div>
-				<label class="label" for="position">{t('product.position')}</label>
-				<input class="field" id="position" name="position" type="number" value={p.position} />
-			</div>
+			<TextField label={t('product.position')} name="position" type="number" value={p.position} />
 		</div>
 
 		<fieldset>
@@ -241,32 +234,23 @@
 			{/if}
 		</fieldset>
 
-		<div>
-			<label class="label" for="allergens">{t('product.allergens')}</label>
-			<input
-				class="field"
-				id="allergens"
-				name="allergens"
-				value={p.allergens.join(', ')}
-				placeholder={t('product.allergensPlaceholder')}
-			/>
-		</div>
+		<TextField
+			label={t('product.allergens')}
+			name="allergens"
+			value={p.allergens.join(', ')}
+			placeholder={t('product.allergensPlaceholder')}
+		/>
 
 		{#if data.isNew}
-			<div>
-				<label class="label" for="sku">{t('product.sku')}</label>
-				<input
-					class="field uppercase"
-					id="sku"
-					name="sku"
-					maxlength="40"
-					pattern="[A-Za-z0-9-]+"
-					placeholder={t('product.skuPlaceholder')}
-				/>
-				<p class="mt-1 text-xs text-muted">
-					{t('product.skuHint')}
-				</p>
-			</div>
+			<TextField
+				label={t('product.sku')}
+				name="sku"
+				maxlength={40}
+				pattern="[A-Za-z0-9-]+"
+				placeholder={t('product.skuPlaceholder')}
+				class="uppercase"
+				hint={t('product.skuHint')}
+			/>
 		{:else}
 			<p class="text-sm text-muted">
 				{t('product.skuShow', { sku: p.sku })}

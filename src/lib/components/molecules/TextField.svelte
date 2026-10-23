@@ -2,50 +2,47 @@
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	// A labelled text input with an optional hint and error. The error is linked to the field.
+	// Other input attributes (maxlength, inputmode, min, ...) pass through.
 	let {
 		label,
 		name,
+		id = name,
 		value = $bindable(''),
 		type = 'text',
 		error,
 		hint,
 		required = false,
-		autocomplete,
-		placeholder
-	}: {
+		class: klass = '',
+		...rest
+	}: Omit<HTMLInputAttributes, 'value'> & {
 		label: string;
 		name: string;
-		value?: string;
-		type?: string;
-		error?: string;
+		id?: string;
+		value?: string | number | null;
+		error?: string | null;
 		hint?: string;
 		required?: boolean;
-		autocomplete?: HTMLInputAttributes['autocomplete'];
-		placeholder?: string;
 	} = $props();
 
-	const errorId = $derived(`${name}-error`);
-	const hintId = $derived(`${name}-hint`);
+	const errorId = $derived(`${id}-error`);
+	const hintId = $derived(`${id}-hint`);
 	const describedBy = $derived(
 		[error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ') || undefined
 	);
 </script>
 
 <div>
-	<label for={name} class="label">
-		{label}{#if required}<span aria-hidden="true"> *</span>{/if}
-	</label>
+	<label for={id} class="label">{label}</label>
 	<input
-		id={name}
+		{id}
 		{name}
 		{type}
 		{required}
-		{autocomplete}
-		{placeholder}
 		bind:value
-		class="field"
+		class="field {error ? 'border-bad' : ''} {klass}"
 		aria-invalid={error ? 'true' : undefined}
 		aria-describedby={describedBy}
+		{...rest}
 	/>
 	{#if hint}<p id={hintId} class="mt-1 text-sm text-muted">{hint}</p>{/if}
 	{#if error}<p id={errorId} class="mt-1 text-sm text-bad">{error}</p>{/if}

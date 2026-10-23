@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -15,18 +16,14 @@
 	{:else}
 		<p class="text-muted">{t('account.recover.text')}</p>
 		<form method="POST" class="space-y-4 card p-5">
-			<div>
-				<label class="label" for="email">{t('account.email')}</label>
-				<input
-					id="email"
-					name="email"
-					type="email"
-					class="field"
-					autocomplete="email"
-					required
-					value={form?.email ?? ''}
-				/>
-			</div>
+			<TextField
+				label={t('account.email')}
+				name="email"
+				type="email"
+				autocomplete="email"
+				required
+				value={form?.email ?? ''}
+			/>
 			{#if form?.error}<p class="text-sm text-bad" role="alert">
 					{t('account.error.invalid')}
 				</p>{/if}

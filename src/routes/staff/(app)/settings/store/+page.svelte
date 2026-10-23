@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
@@ -54,16 +55,12 @@
 			><input type="checkbox" class="size-5" name="acceptingOrders" checked={s.acceptingOrders} />
 			{t('store.acceptingField')}</label
 		>
-		<div>
-			<label class="label" for="pauseReason">{t('store.pauseMessage')}</label>
-			<input
-				class="field"
-				id="pauseReason"
-				name="pauseReason"
-				value={s.pauseReason ?? ''}
-				maxlength="160"
-			/>
-		</div>
+		<TextField
+			label={t('store.pauseMessage')}
+			name="pauseReason"
+			value={s.pauseReason ?? ''}
+			maxlength={160}
+		/>
 		<label class="flex min-h-11 items-center gap-3"
 			><input
 				type="checkbox"
@@ -92,30 +89,24 @@
 			{t('store.delivery')}</label
 		>
 		<div class="grid gap-4 sm:grid-cols-2">
-			<div>
-				<label class="label" for="prep">{t('store.prep')}</label>
-				<input
-					class="field"
-					id="prep"
-					name="prepTimeMinutes"
-					type="number"
-					min="1"
-					max="240"
-					value={s.prepTimeMinutes}
-					required
-				/>
-			</div>
-			<div>
-				<label class="label" for="max">{t('store.maxOpen')}</label>
-				<input
-					class="field"
-					id="max"
-					name="maxOpenOrders"
-					type="number"
-					min="1"
-					value={s.maxOpenOrders ?? ''}
-				/>
-			</div>
+			<TextField
+				label={t('store.prep')}
+				id="prep"
+				name="prepTimeMinutes"
+				type="number"
+				min={1}
+				max={240}
+				value={s.prepTimeMinutes}
+				required
+			/>
+			<TextField
+				label={t('store.maxOpen')}
+				id="max"
+				name="maxOpenOrders"
+				type="number"
+				min={1}
+				value={s.maxOpenOrders ?? ''}
+			/>
 		</div>
 		<FormError message={form?.error} />
 	</SettingsSection>

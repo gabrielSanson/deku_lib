@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -92,32 +93,24 @@
 				>
 					<input type="hidden" name="next" value={data.next} />
 					{#if mode === 'criar'}
-						<div>
-							<label class="label" for="name">{t('account.name')}</label>
-							<input
-								id="name"
-								name="name"
-								class="field"
-								autocomplete="name"
-								required
-								minlength="2"
-								maxlength="60"
-								value={form?.name ?? ''}
-							/>
-						</div>
-						<div>
-							<label class="label" for="phone">{t('account.phone')}</label>
-							<input
-								id="phone"
-								name="phone"
-								class="field"
-								type="tel"
-								inputmode="tel"
-								autocomplete="tel"
-								maxlength="25"
-								value={form?.phone ?? ''}
-							/>
-						</div>
+						<TextField
+							label={t('account.name')}
+							name="name"
+							autocomplete="name"
+							required
+							minlength={2}
+							maxlength={60}
+							value={form?.name ?? ''}
+						/>
+						<TextField
+							label={t('account.phone')}
+							name="phone"
+							type="tel"
+							inputmode="tel"
+							autocomplete="tel"
+							maxlength={25}
+							value={form?.phone ?? ''}
+						/>
 					{/if}
 					<div>
 						<label class="label" for="email">{t('account.email')}</label>
@@ -134,7 +127,7 @@
 								autocomplete="email"
 								placeholder={t('account.emailPlaceholder')}
 								required
-								maxlength="120"
+								maxlength={120}
 								value={form?.email ?? ''}
 							/>
 						</div>
@@ -155,7 +148,7 @@
 								placeholder={t('account.passwordPlaceholder')}
 								required
 								minlength={mode === 'criar' ? 8 : undefined}
-								maxlength="72"
+								maxlength={72}
 							/>
 							<button
 								type="button"

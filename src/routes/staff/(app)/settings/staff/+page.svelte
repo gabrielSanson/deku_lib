@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -61,23 +62,8 @@
 
 	<GuardedForm action="?/add" class="grid gap-3 card p-4 sm:grid-cols-2" reset>
 		<h2 class="font-semibold sm:col-span-2">{t('team.add')}</h2>
-		<div>
-			<label class="label" for="dn">{t('team.name')}</label><input
-				class="field"
-				id="dn"
-				name="displayName"
-				required
-			/>
-		</div>
-		<div>
-			<label class="label" for="em">{t('team.email')}</label><input
-				class="field"
-				id="em"
-				name="email"
-				type="email"
-				required
-			/>
-		</div>
+		<TextField label={t('team.name')} id="dn" name="displayName" required />
+		<TextField label={t('team.email')} id="em" name="email" type="email" required />
 		<div>
 			<label class="label" for="ro">{t('team.role')}</label>
 			<select class="field" id="ro" name="role">
@@ -85,16 +71,14 @@
 			</select>
 		</div>
 		{#if data.canCreate}
-			<div>
-				<label class="label" for="pw">{t('team.password')}</label><input
-					class="field"
-					id="pw"
-					name="password"
-					type="password"
-					minlength="10"
-					autocomplete="new-password"
-				/>
-			</div>
+			<TextField
+				label={t('team.password')}
+				id="pw"
+				name="password"
+				type="password"
+				minlength={10}
+				autocomplete="new-password"
+			/>
 		{/if}
 		<p class="text-sm text-muted sm:col-span-2">
 			{data.canCreate ? t('team.linkHint') : t('team.createHint')}

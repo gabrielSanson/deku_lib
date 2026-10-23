@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
@@ -33,44 +34,34 @@
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('group.saved')}</p>{/if}
 
 	<GuardedForm action="?/save" class="space-y-4 card p-4">
-		<div>
-			<label class="label" for="name">{t('group.name')}</label>
-			<input
-				class="field"
-				id="name"
-				name="name"
-				value={g.name}
-				required
-				maxlength="80"
-				placeholder={t('group.namePlaceholder')}
-			/>
-		</div>
+		<TextField
+			label={t('group.name')}
+			name="name"
+			value={g.name}
+			required
+			maxlength={80}
+			placeholder={t('group.namePlaceholder')}
+		/>
 		<div class="grid grid-cols-2 gap-3">
-			<div>
-				<label class="label" for="min">{t('group.min')}</label>
-				<input
-					class="field"
-					id="min"
-					name="minSelections"
-					type="number"
-					min="0"
-					max="20"
-					value={g.minSelections}
-				/>
-				<p class="mt-1 text-xs text-muted">{t('group.minHint')}</p>
-			</div>
-			<div>
-				<label class="label" for="max">{t('group.max')}</label>
-				<input
-					class="field"
-					id="max"
-					name="maxSelections"
-					type="number"
-					min="1"
-					max="20"
-					value={g.maxSelections}
-				/>
-			</div>
+			<TextField
+				label={t('group.min')}
+				id="min"
+				name="minSelections"
+				type="number"
+				min={0}
+				max={20}
+				value={g.minSelections}
+				hint={t('group.minHint')}
+			/>
+			<TextField
+				label={t('group.max')}
+				id="max"
+				name="maxSelections"
+				type="number"
+				min={1}
+				max={20}
+				value={g.maxSelections}
+			/>
 		</div>
 
 		<fieldset class="space-y-2">
@@ -85,7 +76,7 @@
 							class="field"
 							name="optionName"
 							bind:value={row.name}
-							maxlength="80"
+							maxlength={80}
 							placeholder={t('group.optionNamePlaceholder')}
 						/></label
 					>
@@ -103,8 +94,8 @@
 							class="field"
 							name="optionMax"
 							type="number"
-							min="1"
-							max="20"
+							min={1}
+							max={20}
 							bind:value={row.maxQuantity}
 						/></label
 					>

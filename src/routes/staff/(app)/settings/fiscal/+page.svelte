@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
@@ -41,49 +42,31 @@
 			</select>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
-			<div>
-				<label class="label" for="cnpj">{t('fiscal.cnpj')}</label>
-				<input
-					class="field"
-					id="cnpj"
-					name="cnpj"
-					value={s.cnpj ?? ''}
-					inputmode="numeric"
-					placeholder="00.000.000/0001-00"
-				/>
-			</div>
-			<div>
-				<label class="label" for="token">{t('fiscal.token')}</label>
-				<input
-					class="field"
-					id="token"
-					name="token"
-					type="password"
-					autocomplete="off"
-					placeholder={s.hasToken ? t('fiscal.tokenSaved') : t('fiscal.tokenPaste')}
-				/>
-			</div>
+			<TextField
+				label={t('fiscal.cnpj')}
+				name="cnpj"
+				value={s.cnpj ?? ''}
+				inputmode="numeric"
+				placeholder="00.000.000/0001-00"
+			/>
+			<TextField
+				label={t('fiscal.token')}
+				name="token"
+				type="password"
+				autocomplete="off"
+				placeholder={s.hasToken ? t('fiscal.tokenSaved') : t('fiscal.tokenPaste')}
+			/>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-3">
-			<div>
-				<label class="label" for="defaultNcm">{t('fiscal.ncm')}</label>
-				<input
-					class="field"
-					id="defaultNcm"
-					name="defaultNcm"
-					value={s.defaultNcm ?? ''}
-					inputmode="numeric"
-					placeholder={t('fiscal.ncmPlaceholder')}
-				/>
-			</div>
-			<div>
-				<label class="label" for="defaultCfop">{t('fiscal.cfop')}</label>
-				<input class="field" id="defaultCfop" name="defaultCfop" value={s.defaultCfop} />
-			</div>
-			<div>
-				<label class="label" for="defaultCsosn">{t('fiscal.csosn')}</label>
-				<input class="field" id="defaultCsosn" name="defaultCsosn" value={s.defaultCsosn} />
-			</div>
+			<TextField
+				label={t('fiscal.ncm')}
+				name="defaultNcm"
+				value={s.defaultNcm ?? ''}
+				inputmode="numeric"
+				placeholder={t('fiscal.ncmPlaceholder')}
+			/>
+			<TextField label={t('fiscal.cfop')} name="defaultCfop" value={s.defaultCfop} />
+			<TextField label={t('fiscal.csosn')} name="defaultCsosn" value={s.defaultCsosn} />
 		</div>
 		<p class="text-xs text-muted">
 			{t('fiscal.ncmHint')}

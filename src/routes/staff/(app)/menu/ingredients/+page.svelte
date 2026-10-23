@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -28,26 +29,20 @@
 		use:enhance
 		class="grid gap-3 card p-4 sm:grid-cols-[2fr_2fr_auto] sm:items-end"
 	>
-		<div>
-			<label class="label" for="new-name">{t('ingredients.new')}</label>
-			<input
-				class="field"
-				id="new-name"
-				name="name"
-				required
-				maxlength="80"
-				placeholder={t('ingredients.newPlaceholder')}
-			/>
-		</div>
-		<div>
-			<label class="label" for="new-allergens">{t('ingredients.allergensComma')}</label>
-			<input
-				class="field"
-				id="new-allergens"
-				name="allergens"
-				placeholder={t('ingredients.allergensPlaceholder')}
-			/>
-		</div>
+		<TextField
+			label={t('ingredients.new')}
+			id="new-name"
+			name="name"
+			required
+			maxlength={80}
+			placeholder={t('ingredients.newPlaceholder')}
+		/>
+		<TextField
+			label={t('ingredients.allergensComma')}
+			id="new-allergens"
+			name="allergens"
+			placeholder={t('ingredients.allergensPlaceholder')}
+		/>
 		<input type="hidden" name="position" value={data.ingredients.length} />
 		<button class="btn-primary">{t('ingredients.add')}</button>
 	</form>
@@ -67,36 +62,27 @@
 							class="grid gap-3 sm:grid-cols-[2fr_2fr_5rem_auto] sm:items-end"
 						>
 							<input type="hidden" name="id" value={ing.id} />
-							<div>
-								<label class="label" for="name-{ing.id}">{t('ingredients.name')}</label>
-								<input
-									class="field"
-									id="name-{ing.id}"
-									name="name"
-									value={ing.name}
-									required
-									maxlength="80"
-								/>
-							</div>
-							<div>
-								<label class="label" for="all-{ing.id}">{t('ingredients.allergens')}</label>
-								<input
-									class="field"
-									id="all-{ing.id}"
-									name="allergens"
-									value={ing.allergens.join(', ')}
-								/>
-							</div>
-							<div>
-								<label class="label" for="pos-{ing.id}">{t('menuEdit.order')}</label>
-								<input
-									class="field"
-									id="pos-{ing.id}"
-									name="position"
-									type="number"
-									value={ing.position}
-								/>
-							</div>
+							<TextField
+								label={t('ingredients.name')}
+								id="name-{ing.id}"
+								name="name"
+								value={ing.name}
+								required
+								maxlength={80}
+							/>
+							<TextField
+								label={t('ingredients.allergens')}
+								id="all-{ing.id}"
+								name="allergens"
+								value={ing.allergens.join(', ')}
+							/>
+							<TextField
+								label={t('menuEdit.order')}
+								id="pos-{ing.id}"
+								name="position"
+								type="number"
+								value={ing.position}
+							/>
 							<div class="flex gap-2">
 								<button class="btn-primary">{t('menuEdit.save')}</button>
 								<button type="button" class="btn-ghost" onclick={() => (editing = null)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -99,17 +100,14 @@
 				bind:value={method}
 			/>
 			<p class="text-sm text-muted">{current.hint}</p>
-			<div>
-				<label class="label" for="amount">{t('posPay.amount')}</label>
-				<input
-					id="amount"
-					name="amount"
-					class="field text-lg"
-					inputmode="decimal"
-					bind:value={amount}
-					required
-				/>
-			</div>
+			<TextField
+				label={t('posPay.amount')}
+				name="amount"
+				inputmode="decimal"
+				bind:value={amount}
+				required
+				class="text-lg"
+			/>
 			{#if method === 'cash'}
 				<div>
 					<label class="label" for="received">{t('posPay.received')}</label>
@@ -126,17 +124,13 @@
 						</p>{/if}
 				</div>
 			{:else}
-				<div>
-					<label class="label" for="reference">{t('posPay.reference')}</label>
-					<input
-						id="reference"
-						name="reference"
-						class="field"
-						bind:value={reference}
-						required
-						autocomplete="off"
-					/>
-				</div>
+				<TextField
+					label={t('posPay.reference')}
+					name="reference"
+					bind:value={reference}
+					required
+					autocomplete="off"
+				/>
 			{/if}
 			<FormError message={form?.error} />
 			{#if form?.code === 'cash_closed'}

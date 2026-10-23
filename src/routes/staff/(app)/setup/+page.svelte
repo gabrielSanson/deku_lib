@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SetupProgressRail from '#lib/components/organisms/SetupProgressRail.svelte';
@@ -52,50 +53,34 @@
 		>
 			<h2 class="text-lg font-bold">{t('setup.loja.title')}</h2>
 			<p class="text-sm text-muted">{t('setup.loja.hint')}</p>
-			<div>
-				<label class="label" for="displayName">{t('setup.loja.name')}</label>
-				<input
-					class="field"
-					id="displayName"
-					name="displayName"
-					value={p.displayName}
-					required
-					maxlength="80"
-				/>
-			</div>
+			<TextField
+				label={t('setup.loja.name')}
+				name="displayName"
+				value={p.displayName}
+				required
+				maxlength={80}
+			/>
 			<div class="grid gap-3 sm:grid-cols-2">
-				<div>
-					<label class="label" for="phone">{t('setup.loja.phone')}</label>
-					<input
-						class="field"
-						id="phone"
-						name="phone"
-						value={p.phone ?? ''}
-						inputmode="tel"
-						placeholder={t('setup.loja.phonePh')}
-					/>
-				</div>
-				<div>
-					<label class="label" for="city">{t('setup.loja.city')}</label>
-					<input
-						class="field"
-						id="city"
-						name="city"
-						value={p.city ?? ''}
-						placeholder={t('setup.loja.cityPh')}
-					/>
-				</div>
-			</div>
-			<div>
-				<label class="label" for="addressLine">{t('setup.loja.address')}</label>
-				<input
-					class="field"
-					id="addressLine"
-					name="addressLine"
-					value={p.addressLine ?? ''}
-					placeholder={t('setup.loja.addressPh')}
+				<TextField
+					label={t('setup.loja.phone')}
+					name="phone"
+					value={p.phone ?? ''}
+					inputmode="tel"
+					placeholder={t('setup.loja.phonePh')}
+				/>
+				<TextField
+					label={t('setup.loja.city')}
+					name="city"
+					value={p.city ?? ''}
+					placeholder={t('setup.loja.cityPh')}
 				/>
 			</div>
+			<TextField
+				label={t('setup.loja.address')}
+				name="addressLine"
+				value={p.addressLine ?? ''}
+				placeholder={t('setup.loja.addressPh')}
+			/>
 			<button class="btn-primary w-full">{t('setup.next')}</button>
 		</form>
 	{:else if data.step === 'cardapio'}
@@ -176,40 +161,28 @@
 			>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
-					<div>
-						<label class="label" for="pixKey">{t('setup.pay.key')}</label>
-						<input
-							class="field"
-							id="pixKey"
-							name="pixKey"
-							value={p.pix.key ?? ''}
-							placeholder={t('setup.pay.keyPh')}
+					<TextField
+						label={t('setup.pay.key')}
+						name="pixKey"
+						value={p.pix.key ?? ''}
+						placeholder={t('setup.pay.keyPh')}
+						required
+					/>
+					<div class="grid gap-3 sm:grid-cols-2">
+						<TextField
+							label={t('setup.pay.recipient')}
+							name="pixMerchantName"
+							value={p.pix.merchantName ?? p.displayName}
+							maxlength={25}
 							required
 						/>
-					</div>
-					<div class="grid gap-3 sm:grid-cols-2">
-						<div>
-							<label class="label" for="pixMerchantName">{t('setup.pay.recipient')}</label>
-							<input
-								class="field"
-								id="pixMerchantName"
-								name="pixMerchantName"
-								value={p.pix.merchantName ?? p.displayName}
-								maxlength="25"
-								required
-							/>
-						</div>
-						<div>
-							<label class="label" for="pixMerchantCity">{t('setup.pay.recipientCity')}</label>
-							<input
-								class="field"
-								id="pixMerchantCity"
-								name="pixMerchantCity"
-								value={p.pix.merchantCity ?? p.city ?? ''}
-								maxlength="15"
-								required
-							/>
-						</div>
+						<TextField
+							label={t('setup.pay.recipientCity')}
+							name="pixMerchantCity"
+							value={p.pix.merchantCity ?? p.city ?? ''}
+							maxlength={15}
+							required
+						/>
 					</div>
 					<p class="text-xs text-muted">{t('setup.pay.test')}</p>
 				</div>
@@ -261,40 +234,31 @@
 				use:enhance={keep}
 				class="space-y-3"
 			>
-				<div>
-					<label class="label" for="clientId">{t('setup.ifood.clientId')}</label>
-					<input
-						class="field font-mono"
-						id="clientId"
-						name="clientId"
-						value={ifood.clientId ?? ''}
-						autocomplete="off"
-						required
-					/>
-				</div>
-				<div>
-					<label class="label" for="clientSecret">{t('setup.ifood.clientSecret')}</label>
-					<input
-						class="field font-mono"
-						id="clientSecret"
-						name="clientSecret"
-						type="password"
-						autocomplete="new-password"
-						placeholder={ifood.hasSecret ? t('setup.ifood.secretSaved') : ''}
-						required={!ifood.hasSecret}
-					/>
-				</div>
-				<div>
-					<label class="label" for="merchantId">{t('setup.ifood.merchantId')}</label>
-					<input
-						class="field font-mono"
-						id="merchantId"
-						name="merchantId"
-						value={ifood.merchantId ?? ''}
-						autocomplete="off"
-						required
-					/>
-				</div>
+				<TextField
+					label={t('setup.ifood.clientId')}
+					name="clientId"
+					value={ifood.clientId ?? ''}
+					autocomplete="off"
+					required
+					class="font-mono"
+				/>
+				<TextField
+					label={t('setup.ifood.clientSecret')}
+					name="clientSecret"
+					type="password"
+					autocomplete="new-password"
+					placeholder={ifood.hasSecret ? t('setup.ifood.secretSaved') : ''}
+					required={!ifood.hasSecret}
+					class="font-mono"
+				/>
+				<TextField
+					label={t('setup.ifood.merchantId')}
+					name="merchantId"
+					value={ifood.merchantId ?? ''}
+					autocomplete="off"
+					required
+					class="font-mono"
+				/>
 				<div class="flex flex-wrap gap-2">
 					<button class="btn-primary" disabled={!data.canStoreSecrets}
 						>{t('setup.ifood.save')}</button

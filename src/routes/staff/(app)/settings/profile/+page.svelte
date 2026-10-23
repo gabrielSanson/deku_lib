@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
@@ -21,50 +22,34 @@
 		saveLabel={t('profile.storeSave')}
 		saved={form?.ok === 'store' ? t('profile.storeSaved') : undefined}
 	>
-		<div>
-			<label class="label" for="displayName">{t('profile.name')}</label>
-			<input
-				class="field"
-				id="displayName"
-				name="displayName"
-				value={p.displayName}
-				required
-				maxlength="80"
-			/>
-		</div>
+		<TextField
+			label={t('profile.name')}
+			name="displayName"
+			value={p.displayName}
+			required
+			maxlength={80}
+		/>
 		<div class="grid gap-3 sm:grid-cols-2">
-			<div>
-				<label class="label" for="phone">{t('profile.phone')}</label>
-				<input
-					class="field"
-					id="phone"
-					name="phone"
-					value={p.phone ?? ''}
-					inputmode="tel"
-					placeholder={t('profile.phonePlaceholder')}
-				/>
-			</div>
-			<div>
-				<label class="label" for="city">{t('profile.city')}</label>
-				<input
-					class="field"
-					id="city"
-					name="city"
-					value={p.city ?? ''}
-					placeholder={t('profile.cityPlaceholder')}
-				/>
-			</div>
-		</div>
-		<div>
-			<label class="label" for="addressLine">{t('profile.address')}</label>
-			<input
-				class="field"
-				id="addressLine"
-				name="addressLine"
-				value={p.addressLine ?? ''}
-				placeholder={t('profile.addressPlaceholder')}
+			<TextField
+				label={t('profile.phone')}
+				name="phone"
+				value={p.phone ?? ''}
+				inputmode="tel"
+				placeholder={t('profile.phonePlaceholder')}
+			/>
+			<TextField
+				label={t('profile.city')}
+				name="city"
+				value={p.city ?? ''}
+				placeholder={t('profile.cityPlaceholder')}
 			/>
 		</div>
+		<TextField
+			label={t('profile.address')}
+			name="addressLine"
+			value={p.addressLine ?? ''}
+			placeholder={t('profile.addressPlaceholder')}
+		/>
 	</SettingsSection>
 
 	<SettingsSection
@@ -85,40 +70,28 @@
 			>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
-					<div>
-						<label class="label" for="pixKey">{t('profile.pixKey')}</label>
-						<input
-							class="field"
-							id="pixKey"
-							name="pixKey"
-							value={p.pix.key ?? ''}
-							placeholder={t('profile.pixKeyPlaceholder')}
+					<TextField
+						label={t('profile.pixKey')}
+						name="pixKey"
+						value={p.pix.key ?? ''}
+						placeholder={t('profile.pixKeyPlaceholder')}
+						required
+					/>
+					<div class="grid gap-3 sm:grid-cols-2">
+						<TextField
+							label={t('profile.pixName')}
+							name="pixMerchantName"
+							value={p.pix.merchantName ?? p.displayName}
+							maxlength={25}
 							required
 						/>
-					</div>
-					<div class="grid gap-3 sm:grid-cols-2">
-						<div>
-							<label class="label" for="pixMerchantName">{t('profile.pixName')}</label>
-							<input
-								class="field"
-								id="pixMerchantName"
-								name="pixMerchantName"
-								value={p.pix.merchantName ?? p.displayName}
-								maxlength="25"
-								required
-							/>
-						</div>
-						<div>
-							<label class="label" for="pixMerchantCity">{t('profile.pixCity')}</label>
-							<input
-								class="field"
-								id="pixMerchantCity"
-								name="pixMerchantCity"
-								value={p.pix.merchantCity ?? p.city ?? ''}
-								maxlength="15"
-								required
-							/>
-						</div>
+						<TextField
+							label={t('profile.pixCity')}
+							name="pixMerchantCity"
+							value={p.pix.merchantCity ?? p.city ?? ''}
+							maxlength={15}
+							required
+						/>
 					</div>
 					<p class="text-xs text-muted">
 						{t('profile.pixTest')}

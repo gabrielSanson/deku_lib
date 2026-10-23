@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
@@ -16,32 +17,24 @@
 
 	<section class="card p-5">
 		<form method="POST" action="?/save" class="grid gap-4 sm:grid-cols-2">
-			<div>
-				<label class="label" for="name">{t('account.name')}</label>
-				<input
-					id="name"
-					name="name"
-					class="field"
-					autocomplete="name"
-					required
-					minlength="2"
-					maxlength="60"
-					value={data.customer.name ?? ''}
-				/>
-			</div>
-			<div>
-				<label class="label" for="phone">{t('account.phone')}</label>
-				<input
-					id="phone"
-					name="phone"
-					class="field"
-					type="tel"
-					inputmode="tel"
-					autocomplete="tel"
-					maxlength="25"
-					value={data.customer.phone ?? ''}
-				/>
-			</div>
+			<TextField
+				label={t('account.name')}
+				name="name"
+				autocomplete="name"
+				required
+				minlength={2}
+				maxlength={60}
+				value={data.customer.name ?? ''}
+			/>
+			<TextField
+				label={t('account.phone')}
+				name="phone"
+				type="tel"
+				inputmode="tel"
+				autocomplete="tel"
+				maxlength={25}
+				value={data.customer.phone ?? ''}
+			/>
 			<div class="flex flex-wrap items-center justify-between gap-3 sm:col-span-2">
 				<p class="flex items-center gap-2 text-sm text-muted">
 					<Icon name="mail" class="size-4" />{data.customer.email ?? ''}
