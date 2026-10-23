@@ -433,7 +433,7 @@ export const STAFF_SETTINGS_TEXTS = {
 	'look.heroLogoHint': {
 		group: g,
 		label: 'Aparência: imagem do destaque (dica)',
-		default: 'Na frente da foto do topo da página inicial. PNG com fundo transparente.'
+		default: 'Ao lado do texto do topo da página inicial. PNG com fundo transparente.'
 	},
 	'look.icon': { group: g, label: 'Aparência: ícone do app', default: 'Ícone do app' },
 	'look.iconHint': {
@@ -604,5 +604,135 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Textos: salvo',
 		default: 'Salvo. O site já mostra os textos novos.'
 	},
-	'texts.save': { group: g, label: 'Textos: salvar', default: 'Salvar textos' }
+	'texts.save': { group: g, label: 'Textos: salvar', default: 'Salvar textos' },
+	'homeEdit.tabTitle': {
+		group: g,
+		label: 'Página inicial: título da aba',
+		default: 'Página inicial · Configurações'
+	},
+	'homeEdit.title': { group: g, label: 'Página inicial: título', default: 'Página inicial' },
+	'homeEdit.intro': {
+		group: g,
+		label: 'Página inicial: introdução',
+		default:
+			'O que o cliente vê ao abrir o site: a foto do topo, os textos, os botões e os blocos abaixo.'
+	},
+	'homeEdit.view': { group: g, label: 'Página inicial: ver no site', default: 'Ver no site' },
+	'homeEdit.images': { group: g, label: 'Página inicial: fotos', default: 'Fotos do topo' },
+	'homeEdit.heroImage': {
+		group: g,
+		label: 'Página inicial: foto de fundo',
+		default: 'Foto de fundo'
+	},
+	'homeEdit.heroImageHint': {
+		group: g,
+		label: 'Página inicial: foto de fundo (dica)',
+		default: 'Ocupa o topo da página. Horizontal, 1920×1080 px ou maior.'
+	},
+	'homeEdit.hero': { group: g, label: 'Página inicial: topo', default: 'Topo da página' },
+	'homeEdit.align': {
+		group: g,
+		label: 'Página inicial: posição do texto',
+		default: 'Posição do texto'
+	},
+	'homeEdit.align.left': {
+		group: g,
+		label: 'Página inicial: texto à esquerda',
+		default: 'À esquerda'
+	},
+	'homeEdit.align.center': {
+		group: g,
+		label: 'Página inicial: texto ao centro',
+		default: 'Ao centro'
+	},
+	'homeEdit.size': { group: g, label: 'Página inicial: altura do topo', default: 'Altura do topo' },
+	'homeEdit.size.tall': {
+		group: g,
+		label: 'Página inicial: topo alto',
+		default: 'Alto (quase a tela toda)'
+	},
+	'homeEdit.size.compact': {
+		group: g,
+		label: 'Página inicial: topo baixo',
+		default: 'Baixo (o cardápio aparece logo)'
+	},
+	'homeEdit.cutout': {
+		group: g,
+		label: 'Página inicial: mostrar imagem do destaque',
+		default: 'Mostrar a imagem do destaque ao lado do texto'
+	},
+	'homeEdit.cutoutHint': {
+		group: g,
+		label: 'Página inicial: mostrar imagem do destaque (dica)',
+		default: 'Só com o texto à esquerda, em telas grandes.'
+	},
+	'homeEdit.status': {
+		group: g,
+		label: 'Página inicial: mostrar aberto/fechado',
+		default: 'Mostrar se a loja está aberta'
+	},
+	'homeEdit.modes': {
+		group: g,
+		label: 'Página inicial: mostrar modos',
+		default: 'Mostrar retirada, entrega e tempo de preparo'
+	},
+	'homeEdit.texts': { group: g, label: 'Página inicial: textos', default: 'Textos' },
+	'homeEdit.textsHint': {
+		group: g,
+		label: 'Página inicial: textos (dica)',
+		default: 'Os mesmos de Textos do site. Deixe vazio para voltar ao texto padrão.'
+	},
+	'homeEdit.buttons': { group: g, label: 'Página inicial: botões', default: 'Botões' },
+	'homeEdit.primaryHref': {
+		group: g,
+		label: 'Página inicial: link do botão principal',
+		default: 'Link do botão principal'
+	},
+	'homeEdit.secondaryHref': {
+		group: g,
+		label: 'Página inicial: link do segundo botão',
+		default: 'Link do segundo botão'
+	},
+	'homeEdit.secondaryHint': {
+		group: g,
+		label: 'Página inicial: segundo botão (dica)',
+		default: 'Deixe vazio para não mostrar o segundo botão.'
+	},
+	'homeEdit.linkHint': {
+		group: g,
+		label: 'Página inicial: formato do link',
+		default: 'Uma página do site, como /cardapio ou /p/sobre, ou um endereço https://'
+	},
+	'homeEdit.blocks': { group: g, label: 'Página inicial: blocos', default: 'Blocos da página' },
+	'homeEdit.featured': {
+		group: g,
+		label: 'Página inicial: mostrar destaques',
+		default: 'Mostrar a vitrine de destaques'
+	},
+	'homeEdit.featuredCategory': {
+		group: g,
+		label: 'Página inicial: categoria dos destaques',
+		default: 'Produtos da vitrine'
+	},
+	'homeEdit.featuredAuto': {
+		group: g,
+		label: 'Página inicial: destaques automáticos',
+		default: 'Automático (categoria Destaques ou os primeiros com foto)'
+	},
+	'homeEdit.featuredCount': {
+		group: g,
+		label: 'Página inicial: quantidade de destaques',
+		default: 'Quantos produtos'
+	},
+	'homeEdit.menuButton': {
+		group: g,
+		label: 'Página inicial: mostrar botão do cardápio',
+		default: 'Mostrar o botão do cardápio completo no fim da página'
+	},
+	'homeEdit.save': { group: g, label: 'Página inicial: salvar', default: 'Salvar página inicial' },
+	'homeEdit.saved': {
+		group: g,
+		label: 'Página inicial: salvo',
+		default: 'Salvo. O site já mostra a página nova.'
+	}
 } as const satisfies Record<string, TextDef>;

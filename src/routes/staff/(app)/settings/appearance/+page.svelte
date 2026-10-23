@@ -23,7 +23,6 @@
 	const imageFields = [
 		{ key: 'logo', label: t('look.logo'), hint: t('look.logoHint') },
 		{ key: 'wordmark', label: t('look.wordmark'), hint: t('look.wordmarkHint') },
-		{ key: 'heroLogo', label: t('look.heroLogo'), hint: t('look.heroLogoHint') },
 		{ key: 'icon', label: t('look.icon'), hint: t('look.iconHint') }
 	] as const;
 </script>

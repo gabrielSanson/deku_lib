@@ -4,10 +4,11 @@ import { audit, type Actor } from '../audit';
 import { menuImageUrl } from '../catalog/images';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import { DEFAULT_HOME, parseHome, type HomeLayout } from './home';
 
 export const COLOR_KEYS = ['primary', 'dark', 'background'] as const;
 export type ColorKey = (typeof COLOR_KEYS)[number];
-export const IMAGE_KEYS = ['logo', 'wordmark', 'heroLogo', 'icon'] as const;
+export const IMAGE_KEYS = ['logo', 'wordmark', 'heroImage', 'heroLogo', 'icon'] as const;
 export type ImageKey = (typeof IMAGE_KEYS)[number];
 
 export const DEFAULT_COLORS: Record<ColorKey, string> = {
@@ -18,6 +19,7 @@ export const DEFAULT_COLORS: Record<ColorKey, string> = {
 export const DEFAULT_IMAGES: Record<ImageKey, string> = {
 	logo: '/brand/deku-mark.png',
 	wordmark: '/brand/deku-wordmark.png',
+	heroImage: '/hero/banner-1920.webp',
 	heroLogo: '/hero/burger-1200.webp',
 	icon: '/icon-512.png'
 };
@@ -28,13 +30,16 @@ export interface Branding {
 	images: Record<ImageKey, string>;
 	/** True for the images the owner uploaded. */
 	custom: Record<ImageKey, boolean>;
+	/** The home page's arrangement (see home.ts). */
+	home: HomeLayout;
 }
 
 export function defaultBranding(): Branding {
 	return {
 		colors: { primary: null, dark: null, background: null },
 		images: { ...DEFAULT_IMAGES },
-		custom: { logo: false, wordmark: false, heroLogo: false, icon: false }
+		custom: { logo: false, wordmark: false, heroImage: false, heroLogo: false, icon: false },
+		home: { ...DEFAULT_HOME }
 	};
 }
 
@@ -44,6 +49,7 @@ const COLUMNS: Record<ColorKey | ImageKey, string> = {
 	background: 'color_background',
 	logo: 'logo_path',
 	wordmark: 'wordmark_path',
+	heroImage: 'hero_image_path',
 	heroLogo: 'hero_logo_path',
 	icon: 'icon_path'
 };
@@ -55,6 +61,7 @@ let cache: { value: Branding; at: number } | undefined;
 export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promise<Branding> {
 	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
 	const [r] = await sql<Record<string, string | null>[]>`select * from store_branding where id = 1`;
+	const layout: unknown = (r as Record<string, unknown> | undefined)?.home_layout;
 	const colors = Object.fromEntries(
 		COLOR_KEYS.map((k) => [k, r?.[COLUMNS[k]] ?? null])
 	) as Branding['colors'];
@@ -68,7 +75,8 @@ export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promi
 		) as Branding['images'],
 		custom: Object.fromEntries(
 			IMAGE_KEYS.map((k) => [k, uploaded[k] !== null])
-		) as Branding['custom']
+		) as Branding['custom'],
+		home: parseHome(layout)
 	};
 	cache = { value, at: Date.now() };
 	return value;
@@ -98,6 +106,15 @@ export async function setBrandImage(key: ImageKey, path: string | null, actor: A
 		await tx`update store_branding set ${tx({ [COLUMNS[key]]: path })},
 			updated_by = ${actor.id}, updated_at = now() where id = 1`;
 		await audit(tx, actor, 'store.image_updated', 'store_branding', '1', { image: key, path });
+	});
+	cache = undefined;
+}
+
+export async function saveHome(layout: HomeLayout, actor: Actor) {
+	await db().begin(async (tx) => {
+		await tx`update store_branding set home_layout = ${tx.json(layout as never)},
+			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+		await audit(tx, actor, 'store.home_updated', 'store_branding', '1', { ...layout });
 	});
 	cache = undefined;
 }

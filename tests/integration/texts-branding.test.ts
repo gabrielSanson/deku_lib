@@ -2,7 +2,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { closeDb, db } from '#lib/server/db.ts';
 import { DomainError } from '#lib/server/errors.ts';
-import { getBranding, saveColors, setBrandImage, themeCss } from '#lib/server/settings/branding.ts';
+import {
+	getBranding,
+	saveColors,
+	saveHome,
+	setBrandImage,
+	themeCss
+} from '#lib/server/settings/branding.ts';
+import { DEFAULT_HOME } from '#lib/server/settings/home.ts';
 import { getTexts, listTextsForEditor, saveTexts } from '#lib/server/settings/texts.ts';
 import { makeStaff } from './helpers.ts';
 
@@ -92,5 +99,13 @@ describe('branding', () => {
 		await setBrandImage('logo', null, owner);
 		b = await getBranding();
 		expect(b.images.logo).toBe('/brand/deku-mark.png');
+	});
+
+	it('saves the home layout and reads it back', async () => {
+		expect((await getBranding(db(), { fresh: true })).home.heroAlign).toBe('left');
+		await saveHome({ ...DEFAULT_HOME, heroAlign: 'center', secondaryHref: '/p/sobre' }, owner);
+		const b = await getBranding();
+		expect(b.home).toMatchObject({ heroAlign: 'center', secondaryHref: '/p/sobre' });
+		expect(b.images.heroImage).toBe('/hero/banner-1920.webp');
 	});
 });

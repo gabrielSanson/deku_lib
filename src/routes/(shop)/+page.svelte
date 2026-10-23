@@ -16,15 +16,28 @@
 			.filter((c) => c.products.length)
 	);
 
-	// A "Destaques" or "Mais pedidos" category picks the featured row; without one,
-	// the first products with a photo stand in.
-	const featured = $derived.by(() => {
-		const pick = categories.find((c) => /destaque|mais pedidos|popular/i.test(c.name));
+	// The layout the owner picked in Configurações → Página inicial.
+	const home = $derived(data.branding.home);
+	const images = $derived(data.branding.images);
+	// The built-in photo comes in two sizes; an uploaded one is used as it is.
+	const heroSrcset = $derived(
+		data.branding.custom.heroImage
+			? undefined
+			: '/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w'
+	);
+	const centered = $derived(home.heroAlign === 'center');
+	const cutout = $derived(home.heroCutout && !centered);
+
+	// The owner's chosen category fills the featured row. Without one, a "Destaques" or
+	// "Mais pedidos" category does; failing that, the first products with a photo.
+	const quickMenu = $derived.by(() => {
+		const pick =
+			categories.find((c) => c.id === home.featuredCategoryId) ??
+			categories.find((c) => /destaque|mais pedidos|popular/i.test(c.name));
 		const pool = pick ? pick.products : categories.flatMap((c) => c.products);
-		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, 8);
+		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, home.featuredCount);
 	});
-	// Quick menu: three burgers, as in mockup 01 ("Burgers que todo mundo ama").
-	const quickMenu = $derived(featured.slice(0, 3));
+	const external = (href: string) => (href.startsWith('https://') ? '_blank' : undefined);
 	const titleLines = $derived(t('home.hero.title').split('\n'));
 
 	const modes = $derived(
@@ -46,31 +59,40 @@
 <section class="relative isolate overflow-hidden bg-night text-white" {@attach heroMotion}>
 	<img
 		data-hero-bg
-		src="/hero/banner-1920.webp"
-		srcset="/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w"
+		src={images.heroImage}
+		srcset={heroSrcset}
 		sizes="100vw"
 		alt=""
 		class="absolute inset-x-0 -top-[10%] -z-10 h-[120%] w-full object-cover"
 		fetchpriority="high"
 	/>
 	<div
-		class="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/70 to-night/10 md:bg-gradient-to-r md:from-night md:from-20% md:via-night/60 md:via-45% md:to-transparent md:to-75%"
+		class="absolute inset-0 -z-10 {centered
+			? 'bg-gradient-to-t from-night via-night/70 to-night/30'
+			: 'bg-gradient-to-t from-night via-night/70 to-night/10 md:bg-gradient-to-r md:from-night md:from-20% md:via-night/60 md:via-45% md:to-transparent md:to-75%'}"
 	></div>
 
 	<div
-		class="mx-auto grid min-h-[30rem] max-w-7xl items-center gap-2 px-5 pt-20 pb-8 sm:px-8 md:min-h-[36rem] md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:gap-6 md:pt-12 lg:px-6"
+		class="mx-auto grid max-w-7xl items-center gap-2 px-5 sm:px-8 md:gap-6 lg:px-6 {home.heroSize ===
+		'compact'
+			? 'min-h-[22rem] pt-14 pb-8 md:min-h-[26rem] md:pt-10'
+			: 'min-h-[30rem] pt-20 pb-8 md:min-h-[36rem] md:pt-12'} {centered
+			? 'justify-items-center text-center'
+			: 'md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]'}"
 	>
 		<div class="max-w-xl">
-			<span
-				data-hero-in
-				class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-sm font-semibold backdrop-blur"
-			>
+			{#if home.showStatus}
 				<span
-					class="size-2 rounded-full {data.store.open ? 'bg-green-500' : 'bg-red-500'}"
-					aria-hidden="true"
-				></span>
-				{t(data.store.open ? 'home.hero.open' : 'home.hero.closed', { name: data.shopName })}
-			</span>
+					data-hero-in
+					class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-sm font-semibold backdrop-blur"
+				>
+					<span
+						class="size-2 rounded-full {data.store.open ? 'bg-green-500' : 'bg-red-500'}"
+						aria-hidden="true"
+					></span>
+					{t(data.store.open ? 'home.hero.open' : 'home.hero.closed', { name: data.shopName })}
+				</span>
+			{/if}
 			<p data-hero-in class="mt-4 text-sm font-bold tracking-[0.18em] text-brand-500 uppercase">
 				{t('home.hero.eyebrow')}
 			</p>
@@ -85,29 +107,62 @@
 					{/each}
 				</span>
 			</h1>
-			<p data-hero-in class="mt-4 max-w-md text-base text-stone-200 sm:text-lg">
+			<p
+				data-hero-in
+				class="mt-4 max-w-md text-base text-stone-200 sm:text-lg {centered ? 'mx-auto' : ''}"
+			>
 				{t('home.hero.text')}
 			</p>
-			<div data-hero-in class="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
-				<a href="/cardapio" class="btn-primary btn-lg px-7">
+			<div
+				data-hero-in
+				class="mt-7 flex flex-wrap items-center gap-3 {centered ? 'justify-center' : ''}"
+			>
+				<a
+					href={home.primaryHref}
+					target={external(home.primaryHref)}
+					class="btn-primary btn-lg px-7"
+				>
 					{t('home.hero.cta')}
 					<Icon name="arrow" />
 				</a>
-			</div>
-			<ul data-hero-in class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200">
-				{#each modes as m (m.label)}
-					<li class="flex items-center gap-2">
-						<Icon name={m.icon} class="size-5 text-brand-500" />{m.label}
-					</li>
-				{/each}
-				{#if data.store.open}
-					<li class="flex items-center gap-2">
-						<Icon name="clock" class="size-5 text-brand-500" />
-						{t('home.hero.prepTime', { minutes: data.store.prepTimeMinutes })}
-					</li>
+				{#if home.secondaryHref}
+					<a
+						href={home.secondaryHref}
+						target={external(home.secondaryHref)}
+						class="btn btn-lg border border-white/30 bg-black/30 px-7 text-white backdrop-blur hover:bg-white/10"
+						>{t('home.hero.cta2')}</a
+					>
 				{/if}
-			</ul>
+			</div>
+			{#if home.showModes}
+				<ul
+					data-hero-in
+					class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200 {centered
+						? 'justify-center'
+						: ''}"
+				>
+					{#each modes as m (m.label)}
+						<li class="flex items-center gap-2">
+							<Icon name={m.icon} class="size-5 text-brand-500" />{m.label}
+						</li>
+					{/each}
+					{#if data.store.open}
+						<li class="flex items-center gap-2">
+							<Icon name="clock" class="size-5 text-brand-500" />
+							{t('home.hero.prepTime', { minutes: data.store.prepTimeMinutes })}
+						</li>
+					{/if}
+				</ul>
+			{/if}
 		</div>
+		{#if cutout}
+			<img
+				data-hero-in
+				src={images.heroLogo}
+				alt=""
+				class="hidden max-h-[28rem] w-full object-contain drop-shadow-2xl md:block"
+			/>
+		{/if}
 	</div>
 </section>
 
@@ -117,7 +172,7 @@
 	{/if}
 
 	<!-- Quick menu: three burgers (mockup 01 "Nossos destaques") -->
-	{#if quickMenu.length}
+	{#if home.showFeatured && quickMenu.length}
 		<section aria-labelledby="home-destaques">
 			<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 				<div>
@@ -166,12 +221,14 @@
 					</li>
 				{/each}
 			</ul>
-			<div class="mt-8 flex justify-center">
-				<a href="/cardapio" class="btn-primary btn-lg px-7">
-					{t('home.menuButton')}
-					<Icon name="arrow" />
-				</a>
-			</div>
 		</section>
+	{/if}
+	{#if home.showMenuButton && categories.length}
+		<div class="flex justify-center">
+			<a href="/cardapio" class="btn-primary btn-lg px-7">
+				{t('home.menuButton')}
+				<Icon name="arrow" />
+			</a>
+		</div>
 	{/if}
 </div>

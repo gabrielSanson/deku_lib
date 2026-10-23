@@ -35,7 +35,6 @@ export type TextGroup = keyof typeof TEXT_GROUPS;
 
 const CORE_TEXTS = {
 	// Customer account
-	'account.tab': { group: 'account', label: 'Aba Conta (celular)', default: 'Conta' },
 	'account.title': { group: 'account', label: 'Entrar: título', default: 'Sua conta, seu pedido.' },
 	'account.subtitle': {
 		group: 'account',
@@ -242,20 +241,21 @@ const CORE_TEXTS = {
 	// Header and footer
 	'header.home': { group: 'header', label: 'Logo (leitor de tela)', default: '{name}, início' },
 	'header.nav.home': { group: 'header', label: 'Menu: Início', default: 'Início' },
-	'header.nav.tabs': {
-		group: 'header',
-		label: 'Abas do celular (leitor de tela)',
-		default: 'Navegação'
-	},
 	'header.nav.menu': { group: 'header', label: 'Menu: Cardápio', default: 'Cardápio' },
-	'header.nav.mine': { group: 'header', label: 'Menu: Meus pedidos', default: 'Meus pedidos' },
-	'header.order': { group: 'header', label: 'Botão Fazer pedido', default: 'Fazer pedido' },
+	'header.more': { group: 'header', label: 'Botão ··· (leitor de tela)', default: 'Mais opções' },
+	'header.more.account': {
+		group: 'header',
+		label: 'Menu ···: Minha conta',
+		default: 'Minha conta'
+	},
+	'header.more.signIn': { group: 'header', label: 'Menu ···: Entrar', default: 'Entrar' },
+	'header.more.cart': { group: 'header', label: 'Menu ···: Carrinho', default: 'Carrinho' },
+	'header.more.dark': { group: 'header', label: 'Menu ···: Modo escuro', default: 'Modo escuro' },
 	'header.nav.track': {
 		group: 'header',
 		label: 'Menu: Acompanhar pedido',
 		default: 'Acompanhar pedido'
 	},
-	'header.tab.track': { group: 'header', label: 'Aba Pedidos (celular)', default: 'Pedidos' },
 	'header.cart': {
 		group: 'header',
 		label: 'Botão do carrinho (leitor de tela)',
@@ -275,14 +275,6 @@ const CORE_TEXTS = {
 		group: 'header',
 		label: 'Frase do rodapé',
 		default: 'Burger de verdade é aqui'
-	},
-	'footer.about': { group: 'header', label: 'Rodapé: Sobre', default: 'Sobre' },
-	'footer.allergens': { group: 'header', label: 'Rodapé: Alergênicos', default: 'Alergênicos' },
-	'footer.privacy': { group: 'header', label: 'Rodapé: Privacidade', default: 'Privacidade' },
-	'footer.delivery': {
-		group: 'header',
-		label: 'Rodapé: Entrega e trocas',
-		default: 'Entrega e trocas'
 	},
 
 	// Home
@@ -348,6 +340,7 @@ const CORE_TEXTS = {
 		default: 'Ver todo o cardápio'
 	},
 	'home.hero.cta': { group: 'home', label: 'Destaque: botão', default: 'Ver cardápio' },
+	'home.hero.cta2': { group: 'home', label: 'Destaque: segundo botão', default: 'Saiba mais' },
 	'home.menuButton': {
 		group: 'home',
 		label: 'Destaques: botão Ver cardápio',

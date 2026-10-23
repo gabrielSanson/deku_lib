@@ -48,6 +48,11 @@ export const STAFF_LABEL_TEXTS = {
 	'nav.dadosEPix': { group: g, label: 'Menu da equipe: dados e pix', default: 'Dados e Pix' },
 	'nav.notaFiscal': { group: g, label: 'Menu da equipe: nota fiscal', default: 'Nota fiscal' },
 	'nav.aparencia': { group: g, label: 'Menu da equipe: aparência', default: 'Aparência' },
+	'nav.paginaInicial': {
+		group: g,
+		label: 'Menu da equipe: página inicial',
+		default: 'Página inicial'
+	},
 	'nav.textosDoSite': {
 		group: g,
 		label: 'Menu da equipe: textos do site',

@@ -4,11 +4,11 @@
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import { lastOrder } from '#lib/client/last-order.ts';
-	import ThemeToggle from '#lib/components/molecules/ThemeToggle.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import CartPanel from './CartPanel.svelte';
+	import MoreMenu from './MoreMenu.svelte';
 
 	let { data, children } = $props();
 	const t = useTexts();
@@ -71,12 +71,12 @@
 	const onCheckout = $derived(
 		path.startsWith('/cart') || path.startsWith('/checkout') || path.startsWith('/orders')
 	);
-	const showTabs = $derived(
-		!data.kiosk && (path.startsWith('/orders') || !(onCheckout || path.startsWith('/menu/')))
-	);
 	// The tracking page is a slim shell: the code and the steps, no storefront footer.
 	const slim = $derived(path.startsWith('/orders/'));
-	const showCartBar = $derived(cart.count > 0 && !onCheckout && !cart.panelOpen);
+	// The product page has its own bottom bar with the add button.
+	const showCartBar = $derived(
+		cart.count > 0 && !onCheckout && !cart.panelOpen && !path.startsWith('/menu/')
+	);
 
 	const close = () => (cart.panelOpen = false);
 
@@ -97,58 +97,14 @@
 		cart.panelOpen = false;
 	});
 
+	// The header holds only the two places to go; everything else is in the ··· menu.
 	const nav = $derived([
-		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'burger' as const, active: isMenu },
-		...(orderToken
-			? [
-					{
-						href: `/orders/${orderToken}`,
-						label: t('header.nav.track'),
-						icon: 'pin' as const,
-						active: path.startsWith('/orders')
-					}
-				]
-			: [])
+		{ href: '/', label: t('header.nav.home'), active: isHome },
+		{ href: '/cardapio', label: t('header.nav.menu'), active: isMenu }
 	]);
-
-	// Desktop header: Cardápio, Meus pedidos (the account page lists orders).
-	const desktopNav = $derived([
-		nav[0],
-		...(data.kiosk
-			? []
-			: [
-					{
-						href: data.customer ? '/conta' : '/conta/entrar',
-						label: t('header.nav.mine'),
-						icon: 'bag' as const,
-						active: path.startsWith('/conta')
-					}
-				])
-	]);
-
 	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
 	// Order tracking has its own slim header (mockup 10): back arrow, wordmark and mascot.
 	const slimHeader = $derived(path.startsWith('/orders/'));
-	const tabs = $derived([
-		{ href: '/', label: t('header.nav.home'), icon: 'home' as const, active: isHome },
-		{ href: '/cardapio', label: t('header.nav.menu'), icon: 'menu' as const, active: isMenu },
-		...(orderToken
-			? [
-					{
-						href: `/orders/${orderToken}`,
-						label: t('header.tab.track'),
-						icon: 'receipt' as const,
-						active: path.startsWith('/orders')
-					}
-				]
-			: []),
-		{
-			href: accountHref,
-			label: t('account.tab'),
-			icon: 'user' as const,
-			active: path.startsWith('/conta')
-		}
-	]);
 </script>
 
 <svelte:head>
@@ -180,67 +136,50 @@
 	{:else}
 		<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
 			<div
-				class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 lg:px-6"
+				class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
 			>
 				<a
 					href="/"
 					class="flex shrink-0 items-center gap-2.5"
 					aria-label={t('header.home', { name: data.shopName })}
 				>
-					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-14" />
-					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
+					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
+					<img
+						src={data.branding.images.wordmark}
+						alt={data.shopName}
+						class="hidden h-7 w-auto sm:block"
+					/>
 				</a>
-				<nav class="hidden items-center gap-1 md:flex" aria-label={t('shell.shopNav')}>
-					{#each desktopNav as n (n.href)}
+				<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
+					{#each nav as n (n.href)}
 						<a
 							href={n.href}
-							class="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold transition-colors {n.active
-								? 'bg-brand-500 text-black'
-								: 'text-stone-100 hover:bg-night-2 hover:text-brand-400'}"
+							class="relative px-3 py-2 text-[15px] font-semibold transition-colors sm:px-4 {n.active
+								? 'text-white'
+								: 'text-stone-300 hover:text-white'}"
 							aria-current={n.active ? 'page' : undefined}
 						>
-							<Icon name={n.icon} />{n.label}
+							{n.label}
+							{#if n.active}<span
+									class="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 sm:inset-x-4"
+									aria-hidden="true"
+								></span>{/if}
 						</a>
 					{/each}
 				</nav>
-				<a
-					href="/cardapio"
-					class="hidden shrink-0 items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-[15px] font-black text-black transition-colors hover:bg-brand-400 md:flex"
-					>{t('header.order')}</a
-				>
 				{#if data.kiosk}
 					<button
 						type="button"
-						class="flex shrink-0 items-center gap-2 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
+						class="shrink-0 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
 						onclick={restart}>{t('header.kiosk.restart')}</button
 					>
 				{/if}
-				<a
-					href={accountHref}
-					class="hidden size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line {data.kiosk
-						? ''
-						: 'md:grid'} {path.startsWith('/conta') ? 'text-brand-500' : ''}"
-					aria-label={t('account.tab')}
-					aria-current={path.startsWith('/conta') ? 'page' : undefined}
-				>
-					<Icon name="user" class="size-7" strokeWidth={1.75} />
-				</a>
-				<ThemeToggle
-					class="grid size-10 place-items-center rounded-full bg-night-2 text-white transition-colors hover:bg-night-line md:size-12"
+				<MoreMenu
+					{accountHref}
+					signedIn={!!data.customer}
+					trackHref={orderToken ? `/orders/${orderToken}` : null}
+					kiosk={data.kiosk}
 				/>
-				<button
-					class="relative grid size-12 place-items-center rounded-full bg-night-2 transition-colors hover:bg-night-line"
-					onclick={() => (cart.panelOpen = true)}
-					aria-label={t('header.cart', { count: cart.count, items })}
-				>
-					<Icon name="cart" class="size-8" strokeWidth={1.75} />
-					{#if cart.count}
-						<span
-							class="absolute top-0.5 right-0 grid min-w-6 place-items-center rounded-full bg-brand-500 px-1 text-xs leading-6 font-black text-black tabular-nums"
-							>{cart.count}</span
-						>
-					{/if}
-				</button>
 			</div>
 			{#if !data.store.open}
 				<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
@@ -261,7 +200,7 @@
 		</div>
 	{/if}
 
-	{#if !slim}<footer class="bg-night pb-16 text-stone-400 md:pb-0">
+	{#if !slim}<footer class="bg-night text-stone-400 {showCartBar ? 'pb-20' : ''}">
 			<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
 				<p
 					class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
@@ -271,42 +210,17 @@
 					></span>
 				</p>
 				<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-					<a href="/p/sobre" class="hover:text-white">{t('footer.about')}</a>
-					<a href="/p/alergenicos" class="hover:text-white">{t('footer.allergens')}</a>
-					<a href="/p/privacidade" class="hover:text-white">{t('footer.privacy')}</a>
-					<a href="/p/entrega" class="hover:text-white">{t('footer.delivery')}</a>
+					{#each data.pages as p (p.slug)}
+						<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
+					{/each}
 				</nav>
 			</div>
 		</footer>{/if}
 
-	<!-- Bottom tabs on phones (mockup 03); the product page has its own bottom bar. -->
-	{#if showTabs}
-		<nav
-			class="fixed inset-x-0 bottom-0 z-30 border-t border-night-line bg-night pb-[env(safe-area-inset-bottom)] text-stone-300 md:hidden"
-			aria-label={t('header.nav.tabs')}
-		>
-			<ul class="mx-auto flex max-w-md">
-				{#each tabs as tab (tab.href)}
-					<li class="flex-1">
-						<a
-							href={tab.href}
-							class="flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold {tab.active
-								? 'text-brand-500'
-								: 'hover:text-white'}"
-							aria-current={tab.active ? 'page' : undefined}
-						>
-							<Icon name={tab.icon} class="size-6" />{tab.label}
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</nav>
-	{/if}
-
 	{#if showCartBar}
 		<button
 			onclick={() => (cart.panelOpen = true)}
-			class="fixed inset-x-4 bottom-20 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10 md:bottom-4"
+			class="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-3xl items-center justify-between rounded-full bg-brand-500 px-6 py-4 font-bold text-black shadow-xl ring-2 ring-black/10"
 		>
 			<span class="flex items-center gap-2"
 				><Icon name="cart" /> {t('cart.view', { count: cart.count, items })}</span
