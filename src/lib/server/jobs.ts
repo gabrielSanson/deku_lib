@@ -13,7 +13,8 @@ export const QUEUES = {
 	ifoodPoll: 'ifood-poll',
 	ifoodEvent: 'ifood-event',
 	ifoodSync: 'ifood-sync',
-	paymentEvent: 'payment-event'
+	paymentEvent: 'payment-event',
+	fiscalIssue: 'fiscal-issue'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 

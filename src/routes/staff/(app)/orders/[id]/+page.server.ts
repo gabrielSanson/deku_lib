@@ -1,7 +1,13 @@
 import { error, fail } from '@sveltejs/kit';
 import { ORDER_STATUSES, type OrderStatus } from '#lib/domain/order-status.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import {
+	cancelFiscal,
+	getFiscalSettings,
+	listFiscalDocuments,
+	retryFiscal
+} from '#lib/server/fiscal/service.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { refundTender } from '#lib/server/payments/tenders.ts';
@@ -14,7 +20,14 @@ export const load: PageServerLoad = async (event) => {
 	if (!order) error(404, 'Pedido não encontrado.');
 	// Kitchen staff do not need customer contact or address details.
 	if (staff.role === 'kitchen') order.address = null;
-	return { order };
+	const fiscal =
+		staff.role === 'kitchen'
+			? null
+			: {
+					enabled: (await getFiscalSettings()).enabled,
+					documents: await listFiscalDocuments(order.id)
+				};
+	return { order, fiscal };
 };
 
 export const actions: Actions = {
@@ -44,6 +57,21 @@ export const actions: Actions = {
 				formString(data, 'reason'),
 				staffActor(staff)
 			);
+			return { ok: true };
+		});
+	},
+	fiscalRetry: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		return attempt(async () => {
+			await retryFiscal(event.params.id, staffActor(staff));
+			return { ok: true };
+		});
+	},
+	fiscalCancel: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const data = await event.request.formData();
+		return attempt(async () => {
+			await cancelFiscal(event.params.id, formString(data, 'reason'), staffActor(staff));
 			return { ok: true };
 		});
 	}

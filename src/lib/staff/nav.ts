@@ -81,6 +81,7 @@ export const SETTINGS_LINKS: NavLink[] = [
 	{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
 	{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
 	{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
+	{ href: '/staff/settings/fiscal', label: 'Nota fiscal', icon: 'receipt' },
 	{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
 	{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },
 	{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck' },

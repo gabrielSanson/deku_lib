@@ -2,6 +2,7 @@
 // these with pg-boss; they are plain functions so tests can call them directly.
 // Every handler is idempotent because pg-boss delivers at least once.
 import { db } from '../db';
+import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
 import { sendReadyPush } from '../notifications/push';
 import { expireUnpaidCheckouts, processPaymentEvent } from '../payments/online';
@@ -31,6 +32,12 @@ export async function handleOrderPlaced(data: { orderId: string }) {
 export async function handleOrderReady(data: { orderId: string }) {
 	const result = await sendReadyPush(data.orderId);
 	if (result.sent || result.failed) log('ready alert', { orderId: data.orderId, ...result });
+}
+
+/** A paid order gets its NFC-e. Provider errors throw, so pg-boss retries with backoff. */
+export async function handleFiscalIssue(data: { orderId: string }) {
+	const result = await issueFiscalForOrder(data.orderId);
+	if (!('skipped' in result)) log('fiscal note', { orderId: data.orderId, ...result });
 }
 
 export async function handlePaymentEvent(data: { paymentEventId: string }) {
@@ -64,6 +71,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.orderPlaced]: handleOrderPlaced as Handler,
 		[QUEUES.orderReady]: handleOrderReady as Handler,
 		[QUEUES.paymentEvent]: handlePaymentEvent as Handler,
+		[QUEUES.fiscalIssue]: handleFiscalIssue as Handler,
 		[QUEUES.staleOrders]: handleStaleOrders as Handler,
 		...extra
 	};

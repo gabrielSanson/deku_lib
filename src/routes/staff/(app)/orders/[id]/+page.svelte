@@ -31,6 +31,15 @@
 	);
 	const manager = $derived(data.staff.role === 'admin');
 	let refunding = $state<string | null>(null);
+	let cancellingNote = $state(false);
+	const FISCAL_LABEL = {
+		pending: 'Enviando…',
+		authorized: 'Autorizada',
+		rejected: 'Rejeitada',
+		error: 'Erro, tentando de novo',
+		cancelled: 'Cancelada'
+	} as const;
+	const note = $derived(data.fiscal?.documents[0]);
 </script>
 
 <svelte:head><title>{t('orderDetail.detailTitle', { n: o.orderNumber })}</title></svelte:head>
@@ -232,5 +241,69 @@
 				>
 			{/if}
 		</div>
+		{#if data.fiscal && (data.fiscal.enabled || note)}
+			<div class="space-y-2 card p-3 text-sm">
+				<h2 class="font-semibold">Nota fiscal (NFC-e)</h2>
+				{#if !note}
+					<p class="text-muted">
+						{o.paymentStatus === 'paid'
+							? 'Nenhuma nota emitida para este pedido.'
+							: 'A nota é emitida quando o pedido estiver pago.'}
+					</p>
+				{:else}
+					<div class="flex justify-between">
+						<span
+							>{note.number ? `Nº ${note.number}` : ''}{note.series
+								? ` · série ${note.series}`
+								: ''}
+							{note.environment === 'homologacao' ? '· teste' : ''}</span
+						>
+						<strong class={['rejected', 'error'].includes(note.status) ? 'text-bad' : ''}
+							>{FISCAL_LABEL[note.status]}</strong
+						>
+					</div>
+					{#if note.accessKey}<p class="font-mono text-xs break-all text-muted">
+							{note.accessKey}
+						</p>{/if}
+					{#if note.errorMessage}<p class="text-bad">{note.errorMessage}</p>{/if}
+					{#if note.danfeUrl}<a class="btn-secondary w-full" href={note.danfeUrl} target="_blank"
+							>Abrir DANFE</a
+						>{/if}
+				{/if}
+				{#if manager && o.paymentStatus === 'paid' && (!note || ['rejected', 'error', 'cancelled'].includes(note.status))}
+					<form method="POST" action="?/fiscalRetry" use:enhance>
+						<button class="btn-secondary w-full">Emitir nota de novo</button>
+					</form>
+				{/if}
+				{#if manager && note?.status === 'authorized'}
+					{#if cancellingNote}
+						<form
+							method="POST"
+							action="?/fiscalCancel"
+							class="space-y-1"
+							use:enhance={() =>
+								async ({ update }) => {
+									await update();
+									cancellingNote = false;
+								}}
+						>
+							<input
+								class="field"
+								name="reason"
+								minlength="15"
+								placeholder="Motivo (mínimo 15 letras)"
+								required
+							/>
+							<button class="btn-danger min-h-9 w-full">Cancelar a nota</button>
+						</form>
+					{:else}
+						<button
+							class="btn-ghost min-h-8 text-xs text-bad"
+							onclick={() => (cancellingNote = true)}>Cancelar nota</button
+						>
+					{/if}
+				{/if}
+			</div>
+		{/if}
 	</aside>
 </main>

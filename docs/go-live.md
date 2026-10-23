@@ -90,6 +90,13 @@ sound. Delivery orders are not shown.
 
 ## 5. Optional parts
 
+### Nota fiscal (NFC-e)
+
+Off by default. The owner's accountant follows [nota-fiscal.md](nota-fiscal.md) (CNPJ + IE,
+A1 certificate, CSC, Focus NFe account and API token, NCM/CFOP/CSOSN), then an admin fills in
+**Configurações → Nota fiscal**, tests in homologação and switches to produção. Paid non-iFood
+orders get a `fiscal-issue` job; status, DANFE link, retry and cancel are on the order page.
+
 ### iFood
 
 The integration was written from iFood's public docs and has not been through

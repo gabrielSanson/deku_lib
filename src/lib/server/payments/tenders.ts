@@ -6,6 +6,7 @@ import { audit, type Actor } from '../audit';
 import { recordCashRefund, recordCashSale } from '../cash/service';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
+import { queueFiscalIssue } from '../fiscal/service';
 import { confirmIfPaid } from '../orders/service';
 
 export const MANUAL_METHODS = ['cash', 'external_pix', 'terminal_card', 'softpos_nfc'] as const;
@@ -124,6 +125,8 @@ export async function refreshPaymentStatus(tx: Tx | Db, orderId: string): Promis
 	else next = o.payment_status === 'paid' ? 'paid' : 'pending';
 	if (next !== o.payment_status) {
 		await tx`update orders set payment_status = ${next} where id = ${orderId}`;
+		// A fully paid order gets its NFC-e when the shop has turned notes on.
+		if (next === 'paid') await queueFiscalIssue(tx, orderId);
 	}
 	return next;
 }
