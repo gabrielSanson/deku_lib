@@ -3,7 +3,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { callOrder, createOrder, transitionOrder } from '#lib/server/orders/service.ts';
-import { getOrderDetail, getPublicOrder, listKitchenOrders } from '#lib/server/orders/queries.ts';
+import {
+	getOrderDetail,
+	getPublicOrder,
+	listBoardOrders,
+	listKitchenOrders
+} from '#lib/server/orders/queries.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
 import { setSoldOut, updateStoreSettings } from '#lib/server/settings/service.ts';
 import { classic, ensureCashOpen, makeStaff } from './helpers.ts';
@@ -419,5 +424,33 @@ describe('calling a ready order', () => {
 		expect(detail?.fulfillmentType).toBe('dine_in');
 		expect(detail?.tableLabel).toBe('7');
 		expect(detail?.customerLabel).toBe('Ana');
+	});
+});
+
+describe('room board', () => {
+	it('shows codes of counter orders by stage and leaves delivery out', async () => {
+		const o = await counterOrder();
+		await recordManualTender({
+			orderId: o.id,
+			method: 'terminal_card',
+			amountCents: o.totalCents,
+			providerReference: 'NSU-BOARD',
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		let board = await listBoardOrders();
+		expect(board.find((b) => b.code === String(o.orderNumber))).toMatchObject({
+			status: 'preparing',
+			alertKey: null
+		});
+		await transitionOrder({ orderId: o.id, to: 'preparing', actor: kitchen });
+		await transitionOrder({ orderId: o.id, to: 'ready', actor: kitchen });
+		board = await listBoardOrders();
+		const ready = board.find((b) => b.code === String(o.orderNumber));
+		expect(ready?.status).toBe('ready');
+		expect(ready?.alertKey).toBeTruthy();
+		await db()`update orders set fulfillment_type = 'delivery' where id = ${o.id}`;
+		board = await listBoardOrders();
+		expect(board.find((b) => b.code === String(o.orderNumber))).toBeUndefined();
 	});
 });

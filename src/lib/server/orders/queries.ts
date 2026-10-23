@@ -1,6 +1,7 @@
 // Read models for the staff hub, kitchen display and customer status page.
 import type { OrderStatus, PaymentStatus } from '#lib/domain/order-status.ts';
 import type { PaymentPlan } from '#lib/domain/payment-rules.ts';
+import { pickupCode } from '#lib/domain/pickup.ts';
 import { db, type Db } from '../db';
 
 export interface OrderModifierView {
@@ -194,6 +195,34 @@ export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]>
 		order by coalesce(accepted_at, created_at)
 		limit 200`;
 	return withItems(sql, rows);
+}
+
+export interface BoardOrder {
+	code: string;
+	status: 'preparing' | 'ready';
+	/** Changes when the order turns ready or staff tap "Chamar", so the room screen can chime. */
+	alertKey: string | null;
+}
+
+/**
+ * What the customer screen in the room shows: pickup codes only, no names or
+ * items. Delivery orders are left out, nobody waits for them in the room.
+ */
+export async function listBoardOrders(sql: Db = db()): Promise<BoardOrder[]> {
+	const rows = await sql<
+		{ order_number: number; status: string; ready_at: Date | null; called_at: Date | null }[]
+	>`
+		select order_number, status, ready_at, called_at from orders
+		where fulfillment_type <> 'delivery' and not is_test
+			and (status in ('confirmed', 'preparing')
+				or (status = 'ready' and ready_at > now() - interval '30 minutes'))
+		order by coalesce(ready_at, accepted_at, created_at)
+		limit 60`;
+	return rows.map((r) => ({
+		code: pickupCode(r.order_number),
+		status: r.status === 'ready' ? 'ready' : 'preparing',
+		alertKey: r.status === 'ready' ? `${r.order_number}:${+(r.called_at ?? r.ready_at ?? 0)}` : null
+	}));
 }
 
 export interface OrderDetail extends OrderSummary {

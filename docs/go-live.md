@@ -83,6 +83,11 @@ Staff can also print the kitchen ticket or the customer receipt from any order
 page (**Imprimir comanda**, **Imprimir recibo**) and the receipt right after a
 counter sale. The receipt says it is not a fiscal document.
 
+**Room screen.** Open `/painel` on the TV in the dining room (no login). It shows
+order codes under "Preparando" and "Pronto", refreshes every 4 seconds and chimes
+when an order is ready or called again. Tap the screen once so the browser allows
+sound. Delivery orders are not shown.
+
 ## 5. Optional parts
 
 ### iFood

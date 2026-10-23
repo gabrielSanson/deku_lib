@@ -1388,6 +1388,22 @@ export const TEXTS = {
 		label: 'Pedidos: título da aba do navegador',
 		default: 'Pedidos · Equipe'
 	},
+	'board.preparing': { group: 'order', label: 'Painel da loja: preparando', default: 'Preparando' },
+	'board.ready': {
+		group: 'order',
+		label: 'Painel da loja: pronto',
+		default: 'Pronto! Retire no balcão'
+	},
+	'board.empty': {
+		group: 'order',
+		label: 'Painel da loja: sem pedidos',
+		default: 'Nenhum pedido agora'
+	},
+	'board.sound': {
+		group: 'order',
+		label: 'Painel da loja: ativar som',
+		default: 'Toque na tela para ativar o som'
+	},
 	'orderDetail.printKitchen': {
 		group: 'staff',
 		label: 'Pedido: imprimir comanda',
