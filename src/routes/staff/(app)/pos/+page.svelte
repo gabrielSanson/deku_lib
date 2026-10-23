@@ -37,6 +37,8 @@
 		couponBlocks: boolean;
 	} | null>(null);
 	let busy = $state(false);
+	// On a phone the ticket is a full-screen panel opened from the bottom bar (waiter at the table).
+	let ticketOpen = $state(false);
 	let searchEl = $state<HTMLInputElement>();
 	let payEl = $state<HTMLButtonElement>();
 	// One key per cart: a double tap or a retry after a timeout cannot create two orders.
@@ -210,13 +212,33 @@
 		</header>
 
 		<POSProductGrid {products} {soldOut} onpick={pick} />
+
+		{#if lines.length}
+			<button
+				type="button"
+				class="m-3 btn-primary btn-lg justify-between lg:hidden"
+				onclick={() => (ticketOpen = true)}
+			>
+				<span>{itemCount} {itemsLabel(itemCount)} · {t('pos.viewTicket')}</span>
+				<Money cents={total} class="font-black" />
+			</button>
+		{/if}
 	</section>
 
 	<aside
-		class="flex min-h-0 flex-col border-l border-line bg-surface"
+		class="{ticketOpen
+			? 'fixed inset-0 z-40 flex'
+			: 'hidden'} min-h-0 flex-col border-l border-line bg-surface lg:static lg:z-auto lg:flex"
 		aria-label={t('pos.current')}
 	>
 		<div class="flex-1 space-y-3 overflow-y-auto p-4">
+			<button
+				type="button"
+				class="btn-ghost min-h-9 px-2 lg:hidden"
+				onclick={() => (ticketOpen = false)}
+			>
+				← {t('pos.backToMenu')}
+			</button>
 			<div class="flex items-baseline justify-between">
 				<h2 class="font-display text-2xl font-extrabold">{t('pos.current')}</h2>
 				<span class="text-sm text-muted">{itemCount} {itemsLabel(itemCount)}</span>
@@ -257,6 +279,15 @@
 					Já pago no iFood. Confirme e atualize o pedido também no app do iFood.
 				</p>
 			{/if}
+			{#if fulfillmentType === 'dine_in'}
+				<input
+					class="field"
+					placeholder={t('pos.table')}
+					maxlength="20"
+					bind:value={tableLabel}
+					aria-label={t('pos.table')}
+				/>
+			{/if}
 			<input
 				class="field"
 				placeholder={t('pos.nameField')}
@@ -269,15 +300,6 @@
 			<details class="rounded-(--radius-control) border border-line p-3">
 				<summary class="cursor-pointer text-sm font-semibold">{t('pos.more')}</summary>
 				<div class="mt-3 space-y-2">
-					{#if fulfillmentType === 'dine_in'}
-						<input
-							class="field"
-							placeholder={t('pos.table')}
-							maxlength="20"
-							bind:value={tableLabel}
-							aria-label={t('pos.table')}
-						/>
-					{/if}
 					{#if fulfillmentType !== 'ifood'}
 						<input
 							class="field"

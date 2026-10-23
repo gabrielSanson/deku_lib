@@ -1885,6 +1885,12 @@ export const TEXTS = {
 		label: 'Caixa: filtro todos',
 		default: 'Todos'
 	},
+	'pos.viewTicket': { group: 'staff', label: 'Caixa (celular): ver pedido', default: 'Ver pedido' },
+	'pos.backToMenu': {
+		group: 'staff',
+		label: 'Caixa (celular): voltar aos produtos',
+		default: 'Voltar aos produtos'
+	},
 	'pos.current': {
 		group: 'staff',
 		label: 'Caixa: título pedido atual',
