@@ -2,6 +2,7 @@
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { untrack } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import Icon from '#lib/components/atoms/Icon.svelte';
@@ -22,15 +23,48 @@
 			.map((c) => ({ ...c, products: data.catalog.products.filter((p) => p.categoryId === c.id) }))
 			.filter((c) => c.products.length)
 	);
-	// The home page's category tiles link here as /cardapio?categoria=<slug>.
-	let selected = $state<string | null>(
-		untrack(
-			() =>
-				data.catalog.categories.find((c) => c.slug === page.url.searchParams.get('categoria'))
-					?.id ?? null
-		)
+	// The filters live in the address (?categoria=<slug>&q=<text>), so a filtered menu can be
+	// shared, reloaded and reached with Back. The home page's category tiles link here that way.
+	const selected = $derived(
+		data.catalog.categories.find((c) => c.slug === page.url.searchParams.get('categoria'))?.id ??
+			null
 	);
-	let query = $state('');
+	let query = $state(untrack(() => page.url.searchParams.get('q') ?? ''));
+	// The last q written to the address; a different one came from navigation and wins.
+	let writtenQ = untrack(() => page.url.searchParams.get('q') ?? '');
+	$effect(() => {
+		const q = page.url.searchParams.get('q') ?? '';
+		if (q !== writtenQ) {
+			writtenQ = q;
+			query = q;
+		}
+	});
+	let qTimer: ReturnType<typeof setTimeout> | undefined;
+	$effect(() => {
+		const q = query.trim();
+		clearTimeout(qTimer);
+		if (q === writtenQ) return;
+		qTimer = setTimeout(() => {
+			writtenQ = q;
+			setParam('q', q || null);
+		}, 300);
+		return () => clearTimeout(qTimer);
+	});
+	function setParam(key: string, value: string | null) {
+		const url = new URL(page.url);
+		if (value) url.searchParams.set(key, value);
+		else url.searchParams.delete(key);
+		if (url.search === page.url.search) return;
+		goto(url, { replaceState: true, reset: false });
+	}
+	function selectCategory(slug: string | null) {
+		setParam('categoria', slug);
+	}
+	function clearSearch() {
+		query = '';
+		writtenQ = '';
+		setParam('q', null);
+	}
 	const shown = $derived.by(() => {
 		const q = fold(query.trim());
 		return (selected ? sections.filter((s) => s.id === selected) : sections)
@@ -42,6 +76,8 @@
 			}))
 			.filter((s) => s.products.length);
 	});
+	const resultCount = $derived(shown.reduce((n, s) => n + s.products.length, 0));
+	const filtered = $derived(!!selected || !!query.trim());
 	function fold(text: string) {
 		return text
 			.normalize('NFD')
@@ -106,27 +142,36 @@
 					<button
 						class="pill {selected === null ? 'pill-on' : ''}"
 						aria-pressed={selected === null}
-						onclick={() => (selected = null)}
+						onclick={() => selectCategory(null)}
 						><Icon name="grid" class="size-6" />{t('home.all')}</button
 					>
 					{#each sections as s (s.id)}
 						<button
 							class="pill {selected === s.id ? 'pill-on' : ''}"
 							aria-pressed={selected === s.id}
-							onclick={() => (selected = s.id)}
+							onclick={() => selectCategory(s.slug)}
 							><Icon name={categoryIcon(s.name)} class="size-6" />{s.name}</button
 						>
 					{/each}
 				</nav>
+
+				<!-- Read out when the filters change; shown only while a filter is on. -->
+				<p
+					class="mb-4 text-sm text-muted {filtered && sections.length ? '' : 'sr-only'}"
+					role="status"
+					aria-live="polite"
+				>
+					{#if sections.length}{t(resultCount === 1 ? 'menu.results.one' : 'menu.results.many', {
+							count: resultCount
+						})}{/if}
+				</p>
 
 				{#if sections.length === 0}
 					<EmptyState title={t('home.emptyMenu')} />
 				{:else if shown.length === 0}
 					<EmptyState title={t('menu.noResults')} text={t('menu.noResultsHint')}>
 						{#snippet action()}
-							<button class="btn-secondary" onclick={() => (query = '')}
-								>{t('menu.clearSearch')}</button
-							>
+							<button class="btn-secondary" onclick={clearSearch}>{t('menu.clearSearch')}</button>
 						{/snippet}
 					</EmptyState>
 				{/if}

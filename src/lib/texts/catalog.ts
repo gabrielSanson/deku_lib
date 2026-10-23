@@ -421,6 +421,16 @@ const CORE_TEXTS = {
 		default: 'Tente outra palavra ou veja o cardápio inteiro.'
 	},
 	'menu.clearSearch': { group: 'menu', label: 'Botão limpar busca', default: 'Limpar busca' },
+	'menu.results.one': {
+		group: 'menu',
+		label: 'Resultado da busca (1)',
+		default: '1 produto'
+	},
+	'menu.results.many': {
+		group: 'menu',
+		label: 'Resultado da busca (vários)',
+		default: '{count} produtos'
+	},
 
 	// Cart
 	'cart.title': { group: 'cart', label: 'Título', default: 'Seu pedido' },
