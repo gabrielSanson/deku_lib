@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -26,7 +27,7 @@
 		</p>
 	</header>
 
-	<input class="field" type="search" placeholder={t('texts.search')} bind:value={search} />
+	<SearchField label={t('texts.search')} bind:value={search} />
 
 	<GuardedForm action="?/save" class="space-y-3">
 		{#each data.groups as g (g.group)}
@@ -55,8 +56,8 @@
 									id={x.key}
 									name="t:{x.key}"
 									class="field"
-									rows="3"
-									maxlength="1000"
+									rows={3}
+									maxlength={1000}
 									placeholder={x.default}
 									value={x.changed ? x.value : ''}></textarea>
 							{:else}
@@ -64,7 +65,7 @@
 									id={x.key}
 									name="t:{x.key}"
 									class="field"
-									maxlength="1000"
+									maxlength={1000}
 									placeholder={x.default}
 									value={x.changed ? x.value : ''}
 								/>

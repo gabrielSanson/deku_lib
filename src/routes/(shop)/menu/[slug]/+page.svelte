@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextArea from '#lib/components/molecules/TextArea.svelte';
 	import { goto } from '$app/navigation';
 	import { cart, type StoredOption } from '#lib/client/cart.svelte.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -171,16 +172,14 @@
 		</fieldset>
 	{/if}
 
-	<div>
-		<label class="label" for="note">{t('product.note')}</label>
-		<textarea
-			id="note"
-			class="field"
-			rows="2"
-			maxlength="200"
-			bind:value={note}
-			placeholder={t('product.notePlaceholder')}></textarea>
-	</div>
+	<TextArea
+		label={t('product.note')}
+		id="note"
+		rows={2}
+		maxlength={200}
+		bind:value={note}
+		placeholder={t('product.notePlaceholder')}
+	/>
 	<div
 		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface p-4 shadow-(--shadow-card)"
 	>

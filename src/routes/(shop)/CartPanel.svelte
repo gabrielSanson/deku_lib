@@ -1,4 +1,5 @@
 <script lang="ts">
+	import IconButton from '#lib/components/atoms/IconButton.svelte';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -39,11 +40,13 @@
 			>
 		{/if}
 		{#if onclose}
-			<button
-				class="ml-auto grid size-10 place-items-center rounded-full hover:bg-night-2"
+			<IconButton
+				label={t('cart.close')}
+				icon="close"
+				variant="night"
 				onclick={onclose}
-				aria-label={t('cart.close')}><Icon name="close" class="size-6" /></button
-			>
+				class="ml-auto"
+			/>
 		{/if}
 	</header>
 
@@ -96,11 +99,13 @@
 									><Icon name="plus" class="size-4" /></button
 								>
 							</div>
-							<button
-								class="grid size-9 place-items-center rounded-full text-stone-300 hover:bg-night-2 hover:text-white"
+							<IconButton
+								label={t('cart.remove', { item: l.name })}
+								icon="trash"
+								variant="night"
+								size="sm"
 								onclick={() => cart.setQuantity(l.key, 0)}
-								aria-label={t('cart.remove', { item: l.name })}><Icon name="trash" /></button
-							>
+							/>
 						</div>
 					</div>
 				</li>

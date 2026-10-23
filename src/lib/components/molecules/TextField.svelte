@@ -16,7 +16,7 @@
 		...rest
 	}: Omit<HTMLInputAttributes, 'value'> & {
 		label: string;
-		name: string;
+		name?: string;
 		id?: string;
 		value?: string | number | null;
 		error?: string | null;

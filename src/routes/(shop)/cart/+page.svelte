@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import { cart } from '#lib/client/cart.svelte.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -14,10 +15,9 @@
 	{#if !cart.ready}
 		<p class="text-muted">{t('errors.loading')}</p>
 	{:else if cart.lines.length === 0}
-		<div class="card p-8 text-center">
-			<p class="mb-4 text-muted">{t('cart.empty')}</p>
-			<a href="/cardapio" class="btn-primary">{t('cart.seeMenu')}</a>
-		</div>
+		<EmptyState title={t('cart.empty')}>
+			{#snippet action()}<a href="/cardapio" class="btn-primary">{t('cart.seeMenu')}</a>{/snippet}
+		</EmptyState>
 	{:else}
 		<ul class="divide-y divide-line card">
 			{#each cart.lines as l (l.key)}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
+	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { deserialize, enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -179,20 +181,12 @@
 				{/each}
 			</div>
 			<div class="flex items-center gap-3">
-				<div class="relative flex-1">
-					<Icon
-						name="search"
-						class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
-					/>
-					<input
-						bind:this={searchEl}
-						class="field pl-10"
-						type="search"
-						placeholder={t('pos.search')}
-						bind:value={search}
-						aria-label={t('pos.search')}
-					/>
-				</div>
+				<SearchField
+					label={t('pos.search')}
+					bind:value={search}
+					bind:input={searchEl}
+					class="flex-1"
+				/>
 				<span class="hidden text-xs text-muted sm:block"
 					>{t('pos.shortcut')} <kbd class="rounded border border-line px-1.5">/</kbd></span
 				>
@@ -244,7 +238,7 @@
 				<span class="text-sm text-muted">{itemCount} {itemsLabel(itemCount)}</span>
 			</div>
 			{#if lines.length === 0}
-				<p class="py-10 text-center text-muted">{t('pos.empty')}</p>
+				<EmptyState title={t('pos.empty')} />
 			{/if}
 			<POSTicketLines
 				{lines}
@@ -270,7 +264,7 @@
 				<input
 					class="field"
 					placeholder={t('pos.ifoodCode')}
-					maxlength="20"
+					maxlength={20}
 					bind:value={ifoodCode}
 					aria-label={t('pos.ifoodCode')}
 					required
@@ -283,7 +277,7 @@
 				<input
 					class="field"
 					placeholder={t('pos.table')}
-					maxlength="20"
+					maxlength={20}
 					bind:value={tableLabel}
 					aria-label={t('pos.table')}
 				/>
@@ -291,7 +285,7 @@
 			<input
 				class="field"
 				placeholder={t('pos.nameField')}
-				maxlength="60"
+				maxlength={60}
 				bind:value={customerLabel}
 				aria-label={t('pos.nameLabel')}
 			/>
@@ -307,7 +301,7 @@
 							inputmode="tel"
 							autocomplete="off"
 							placeholder={t('pos.phone')}
-							maxlength="25"
+							maxlength={25}
 							bind:value={phone}
 							aria-label={t('pos.phone')}
 						/>
@@ -315,7 +309,7 @@
 							<input
 								class="field uppercase"
 								placeholder={t('pos.coupon')}
-								maxlength="24"
+								maxlength={24}
 								autocomplete="off"
 								bind:value={couponInput}
 								readonly={!!couponCode}
@@ -354,7 +348,7 @@
 					<input
 						class="field"
 						placeholder={t('pos.note')}
-						maxlength="300"
+						maxlength={300}
 						bind:value={notes}
 						aria-label={t('pos.note')}
 					/>

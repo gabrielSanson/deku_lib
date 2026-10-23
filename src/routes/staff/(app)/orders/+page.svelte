@@ -1,9 +1,10 @@
 <script lang="ts">
+	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import Age from '#lib/components/atoms/Age.svelte';
-	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
+	import type { IconName } from '#lib/components/atoms/Icon.svelte';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
 	import OrderLane from '#lib/components/organisms/OrderLane.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -115,20 +116,13 @@
 		<form method="GET" class="flex flex-1 flex-wrap items-center gap-2 sm:justify-end">
 			<input type="hidden" name="status" value={data.status} />
 			<input type="hidden" name="channel" value={data.channel} />
-			<label class="relative min-w-56 flex-1 sm:max-w-80">
-				<span class="sr-only">{t('orders.searchLabel')}</span>
-				<Icon
-					name="search"
-					class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted"
-				/>
-				<input
-					class="field w-full pl-9"
-					type="search"
-					name="q"
-					value={data.q}
-					placeholder={t('orders.searchPlaceholder')}
-				/>
-			</label>
+			<SearchField
+				label={t('orders.searchLabel')}
+				placeholder={t('orders.searchPlaceholder')}
+				name="q"
+				value={data.q}
+				class="min-w-56 flex-1 sm:max-w-80"
+			/>
 			<select
 				class="field max-w-48"
 				value={data.channel}

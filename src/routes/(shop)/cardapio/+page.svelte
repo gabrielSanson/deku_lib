@@ -1,4 +1,6 @@
 <script lang="ts">
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
+	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { cart } from '#lib/client/cart.svelte.ts';
@@ -91,19 +93,12 @@
 					<h1 class="page-title">{t('menu.title')}</h1>
 					<p class="text-muted">{t('menu.subtitle')}</p>
 				</div>
-				<label class="relative mb-4 block w-full">
-					<span class="sr-only">{t('menu.search')}</span>
-					<input
-						type="search"
-						class="field w-full rounded-full pl-11"
-						placeholder={t('menu.search')}
-						bind:value={query}
-					/>
-					<Icon
-						name="search"
-						class="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted"
-					/>
-				</label>
+				<SearchField
+					label={t('menu.search')}
+					bind:value={query}
+					class="mb-4 w-full"
+					inputClass="rounded-full"
+				/>
 				<nav
 					class="sticky top-16 z-10 -mx-4 mb-6 flex gap-3 overflow-x-auto bg-canvas px-4 py-3 sm:top-20 sm:-mx-6 sm:px-6"
 					aria-label={t('home.categories')}
@@ -125,11 +120,15 @@
 				</nav>
 
 				{#if sections.length === 0}
-					<p class="py-10 text-center text-muted">
-						{t('home.emptyMenu')}
-					</p>
+					<EmptyState title={t('home.emptyMenu')} />
 				{:else if shown.length === 0}
-					<p class="py-10 text-center text-muted">{t('menu.noResults')}</p>
+					<EmptyState title={t('menu.noResults')} text={t('menu.noResultsHint')}>
+						{#snippet action()}
+							<button class="btn-secondary" onclick={() => (query = '')}
+								>{t('menu.clearSearch')}</button
+							>
+						{/snippet}
+					</EmptyState>
 				{/if}
 
 				{#each shown as s (s.id)}

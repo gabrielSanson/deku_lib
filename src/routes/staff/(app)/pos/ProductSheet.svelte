@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	// Modifier picker. Enforces min/max per group before the item can be added.
 	import { useTexts } from '#lib/texts/context.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -162,14 +163,11 @@
 		<input
 			id="note"
 			class="mb-2 field"
-			maxlength="200"
+			maxlength={200}
 			bind:value={note}
 			placeholder={t('pos.lineNotePlaceholder')}
 		/>
-		<label class="mb-4 flex min-h-11 items-center gap-2 text-sm">
-			<input type="checkbox" class="size-5" bind:checked={allergy} />
-			{t('pos.allergy')}
-		</label>
+		<Checkbox label={t('pos.allergy')} bind:checked={allergy} class="mb-4 text-sm" />
 
 		<div class="flex items-center gap-3">
 			<div class="flex items-center rounded-lg border border-line">

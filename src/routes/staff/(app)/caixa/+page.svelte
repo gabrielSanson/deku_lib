@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -159,10 +160,7 @@
 				class="text-lg"
 			/>
 			<TextField label={t('drawer.note')} name="note" />
-			<label class="flex items-center gap-2 text-sm">
-				<input type="checkbox" bind:checked={confirmClose} />
-				{t('drawer.closeConfirm')}
-			</label>
+			<Checkbox label={t('drawer.closeConfirm')} bind:checked={confirmClose} class="text-sm" />
 			<FormError message={form?.error} />
 			<button class="btn-primary w-full text-lg" disabled={busy || !confirmClose}
 				>{t('drawer.close')}</button

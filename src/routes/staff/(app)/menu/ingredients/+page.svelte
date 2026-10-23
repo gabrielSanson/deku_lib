@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
@@ -48,7 +49,7 @@
 	</form>
 
 	{#if data.ingredients.length === 0}
-		<p class="alert-warn">{t('ingredients.none')}</p>
+		<EmptyState title={t('ingredients.none')} />
 	{:else}
 		<ul class="divide-y divide-line card">
 			{#each data.ingredients as ing (ing.id)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -21,7 +22,7 @@
 		<GuardedForm action="?/save" class="space-y-2 card p-4">
 			<input type="hidden" name="slug" value={p.slug} />
 			<div class="flex items-center justify-between gap-2">
-				<input class="field font-semibold" name="title" value={p.title} required maxlength="120" />
+				<input class="field font-semibold" name="title" value={p.title} required maxlength={120} />
 				<a class="btn-ghost min-h-9 text-sm whitespace-nowrap" href="/p/{p.slug}" target="_blank"
 					>{t('sitePages.view')}</a
 				>
@@ -32,10 +33,12 @@
 				aria-label={t('sitePages.text', { title: p.title })}>{p.text}</textarea
 			>
 			<div class="flex items-center justify-between">
-				<label class="flex min-h-11 items-center gap-2 text-sm"
-					><input type="checkbox" class="size-5" name="published" checked={p.published} />
-					{t('sitePages.published')}</label
-				>
+				<Checkbox
+					label={t('sitePages.published')}
+					name="published"
+					checked={p.published}
+					class="text-sm"
+				/>
 				<button class="btn-primary">{t('menuEdit.save')}</button>
 			</div>
 			{#if form?.ok === p.slug}<p class="alert-ok">{t('sitePages.saved')}</p>{/if}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -43,13 +45,10 @@
 		>
 			<input type="hidden" name="id" value={editing.id ?? ''} />
 			<TextField label={t('delivery.name')} name="name" value={editing.name ?? ''} required />
-			<div>
-				<label class="label" for="kind">{t('delivery.kind')}</label>
-				<select class="field" id="kind" name="matchKind" value={editing.matchKind}>
-					<option value="neighborhood">{t('delivery.neighborhood')}</option>
-					<option value="cep_prefix">{t('delivery.cepPrefix')}</option>
-				</select>
-			</div>
+			<SelectField label={t('delivery.kind')} id="kind" name="matchKind" value={editing.matchKind}>
+				<option value="neighborhood">{t('delivery.neighborhood')}</option>
+				<option value="cep_prefix">{t('delivery.cepPrefix')}</option>
+			</SelectField>
 			<TextField
 				label={t('delivery.value')}
 				id="value"
@@ -78,10 +77,7 @@
 				type="number"
 				value={editing.priority ?? 100}
 			/>
-			<label class="flex min-h-11 items-center gap-2"
-				><input class="size-5" type="checkbox" name="enabled" checked={editing.enabled} />
-				{t('delivery.active')}</label
-			>
+			<Checkbox label={t('delivery.active')} name="enabled" checked={editing.enabled} />
 			<div class="flex gap-2 sm:col-span-2">
 				<button type="button" class="btn-secondary" onclick={() => (editing = null)}
 					>{t('delivery.cancel')}</button

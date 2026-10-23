@@ -1,4 +1,7 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
@@ -233,15 +236,13 @@
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<div class="sm:col-span-2">
-			<label class="label" for="name">{t('campaign.name')}</label>
-			<input class="field" id="name" maxlength="80" bind:value={name} required />
+			<TextField label={t('campaign.name')} id="name" maxlength={80} bind:value={name} required />
 		</div>
 		<div class="sm:col-span-2">
-			<label class="label" for="tagline">{t('campaign.tagline')}</label>
-			<input
-				class="field"
+			<TextField
+				label={t('campaign.tagline')}
 				id="tagline"
-				maxlength="80"
+				maxlength={80}
 				bind:value={tagline}
 				placeholder={t('campaign.taglinePlaceholder')}
 			/>
@@ -259,10 +260,7 @@
 				/>
 			</div>
 			{#if c?.imageUrl}
-				<label class="flex items-center gap-1 text-sm text-muted">
-					<input type="checkbox" name="removePhoto" value="1" />
-					{t('campaign.removePhoto')}
-				</label>
+				<Checkbox label={t('campaign.removePhoto')} name="removePhoto" value="1" class="text-sm" />
 			{/if}
 		</div>
 		<fieldset class="sm:col-span-2">
@@ -281,53 +279,51 @@
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<h2 class="font-semibold sm:col-span-2">{t('campaign.benefit')}</h2>
 		{#if templateKey === 'code_discount'}
-			<div>
-				<label class="label" for="btype">{t('campaign.discount')}</label>
-				<select class="field" id="btype" bind:value={benefitType}>
-					<option value="percent">{t('campaign.percent')}</option>
-					<option value="fixed">{t('campaign.fixed')}</option>
-					<option value="free_delivery">{t('campaign.freeDelivery')}</option>
-				</select>
-			</div>
+			<SelectField label={t('campaign.discount')} id="btype" bind:value={benefitType}>
+				<option value="percent">{t('campaign.percent')}</option>
+				<option value="fixed">{t('campaign.fixed')}</option>
+				<option value="free_delivery">{t('campaign.freeDelivery')}</option>
+			</SelectField>
 			{#if benefitType === 'percent'}
-				<div>
-					<label class="label" for="pct">{t('campaign.percentField')}</label>
-					<input class="field" id="pct" type="number" min="1" max="100" bind:value={percent} />
-				</div>
-				<div>
-					<label class="label" for="maxd">{t('campaign.maxDiscount')}</label>
-					<input class="field" id="maxd" inputmode="decimal" bind:value={maxDiscount} />
-				</div>
+				<TextField
+					label={t('campaign.percentField')}
+					id="pct"
+					type="number"
+					min={1}
+					max={100}
+					bind:value={percent}
+				/>
+				<TextField
+					label={t('campaign.maxDiscount')}
+					id="maxd"
+					inputmode="decimal"
+					bind:value={maxDiscount}
+				/>
 			{:else if benefitType === 'fixed'}
-				<div>
-					<label class="label" for="amt">{t('campaign.amount')}</label>
-					<input class="field" id="amt" inputmode="decimal" bind:value={amount} />
-				</div>
+				<TextField label={t('campaign.amount')} id="amt" inputmode="decimal" bind:value={amount} />
 			{/if}
 			<p class="text-xs text-muted sm:col-span-2">
 				{t('campaign.percentHint')}
 			</p>
 		{:else}
-			<div>
-				<label class="label" for="tkind">{t('campaign.when')}</label>
-				<select class="field" id="tkind" bind:value={triggerKind}>
-					<option value="quantity">{t('campaign.trigger.quantity')}</option>
-					<option value="min_order">{t('campaign.trigger.minOrder')}</option>
-				</select>
-			</div>
+			<SelectField label={t('campaign.when')} id="tkind" bind:value={triggerKind}>
+				<option value="quantity">{t('campaign.trigger.quantity')}</option>
+				<option value="min_order">{t('campaign.trigger.minOrder')}</option>
+			</SelectField>
 			{#if triggerKind === 'quantity'}
-				<div>
-					<label class="label" for="tqty">{t('campaign.triggerQty')}</label>
-					<input class="field" id="tqty" type="number" min="1" max="20" bind:value={triggerQty} />
-				</div>
-				<div>
-					<label class="label" for="tscope">{t('campaign.triggerScope')}</label>
-					<select class="field" id="tscope" bind:value={triggerScope}>
-						<option value="all">{t('campaign.scope.all')}</option>
-						<option value="products">{t('campaign.scope.products')}</option>
-						<option value="categories">{t('campaign.scope.categories')}</option>
-					</select>
-				</div>
+				<TextField
+					label={t('campaign.triggerQty')}
+					id="tqty"
+					type="number"
+					min={1}
+					max={20}
+					bind:value={triggerQty}
+				/>
+				<SelectField label={t('campaign.triggerScope')} id="tscope" bind:value={triggerScope}>
+					<option value="all">{t('campaign.scope.all')}</option>
+					<option value="products">{t('campaign.scope.products')}</option>
+					<option value="categories">{t('campaign.scope.categories')}</option>
+				</SelectField>
 				<div class="sm:col-span-2">
 					{@render picker(
 						triggerScope,
@@ -339,19 +335,20 @@
 			{:else}
 				<p class="text-sm text-muted">{t('campaign.minHint')}</p>
 			{/if}
-			<div>
-				<label class="label" for="rscope">{t('campaign.rewardScope')}</label>
-				<select class="field" id="rscope" bind:value={rewardScope}>
-					{#if triggerKind === 'quantity'}<option value="same">{t('campaign.scope.same')}</option
-						>{/if}
-					<option value="products">{t('campaign.scope.products')}</option>
-					<option value="categories">{t('campaign.scope.categories')}</option>
-				</select>
-			</div>
-			<div>
-				<label class="label" for="rqty">{t('campaign.rewardQty')}</label>
-				<input class="field" id="rqty" type="number" min="1" max="10" bind:value={rewardQty} />
-			</div>
+			<SelectField label={t('campaign.rewardScope')} id="rscope" bind:value={rewardScope}>
+				{#if triggerKind === 'quantity'}<option value="same">{t('campaign.scope.same')}</option
+					>{/if}
+				<option value="products">{t('campaign.scope.products')}</option>
+				<option value="categories">{t('campaign.scope.categories')}</option>
+			</SelectField>
+			<TextField
+				label={t('campaign.rewardQty')}
+				id="rqty"
+				type="number"
+				min={1}
+				max={10}
+				bind:value={rewardQty}
+			/>
 			<div class="sm:col-span-2">
 				{@render picker(
 					rewardScope,
@@ -360,21 +357,26 @@
 					t('campaign.rewardItems')
 				)}
 			</div>
-			<div>
-				<label class="label" for="rpct">{t('campaign.rewardPercent')}</label>
-				<input class="field" id="rpct" type="number" min="1" max="100" bind:value={rewardPercent} />
-			</div>
-			<div>
-				<label class="label" for="target">{t('campaign.target')}</label>
-				<select class="field" id="target" bind:value={target}>
-					<option value="cheapest">{t('campaign.cheapest')}</option>
-					<option value="most_expensive">{t('campaign.mostExpensive')}</option>
-				</select>
-			</div>
-			<div>
-				<label class="label" for="maxpo">{t('campaign.perOrder')}</label>
-				<input class="field" id="maxpo" type="number" min="1" max="20" bind:value={maxPerOrder} />
-			</div>
+			<TextField
+				label={t('campaign.rewardPercent')}
+				id="rpct"
+				type="number"
+				min={1}
+				max={100}
+				bind:value={rewardPercent}
+			/>
+			<SelectField label={t('campaign.target')} id="target" bind:value={target}>
+				<option value="cheapest">{t('campaign.cheapest')}</option>
+				<option value="most_expensive">{t('campaign.mostExpensive')}</option>
+			</SelectField>
+			<TextField
+				label={t('campaign.perOrder')}
+				id="maxpo"
+				type="number"
+				min={1}
+				max={20}
+				bind:value={maxPerOrder}
+			/>
 			<p class="text-xs text-muted sm:col-span-2">
 				{t('campaign.rewardHint')}
 			</p>
@@ -383,32 +385,30 @@
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<h2 class="font-semibold sm:col-span-2">{t('campaign.howApply')}</h2>
-		<div>
-			<label class="label" for="code">{t('campaign.code')}</label>
-			<input
-				class="field uppercase"
-				id="code"
-				maxlength="24"
-				placeholder={t('campaign.codePlaceholder')}
-				bind:value={code}
-			/>
-		</div>
-		<label class="flex items-center gap-2 self-end pb-2 text-sm">
-			<input type="checkbox" class="size-5" bind:checked={autoApply} />
-			{t('campaign.autoApply')}
-		</label>
+		<TextField
+			label={t('campaign.code')}
+			id="code"
+			maxlength={24}
+			placeholder={t('campaign.codePlaceholder')}
+			bind:value={code}
+			class="uppercase"
+		/>
+		<Checkbox
+			label={t('campaign.autoApply')}
+			bind:checked={autoApply}
+			class="self-end pb-2 text-sm"
+		/>
 	</section>
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<h2 class="font-semibold sm:col-span-2">{t('campaign.validity')}</h2>
-		<div>
-			<label class="label" for="starts">{t('campaign.starts')}</label>
-			<input class="field" id="starts" type="datetime-local" bind:value={startsAt} />
-		</div>
-		<div>
-			<label class="label" for="ends">{t('campaign.ends')}</label>
-			<input class="field" id="ends" type="datetime-local" bind:value={endsAt} />
-		</div>
+		<TextField
+			label={t('campaign.starts')}
+			id="starts"
+			type="datetime-local"
+			bind:value={startsAt}
+		/>
+		<TextField label={t('campaign.ends')} id="ends" type="datetime-local" bind:value={endsAt} />
 		<div class="space-y-2 sm:col-span-2">
 			<p class="label">{t('campaign.windows')}</p>
 			{#each windows as w, i (i)}
@@ -458,22 +458,26 @@
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<h2 class="font-semibold sm:col-span-2">{t('campaign.limits')}</h2>
-		<div>
-			<label class="label" for="min">{t('campaign.minOrder')}</label>
-			<input class="field" id="min" inputmode="decimal" bind:value={minOrder} />
-		</div>
-		<div>
-			<label class="label" for="maxt">{t('campaign.maxTotal')}</label>
-			<input class="field" id="maxt" type="number" min="1" bind:value={maxUsesTotal} />
-		</div>
-		<div>
-			<label class="label" for="maxc">{t('campaign.maxCustomer')}</label>
-			<input class="field" id="maxc" type="number" min="1" bind:value={maxUsesPerCustomer} />
-		</div>
-		<label class="flex items-center gap-2 self-end pb-2 text-sm">
-			<input type="checkbox" class="size-5" bind:checked={firstOrderOnly} />
-			{t('campaign.firstOrder')}
-		</label>
+		<TextField label={t('campaign.minOrder')} id="min" inputmode="decimal" bind:value={minOrder} />
+		<TextField
+			label={t('campaign.maxTotal')}
+			id="maxt"
+			type="number"
+			min={1}
+			bind:value={maxUsesTotal}
+		/>
+		<TextField
+			label={t('campaign.maxCustomer')}
+			id="maxc"
+			type="number"
+			min={1}
+			bind:value={maxUsesPerCustomer}
+		/>
+		<Checkbox
+			label={t('campaign.firstOrder')}
+			bind:checked={firstOrderOnly}
+			class="self-end pb-2 text-sm"
+		/>
 		{#if maxUsesPerCustomer || firstOrderOnly}
 			<p class="text-xs text-warn sm:col-span-2">
 				{t('campaign.perCustomerHint')}

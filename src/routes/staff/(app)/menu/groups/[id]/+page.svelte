@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -100,16 +101,13 @@
 						/></label
 					>
 					<div class="col-span-3 flex items-center gap-3 sm:col-span-1">
-						<label class="flex min-h-11 items-center gap-2 text-sm"
-							><input
-								type="checkbox"
-								class="size-5"
-								name="optionActive"
-								value={String(i)}
-								bind:checked={row.active}
-							/>
-							{t('group.optionActive')}</label
-						>
+						<Checkbox
+							label={t('group.optionActive')}
+							name="optionActive"
+							value={String(i)}
+							bind:checked={row.active}
+							class="text-sm"
+						/>
 						<button
 							type="button"
 							class="btn-ghost min-h-9 text-sm text-bad"

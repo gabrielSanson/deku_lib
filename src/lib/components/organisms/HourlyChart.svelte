@@ -61,6 +61,9 @@
 		/>
 	</svg>
 	<div class="flex justify-between text-[11px] text-muted tabular-nums">
-		{#each hours as h (h)}<span>{String(h).padStart(2, '0')}h</span>{/each}
+		<!-- On phones every other hour, so the labels fit at 320 px. -->
+		{#each hours as h, i (h)}<span class={i % 2 ? 'max-sm:hidden' : ''}
+				>{String(h).padStart(2, '0')}h</span
+			>{/each}
 	</div>
 </figure>

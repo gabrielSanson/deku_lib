@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
@@ -51,43 +52,27 @@
 		saved={form?.ok ? t('settings.saved') : undefined}
 	>
 		<input type="hidden" name="version" value={s.version} />
-		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="acceptingOrders" checked={s.acceptingOrders} />
-			{t('store.acceptingField')}</label
-		>
+		<Checkbox
+			label={t('store.acceptingField')}
+			name="acceptingOrders"
+			checked={s.acceptingOrders}
+		/>
 		<TextField
 			label={t('store.pauseMessage')}
 			name="pauseReason"
 			value={s.pauseReason ?? ''}
 			maxlength={160}
 		/>
-		<label class="flex min-h-11 items-center gap-3"
-			><input
-				type="checkbox"
-				class="size-5"
-				name="webOrderingEnabled"
-				checked={s.webOrderingEnabled}
-			/>
-			{t('store.web')}</label
-		>
-		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} />
-			{t('store.dineIn')}</label
-		>
+		<Checkbox label={t('store.web')} name="webOrderingEnabled" checked={s.webOrderingEnabled} />
+		<Checkbox label={t('store.dineIn')} name="dineInEnabled" checked={s.dineInEnabled} />
 		{#if s.dineInEnabled}
 			<p class="-mt-2 pl-8 text-sm text-muted">
 				{t('store.qrBefore')} <code class="rounded bg-quiet px-1">{page.url.origin}/?mesa=7</code>
 				{t('store.qrAfter')}
 			</p>
 		{/if}
-		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} />
-			{t('store.pickup')}</label
-		>
-		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="deliveryEnabled" checked={s.deliveryEnabled} />
-			{t('store.delivery')}</label
-		>
+		<Checkbox label={t('store.pickup')} name="pickupEnabled" checked={s.pickupEnabled} />
+		<Checkbox label={t('store.delivery')} name="deliveryEnabled" checked={s.deliveryEnabled} />
 		<div class="grid gap-4 sm:grid-cols-2">
 			<TextField
 				label={t('store.prep')}

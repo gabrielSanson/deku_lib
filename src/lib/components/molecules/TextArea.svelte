@@ -14,7 +14,7 @@
 		...rest
 	}: Omit<HTMLTextareaAttributes, 'value'> & {
 		label: string;
-		name: string;
+		name?: string;
 		id?: string;
 		value?: string | null;
 		error?: string | null;

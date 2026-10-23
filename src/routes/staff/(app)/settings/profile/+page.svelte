@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -61,13 +62,12 @@
 		warning={form?.ok === 'payments' ? form.warning : undefined}
 	>
 		<fieldset class="space-y-4">
-			<label class="flex min-h-11 items-start gap-3"
-				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
-				<span
-					>{t('profile.pix')}
-					<span class="block text-sm text-muted">{t('profile.pixHint')}</span></span
-				></label
-			>
+			<Checkbox
+				label={t('profile.pix')}
+				hint={t('profile.pixHint')}
+				name="pixEnabled"
+				bind:checked={pixEnabled}
+			/>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
 					<TextField

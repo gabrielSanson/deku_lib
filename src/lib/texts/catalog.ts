@@ -420,6 +420,12 @@ const CORE_TEXTS = {
 	'menu.addShort': { group: 'menu', label: 'Botão curto adicionar', default: 'Adicionar' },
 	'menu.search': { group: 'menu', label: 'Busca', default: 'Buscar no cardápio' },
 	'menu.noResults': { group: 'menu', label: 'Busca sem resultado', default: 'Nada encontrado.' },
+	'menu.noResultsHint': {
+		group: 'menu',
+		label: 'Busca sem resultado: dica',
+		default: 'Tente outra palavra ou veja o cardápio inteiro.'
+	},
+	'menu.clearSearch': { group: 'menu', label: 'Botão limpar busca', default: 'Limpar busca' },
 
 	// Cart
 	'cart.title': { group: 'cart', label: 'Título', default: 'Seu pedido' },

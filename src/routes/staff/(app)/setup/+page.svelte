@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -110,24 +111,16 @@
 			class="space-y-3 card p-4"
 		>
 			<h2 class="text-lg font-bold">{t('setup.delivery.title')}</h2>
-			<label class="flex min-h-11 items-center gap-3"
-				><input
-					type="checkbox"
-					class="size-5"
-					name="pickupEnabled"
-					checked={data.settings.pickupEnabled}
-				/>
-				{t('setup.delivery.pickup')}</label
-			>
-			<label class="flex min-h-11 items-center gap-3"
-				><input
-					type="checkbox"
-					class="size-5"
-					name="deliveryEnabled"
-					checked={data.settings.deliveryEnabled}
-				/>
-				{t('setup.delivery.own')}</label
-			>
+			<Checkbox
+				label={t('setup.delivery.pickup')}
+				name="pickupEnabled"
+				checked={data.settings.pickupEnabled}
+			/>
+			<Checkbox
+				label={t('setup.delivery.own')}
+				name="deliveryEnabled"
+				checked={data.settings.deliveryEnabled}
+			/>
 			<p class="text-sm {data.counts.zones ? 'text-muted' : 'text-warn'}">
 				{data.counts.zones
 					? t('setup.delivery.zones', { count: data.counts.zones })
@@ -152,13 +145,12 @@
 		>
 			<h2 class="text-lg font-bold">{t('setup.pay.title')}</h2>
 			<p class="text-sm text-muted">{t('setup.pay.intro')}</p>
-			<label class="flex min-h-11 items-start gap-3"
-				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
-				<span
-					>{t('setup.pay.pix')}
-					<span class="block text-sm text-muted">{t('setup.pay.pixHint')}</span></span
-				></label
-			>
+			<Checkbox
+				label={t('setup.pay.pix')}
+				hint={t('setup.pay.pixHint')}
+				name="pixEnabled"
+				bind:checked={pixEnabled}
+			/>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
 					<TextField
@@ -302,10 +294,7 @@
 					class="space-y-2 border-t border-line pt-3"
 				>
 					<input type="hidden" name="enabled" value="1" />
-					<label class="flex items-start gap-3 text-sm"
-						><input type="checkbox" class="mt-1 size-5" name="understood" required />
-						{t('setup.ifood.ack')}</label
-					>
+					<Checkbox label={t('setup.ifood.ack')} name="understood" required class="text-sm" />
 					<button class="btn-primary">{t('setup.ifood.enable')}</button>
 				</form>
 			{/if}

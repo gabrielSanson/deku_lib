@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -55,7 +56,7 @@
 							class="flex flex-1 flex-wrap gap-2"
 						>
 							<input type="hidden" name="id" value={c.id} />
-							<input class="field flex-1" name="name" value={c.name} required maxlength="80" />
+							<input class="field flex-1" name="name" value={c.name} required maxlength={80} />
 							<input
 								class="field w-56 text-sm"
 								type="file"
@@ -64,10 +65,12 @@
 								aria-label={t('menuEdit.categoryPhoto')}
 							/>
 							{#if c.imageUrl}
-								<label class="flex items-center gap-1 text-sm text-muted">
-									<input type="checkbox" name="removePhoto" value="1" />
-									{t('menuEdit.removePhoto')}
-								</label>
+								<Checkbox
+									label={t('menuEdit.removePhoto')}
+									name="removePhoto"
+									value="1"
+									class="text-sm"
+								/>
 							{/if}
 							<input
 								class="field w-24"
@@ -146,7 +149,7 @@
 				name="name"
 				placeholder={t('menuEdit.newCategory')}
 				required
-				maxlength="80"
+				maxlength={80}
 			/>
 			<input
 				class="field w-56 text-sm"

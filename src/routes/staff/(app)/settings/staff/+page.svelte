@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { enhance } from '$app/forms';
@@ -64,12 +65,9 @@
 		<h2 class="font-semibold sm:col-span-2">{t('team.add')}</h2>
 		<TextField label={t('team.name')} id="dn" name="displayName" required />
 		<TextField label={t('team.email')} id="em" name="email" type="email" required />
-		<div>
-			<label class="label" for="ro">{t('team.role')}</label>
-			<select class="field" id="ro" name="role">
-				{#each assignable as r (r)}<option value={r}>{roleLabel[r]}</option>{/each}
-			</select>
-		</div>
+		<SelectField label={t('team.role')} id="ro" name="role">
+			{#each assignable as r (r)}<option value={r}>{roleLabel[r]}</option>{/each}
+		</SelectField>
 		{#if data.canCreate}
 			<TextField
 				label={t('team.password')}

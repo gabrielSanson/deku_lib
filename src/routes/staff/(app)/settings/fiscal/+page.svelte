@@ -1,4 +1,6 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -30,17 +32,11 @@
 		saveLabel={t('settings.save')}
 		saved={form?.ok ? t('fiscal.saved') : undefined}
 	>
-		<label class="flex items-start gap-3">
-			<input type="checkbox" class="mt-1 size-5" name="enabled" bind:checked={enabled} />
-			<span><strong>{t('fiscal.enabled')}</strong></span>
-		</label>
-		<div>
-			<label class="label" for="environment">{t('fiscal.environment')}</label>
-			<select class="field" id="environment" name="environment" value={s.environment}>
-				<option value="homologacao">{t('fiscal.homologacao')}</option>
-				<option value="producao">{t('fiscal.producao')}</option>
-			</select>
-		</div>
+		<Checkbox label={t('fiscal.enabled')} name="enabled" bind:checked={enabled} />
+		<SelectField label={t('fiscal.environment')} name="environment" value={s.environment}>
+			<option value="homologacao">{t('fiscal.homologacao')}</option>
+			<option value="producao">{t('fiscal.producao')}</option>
+		</SelectField>
 		<div class="grid gap-3 sm:grid-cols-2">
 			<TextField
 				label={t('fiscal.cnpj')}

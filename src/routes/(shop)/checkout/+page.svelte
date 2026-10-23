@@ -1,4 +1,7 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import { untrack } from 'svelte';
 	import { applyAction, deserialize, enhance } from '$app/forms';
 	import { cart } from '#lib/client/cart.svelte.ts';
@@ -249,10 +252,9 @@
 	<h1 class="text-2xl font-black">{t('checkout.title')}</h1>
 
 	{#if cart.ready && cart.lines.length === 0}
-		<div class="card p-6 text-center">
-			<p class="mb-3 text-muted">{t('cart.empty')}</p>
-			<a class="btn-primary" href="/cardapio">{t('cart.seeMenu')}</a>
-		</div>
+		<EmptyState title={t('cart.empty')}>
+			{#snippet action()}<a href="/cardapio" class="btn-primary">{t('cart.seeMenu')}</a>{/snippet}
+		</EmptyState>
 	{:else}
 		<ol
 			class="flex gap-2 text-xs font-semibold"
@@ -328,16 +330,13 @@
 						bind:value={fulfillmentType}
 					/>
 					{#if fulfillmentType === 'dine_in'}
-						<div>
-							<label class="label" for="table">{t('checkout.table')}</label>
-							<input
-								id="table"
-								class="field"
-								maxlength="20"
-								inputmode="numeric"
-								bind:value={tableLabel}
-							/>
-						</div>
+						<TextField
+							label={t('checkout.table')}
+							id="table"
+							maxlength={20}
+							inputmode="numeric"
+							bind:value={tableLabel}
+						/>
 					{/if}
 					<p class="text-sm text-muted">
 						{t(fulfillmentType === 'delivery' ? 'checkout.etaDelivery' : 'checkout.eta', {
@@ -350,9 +349,9 @@
 					<fieldset class="grid grid-cols-6 gap-3 card p-4">
 						<legend class="px-1 font-semibold">{t('checkout.address')}</legend>
 						<div class="col-span-3">
-							<label class="label" for="cep">{t('checkout.cep')}</label><input
+							<TextField
+								label={t('checkout.cep')}
 								id="cep"
-								class="field"
 								inputmode="numeric"
 								autocomplete="postal-code"
 								bind:value={addr.cep}
@@ -361,61 +360,48 @@
 							/>
 						</div>
 						<div class="col-span-3">
-							<label class="label" for="hood">{t('checkout.neighborhood')}</label><input
+							<TextField
+								label={t('checkout.neighborhood')}
 								id="hood"
-								class="field"
 								bind:value={addr.neighborhood}
 								required
 							/>
 						</div>
 						<div class="col-span-4">
-							<label class="label" for="street">{t('checkout.street')}</label><input
+							<TextField
+								label={t('checkout.street')}
 								id="street"
-								class="field"
 								autocomplete="address-line1"
 								bind:value={addr.street}
 								required
 							/>
 						</div>
 						<div class="col-span-2">
-							<label class="label" for="num">{t('checkout.number')}</label><input
-								id="num"
-								class="field"
-								bind:value={addr.number}
-								required
-							/>
+							<TextField label={t('checkout.number')} id="num" bind:value={addr.number} required />
 						</div>
 						<div class="col-span-6">
-							<label class="label" for="comp">{t('checkout.complement')}</label><input
+							<TextField
+								label={t('checkout.complement')}
 								id="comp"
-								class="field"
 								autocomplete="address-line2"
 								bind:value={addr.complement}
 							/>
 						</div>
 						<div class="col-span-4">
-							<label class="label" for="city">{t('checkout.city')}</label><input
-								id="city"
-								class="field"
-								bind:value={addr.city}
-								required
-							/>
+							<TextField label={t('checkout.city')} id="city" bind:value={addr.city} required />
 						</div>
 						<div class="col-span-2">
-							<label class="label" for="uf">{t('checkout.state')}</label><input
+							<TextField
+								label={t('checkout.state')}
 								id="uf"
-								class="field uppercase"
-								maxlength="2"
+								maxlength={2}
 								bind:value={addr.state}
 								required
+								class="uppercase"
 							/>
 						</div>
 						<div class="col-span-6">
-							<label class="label" for="inst">{t('checkout.reference')}</label><input
-								id="inst"
-								class="field"
-								bind:value={addr.instructions}
-							/>
+							<TextField label={t('checkout.reference')} id="inst" bind:value={addr.instructions} />
 						</div>
 					</fieldset>
 				{:else}
@@ -424,15 +410,13 @@
 			{:else if step === 'you'}
 				<fieldset class="grid gap-3 card p-4">
 					<legend class="px-1 font-semibold">{t('checkout.you')}</legend>
-					<div>
-						<label class="label" for="name">{t('checkout.name')}</label><input
-							id="name"
-							class="field"
-							autocomplete="name"
-							bind:value={name}
-							required
-						/>
-					</div>
+					<TextField
+						label={t('checkout.name')}
+						id="name"
+						autocomplete="name"
+						bind:value={name}
+						required
+					/>
 					<div>
 						<label class="label" for="phone"
 							>{phoneOptional ? t('checkout.phoneOptional') : t('checkout.phone')}</label
@@ -450,19 +434,18 @@
 								{t('checkout.phoneOptional.hint')}
 							</p>{/if}
 					</div>
-					<div>
-						<label class="label" for="email">{t('checkout.email')}</label><input
-							id="email"
-							class="field"
-							type="email"
-							autocomplete="email"
-							bind:value={email}
-						/>
-					</div>
-					<label class="flex items-start gap-2 text-sm"
-						><input type="checkbox" class="mt-0.5 size-5" bind:checked={marketingConsent} />
-						{t('checkout.marketing')}</label
-					>
+					<TextField
+						label={t('checkout.email')}
+						id="email"
+						type="email"
+						autocomplete="email"
+						bind:value={email}
+					/>
+					<Checkbox
+						label={t('checkout.marketing')}
+						bind:checked={marketingConsent}
+						class="text-sm"
+					/>
 					<p class="text-xs text-muted">
 						{t('checkout.privacy')}
 						<a href="/p/privacidade" class="underline">{t('checkout.privacyLink')}</a>.
@@ -502,7 +485,7 @@
 						<input
 							id="coupon"
 							class="field uppercase"
-							maxlength="24"
+							maxlength={24}
 							autocomplete="off"
 							autocapitalize="characters"
 							bind:value={couponInput}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import TextArea from '#lib/components/molecules/TextArea.svelte';
 	import { enhance } from '$app/forms';
@@ -110,18 +112,12 @@
 				placeholder="29,90"
 				required
 			/>
-			<div>
-				<label class="label" for="categoryId">{t('product.category')}</label>
-				<select class="field" id="categoryId" name="categoryId" value={p.categoryId}>
-					{#each data.categories as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
-				</select>
-			</div>
-			<div>
-				<label class="label" for="prepStation">{t('product.station')}</label>
-				<select class="field" id="prepStation" name="prepStation" value={p.prepStation}>
-					{#each data.stations as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
-				</select>
-			</div>
+			<SelectField label={t('product.category')} name="categoryId" value={p.categoryId}>
+				{#each data.categories as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
+			</SelectField>
+			<SelectField label={t('product.station')} name="prepStation" value={p.prepStation}>
+				{#each data.stations as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
+			</SelectField>
 			<TextField label={t('product.position')} name="position" type="number" value={p.position} />
 		</div>
 
@@ -140,10 +136,12 @@
 				/>
 			</div>
 			{#if p.imageUrl}
-				<label class="mt-2 flex items-center gap-2 text-sm"
-					><input type="checkbox" name="removePhoto" value="1" />
-					{t('product.removePhoto')}</label
-				>
+				<Checkbox
+					label={t('product.removePhoto')}
+					name="removePhoto"
+					value="1"
+					class="mt-2 text-sm"
+				/>
 			{/if}
 			<p class="mt-1 text-xs text-muted">
 				{t('product.photoHint')}
@@ -213,16 +211,13 @@
 										>{/if}</span
 								></label
 							>
-							<label class="flex items-center gap-2 text-sm text-muted"
-								><input
-									type="checkbox"
-									class="size-4"
-									name="removable"
-									value={ing.id}
-									checked={current?.removable ?? true}
-								/>
-								{t('product.removable')}</label
-							>
+							<Checkbox
+								label={t('product.removable')}
+								name="removable"
+								value={ing.id}
+								checked={current?.removable ?? true}
+								class="text-sm"
+							/>
 						</li>
 					{/each}
 				</ul>
@@ -257,10 +252,7 @@
 			</p>
 		{/if}
 
-		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="active" checked={p.active} />
-			{t('product.active')}</label
-		>
+		<Checkbox label={t('product.active')} name="active" checked={p.active} />
 		<button class="btn-primary w-full" disabled={busy}
 			>{busy ? t('product.saving') : t('product.save')}</button
 		>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { heroMotion } from '#lib/client/hero-motion.ts';
@@ -112,7 +113,7 @@
 
 <div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
 	{#if categories.length === 0}
-		<p class="py-10 text-center text-muted">{t('home.emptyMenu')}</p>
+		<EmptyState title={t('home.emptyMenu')} />
 	{/if}
 
 	<!-- Quick menu: three burgers (mockup 01 "Nossos destaques") -->

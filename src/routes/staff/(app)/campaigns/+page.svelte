@@ -1,6 +1,6 @@
 <script lang="ts">
+	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { enhance } from '$app/forms';
-	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
 	import StatusPill, { type PillTone } from '#lib/components/atoms/StatusPill.svelte';
@@ -91,23 +91,16 @@
 
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<SegmentedTabs label={t('campaigns.statusTabs')} active={data.tab} {tabs} />
-		<form method="GET" class="flex items-center gap-2">
+		<form method="GET" class="flex flex-wrap items-center gap-2">
 			<input type="hidden" name="status" value={data.tab} />
 			<input type="hidden" name="dias" value={data.days} />
-			<div class="relative">
-				<Icon
-					name="search"
-					class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400"
-				/>
-				<input
-					class="field min-h-10 w-56 pl-9"
-					type="search"
-					name="q"
-					value={data.q}
-					placeholder={t('campaigns.search')}
-					aria-label={t('campaigns.search')}
-				/>
-			</div>
+			<SearchField
+				label={t('campaigns.search')}
+				name="q"
+				value={data.q}
+				class="w-full sm:w-56"
+				inputClass="min-h-10"
+			/>
 			<select
 				class="field min-h-10 w-auto"
 				name="dias"

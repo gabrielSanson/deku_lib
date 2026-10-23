@@ -1,4 +1,6 @@
 <script lang="ts">
+	import IconButton from '#lib/components/atoms/IconButton.svelte';
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
@@ -42,13 +44,12 @@
 	<input type="hidden" name="payload" value={payload} />
 	<h1 class="page-title">{t('hours.title')}</h1>
 
-	<label class="flex min-h-11 items-start gap-3 card p-4"
-		><input type="checkbox" class="mt-1 size-5" bind:checked={s.enabled} />
-		<span
-			>{t('hours.auto')}
-			<span class="block text-sm text-muted">{t('hours.autoHint')}</span></span
-		></label
-	>
+	<Checkbox
+		label={t('hours.auto')}
+		hint={t('hours.autoHint')}
+		bind:checked={s.enabled}
+		class="card p-4"
+	/>
 
 	<section class="divide-y divide-line card" aria-label={t('hours.byDay')}>
 		{#each order as wd (wd)}
@@ -112,16 +113,16 @@
 				<input
 					class="field flex-1"
 					bind:value={c.reason}
-					maxlength="80"
+					maxlength={80}
 					placeholder={t('hours.reasonOptional')}
 					aria-label={t('hours.reason')}
 				/>
-				<button
-					type="button"
-					class="btn-ghost min-h-9 px-2"
-					aria-label={t('hours.removeDay')}
-					onclick={() => s.closures.splice(i, 1)}>✕</button
-				>
+				<IconButton
+					label={t('hours.removeDay')}
+					icon="close"
+					size="sm"
+					onclick={() => s.closures.splice(i, 1)}
+				/>
 			</div>
 		{/each}
 		<button
