@@ -1,7 +1,3 @@
-/// <reference types="@sveltejs/kit" />
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
 // Caches only the app's static build files and icons. Menus, prices, orders,
 // payments and staff screens always come from the network, so nobody ever
 // sees a stale price or order. A failed page load shows the offline notice,

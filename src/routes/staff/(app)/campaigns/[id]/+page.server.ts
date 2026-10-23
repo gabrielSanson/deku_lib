@@ -6,11 +6,13 @@ import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getCampaign, saveCampaign } from '#lib/server/campaigns/service.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
+import { isUuid } from '#lib/domain/ids.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);
 	const id = event.params.id;
+	if (id !== 'new' && !isUuid(id)) error(404, 'Campanha não encontrada');
 	const campaign = id === 'new' ? null : await getCampaign(id);
 	if (id !== 'new' && !campaign) error(404, 'Campanha não encontrada');
 	const catalog = await getCatalog();
