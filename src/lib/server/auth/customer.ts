@@ -3,6 +3,7 @@
 // ordered with keeps their history.
 import type { User } from '@supabase/supabase-js';
 import type { OrderStatus } from '#lib/domain/order-status.ts';
+import type { PastItem } from '#lib/domain/reorder.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
@@ -21,6 +22,8 @@ export interface CustomerOrder {
 	totalCents: number;
 	publicToken: string;
 	createdAt: string;
+	/** What was ordered, for "Pedir de novo". */
+	items: PastItem[];
 }
 
 export async function loadCustomer(userId: string): Promise<CustomerSession | null> {
@@ -96,6 +99,7 @@ export async function updateCustomerProfile(
 export async function customerOrders(customerId: string, limit = 20): Promise<CustomerOrder[]> {
 	const rows = await db()<
 		{
+			id: string;
 			order_number: number;
 			status: string;
 			fulfillment_type: string;
@@ -103,15 +107,50 @@ export async function customerOrders(customerId: string, limit = 20): Promise<Cu
 			public_token: string;
 			created_at: Date;
 		}[]
-	>`select order_number, status, fulfillment_type, total_cents, public_token, created_at
+	>`select id, order_number, status, fulfillment_type, total_cents, public_token, created_at
 		from orders where customer_id = ${customerId}
 		order by created_at desc limit ${limit}`;
+	const items = rows.length ? await orderItems(rows.map((r) => r.id)) : new Map();
 	return rows.map((r) => ({
 		orderNumber: r.order_number,
 		status: r.status as OrderStatus,
 		fulfillmentType: r.fulfillment_type,
 		totalCents: r.total_cents,
 		publicToken: r.public_token,
-		createdAt: new Date(r.created_at).toISOString()
+		createdAt: new Date(r.created_at).toISOString(),
+		items: items.get(r.id) ?? []
 	}));
+}
+
+async function orderItems(orderIds: string[]): Promise<Map<string, PastItem[]>> {
+	const rows = await db()<
+		{
+			id: string;
+			order_id: string;
+			product_sku: string;
+			product_name: string;
+			quantity: number;
+			note: string | null;
+			modifiers: PastItem['modifiers'];
+		}[]
+	>`select i.id, i.order_id, i.product_sku, i.product_name, i.quantity, i.note,
+			coalesce(json_agg(json_build_object('groupName', m.group_name, 'optionSku', m.option_sku,
+				'optionName', m.option_name, 'quantity', m.quantity) order by m.id)
+				filter (where m.id is not null), '[]') as modifiers
+		from order_items i left join order_item_modifiers m on m.order_item_id = i.id
+		where i.order_id = any(${orderIds}::uuid[])
+		group by i.id order by i.position`;
+	const byOrder = new Map<string, PastItem[]>();
+	for (const r of rows) {
+		const list = byOrder.get(r.order_id) ?? [];
+		list.push({
+			sku: r.product_sku,
+			name: r.product_name,
+			quantity: r.quantity,
+			note: r.note,
+			modifiers: r.modifiers
+		});
+		byOrder.set(r.order_id, list);
+	}
+	return byOrder;
 }

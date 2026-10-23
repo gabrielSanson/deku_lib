@@ -3,11 +3,35 @@
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
+	import { cart } from '#lib/client/cart.svelte.ts';
+	import { rebuildOrder } from '#lib/domain/reorder.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
+
+	// Puts what is still on today's menu back in the cart and opens it; anything gone or
+	// sold out is named instead of being added.
+	let reorderNote = $state<{ orderNumber: number; text: string } | null>(null);
+	function reorder(order: (typeof data.orders)[number]) {
+		const { lines, skipped } = rebuildOrder(
+			order.items,
+			data.catalog.products,
+			new Set(data.soldOut),
+			new Set(data.missingIngredients)
+		);
+		for (const l of lines) cart.add(l.product, l.quantity, l.options, l.note);
+		reorderNote = skipped.length
+			? {
+					orderNumber: order.orderNumber,
+					text: lines.length
+						? t('account.mine.reorderSkipped', { items: skipped.join(', ') })
+						: t('account.mine.reorderNone')
+				}
+			: null;
+		if (lines.length) cart.panelOpen = true;
+	}
 </script>
 
 <svelte:head><title>{t('account.mine.title')}</title></svelte:head>
@@ -62,13 +86,23 @@
 							<p class="font-display text-lg font-extrabold">#{order.orderNumber}</p>
 							<p class="text-sm text-muted">{formatDateTime(order.createdAt)}</p>
 						</div>
-						<div class="flex items-center gap-3">
+						<div class="flex flex-wrap items-center gap-3">
 							<span class="font-semibold tabular-nums"><Money cents={order.totalCents} /></span>
 							<StatusBadge status={order.status} />
 							<a href="/orders/{order.publicToken}" class="btn-quiet min-h-10 px-3 text-sm"
 								>{t('account.mine.track')}</a
 							>
+							{#if order.items.length}
+								<button
+									class="btn-primary min-h-10 px-3 text-sm whitespace-nowrap"
+									onclick={() => reorder(order)}
+									><Icon name="plus" class="size-4" />{t('account.mine.reorder')}</button
+								>
+							{/if}
 						</div>
+						{#if reorderNote?.orderNumber === order.orderNumber}
+							<p class="w-full alert-warn" role="status">{reorderNote.text}</p>
+						{/if}
 					</li>
 				{/each}
 			</ul>

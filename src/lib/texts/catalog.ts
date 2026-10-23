@@ -204,6 +204,21 @@ const CORE_TEXTS = {
 		label: 'Link acompanhar pedido',
 		default: 'Acompanhar'
 	},
+	'account.mine.reorder': {
+		group: 'account',
+		label: 'Botão pedir de novo',
+		default: 'Pedir de novo'
+	},
+	'account.mine.reorderSkipped': {
+		group: 'account',
+		label: 'Pedir de novo: itens indisponíveis',
+		default: 'Fora do carrinho porque não estão disponíveis agora: {items}.'
+	},
+	'account.mine.reorderNone': {
+		group: 'account',
+		label: 'Pedir de novo: nada disponível',
+		default: 'Nenhum item deste pedido está disponível agora.'
+	},
 	'account.mine.logout': { group: 'account', label: 'Botão sair', default: 'Sair' },
 
 	// Notices and errors

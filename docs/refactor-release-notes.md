@@ -27,10 +27,14 @@ screens and their components, so a rollback is a normal `git revert`.
 - **Kitchen and setup wizard:** all copy now comes from the text catalog, so it can be edited in
   Configurações → Textos (#38, #41). The setup progress rail is its own component (#40).
 
+- **Decisions closed (23 Oct):** the menu page is a black field with cream cards (mockup 02) in
+  both themes; the home featured row is four across on desktop (owner picks 4 or 8); Minha conta
+  has "Pedir de novo", which refills the cart from today's menu and names what is unavailable.
+
 ## Not done
 
 - Pixel-baseline sign-off for the visual tests (needs the owner).
-- Reorder button on the customer account page (waiting on a product decision).
+- Reordering the home page's blocks (waits for the storefront CMS).
 - Keyboard-journey and responsive review passes beyond what the e2e and accessibility scans cover.
 
 ## Rollback

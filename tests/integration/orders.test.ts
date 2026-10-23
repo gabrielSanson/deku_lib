@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { rebuildOrder } from '#lib/domain/reorder.ts';
+import { customerOrders } from '#lib/server/auth/customer.ts';
+import { getCatalog } from '#lib/server/catalog/service.ts';
 import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { callOrder, createOrder, transitionOrder } from '#lib/server/orders/service.ts';
@@ -452,5 +455,35 @@ describe('room board', () => {
 		await db()`update orders set fulfillment_type = 'delivery' where id = ${o.id}`;
 		board = await listBoardOrders();
 		expect(board.find((b) => b.number === o.orderNumber)).toBeUndefined();
+	});
+});
+
+describe('customer order history', () => {
+	it('lists what was ordered, so "Pedir de novo" can rebuild the cart', async () => {
+		const order = await counterOrder();
+		const [customer] = await db()<{ id: string }[]>`
+			insert into customers (name) values ('Reorder') returning id`;
+		await db()`update orders set customer_id = ${customer.id} where id = ${order.id}`;
+
+		const [past] = await customerOrders(customer.id);
+		expect(past.items.map((i) => [i.sku, i.quantity])).toEqual([
+			['BRG-CLASSICO', 1],
+			['ACP-FRITAS', 2]
+		]);
+		expect(past.items[0].modifiers).toContainEqual({
+			groupName: 'Ponto da carne',
+			optionSku: 'PONTO-AO',
+			optionName: 'Ao ponto',
+			quantity: 1
+		});
+
+		const { lines, skipped } = rebuildOrder(
+			past.items,
+			(await getCatalog()).products,
+			new Set(),
+			new Set()
+		);
+		expect(skipped).toEqual([]);
+		expect(lines.map((l) => l.product.sku)).toEqual(['BRG-CLASSICO', 'ACP-FRITAS']);
 	});
 });
