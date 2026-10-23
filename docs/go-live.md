@@ -17,6 +17,10 @@ shop owner can make. Nothing here needs a paid licence or a cloud host.
 
 ## 2. Install
 
+First, on GitHub, start the full CI run on the commit you will install (Actions → CI → Run
+workflow) and wait for both jobs, checks and browser tests, to pass. Pushes to `main` only run the
+fast checks.
+
 On the server:
 
 ```sh

@@ -19,7 +19,8 @@
 		"migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
 		"seed": "node --env-file-if-exists=.env --import tsx scripts/seed.ts",
 		"test:integration": "vitest run --project integration",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"verify": "pnpm check && pnpm lint && pnpm test && pnpm test:integration"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.14.0",

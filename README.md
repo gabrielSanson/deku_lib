@@ -150,15 +150,19 @@ pnpm lint                  # prettier + eslint
 pnpm test                  # unit tests (domain rules, iFood mapping)
 TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/burger_test \
   pnpm test:integration    # orders, tenders, payments, webhooks, iFood, analytics
-pnpm test:e2e              # Playwright; needs dev server + worker + seeded Supabase,
-                           # PAYMENT_PROVIDER=local_stub for the web checkout test
+pnpm test:e2e              # Playwright; needs worker + seeded local Supabase,
+                           # PAYMENT_PROVIDER=local_stub (starts the dev server itself)
+pnpm verify                # check + lint + unit + database tests, before every push
 ```
 
 In a container without browser downloads, set `PW_CHROMIUM_PATH` to a Chromium
-binary. CI (`.github/workflows/ci.yml`) runs all of the above, but it is paused:
-it runs only when started by hand (Actions → CI → Run workflow), so run the
-checks locally before pushing. The E2E job runs
-against a local Supabase.
+binary. `pnpm verify` runs check, lint, unit and database tests in one go; run it
+before every push (work goes straight to `main`). CI (`.github/workflows/ci.yml`)
+runs those checks after each push to `main` and the browser tests, against a
+local Supabase, every night. It reports but does not block a push. **Before a
+release, start the full run by hand** (Actions → CI → Run workflow) and wait for
+both jobs to pass. Where copy, components and tests go: see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Deploy
 

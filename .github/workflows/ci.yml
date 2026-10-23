@@ -1,7 +1,14 @@
 name: CI
 
-# Paused: runs only when started by hand (Actions tab > CI > Run workflow).
+# Work is pushed straight to main, so CI does not gate anything: it reports. The fast checks run
+# on every push to main; the browser tests (local Supabase, ~8 min) run every night and when started
+# by hand (Actions tab > CI > Run workflow). Run `pnpm verify` before pushing.
 on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'docs/**']
+  schedule:
+    - cron: '0 6 * * *' # 03:00 in São Paulo
   workflow_dispatch:
 
 concurrency:
@@ -37,6 +44,7 @@ jobs:
       - run: pnpm build
 
   e2e:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     needs: checks
     env:
@@ -62,6 +70,7 @@ jobs:
             echo "PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
             echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
             echo "PAYMENT_PROVIDER=local_stub"
+            echo "APP_SECRET=ci-only-not-a-real-secret-0123456789abcdef"
           } > .env
       - run: pnpm seed
       - run: pnpm exec playwright install --with-deps chromium
