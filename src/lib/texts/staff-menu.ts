@@ -129,6 +129,12 @@ export const STAFF_MENU_TEXTS = {
 		default: 'Foto da categoria'
 	},
 	'menuEdit.removePhoto': { group: g, label: 'Editar cardápio: tirar foto', default: 'Tirar foto' },
+	'group.optionPhoto': {
+		group: g,
+		label: 'Grupo: foto da opção',
+		default: 'Foto de {name}'
+	},
+	'ingredients.photo': { group: g, label: 'Ingredientes: foto', default: 'Foto do ingrediente' },
 	'menuEdit.order': { group: g, label: 'Editar cardápio: ordem', default: 'Ordem' },
 	'menuEdit.categoryName': {
 		group: g,

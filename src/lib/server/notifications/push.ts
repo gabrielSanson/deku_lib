@@ -11,6 +11,7 @@ import { audit, SYSTEM } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
 import { canStoreSecrets, decryptSecret, encryptSecret } from '../secrets';
+import { getBranding } from '../settings/branding';
 import { getTexts } from '../settings/texts';
 
 const MAX_PER_ORDER = 5;
@@ -89,13 +90,15 @@ export async function sendReadyPush(orderId: string) {
 	const keys = await vapidKeys(sql);
 	if (!keys) return { sent: 0, failed: subs.length };
 
-	const texts = await getTexts(sql);
+	const [texts, branding] = await Promise.all([getTexts(sql), getBranding(sql)]);
 	const code = pickupCode(order.order_number);
 	const payload = JSON.stringify({
 		title: texts['push.ready.title'],
 		body: fill(texts['push.ready.body'], { number: code }),
 		url: `/orders/${order.public_token}`,
-		tag: `order-${code}`
+		tag: `order-${code}`,
+		// The app icon from Aparência; the built-in one is sent as its 192 px file.
+		icon: branding.custom.icon ? branding.images.icon : '/icon-192.png'
 	});
 	let sent = 0;
 	let failed = 0;

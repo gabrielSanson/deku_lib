@@ -23,8 +23,10 @@
 		class="relative isolate hidden min-h-[40rem] flex-col justify-between overflow-hidden rounded-(--radius-card) bg-night p-10 text-white lg:flex"
 	>
 		<img
-			src="/hero/banner-1920.webp"
-			srcset="/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w"
+			src={data.branding.images.loginImage}
+			srcset={data.branding.custom.loginImage || data.branding.custom.heroImage
+				? undefined
+				: '/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w'}
 			sizes="50vw"
 			alt=""
 			class="absolute inset-0 -z-10 size-full object-cover object-[28%_center]"

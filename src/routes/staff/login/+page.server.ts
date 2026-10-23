@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { failText, formString } from '#lib/server/actions.ts';
+import { shopName } from '#lib/server/settings/profile.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 function safeNext(next: string | null) {
@@ -8,7 +9,7 @@ function safeNext(next: string | null) {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.staff) redirect(303, safeNext(url.searchParams.get('next')));
-	return { configured: locals.supabase !== null };
+	return { configured: locals.supabase !== null, shopName: await shopName() };
 };
 
 export const actions: Actions = {

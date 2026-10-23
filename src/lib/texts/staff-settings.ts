@@ -466,6 +466,28 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Aparência: ícone do app (dica)',
 		default: 'Aba do navegador e atalho no celular. Quadrado, 512×512 px.'
 	},
+	'look.signIn': { group: g, label: 'Aparência: telas de entrar', default: 'Telas de entrar' },
+	'look.loginImage': {
+		group: g,
+		label: 'Aparência: foto da entrada do cliente',
+		default: 'Foto da tela de entrar do cliente'
+	},
+	'look.loginImageHint': {
+		group: g,
+		label: 'Aparência: foto da entrada do cliente (dica)',
+		default:
+			'Ao lado do formulário de entrar, no computador. Sem foto própria, usa a foto da página inicial.'
+	},
+	'look.staffBackground': {
+		group: g,
+		label: 'Aparência: fundo da entrada da equipe',
+		default: 'Fundo da entrada da equipe'
+	},
+	'look.staffBackgroundHint': {
+		group: g,
+		label: 'Aparência: fundo da entrada da equipe (dica)',
+		default: 'Atrás do formulário de entrar da equipe. Foto escura e larga, 1920 px.'
+	},
 	'look.default': { group: g, label: 'Aparência: marca padrão', default: '(padrão)' },
 	'look.newImage': { group: g, label: 'Aparência: nova imagem', default: 'Nova imagem: {name}' },
 	'look.upload': { group: g, label: 'Aparência: enviar', default: 'Enviar' },

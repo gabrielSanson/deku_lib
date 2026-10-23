@@ -9,6 +9,8 @@ export interface ModifierOption {
 	priceCents: number;
 	/** How many times this option may be picked within its group. */
 	maxQuantity: number;
+	/** Small photo shown next to the option in the product sheet. */
+	imageUrl?: string | null;
 }
 
 export interface ModifierGroup {
@@ -24,6 +26,8 @@ export interface ProductIngredient {
 	id: string;
 	name: string;
 	removable: boolean;
+	/** Small photo shown next to the ingredient in the product sheet. */
+	imageUrl?: string | null;
 }
 
 /**

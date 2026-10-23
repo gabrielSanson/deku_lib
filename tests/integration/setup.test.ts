@@ -5,7 +5,9 @@ import { buildPixCode } from '#lib/domain/pix.ts';
 import {
 	deleteCategory,
 	saveCategory,
+	listIngredients,
 	saveGroup,
+	saveIngredient,
 	saveProduct
 } from '#lib/server/catalog/editor.ts';
 import { getCatalog, getCatalogForPricing } from '#lib/server/catalog/service.ts';
@@ -93,6 +95,68 @@ describe('menu editor', () => {
 			actor: owner
 		});
 		expect(order.totalCents).toBe(2 * (1290 + 200));
+	});
+
+	it('keeps, shows and removes photos of add-on options and ingredients', async () => {
+		const photo = `${'d'.repeat(32)}.jpg`;
+		const group = await saveGroup(
+			{
+				id: 'cobertura',
+				name: 'Cobertura',
+				minSelections: 1,
+				maxSelections: 1,
+				options: [
+					{ sku: 'COBERT-CHOCOLATE', name: 'Chocolate', priceCents: 0, imagePath: photo },
+					{ sku: 'COBERT-DOCE-DE-LEITE', name: 'Doce de leite', priceCents: 200 }
+				]
+			},
+			owner
+		);
+		const ingredient = await saveIngredient({ name: 'Calda teste', imagePath: photo }, owner);
+		const optionPhotos = async () =>
+			db()<{ sku: string; image_path: string | null }[]>`
+				select sku, image_path from menu_modifier_options where group_id = ${group} order by sku`;
+		expect(await optionPhotos()).toEqual([
+			{ sku: 'COBERT-CHOCOLATE', image_path: photo },
+			{ sku: 'COBERT-DOCE-DE-LEITE', image_path: null }
+		]);
+		// Saving without a photo keeps it; null takes it off.
+		await saveGroup(
+			{
+				id: group,
+				name: 'Cobertura',
+				minSelections: 1,
+				maxSelections: 1,
+				options: [
+					{ sku: 'COBERT-CHOCOLATE', name: 'Chocolate', priceCents: 0 },
+					{ sku: 'COBERT-DOCE-DE-LEITE', name: 'Doce de leite', priceCents: 200, imagePath: photo }
+				]
+			},
+			owner
+		);
+		expect((await optionPhotos()).map((o) => o.image_path)).toEqual([photo, photo]);
+		await saveProduct(
+			{
+				name: 'Sundae',
+				categoryId: 'sobremesas-teste',
+				priceCents: 1290,
+				prepStation: 'counter',
+				channels: ['counter', 'web'],
+				groupIds: [group],
+				ingredients: [{ id: ingredient, removable: true }]
+			},
+			owner,
+			'SUNDAE'
+		);
+		const sundae = (await getCatalog({ fresh: true })).products.find((p) => p.sku === 'SUNDAE');
+		expect(sundae?.modifierGroups[0].options[0].imageUrl).toBe(`/media/menu/${photo}`);
+		expect(sundae?.ingredients[0].imageUrl).toBe(`/media/menu/${photo}`);
+		await saveIngredient({ id: ingredient, name: 'Calda teste', imagePath: null }, owner);
+		expect((await listIngredients()).find((i) => i.id === ingredient)?.imageUrl).toBeNull();
+		await saveIngredient({ id: ingredient, name: 'Calda teste renomeada' }, owner);
+		await expect(
+			saveIngredient({ name: 'Ruim', imagePath: '../etc/passwd' }, owner)
+		).rejects.toThrow();
 	});
 
 	it('bumps the menu version on every change and reprices from the new price', async () => {

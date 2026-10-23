@@ -1,5 +1,7 @@
 <script lang="ts">
+	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
+	import FileField from '#lib/components/molecules/FileField.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
@@ -57,6 +59,7 @@
 					{#if editing === ing.id}
 						<GuardedForm
 							action="?/save"
+							enctype="multipart/form-data"
 							after={(result) => {
 								if (result.type === 'success') editing = null;
 							}}
@@ -84,6 +87,20 @@
 								type="number"
 								value={ing.position}
 							/>
+							<div class="flex flex-wrap items-center gap-3 sm:col-span-full">
+								{#if ing.imageUrl}
+									<img src={ing.imageUrl} alt="" class="size-10 rounded-md object-cover" />
+								{/if}
+								<FileField label={t('ingredients.photo')} id="photo-{ing.id}" class="w-56" />
+								{#if ing.imageUrl}
+									<Checkbox
+										label={t('menuEdit.removePhoto')}
+										name="removePhoto"
+										value="1"
+										class="text-sm"
+									/>
+								{/if}
+							</div>
 							<div class="flex gap-2">
 								<button class="btn-primary">{t('menuEdit.save')}</button>
 								<button type="button" class="btn-ghost" onclick={() => (editing = null)}
@@ -93,6 +110,9 @@
 						</GuardedForm>
 					{:else}
 						<div class="flex flex-wrap items-center gap-3">
+							{#if ing.imageUrl}
+								<img src={ing.imageUrl} alt="" class="size-10 rounded-md object-cover" />
+							{/if}
 							<div class="min-w-0 flex-1">
 								<p class="font-medium">
 									{ing.name}

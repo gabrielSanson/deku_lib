@@ -6,7 +6,7 @@ import { skuFrom, slugify } from '#lib/domain/slug.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
-import { IMAGE_PATH } from './images';
+import { IMAGE_PATH, menuImageUrl } from './images';
 import { invalidateCatalog } from './service';
 
 const CHANNELS = ['counter', 'web', 'ifood'] as const;
@@ -224,7 +224,9 @@ export const groupInput = z
 					name: z.string().trim().min(1, 'Informe o nome da opção.').max(80),
 					priceCents: z.number().int().min(0).max(1_000_000),
 					maxQuantity: z.number().int().min(1).max(20).default(1),
-					active: z.boolean().default(true)
+					active: z.boolean().default(true),
+					/** Undefined keeps the saved photo; null removes it. */
+					imagePath: z.string().regex(IMAGE_PATH).nullable().optional()
 				})
 			)
 			.min(1, 'Adicione pelo menos uma opção.')
@@ -264,10 +266,13 @@ export async function saveGroup(input: z.input<typeof groupInput>, actor: Actor)
 					});
 				}
 				await tx`
-					insert into menu_modifier_options (sku, group_id, name, price_cents, max_quantity, position, active)
-					values (${optionSku}, ${groupId}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i}, ${o.active})
+					insert into menu_modifier_options
+						(sku, group_id, name, price_cents, max_quantity, position, active, image_path)
+					values (${optionSku}, ${groupId}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i},
+						${o.active}, ${o.imagePath ?? null})
 					on conflict (sku) do update set name = excluded.name, price_cents = excluded.price_cents,
 						max_quantity = excluded.max_quantity, position = excluded.position, active = excluded.active,
+						image_path = ${o.imagePath === undefined ? tx`menu_modifier_options.image_path` : o.imagePath},
 						updated_at = now()`;
 				kept.push(optionSku);
 			}
@@ -302,7 +307,9 @@ export const ingredientInput = z.object({
 	id: id.optional(),
 	name: z.string().trim().min(1, 'Informe o nome do ingrediente.').max(80),
 	allergens: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
-	position: z.number().int().default(0)
+	position: z.number().int().default(0),
+	/** Undefined keeps the saved photo; null removes it. */
+	imagePath: z.string().regex(IMAGE_PATH).nullable().optional()
 });
 
 export async function saveIngredient(input: z.input<typeof ingredientInput>, actor: Actor) {
@@ -312,12 +319,16 @@ export async function saveIngredient(input: z.input<typeof ingredientInput>, act
 			const ingredientId = g.id ?? (slugify(g.name) || 'ingrediente');
 			if (g.id) {
 				const r = await tx`update menu_ingredients set name = ${g.name}, allergens = ${g.allergens},
-					position = ${g.position}, updated_by = ${actor.id}, updated_at = now() where id = ${g.id}`;
+					position = ${g.position},
+					image_path = ${g.imagePath === undefined ? tx`image_path` : g.imagePath},
+					updated_by = ${actor.id}, updated_at = now() where id = ${g.id}`;
 				if (!r.count)
 					throw new DomainError('err.menu.ingredientNotFound', { code: 'not_found', status: 404 });
 			} else {
-				const r = await tx`insert into menu_ingredients (id, name, allergens, position, updated_by)
-					values (${ingredientId}, ${g.name}, ${g.allergens}, ${g.position}, ${actor.id})
+				const r = await tx`insert into menu_ingredients
+						(id, name, allergens, position, image_path, updated_by)
+					values (${ingredientId}, ${g.name}, ${g.allergens}, ${g.position}, ${g.imagePath ?? null},
+						${actor.id})
 					on conflict (id) do nothing`;
 				if (!r.count) throw new DomainError('err.menu.ingredientTaken', { code: 'duplicate' });
 			}
@@ -372,6 +383,7 @@ export interface IngredientRow {
 	position: number;
 	available: boolean;
 	unavailableAt: Date | null;
+	imageUrl: string | null;
 	products: string[];
 }
 
@@ -384,10 +396,11 @@ export async function listIngredients(sql: Db = db()): Promise<IngredientRow[]> 
 			position: number;
 			available: boolean;
 			unavailable_at: Date | null;
+			image_path: string | null;
 			products: string[];
 		}[]
 	>`
-		select i.id, i.name, i.allergens, i.position, i.available, i.unavailable_at,
+		select i.id, i.name, i.allergens, i.position, i.available, i.unavailable_at, i.image_path,
 			coalesce(array_agg(p.name order by p.name) filter (where p.sku is not null), '{}') as products
 		from menu_ingredients i
 		left join menu_product_ingredients pi on pi.ingredient_id = i.id
@@ -400,6 +413,7 @@ export async function listIngredients(sql: Db = db()): Promise<IngredientRow[]> 
 		position: r.position,
 		available: r.available,
 		unavailableAt: r.unavailable_at,
+		imageUrl: menuImageUrl(r.image_path),
 		products: r.products
 	}));
 }

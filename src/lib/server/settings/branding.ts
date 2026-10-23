@@ -9,7 +9,15 @@ import { DEFAULT_HOME, parseHome, type HomeLayout } from './home';
 
 export const COLOR_KEYS = ['primary', 'dark', 'background'] as const;
 export type ColorKey = (typeof COLOR_KEYS)[number];
-export const IMAGE_KEYS = ['logo', 'wordmark', 'heroImage', 'heroLogo', 'icon'] as const;
+export const IMAGE_KEYS = [
+	'logo',
+	'wordmark',
+	'heroImage',
+	'heroLogo',
+	'icon',
+	'loginImage',
+	'staffBackground'
+] as const;
 export type ImageKey = (typeof IMAGE_KEYS)[number];
 
 export const DEFAULT_COLORS: Record<ColorKey, string> = {
@@ -22,7 +30,10 @@ export const DEFAULT_IMAGES: Record<ImageKey, string> = {
 	wordmark: '/brand/deku-wordmark.png',
 	heroImage: '/hero/banner-1920.webp',
 	heroLogo: '/hero/burger-1200.webp',
-	icon: '/icon-512.png'
+	icon: '/icon-512.png',
+	// Until the owner picks one, the customer sign-in page reuses the home photo.
+	loginImage: '/hero/banner-1920.webp',
+	staffBackground: '/hero/background-1920.webp'
 };
 
 export interface Branding {
@@ -39,7 +50,7 @@ export function defaultBranding(): Branding {
 	return {
 		colors: { primary: null, dark: null, background: null },
 		images: { ...DEFAULT_IMAGES },
-		custom: { logo: false, wordmark: false, heroImage: false, heroLogo: false, icon: false },
+		custom: Object.fromEntries(IMAGE_KEYS.map((k) => [k, false])) as Branding['custom'],
 		home: { ...DEFAULT_HOME }
 	};
 }
@@ -52,7 +63,9 @@ const COLUMNS: Record<ColorKey | ImageKey, string> = {
 	wordmark: 'wordmark_path',
 	heroImage: 'hero_image_path',
 	heroLogo: 'hero_logo_path',
-	icon: 'icon_path'
+	icon: 'icon_path',
+	loginImage: 'login_image_path',
+	staffBackground: 'staff_background_path'
 };
 const HEX = /^#[0-9a-f]{6}$/;
 
@@ -69,11 +82,13 @@ export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promi
 	const uploaded = Object.fromEntries(
 		IMAGE_KEYS.map((k) => [k, menuImageUrl(r?.[COLUMNS[k]] ?? null)])
 	) as Record<ImageKey, string | null>;
+	const images = Object.fromEntries(
+		IMAGE_KEYS.map((k) => [k, uploaded[k] ?? DEFAULT_IMAGES[k]])
+	) as Branding['images'];
+	if (!uploaded.loginImage) images.loginImage = images.heroImage;
 	const value: Branding = {
 		colors,
-		images: Object.fromEntries(
-			IMAGE_KEYS.map((k) => [k, uploaded[k] ?? DEFAULT_IMAGES[k]])
-		) as Branding['images'],
+		images,
 		custom: Object.fromEntries(
 			IMAGE_KEYS.map((k) => [k, uploaded[k] !== null])
 		) as Branding['custom'],

@@ -128,6 +128,25 @@ describe('branding', () => {
 		expect(b.images.logo).toBe('/brand/deku-mark.png');
 	});
 
+	it('uses the home photo on the sign-in page until the owner picks one', async () => {
+		const hero = `${'b'.repeat(32)}.jpg`;
+		const login = `${'c'.repeat(32)}.webp`;
+		let b = await getBranding(db(), { fresh: true });
+		expect(b.images.loginImage).toBe(b.images.heroImage);
+		expect(b.images.staffBackground).toBe('/hero/background-1920.webp');
+		await setBrandImage('heroImage', hero, owner);
+		b = await getBranding();
+		expect(b.images.loginImage).toBe(`/media/menu/${hero}`);
+		expect(b.custom.loginImage).toBe(false);
+		await setBrandImage('loginImage', login, owner);
+		await setBrandImage('staffBackground', login, owner);
+		b = await getBranding();
+		expect(b.images.loginImage).toBe(`/media/menu/${login}`);
+		expect(b.images.staffBackground).toBe(`/media/menu/${login}`);
+		for (const key of ['heroImage', 'loginImage', 'staffBackground'] as const)
+			await setBrandImage(key, null, owner);
+	});
+
 	it('saves the home layout and reads it back', async () => {
 		expect((await getBranding(db(), { fresh: true })).home.heroAlign).toBe('left');
 		await saveHome({ ...DEFAULT_HOME, heroAlign: 'center', secondaryHref: '/p/sobre' }, owner);

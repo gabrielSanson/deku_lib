@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
+	import FileField from '#lib/components/molecules/FileField.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -20,7 +21,15 @@
 	);
 	let confirmDelete = $state(false);
 	const add = () =>
-		rows.push({ sku: '', name: '', priceCents: 0, price: '', maxQuantity: 1, active: true });
+		rows.push({
+			sku: '',
+			name: '',
+			priceCents: 0,
+			price: '',
+			maxQuantity: 1,
+			active: true,
+			imageUrl: null
+		});
 	const t = useTexts();
 </script>
 
@@ -34,7 +43,7 @@
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('group.saved')}</p>{/if}
 
-	<GuardedForm action="?/save" class="space-y-4 card p-4">
+	<GuardedForm action="?/save" enctype="multipart/form-data" class="space-y-4 card p-4">
 		<TextField
 			label={t('group.name')}
 			name="name"
@@ -112,6 +121,25 @@
 							aria-label={t('group.removeOption', { name: row.name || t('group.option') })}
 							>{t('group.remove')}</button
 						>
+					</div>
+					<div class="col-span-full flex flex-wrap items-center gap-3">
+						{#if row.imageUrl}
+							<img src={row.imageUrl} alt="" class="size-10 rounded-md object-cover" />
+						{/if}
+						<FileField
+							label={t('group.optionPhoto', { name: row.name || t('group.option') })}
+							id="option-photo-{i}"
+							name="optionPhoto"
+							class="w-56"
+						/>
+						{#if row.imageUrl}
+							<Checkbox
+								label={t('menuEdit.removePhoto')}
+								name="optionRemovePhoto"
+								value={String(i)}
+								class="text-sm"
+							/>
+						{/if}
 					</div>
 					{#if row.sku}<p class="col-span-full text-xs text-muted">
 							{t('group.code', { sku: row.sku })}

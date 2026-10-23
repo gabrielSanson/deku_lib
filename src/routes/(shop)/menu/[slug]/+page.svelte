@@ -133,6 +133,14 @@
 									? 'border-brand-500 bg-brand-500 text-black'
 									: 'border-line'}">{q > 1 ? q : q ? '✓' : ''}</span
 							>
+							{#if o.imageUrl}
+								<img
+									src={o.imageUrl}
+									alt=""
+									loading="lazy"
+									class="size-10 rounded-md object-cover"
+								/>
+							{/if}
 							{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
 						</span>
 						{#if o.priceCents}<span class="text-sm">+ <Money cents={o.priceCents} /></span>{/if}
@@ -164,6 +172,9 @@
 								? 'border-bad-strong bg-bad-strong text-white'
 								: 'border-line'}">{off ? '✕' : ''}</span
 						>
+						{#if i.imageUrl}
+							<img src={i.imageUrl} alt="" loading="lazy" class="size-10 rounded-md object-cover" />
+						{/if}
 						<span class={off ? 'line-through' : ''}>{i.name}</span>
 						{#if out}<span class="text-xs text-muted">{t('product.ingredientOut')}</span>{/if}
 					</button>

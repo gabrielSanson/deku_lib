@@ -62,10 +62,10 @@ sw.addEventListener('fetch', (event) => {
 	}
 });
 
-// "Avisar quando ficar pronto": the server sends { title, body, url, tag } when
+// "Avisar quando ficar pronto": the server sends { title, body, url, tag, icon } when
 // the order is ready and on each "Chamar". Tapping the notification opens the order.
 sw.addEventListener('push', (event) => {
-	let msg: { title?: string; body?: string; url?: string; tag?: string } = {};
+	let msg: { title?: string; body?: string; url?: string; tag?: string; icon?: string } = {};
 	try {
 		msg = event.data?.json() ?? {};
 	} catch {
@@ -77,7 +77,7 @@ sw.addEventListener('push', (event) => {
 			body: msg.body,
 			tag: msg.tag,
 			data: { url: msg.url ?? '/' },
-			icon: '/icon-192.png',
+			icon: msg.icon ?? '/icon-192.png',
 			// @ts-expect-error renotify is supported by Chromium; a repeated call must buzz again.
 			renotify: true,
 			vibrate: [200, 100, 200]

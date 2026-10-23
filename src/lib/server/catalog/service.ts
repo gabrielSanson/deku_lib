@@ -45,8 +45,9 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 				price_cents: number;
 				max_quantity: number;
 				active: boolean;
+				image_path: string | null;
 			}[]
-		>`select sku, group_id, name, price_cents, max_quantity, active
+		>`select sku, group_id, name, price_cents, max_quantity, active, image_path
 			from menu_modifier_options order by position, name`,
 		sql<{ product_sku: string; group_id: string }[]>`
 			select product_sku, group_id from menu_product_groups order by position`,
@@ -57,8 +58,9 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 				name: string;
 				allergens: string[];
 				removable: boolean;
+				image_path: string | null;
 			}[]
-		>`select pi.product_sku, i.id, i.name, i.allergens, pi.removable
+		>`select pi.product_sku, i.id, i.name, i.allergens, pi.removable, i.image_path
 			from menu_product_ingredients pi join menu_ingredients i on i.id = pi.ingredient_id
 			order by pi.position, i.name`
 	]);
@@ -77,7 +79,8 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 						sku: o.sku,
 						name: o.name,
 						priceCents: o.price_cents,
-						maxQuantity: o.max_quantity
+						maxQuantity: o.max_quantity,
+						imageUrl: menuImageUrl(o.image_path)
 					}))
 			}
 		])
@@ -114,7 +117,8 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 				ingredients: ingredientsOf(p.sku).map((i): ProductIngredient => ({
 					id: i.id,
 					name: i.name,
-					removable: i.removable
+					removable: i.removable,
+					imageUrl: menuImageUrl(i.image_path)
 				})),
 				modifierGroups: links
 					.filter((l) => l.product_sku === p.sku)

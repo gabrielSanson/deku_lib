@@ -38,6 +38,14 @@
 		{ key: 'wordmark', label: t('look.wordmark'), hint: t('look.wordmarkHint') },
 		{ key: 'icon', label: t('look.icon'), hint: t('look.iconHint') }
 	] as const;
+	const signInFields = [
+		{ key: 'loginImage', label: t('look.loginImage'), hint: t('look.loginImageHint') },
+		{
+			key: 'staffBackground',
+			label: t('look.staffBackground'),
+			hint: t('look.staffBackgroundHint')
+		}
+	] as const;
 </script>
 
 <svelte:head><title>{t('look.tabTitle')}</title></svelte:head>
@@ -122,6 +130,24 @@
 					hint={f.hint}
 					src={look.images[f.key]}
 					custom={!!look.custom[f.key]}
+				/>
+			{/each}
+		</ul>
+	</section>
+
+	<section class="space-y-3 card p-4">
+		<h2 class="font-semibold">{t('look.signIn')}</h2>
+		<p class="text-sm text-muted">{t('look.imagesHint')}</p>
+		<ul class="divide-y divide-line">
+			{#each signInFields as f (f.key)}
+				<BrandImageRow
+					key={f.key}
+					label={f.label}
+					hint={f.hint}
+					src={look.images[f.key]}
+					custom={!!look.custom[f.key]}
+					frameClass="h-20 w-32"
+					imgClass="object-cover"
 				/>
 			{/each}
 		</ul>
