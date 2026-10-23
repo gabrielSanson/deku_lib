@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
-	import { activeHref, SETTINGS_GROUPS, SETUP_HREF } from '#lib/staff/nav.ts';
+	import { activeHref, navIcon, SETTINGS_GROUPS, SETUP_HREF } from '#lib/staff/nav.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	// Configurações: four groups (Loja, Pedidos, Site, Pagamentos e integrações), each
@@ -42,7 +42,7 @@
 					tabs={group.links.map((l) => ({
 						key: l.href,
 						label: t(l.label),
-						icon: l.icon,
+						icon: navIcon(l.icon, page.data.branding?.productIcon),
 						href: l.href
 					}))}
 				/>

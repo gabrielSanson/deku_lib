@@ -345,7 +345,7 @@ export const STAFF_SETTINGS_TEXTS = {
 		group: g,
 		label: 'Nota fiscal: dica NCM',
 		default:
-			'O NCM é o código fiscal do produto; o contador informa qual usar para lanches, bebidas e porções. CFOP 5102 e CSOSN 102 são comuns no Simples Nacional, mas confirme.'
+			'O NCM é o código fiscal do produto; o contador informa qual usar para cada produto. CFOP 5102 e CSOSN 102 são comuns no Simples Nacional, mas confirme.'
 	},
 
 	'look.tabTitle': {

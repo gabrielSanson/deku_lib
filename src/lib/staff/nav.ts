@@ -8,9 +8,15 @@ export interface NavLink {
 	href: string;
 	/** Text catalog key, so the owner can rename menu items in Textos do site. */
 	label: TextKey;
-	icon: IconName;
+	/** 'product' is the shop preset's product icon (branding.productIcon). */
+	icon: IconName | 'product';
 	/** Other paths that light up this link. */
 	match?: string[];
+}
+
+/** The icon to draw for a link, given the preset's product icon from the page data. */
+export function navIcon(icon: NavLink['icon'], productIcon: IconName = 'grid'): IconName {
+	return icon === 'product' ? productIcon : icon;
 }
 
 export interface NavGroup {
@@ -37,7 +43,7 @@ export const NAV: NavGroup[] = [
 			{
 				href: '/staff/menu/edit',
 				label: 'nav.produtosEAdicionais',
-				icon: 'burger',
+				icon: 'product',
 				match: ['/staff/menu/products', '/staff/menu/groups']
 			},
 			{ href: '/staff/menu/ingredients', label: 'nav.ingredientes', icon: 'list' }

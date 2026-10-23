@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { useTexts } from '#lib/texts/context.ts';
 	import type { Snippet } from 'svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
-	import type { NavGroup } from '#lib/staff/nav.ts';
+	import { navIcon, type NavGroup } from '#lib/staff/nav.ts';
 
 	// The staff menu, used by the wide sidebar and by the phone drawer.
 	// `footer` sits under the links (mascot, sign-out).
@@ -31,7 +32,10 @@
 								: 'text-stone-200 hover:bg-night-2 hover:text-white'}"
 							aria-current={current === item.href ? 'page' : undefined}
 						>
-							<Icon name={item.icon} class="size-5 shrink-0" />
+							<Icon
+								name={navIcon(item.icon, page.data.branding?.productIcon)}
+								class="size-5 shrink-0"
+							/>
 							{t(item.label)}
 						</a>
 					</li>

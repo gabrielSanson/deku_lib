@@ -347,7 +347,7 @@
 		>
 	{/if}
 	<a class="relative btn-primary btn-lg w-full" href="/cardapio">
-		<Icon name="burger" class="size-6" />{t(
+		<Icon name={data.branding.productIcon} class="size-6" />{t(
 			data.kiosk ? 'order.kiosk.newOrder' : 'order.track.menuCta'
 		)}
 		<Icon name="arrow" class="absolute right-5 size-5" />

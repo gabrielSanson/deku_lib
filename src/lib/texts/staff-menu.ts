@@ -111,7 +111,7 @@ export const STAFF_MENU_TEXTS = {
 		group: g,
 		label: 'Editar cardápio: vazio (texto)',
 		default:
-			'Crie uma categoria (por exemplo "Burgers") e depois os produtos. Ou comece com o cardápio de exemplo e ajuste nomes, preços e fotos.'
+			'Crie uma categoria (por exemplo "Bebidas") e depois os produtos. Ou comece com o cardápio de exemplo e ajuste nomes, preços e fotos.'
 	},
 	'menuEdit.sample': {
 		group: g,
@@ -182,7 +182,7 @@ export const STAFF_MENU_TEXTS = {
 	'menuEdit.groupsHint': {
 		group: g,
 		label: 'Editar cardápio: grupos (dica)',
-		default: 'Adicionais, ponto da carne, tamanhos. Um grupo pode ser usado em vários produtos.'
+		default: 'Adicionais, tamanhos, sabores. Um grupo pode ser usado em vários produtos.'
 	},
 	'menuEdit.groupSummary': {
 		group: g,
@@ -250,12 +250,12 @@ export const STAFF_MENU_TEXTS = {
 	'group.minHint': {
 		group: g,
 		label: 'Grupo: mínimo (dica)',
-		default: '0 = opcional. 1 = obrigatório (ex.: ponto da carne).'
+		default: '0 = opcional. 1 = obrigatório (ex.: tamanho).'
 	},
 	'group.max': { group: g, label: 'Grupo: máximo', default: 'Máximo de escolhas' },
 	'group.options': { group: g, label: 'Grupo: opções', default: 'Opções' },
 	'group.optionName': { group: g, label: 'Grupo: nome da opção', default: 'Nome' },
-	'group.optionNamePlaceholder': { group: g, label: 'Grupo: exemplo de opção', default: 'Bacon' },
+	'group.optionNamePlaceholder': { group: g, label: 'Grupo: exemplo de opção', default: 'Grande' },
 	'group.optionPrice': { group: g, label: 'Grupo: preço extra', default: 'Preço extra' },
 	'group.optionMax': { group: g, label: 'Grupo: até', default: 'Até' },
 	'group.optionActive': { group: g, label: 'Grupo: ativa', default: 'Ativa' },
@@ -293,7 +293,7 @@ export const STAFF_MENU_TEXTS = {
 	'ingredients.newPlaceholder': {
 		group: g,
 		label: 'Ingredientes: exemplo',
-		default: 'Cebola roxa'
+		default: 'Nome do ingrediente'
 	},
 	'ingredients.allergensComma': {
 		group: g,

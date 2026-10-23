@@ -5,7 +5,6 @@ import { redirect } from '@sveltejs/kit';
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
-import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { config } from '#lib/server/config.ts';
 import { db } from '#lib/server/db.ts';
 import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
@@ -20,6 +19,7 @@ import {
 } from '#lib/server/settings/profile.ts';
 import { getStoreSettings, updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
+import { preset } from '#lib/server/presets/index.ts';
 
 const OWNER = ['admin'] as const;
 const STEPS = ['loja', 'cardapio', 'entrega', 'equipe', 'pagamentos', 'ifood', 'concluir'] as const;
@@ -80,7 +80,7 @@ export const actions: Actions = {
 	sampleMenu: async (event) => {
 		const staff = requireStaff(event, [...OWNER]);
 		if (!(await menuIsEmpty())) return failText(400, 'err.menu.notEmpty');
-		await importCatalog(fixtureCatalog, staffActor(staff));
+		await importCatalog(preset().catalog, staffActor(staff));
 		return {
 			ok: await shopText('ok.sampleMenuSetup')
 		};

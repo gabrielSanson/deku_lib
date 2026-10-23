@@ -5,6 +5,7 @@ import { audit, type Actor } from '../audit';
 import { menuImageUrl } from '../catalog/images';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import type { IconName } from '#lib/components/atoms/Icon.svelte';
 import { preset, type PresetIcons } from '../presets';
 import { DEFAULT_HOME, parseHome, type HomeLayout } from './home';
 
@@ -47,6 +48,8 @@ export interface Branding {
 	lockup: string | null;
 	/** The home page's arrangement (see home.ts). */
 	home: HomeLayout;
+	/** The preset's icon for a product or category without a photo. */
+	productIcon: IconName;
 }
 
 export function defaultBranding(): Branding {
@@ -58,7 +61,8 @@ export function defaultBranding(): Branding {
 		custom: Object.fromEntries(IMAGE_KEYS.map((k) => [k, false])) as Branding['custom'],
 		icons: p.icons,
 		lockup: p.lockup,
-		home: { ...DEFAULT_HOME }
+		home: { ...DEFAULT_HOME },
+		productIcon: p.productIcon
 	};
 }
 
@@ -110,7 +114,8 @@ export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promi
 		) as Branding['custom'],
 		icons: p.icons,
 		lockup: uploaded.logo || uploaded.wordmark ? null : p.lockup,
-		home: parseHome(layout)
+		home: parseHome(layout),
+		productIcon: p.productIcon
 	};
 	cache = { value, at: Date.now() };
 	return value;
@@ -209,6 +214,7 @@ export function themeCss(colors: Branding['colors']): string {
 	}
 	const light = background ? `:root:not([data-theme='dark']){--color-canvas:${background}}` : '';
 	return (
+		preset().css +
 		(vars.length ? `:root{${vars.join(';')}}` : '') +
 		(darkVars.length ? `:root[data-theme='dark']{${darkVars.join(';')}}` : '') +
 		light

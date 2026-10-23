@@ -1,4 +1,3 @@
-import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
@@ -11,6 +10,7 @@ import { loadCatalog } from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
+import { preset } from '#lib/server/presets/index.ts';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);
@@ -96,7 +96,7 @@ export const actions: Actions = {
 		const staff = requireStaff(event, ADMIN);
 		return attempt(async () => {
 			if (!(await menuIsEmpty())) return failText(400, 'err.menu.notEmpty');
-			await importCatalog(fixtureCatalog, staffActor(staff));
+			await importCatalog(preset().catalog, staffActor(staff));
 			return { ok: await shopText('ok.sampleMenu') };
 		});
 	}

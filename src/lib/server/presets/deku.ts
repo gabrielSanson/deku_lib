@@ -1,4 +1,5 @@
 // Deku Burger: black and yellow on cream, the burger photos and the shop's own wording.
+import { fixtureCatalog } from '../catalog/fixture';
 import type { Preset } from './index';
 
 const dir = '/presets/deku';
@@ -29,6 +30,15 @@ export const deku: Preset = {
 	},
 	lockup: `${dir}/brand/deku-logo.png`,
 	texts: {
+		'menuEdit.emptyText':
+			'Crie uma categoria (por exemplo "Burgers") e depois os produtos. Ou comece com o cardápio de exemplo e ajuste nomes, preços e fotos.',
+		'menuEdit.groupsHint':
+			'Adicionais, ponto da carne, tamanhos. Um grupo pode ser usado em vários produtos.',
+		'group.minHint': '0 = opcional. 1 = obrigatório (ex.: ponto da carne).',
+		'group.optionNamePlaceholder': 'Bacon',
+		'ingredients.newPlaceholder': 'Cebola roxa',
+		'fiscal.ncmHint':
+			'O NCM é o código fiscal do produto; o contador informa qual usar para lanches, bebidas e porções. CFOP 5102 e CSOSN 102 são comuns no Simples Nacional, mas confirme.',
 		'account.tagline': 'Mais que burgers.\nÉ a nossa essência.',
 		'footer.tagline': 'Burger de verdade é aqui',
 		'home.metaDescription': 'Peça seus burgers online para retirada ou entrega.',
@@ -46,5 +56,8 @@ export const deku: Preset = {
 		alergenicos: [
 			'Nossos pães contêm glúten e a maioria dos queijos contém lactose. Avise a equipe sobre alergias: marcamos o pedido para a cozinha.'
 		]
-	}
+	},
+	catalog: fixtureCatalog,
+	productIcon: 'burger',
+	css: ''
 };

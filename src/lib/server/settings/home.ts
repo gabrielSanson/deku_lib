@@ -12,7 +12,7 @@ export interface HomeLayout {
 	heroAlign: 'left' | 'center';
 	/** "tall" fills most of the first screen; "compact" leaves the menu in view. */
 	heroSize: 'tall' | 'compact';
-	/** Shows the hero image (a cut-out, e.g. a burger) beside the text. Left alignment only. */
+	/** Shows the hero image (a cut-out of a product, say) beside the text. Left alignment only. */
 	heroCutout: boolean;
 	/** The open/closed pill above the title. */
 	showStatus: boolean;

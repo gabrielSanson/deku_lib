@@ -110,7 +110,7 @@
 			},
 			{
 				href: '/staff/menu/edit',
-				icon: 'burger' as const,
+				icon: data.branding.productIcon,
 				label: t('dash.shortcut.menu'),
 				show: true
 			},

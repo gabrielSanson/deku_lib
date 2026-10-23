@@ -136,7 +136,10 @@
 							class="pill {selected === s.id ? 'pill-on' : ''}"
 							aria-pressed={selected === s.id}
 							onclick={() => selectCategory(s.slug)}
-							><Icon name={categoryIcon(s.name)} class="size-6" />{s.name}</button
+							><Icon
+								name={categoryIcon(s.name, data.branding.productIcon)}
+								class="size-6"
+							/>{s.name}</button
 						>
 					{/each}
 				</nav>

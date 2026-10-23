@@ -99,7 +99,9 @@ describe('presets', () => {
 		let b = await getBranding(db(), { fresh: true });
 		expect(b.images.logo).toBe('/presets/blank/mark.svg');
 		expect(b.lockup).toBeNull();
-		expect(themeCss(b.colors)).toContain('--color-brand-500:#60a5fa');
+		expect(themeCss(b.colors)).toContain('--color-brand-500:#d4d4d8');
+		expect(themeCss(b.colors)).toContain('--color-canvas:#09090b');
+		expect(b.productIcon).toBe('grid');
 		expect((await getTexts(db(), { fresh: true }))['home.hero.title']).toBe(
 			TEXTS['home.hero.title'].default
 		);
@@ -109,6 +111,7 @@ describe('presets', () => {
 		expect(b.images.logo).toBe('/presets/deku/brand/deku-mark.png');
 		expect(b.srcset.heroImage).toContain('banner-960.webp 960w');
 		expect(themeCss(b.colors)).toBe('');
+		expect(b.productIcon).toBe('burger');
 		const texts = await getTexts(db(), { fresh: true });
 		expect(texts['home.hero.title']).toBe(PRESETS.deku.texts['home.hero.title']);
 		// Saving the preset's own wording is no edit.

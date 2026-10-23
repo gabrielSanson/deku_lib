@@ -16,17 +16,18 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
 > written from iFood's public docs and has not been homologated. See
 > [Known gates](#known-gates) before going live.
 
-## Blank or Deku look
+## Deku Lib template or Deku look
 
-The code ships **blank**: neutral colours, a plain mark, the shop's name as the
-wordmark, a plain hero background and wording with no brand in it. Deku Burger's
-logos, photos, yellow-and-black colours and wording are a separate **preset**,
-picked with one setting:
+The code ships the **Deku Lib** template (`blank`): a black theme with light grey
+accents, a plain "DL" mark, the shop's name as the wordmark, a plain dark hero
+background, wording with no brand in it and a sample menu of one product. Deku
+Burger's logos, photos, yellow-and-black colours, wording and burger menu are a
+separate **preset**, picked with one setting:
 
-| `SHOP_PRESET`     | What the site looks like                               |
-| ----------------- | ------------------------------------------------------ |
-| `blank` (default) | No brand: for any shop that will put in its own look   |
-| `deku`            | Deku Burger: its logo, burger photos, colours and copy |
+| `SHOP_PRESET`     | What the site looks like                                       |
+| ----------------- | -------------------------------------------------------------- |
+| `blank` (default) | Deku Lib: no brand, for any shop that will put in its own look |
+| `deku`            | Deku Burger: its logo, burger photos, colours, copy and menu   |
 
 To switch, set the variable and restart the app:
 
@@ -40,9 +41,10 @@ stays as it is when the preset changes. Each preset lives in
 `src/lib/server/presets/` (colours, picture paths, wording, page text) with its
 pictures in `static/presets/<name>/`. To add one for another shop, copy `blank.ts`,
 point it at a new `static/presets/<name>/` folder, add it to `PRESETS` in
-`index.ts` and to the `SHOP_PRESET` list in `src/lib/server/config.ts`. The sample
-menu (`pnpm seed`, "start from an example") is a generic burger menu and is the same
-for every preset.
+`index.ts` and to the `SHOP_PRESET` list in `src/lib/server/config.ts`. Each preset
+also names its sample menu (`pnpm seed`, "start from an example"): one product
+(`src/lib/server/catalog/starter.ts`) for Deku Lib, the burger menu
+(`src/lib/server/catalog/fixture.ts`) for Deku.
 
 ## What is in here
 

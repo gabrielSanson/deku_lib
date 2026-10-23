@@ -77,7 +77,8 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/burger_test pnp
 ```sh
 pnpm exec supabase start -x studio,imgproxy,vector,logflare,supavisor,edge-runtime,inbucket,storage-api,postgres-meta
 # .env: DATABASE_URL, PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY from
-# `supabase status`, PAYMENT_PROVIDER=local_stub and an APP_SECRET of 32+ characters
+# `supabase status`, PAYMENT_PROVIDER=local_stub, an APP_SECRET of 32+ characters and
+# SHOP_PRESET=deku (the tests order from Deku's sample menu; the default seeds one product)
 pnpm seed
 pnpm worker &          # orders reach the kitchen through the worker
 pnpm test:e2e          # starts the dev server itself

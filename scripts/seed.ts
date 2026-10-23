@@ -6,8 +6,8 @@ import { createClient } from '@supabase/supabase-js';
 import postgres from 'postgres';
 import { SYSTEM } from '#lib/server/audit.ts';
 import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
-import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { closeDb } from '#lib/server/db.ts';
+import { preset } from '#lib/server/presets/index.ts';
 
 const { DATABASE_URL, PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const password = process.env.SEED_PASSWORD ?? 'burger123';
@@ -61,8 +61,8 @@ try {
 		update store_runtime_settings set accepting_orders = true, pause_reason = null, web_ordering_enabled = true,
 			delivery_enabled = true, pickup_enabled = true where id = 1`;
 	if (await menuIsEmpty(sql)) {
-		await importCatalog(fixtureCatalog, SYSTEM);
-		console.log(`sample menu: ${fixtureCatalog.products.length} products`);
+		await importCatalog(preset().catalog, SYSTEM);
+		console.log(`sample menu: ${preset().catalog.products.length} products`);
 	}
 	console.log(`seeded; staff password: ${password}`);
 } finally {

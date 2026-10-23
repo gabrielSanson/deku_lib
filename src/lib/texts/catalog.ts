@@ -520,7 +520,7 @@ const CORE_TEXTS = {
 	'product.notePlaceholder': {
 		group: 'product',
 		label: 'Observação: exemplo',
-		default: 'Ex.: sem cebola'
+		default: 'Escreva aqui se precisar de algo'
 	},
 	'product.missing': { group: 'product', label: 'Falta escolher', default: 'Escolha: {list}.' },
 	'product.less': { group: 'product', label: 'Diminuir (leitor de tela)', default: 'Diminuir' },

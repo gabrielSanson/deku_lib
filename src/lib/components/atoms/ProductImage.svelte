@@ -1,6 +1,7 @@
 <script lang="ts">
 	// A product (or campaign, or category) photo at a fixed ratio, with a quiet
-	// burger placeholder when there is no photo yet.
+	// placeholder (the shop preset's product icon) when there is no photo yet.
+	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 
 	let {
@@ -29,6 +30,10 @@
 		role={alt ? 'img' : undefined}
 		aria-label={alt || undefined}
 	>
-		<Icon name="burger" class="size-1/3 max-h-12 max-w-12" strokeWidth={1.5} />
+		<Icon
+			name={page.data.branding?.productIcon ?? 'grid'}
+			class="size-1/3 max-h-12 max-w-12"
+			strokeWidth={1.5}
+		/>
 	</div>
 {/if}
