@@ -192,8 +192,8 @@
 					name="featuredCount"
 					value={String(home.featuredCount)}
 					options={[
-						{ value: '3', label: '3' },
-						{ value: '6', label: '6' }
+						{ value: '4', label: '4' },
+						{ value: '8', label: '8' }
 					]}
 				/>
 			</div>

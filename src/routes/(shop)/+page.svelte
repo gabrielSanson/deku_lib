@@ -171,7 +171,8 @@
 		<EmptyState title={t('home.emptyMenu')} />
 	{/if}
 
-	<!-- Quick menu: three burgers (mockup 01 "Nossos destaques") -->
+	<!-- Quick menu: a row of four on desktop, two on tablets, a swipe row on phones
+	     (mockup 01 "Nossos destaques") -->
 	{#if home.showFeatured && quickMenu.length}
 		<section aria-labelledby="home-destaques">
 			<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
@@ -188,7 +189,7 @@
 				>
 			</div>
 			<ul
-				class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:auto-cols-[calc((100%-2rem)/3)] sm:grid-flow-row sm:grid-cols-3 sm:overflow-visible sm:px-0"
+				class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
 			>
 				{#each quickMenu as p (p.sku)}
 					<li class="snap-start">

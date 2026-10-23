@@ -20,7 +20,7 @@ export interface HomeLayout {
 	showFeatured: boolean;
 	/** Category whose products fill the featured row; null picks "Destaques" or the first photos. */
 	featuredCategoryId: string | null;
-	featuredCount: 3 | 6;
+	featuredCount: 4 | 8;
 	/** The big "Ver cardápio completo" button under the featured row. */
 	showMenuButton: boolean;
 }
@@ -35,7 +35,7 @@ export const DEFAULT_HOME: HomeLayout = {
 	secondaryHref: null,
 	showFeatured: true,
 	featuredCategoryId: null,
-	featuredCount: 3,
+	featuredCount: 4,
 	showMenuButton: true
 };
 
@@ -63,7 +63,8 @@ export function parseHome(raw: unknown): HomeLayout {
 		secondaryHref: isLink(str('secondaryHref')) ? str('secondaryHref') : null,
 		showFeatured: bool('showFeatured'),
 		featuredCategoryId: UUID.test(str('featuredCategoryId')) ? str('featuredCategoryId') : null,
-		featuredCount: r.featuredCount === 6 ? 6 : 3,
+		// 3 and 6 were the choices before the desktop row went to four (mockup 01).
+		featuredCount: r.featuredCount === 8 || r.featuredCount === 6 ? 8 : 4,
 		showMenuButton: bool('showMenuButton')
 	};
 }
