@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { placeholders } from '#lib/texts/catalog.ts';
@@ -11,23 +12,21 @@
 	const changedCount = $derived(
 		data.groups.flatMap((g) => g.texts).filter((x) => x.changed).length
 	);
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Textos · Configurações</title></svelte:head>
+<svelte:head><title>{t('texts.tabTitle')}</title></svelte:head>
 
 <div class="space-y-4">
 	<header class="space-y-1">
-		<h1 class="page-title">Textos do site</h1>
+		<h1 class="page-title">{t('texts.title')}</h1>
 		<p class="text-sm text-muted">
-			Tudo o que o cliente lê no site: avisos, botões, títulos e mensagens de erro. Deixe um texto
-			vazio para voltar ao padrão. Palavras entre chaves, como <code>{'{name}'}</code>, são
-			preenchidas pelo site e precisam continuar no texto.
-			{#if changedCount}<strong>{changedCount} alterado{changedCount === 1 ? '' : 's'}.</strong
-				>{/if}
+			{t('texts.intro')}
+			{#if changedCount}<strong>{t('texts.changed', { n: changedCount })}</strong>{/if}
 		</p>
 	</header>
 
-	<input class="field" type="search" placeholder="Procurar texto" bind:value={search} />
+	<input class="field" type="search" placeholder={t('texts.search')} bind:value={search} />
 
 	<form
 		method="POST"
@@ -46,7 +45,7 @@
 					>
 						{g.title}
 						<span class="text-sm font-normal text-muted"
-							>{shown.length} texto{shown.length === 1 ? '' : 's'}</span
+							>{t('texts.count', { n: shown.length })}</span
 						>
 					</summary>
 					<div class="space-y-4 border-t border-line p-4">
@@ -56,7 +55,7 @@
 								<label class="label flex items-center justify-between gap-2" for={x.key}>
 									<span>{x.label}</span>
 									{#if x.changed}<span class="rounded bg-brand-100 px-1.5 text-xs text-brand-700"
-											>alterado</span
+											>{t('texts.changedMark')}</span
 										>{/if}
 								</label>
 								{#if x.default.length > 60 || x.default.includes('\n')}
@@ -79,7 +78,7 @@
 									/>
 								{/if}
 								{#if vars.length}<p class="mt-1 text-xs text-muted">
-										Precisa ter: {vars.map((v) => `{${v}}`).join(', ')}
+										{t('texts.needs', { vars: vars.map((v) => `{${v}}`).join(', ') })}
 									</p>{/if}
 							</div>
 						{/each}
@@ -88,9 +87,9 @@
 			{/if}
 		{/each}
 		<FormError message={form?.error} />
-		{#if form?.ok}<p class="alert-ok">Salvo. O site já mostra os textos novos.</p>{/if}
+		{#if form?.ok}<p class="alert-ok">{t('texts.saved')}</p>{/if}
 		<div class="sticky bottom-0 bg-canvas py-3">
-			<button class="btn-primary w-full sm:w-auto">Salvar textos</button>
+			<button class="btn-primary w-full sm:w-auto">{t('texts.save')}</button>
 		</div>
 	</form>
 </div>

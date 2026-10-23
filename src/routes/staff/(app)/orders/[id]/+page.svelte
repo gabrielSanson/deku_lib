@@ -12,6 +12,7 @@
 		roleMayTransition,
 		STATUS_LABEL_PT
 	} from '#lib/domain/order-status.ts';
+	import { formatBRL } from '#lib/domain/money.ts';
 	import { mayConfirm } from '#lib/domain/payment-rules.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
@@ -32,13 +33,6 @@
 	const manager = $derived(data.staff.role === 'admin');
 	let refunding = $state<string | null>(null);
 	let cancellingNote = $state(false);
-	const FISCAL_LABEL = {
-		pending: 'Enviando…',
-		authorized: 'Autorizada',
-		rejected: 'Rejeitada',
-		error: 'Erro, tentando de novo',
-		cancelled: 'Cancelada'
-	} as const;
 	const note = $derived(data.fiscal?.documents[0]);
 </script>
 
@@ -224,9 +218,7 @@
 			{/each}
 			{#if o.paymentPlan === 'pix_key' && o.paymentStatus !== 'paid' && !['cancelled', 'rejected'].includes(o.status)}
 				<p class="alert-warn text-sm">
-					O cliente vai pagar por Pix na chave da loja. Confira no app do banco um Pix de
-					<Money cents={o.totalCents} /> com a referência <strong>PEDIDO{o.orderNumber}</strong> e registre
-					o pagamento antes de aceitar.
+					{t('orderDetail.pixReminder', { total: formatBRL(o.totalCents), n: o.orderNumber })}
 				</p>
 			{/if}
 			{#if o.paymentStatus !== 'paid' && !['cancelled', 'rejected'].includes(o.status) && data.staff.role !== 'kitchen'}
@@ -243,23 +235,23 @@
 		</div>
 		{#if data.fiscal && (data.fiscal.enabled || note)}
 			<div class="space-y-2 card p-3 text-sm">
-				<h2 class="font-semibold">Nota fiscal (NFC-e)</h2>
+				<h2 class="font-semibold">{t('orderDetail.fiscal')}</h2>
 				{#if !note}
 					<p class="text-muted">
 						{o.paymentStatus === 'paid'
-							? 'Nenhuma nota emitida para este pedido.'
-							: 'A nota é emitida quando o pedido estiver pago.'}
+							? t('orderDetail.fiscalNone')
+							: t('orderDetail.fiscalWhenPaid')}
 					</p>
 				{:else}
 					<div class="flex justify-between">
 						<span
-							>{note.number ? `Nº ${note.number}` : ''}{note.series
-								? ` · série ${note.series}`
+							>{note.number ? t('orderDetail.fiscalNumber', { n: note.number }) : ''}{note.series
+								? ` · ${t('orderDetail.fiscalSeries', { n: note.series })}`
 								: ''}
-							{note.environment === 'homologacao' ? '· teste' : ''}</span
+							{note.environment === 'homologacao' ? t('orderDetail.fiscalTest') : ''}</span
 						>
 						<strong class={['rejected', 'error'].includes(note.status) ? 'text-bad' : ''}
-							>{FISCAL_LABEL[note.status]}</strong
+							>{t(`orderDetail.fiscal.${note.status}`)}</strong
 						>
 					</div>
 					{#if note.accessKey}<p class="font-mono text-xs break-all text-muted">
@@ -267,12 +259,12 @@
 						</p>{/if}
 					{#if note.errorMessage}<p class="text-bad">{note.errorMessage}</p>{/if}
 					{#if note.danfeUrl}<a class="btn-secondary w-full" href={note.danfeUrl} target="_blank"
-							>Abrir DANFE</a
+							>{t('orderDetail.danfe')}</a
 						>{/if}
 				{/if}
 				{#if manager && o.paymentStatus === 'paid' && (!note || ['rejected', 'error', 'cancelled'].includes(note.status))}
 					<form method="POST" action="?/fiscalRetry" use:enhance>
-						<button class="btn-secondary w-full">Emitir nota de novo</button>
+						<button class="btn-secondary w-full">{t('orderDetail.fiscalRetry')}</button>
 					</form>
 				{/if}
 				{#if manager && note?.status === 'authorized'}
@@ -291,15 +283,17 @@
 								class="field"
 								name="reason"
 								minlength="15"
-								placeholder="Motivo (mínimo 15 letras)"
+								placeholder={t('orderDetail.fiscalReason')}
 								required
 							/>
-							<button class="btn-danger min-h-9 w-full">Cancelar a nota</button>
+							<button class="btn-danger min-h-9 w-full"
+								>{t('orderDetail.fiscalCancelConfirm')}</button
+							>
 						</form>
 					{:else}
 						<button
 							class="btn-ghost min-h-8 text-xs text-bad"
-							onclick={() => (cancellingNote = true)}>Cancelar nota</button
+							onclick={() => (cancellingNote = true)}>{t('orderDetail.fiscalCancel')}</button
 						>
 					{/if}
 				{/if}

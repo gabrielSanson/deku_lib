@@ -11,8 +11,10 @@
 	import StatTile from '#lib/components/molecules/StatTile.svelte';
 	import { TEMPLATES, isTemplateKey, type CampaignStatus } from '#lib/domain/campaigns.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	// Ending a campaign asks first, in a dialog.
 	let ending = $state<{ id: string; name: string } | null>(null);
@@ -20,10 +22,10 @@
 	let endForm = $state<HTMLFormElement>();
 
 	const STATUS: Record<CampaignStatus, { label: string; tone: PillTone }> = {
-		draft: { label: 'Rascunho', tone: 'quiet' },
-		active: { label: 'Ativa', tone: 'ok' },
-		paused: { label: 'Pausada', tone: 'warn' },
-		ended: { label: 'Encerrada', tone: 'quiet' }
+		draft: { label: t('campaigns.status.draft'), tone: 'quiet' },
+		active: { label: t('campaigns.status.active'), tone: 'ok' },
+		paused: { label: t('campaigns.status.paused'), tone: 'warn' },
+		ended: { label: t('campaigns.status.ended'), tone: 'quiet' }
 	};
 	const templateLabel = (k: string) => (isTemplateKey(k) ? TEMPLATES[k].label : k);
 	const ret = (revenue: number, discount: number) =>
@@ -33,63 +35,64 @@
 
 	const tabs = $derived(
 		[
-			{ key: 'todas', label: 'Todas' },
-			{ key: 'ativas', label: 'Ativas' },
-			{ key: 'rascunhos', label: 'Rascunhos' },
-			{ key: 'encerradas', label: 'Encerradas' }
-		].map((t) => ({
-			...t,
-			href: `?status=${t.key}&dias=${data.days}${data.q ? `&q=${encodeURIComponent(data.q)}` : ''}`
+			{ key: 'todas', label: t('campaigns.tab.all') },
+			{ key: 'ativas', label: t('campaigns.tab.active') },
+			{ key: 'rascunhos', label: t('campaigns.tab.drafts') },
+			{ key: 'encerradas', label: t('campaigns.tab.ended') }
+		].map((tab) => ({
+			...tab,
+			href: `?status=${tab.key}&dias=${data.days}${data.q ? `&q=${encodeURIComponent(data.q)}` : ''}`
 		}))
 	);
 	const periods = [7, 30, 90, 365];
 	const periodLabel = $derived(
-		data.days === 365 ? 'no último ano' : `nos últimos ${data.days} dias`
+		data.days === 365 ? t('campaigns.lastYear') : t('campaigns.lastDays', { n: data.days })
 	);
 </script>
 
-<svelte:head><title>Campanhas · Equipe</title></svelte:head>
+<svelte:head><title>{t('campaigns.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-6xl space-y-5 p-4 sm:p-6">
 	<div class="flex flex-wrap items-end justify-between gap-3">
 		<div>
-			<h1 class="page-title">Campanhas</h1>
+			<h1 class="page-title">{t('campaigns.title')}</h1>
 			<p class="mt-1 text-muted">
-				Crie e gerencie campanhas promocionais para atrair mais clientes.
+				{t('campaigns.subtitle')}
 			</p>
 		</div>
-		<a class="btn-primary" href="/staff/campaigns/new">Nova campanha</a>
+		<a class="btn-primary" href="/staff/campaigns/new">{t('campaigns.new')}</a>
 	</div>
 	<FormError message={form?.error} />
 
-	<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumo das campanhas">
-		<StatTile icon="crown" label="Ativas" value={String(data.totals.active)} hint="agora" />
+	<section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t('campaigns.summary')}>
+		<StatTile
+			icon="crown"
+			label={t('campaigns.tile.active')}
+			value={String(data.totals.active)}
+			hint={t('campaigns.tile.now')}
+		/>
 		<StatTile
 			icon="check"
-			label="Usos no mês"
+			label={t('campaigns.tile.uses')}
 			value={String(data.totals.uses)}
 			hint={periodLabel}
 		/>
 		<StatTile
 			icon="tag"
-			label="Desconto concedido"
+			label={t('campaigns.tile.discount')}
 			value={brl(data.totals.discountCents)}
 			hint={periodLabel}
 		/>
 		<StatTile
 			icon="users"
-			label="Novos clientes"
+			label={t('campaigns.tile.newCustomers')}
 			value={String(data.totals.newCustomers)}
 			hint={periodLabel}
 		/>
 	</section>
 
 	<div class="flex flex-wrap items-center justify-between gap-3">
-		<SegmentedTabs
-			label="Status das campanhas"
-			active={data.tab}
-			tabs={tabs.map((t) => ({ key: t.key, label: t.label, href: t.href }))}
-		/>
+		<SegmentedTabs label={t('campaigns.statusTabs')} active={data.tab} {tabs} />
 		<form method="GET" class="flex items-center gap-2">
 			<input type="hidden" name="status" value={data.tab} />
 			<input type="hidden" name="dias" value={data.days} />
@@ -103,19 +106,19 @@
 					type="search"
 					name="q"
 					value={data.q}
-					placeholder="Buscar campanha ou cupom"
-					aria-label="Buscar campanha ou cupom"
+					placeholder={t('campaigns.search')}
+					aria-label={t('campaigns.search')}
 				/>
 			</div>
 			<select
 				class="field min-h-10 w-auto"
 				name="dias"
-				aria-label="Período"
+				aria-label={t('campaigns.period')}
 				onchange={(e) => e.currentTarget.form?.requestSubmit()}
 			>
 				{#each periods as d (d)}
 					<option value={d} selected={data.days === d}
-						>{d === 365 ? 'Último ano' : `Últimos ${d} dias`}</option
+						>{d === 365 ? t('campaigns.periodYear') : t('campaigns.periodDays', { n: d })}</option
 					>
 				{/each}
 			</select>
@@ -126,17 +129,17 @@
 		<table class="w-full text-sm">
 			<thead class="bg-quiet text-left text-xs text-muted uppercase">
 				<tr>
-					<th class="p-3">Campanha</th>
-					<th class="p-3">Benefício</th>
-					<th class="p-3">Aplicação</th>
-					<th class="p-3">Vigência</th>
-					<th class="p-3 text-right">Usos</th>
-					<th class="p-3 text-right">Desconto</th>
-					<th class="p-3 text-right">Receita</th>
-					<th class="p-3 text-right">Retorno</th>
-					<th class="p-3 text-right">Novos</th>
-					<th class="p-3 text-left">Status</th>
-					<th class="p-3"><span class="sr-only">Ações</span></th>
+					<th class="p-3">{t('campaigns.col.campaign')}</th>
+					<th class="p-3">{t('campaigns.col.benefit')}</th>
+					<th class="p-3">{t('campaigns.col.apply')}</th>
+					<th class="p-3">{t('campaigns.col.dates')}</th>
+					<th class="p-3 text-right">{t('campaigns.col.uses')}</th>
+					<th class="p-3 text-right">{t('campaigns.col.discount')}</th>
+					<th class="p-3 text-right">{t('campaigns.col.revenue')}</th>
+					<th class="p-3 text-right">{t('campaigns.col.return')}</th>
+					<th class="p-3 text-right">{t('campaigns.col.new')}</th>
+					<th class="p-3 text-left">{t('campaigns.col.status')}</th>
+					<th class="p-3"><span class="sr-only">{t('campaigns.col.actions')}</span></th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-line">
@@ -155,10 +158,12 @@
 							</div>
 						</td>
 						<td class="p-3">{templateLabel(c.templateKey)}</td>
-						<td class="p-3">{c.code ?? (c.autoApply ? 'Automática' : 'Sem código')}</td>
+						<td class="p-3"
+							>{c.code ?? (c.autoApply ? t('campaigns.auto') : t('campaigns.noCode'))}</td
+						>
 						<td class="p-3 text-xs text-muted">
-							{#if c.startsAt}{formatDateTime(c.startsAt)}{:else}Sem início{/if}
-							{#if c.endsAt}<br />até {formatDateTime(c.endsAt)}{/if}
+							{#if c.startsAt}{formatDateTime(c.startsAt)}{:else}{t('campaigns.noStart')}{/if}
+							{#if c.endsAt}<br />{t('campaigns.until', { time: formatDateTime(c.endsAt) })}{/if}
 						</td>
 						<td class="p-3 text-right tabular-nums">{c.uses}</td>
 						<td class="p-3 text-right"><Money cents={c.discountCents} /></td>
@@ -169,13 +174,13 @@
 							<StatusPill tone={STATUS[c.status].tone} label={STATUS[c.status].label} />
 						</td>
 						<td class="p-3">
-							<RowMenu label="Mais ações de {c.name}">
+							<RowMenu label={t('campaigns.more', { name: c.name })}>
 								<form method="POST" action="?/status" use:enhance>
 									<input type="hidden" name="id" value={c.id} />
 									{#if c.status === 'active'}
-										<button name="status" value="paused">Pausar</button>
+										<button name="status" value="paused">{t('campaigns.pause')}</button>
 									{:else if c.status !== 'ended'}
-										<button name="status" value="active">Ativar</button>
+										<button name="status" value="active">{t('campaigns.activate')}</button>
 									{/if}
 									{#if c.status !== 'ended'}
 										<button
@@ -184,7 +189,7 @@
 											onclick={() => {
 												ending = { id: c.id, name: c.name };
 												endOpen = true;
-											}}>Encerrar</button
+											}}>{t('campaigns.end')}</button
 										>
 									{/if}
 								</form>
@@ -194,16 +199,16 @@
 				{:else}
 					<tr>
 						<td colspan="11" class="p-10 text-center text-muted">
-							{data.total === 0
-								? 'Nenhuma campanha ainda. Crie um cupom ou uma promoção automática.'
-								: 'Nenhuma campanha com este filtro.'}
+							{data.total === 0 ? t('campaigns.none') : t('campaigns.noneFilter')}
 						</td>
 					</tr>
 				{/each}
 			</tbody>
 		</table>
 	</div>
-	<p class="text-sm text-muted">Mostrando {data.campaigns.length} de {data.total} campanhas.</p>
+	<p class="text-sm text-muted">
+		{t('campaigns.showing', { shown: data.campaigns.length, total: data.total })}
+	</p>
 
 	<form method="POST" action="?/status" use:enhance bind:this={endForm} hidden>
 		<input type="hidden" name="id" value={ending?.id ?? ''} />
@@ -211,19 +216,17 @@
 	</form>
 	<ConfirmDialog
 		bind:open={endOpen}
-		title="Encerrar a campanha?"
-		text="{ending?.name ?? 'A campanha'} deixa de valer. Os pedidos já feitos não mudam."
-		confirmLabel="Encerrar"
+		title={t('campaigns.endTitle')}
+		text={t('campaigns.endText', { name: ending?.name ?? t('campaigns.endThis') })}
+		confirmLabel={t('campaigns.end')}
 		danger
 		onconfirm={() => endForm?.requestSubmit()}
 	/>
 
 	<details class="card p-4 text-sm text-muted">
-		<summary class="cursor-pointer font-semibold text-ink">Como funcionam as campanhas</summary>
+		<summary class="cursor-pointer font-semibold text-ink">{t('campaigns.howTitle')}</summary>
 		<p class="mt-3">
-			Cada pedido usa uma promoção só: a de maior desconto. Pedidos cancelados, recusados ou
-			estornados não contam. "Retorno" é quanto os pedidos pagaram para cada R$ 1 de desconto;
-			inclui quem compraria de qualquer jeito, então serve para comparar campanhas.
+			{t('campaigns.howText')}
 		</p>
 	</details>
 </main>

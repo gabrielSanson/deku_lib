@@ -584,5 +584,25 @@ export const STAFF_SETTINGS_TEXTS = {
 		group: g,
 		label: 'Entrega: fora da área',
 		default: 'Fora da área de entrega.'
-	}
+	},
+
+	'texts.tabTitle': { group: g, label: 'Textos: título da aba', default: 'Textos · Configurações' },
+	'texts.title': { group: g, label: 'Textos: título', default: 'Textos do site' },
+	'texts.intro': {
+		group: g,
+		label: 'Textos: texto',
+		default:
+			'Tudo o que o cliente e a equipe leem: avisos, botões, títulos e mensagens de erro. Deixe um texto vazio para voltar ao padrão. Palavras entre chaves são preenchidas pelo site e precisam continuar no texto.'
+	},
+	'texts.changed': { group: g, label: 'Textos: alterados', default: '{n} alterado(s).' },
+	'texts.search': { group: g, label: 'Textos: procurar', default: 'Procurar texto' },
+	'texts.count': { group: g, label: 'Textos: quantidade', default: '{n} texto(s)' },
+	'texts.changedMark': { group: g, label: 'Textos: marca alterado', default: 'alterado' },
+	'texts.needs': { group: g, label: 'Textos: precisa ter', default: 'Precisa ter: {vars}' },
+	'texts.saved': {
+		group: g,
+		label: 'Textos: salvo',
+		default: 'Salvo. O site já mostra os textos novos.'
+	},
+	'texts.save': { group: g, label: 'Textos: salvar', default: 'Salvar textos' }
 } as const satisfies Record<string, TextDef>;

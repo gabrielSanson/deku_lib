@@ -1,8 +1,9 @@
-// Every customer-facing text, with its default. The owner can replace any of
+// Every text the customer or the staff reads, with its default. The owner can replace any of
 // them in Configurações > Textos; only the changed ones are stored. Words in
 // {braces} are filled in by the app and must stay in the edited text.
 
 import { STAFF_OPS_TEXTS } from './staff-ops';
+import { STAFF_CAMPAIGN_TEXTS } from './staff-campaigns';
 import { STAFF_MENU_TEXTS } from './staff-menu';
 import { STAFF_SETTINGS_TEXTS } from './staff-settings';
 
@@ -25,7 +26,8 @@ export const TEXT_GROUPS = {
 	account: 'Conta do cliente',
 	staff: 'Telas da equipe',
 	staffSettings: 'Equipe: configurações',
-	staffMenu: 'Equipe: cardápio'
+	staffMenu: 'Equipe: cardápio',
+	staffCampaigns: 'Equipe: campanhas'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
@@ -2477,14 +2479,16 @@ export const TEXT_MODULES = [
 	CORE_TEXTS,
 	STAFF_OPS_TEXTS,
 	STAFF_SETTINGS_TEXTS,
-	STAFF_MENU_TEXTS
+	STAFF_MENU_TEXTS,
+	STAFF_CAMPAIGN_TEXTS
 ] as const;
 
 export const TEXTS = {
 	...CORE_TEXTS,
 	...STAFF_OPS_TEXTS,
 	...STAFF_SETTINGS_TEXTS,
-	...STAFF_MENU_TEXTS
+	...STAFF_MENU_TEXTS,
+	...STAFF_CAMPAIGN_TEXTS
 };
 
 export type TextKey = keyof typeof TEXTS;

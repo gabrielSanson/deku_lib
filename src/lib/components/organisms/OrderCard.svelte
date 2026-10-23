@@ -76,7 +76,7 @@
 					{item.quantity}× {item.productName}
 					{#if item.discountCents}<span
 							class="ml-1 rounded bg-yellow-300 px-1.5 text-xs font-black text-black uppercase"
-							>promo</span
+							>{t('kitchen.promo')}</span
 						>{/if}
 				</p>
 				{#each item.modifiers as m, i (i)}
@@ -104,7 +104,9 @@
 		{#if lane === 'confirmed' && !o.kitchenSeenAt}
 			<form method="POST" action="?/seen" use:enhance class="flex-1">
 				<input type="hidden" name="orderId" value={o.id} />
-				<button class="min-h-12 w-full rounded-lg bg-night font-bold text-cream">Visto</button>
+				<button class="min-h-12 w-full rounded-lg bg-night font-bold text-cream">
+					{t('kitchen.seen')}
+				</button>
 			</form>
 		{/if}
 		{#if lane === 'ready'}

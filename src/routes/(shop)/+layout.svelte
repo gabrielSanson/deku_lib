@@ -188,7 +188,7 @@
 					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-14" />
 					<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto sm:h-9" />
 				</a>
-				<nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
+				<nav class="hidden items-center gap-1 md:flex" aria-label={t('shell.shopNav')}>
 					{#each desktopNav as n (n.href)}
 						<a
 							href={n.href}

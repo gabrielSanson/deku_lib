@@ -12,7 +12,7 @@
 	}
 </script>
 
-<svelte:head><title>Entrar · Conta</title></svelte:head>
+<svelte:head><title>{t('account.tabTitle')}</title></svelte:head>
 
 <!-- The shop column is max-w-3xl; on desktop this page breaks out to the mockup's split width. -->
 <section

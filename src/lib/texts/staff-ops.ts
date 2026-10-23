@@ -577,5 +577,93 @@ export const STAFF_OPS_TEXTS = {
 		group: 'staff',
 		label: 'Impressão: aviso não fiscal',
 		default: 'Não é documento fiscal'
+	},
+
+	'dash.tabTitle': { group: 'staff', label: 'Início: título da aba', default: 'Início · Equipe' },
+	'orderDetail.pixReminder': {
+		group: 'staff',
+		label: 'Pedido: lembrete do Pix na chave',
+		default:
+			'O cliente vai pagar por Pix na chave da loja. Confira no app do banco um Pix de {total} com a referência PEDIDO{n} e registre o pagamento antes de aceitar.'
+	},
+	'orderDetail.fiscal': {
+		group: 'staff',
+		label: 'Pedido: nota fiscal',
+		default: 'Nota fiscal (NFC-e)'
+	},
+	'orderDetail.fiscalNone': {
+		group: 'staff',
+		label: 'Pedido: nenhuma nota',
+		default: 'Nenhuma nota emitida para este pedido.'
+	},
+	'orderDetail.fiscalWhenPaid': {
+		group: 'staff',
+		label: 'Pedido: nota quando pago',
+		default: 'A nota é emitida quando o pedido estiver pago.'
+	},
+	'orderDetail.fiscalNumber': {
+		group: 'staff',
+		label: 'Pedido: número da nota',
+		default: 'Nº {n}'
+	},
+	'orderDetail.fiscalSeries': {
+		group: 'staff',
+		label: 'Pedido: série da nota',
+		default: 'série {n}'
+	},
+	'orderDetail.fiscalTest': { group: 'staff', label: 'Pedido: nota de teste', default: '· teste' },
+	'orderDetail.fiscal.pending': {
+		group: 'staff',
+		label: 'Pedido: nota enviando',
+		default: 'Enviando…'
+	},
+	'orderDetail.fiscal.authorized': {
+		group: 'staff',
+		label: 'Pedido: nota autorizada',
+		default: 'Autorizada'
+	},
+	'orderDetail.fiscal.rejected': {
+		group: 'staff',
+		label: 'Pedido: nota rejeitada',
+		default: 'Rejeitada'
+	},
+	'orderDetail.fiscal.error': {
+		group: 'staff',
+		label: 'Pedido: nota com erro',
+		default: 'Erro, tentando de novo'
+	},
+	'orderDetail.fiscal.cancelled': {
+		group: 'staff',
+		label: 'Pedido: nota cancelada',
+		default: 'Cancelada'
+	},
+	'orderDetail.danfe': { group: 'staff', label: 'Pedido: abrir DANFE', default: 'Abrir DANFE' },
+	'orderDetail.fiscalRetry': {
+		group: 'staff',
+		label: 'Pedido: emitir de novo',
+		default: 'Emitir nota de novo'
+	},
+	'orderDetail.fiscalReason': {
+		group: 'staff',
+		label: 'Pedido: motivo do cancelamento da nota',
+		default: 'Motivo (mínimo 15 letras)'
+	},
+	'orderDetail.fiscalCancelConfirm': {
+		group: 'staff',
+		label: 'Pedido: cancelar a nota',
+		default: 'Cancelar a nota'
+	},
+	'orderDetail.fiscalCancel': {
+		group: 'staff',
+		label: 'Pedido: cancelar nota',
+		default: 'Cancelar nota'
+	},
+	'kitchen.seen': { group: 'staff', label: 'Cozinha: botão visto', default: 'Visto' },
+	'kitchen.promo': { group: 'staff', label: 'Cozinha: item de promoção', default: 'promo' },
+	'shell.shopNav': { group: 'header', label: 'Menu do site: nome', default: 'Principal' },
+	'account.tabTitle': {
+		group: 'account',
+		label: 'Entrar: título da aba',
+		default: 'Entrar · Conta'
 	}
 } as const satisfies Record<string, TextDef>;

@@ -12,8 +12,10 @@
 	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 	import { toShopInput } from '#lib/domain/time.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	// The form starts from the saved campaign; a save redirects back to the list.
 	// svelte-ignore state_referenced_locally
@@ -103,27 +105,35 @@
 
 	/** The offer in plain words, as a customer would read it. */
 	const preview = $derived.by(() => {
-		const off = rewardPercent === 100 ? 'grátis' : `com ${rewardPercent}% de desconto`;
+		const off =
+			rewardPercent === 100
+				? t('campaign.p.free')
+				: t('campaign.p.off', { percent: rewardPercent });
 		let what: string;
 		if (templateKey === 'code_discount') {
 			what =
 				benefitType === 'percent'
-					? `${percent}% de desconto no pedido${parseBRL(maxDiscount) ? ` (até R$ ${maxDiscount})` : ''}`
+					? `${t('campaign.p.percent', { percent })}${parseBRL(maxDiscount) ? ` ${t('campaign.p.upTo', { value: maxDiscount })}` : ''}`
 					: benefitType === 'fixed'
-						? `R$ ${amount || '0'} de desconto no pedido`
-						: 'Frete grátis na entrega';
+						? t('campaign.p.fixed', { value: amount || '0' })
+						: t('campaign.p.freeDelivery');
 		} else if (triggerKind === 'quantity') {
-			const from = triggerScope === 'all' ? 'qualquer item' : names(triggerScope, triggerIds);
+			const from =
+				triggerScope === 'all' ? t('campaign.p.anyItem') : names(triggerScope, triggerIds);
 			const reward =
 				rewardScope === 'same'
-					? `mais ${rewardQty}`
-					: `${rewardQty} de ${names(rewardScope, rewardIds)}`;
-			what = `Leve ${triggerQty} de ${from} e ganhe ${reward} ${off}`;
+					? t('campaign.p.more', { n: rewardQty })
+					: t('campaign.p.of', { n: rewardQty, items: names(rewardScope, rewardIds) });
+			what = t('campaign.p.buy', { n: triggerQty, items: from, reward, off });
 		} else {
-			what = `Ganhe ${rewardQty} de ${names(rewardScope, rewardIds)} ${off}`;
+			what = t('campaign.p.gift', { n: rewardQty, items: names(rewardScope, rewardIds), off });
 		}
-		const min = parseBRL(minOrder) ? ` em pedidos a partir de R$ ${minOrder}` : '';
-		const how = autoApply ? 'aplicado sozinho' : code ? `com o cupom ${code.toUpperCase()}` : '';
+		const min = parseBRL(minOrder) ? ` ${t('campaign.p.min', { value: minOrder })}` : '';
+		const how = autoApply
+			? t('campaign.p.auto')
+			: code
+				? t('campaign.p.code', { code: code.toUpperCase() })
+				: '';
 		return `${what}${min}${how ? `, ${how}` : ''}.`;
 	});
 
@@ -154,7 +164,9 @@
 	}
 </script>
 
-<svelte:head><title>{c ? c.name : 'Nova campanha'} · Campanhas</title></svelte:head>
+<svelte:head
+	><title>{t('campaign.tabTitle', { name: c ? c.name : t('campaign.new') })}</title></svelte:head
+>
 
 {#snippet picker(type: string, ids: string[], onchange: (ids: string[]) => void, label: string)}
 	{#if type === 'products' || type === 'categories'}
@@ -183,7 +195,7 @@
 	use:enhance={({ formData, submitter, cancel }) => {
 		const body = payload(submitter?.getAttribute('value') === 'activate');
 		if (!body) {
-			error = 'Revise as regras da promoção: falta escolher itens ou um valor.';
+			error = t('campaign.reviewRules');
 			cancel();
 			return;
 		}
@@ -193,34 +205,34 @@
 	}}
 >
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="page-title">{c ? c.name : 'Nova campanha'}</h1>
-		<a class="btn-ghost" href="/staff/campaigns">Voltar</a>
+		<h1 class="page-title">{c ? c.name : t('campaign.new')}</h1>
+		<a class="btn-ghost" href="/staff/campaigns">{t('campaign.back')}</a>
 	</div>
 	{#if c && c.uses > 0}
 		<p class="alert-warn">
-			Esta campanha já foi usada em {c.uses} pedido(s). Mudanças valem só para os próximos pedidos.
+			{t('campaign.used', { n: c.uses })}
 		</p>
 	{/if}
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
 		<div class="sm:col-span-2">
-			<label class="label" for="name">Nome (aparece no resumo do pedido)</label>
+			<label class="label" for="name">{t('campaign.name')}</label>
 			<input class="field" id="name" maxlength="80" bind:value={name} required />
 		</div>
 		<div class="sm:col-span-2">
-			<label class="label" for="tagline">Frase curta (aparece na lista, opcional)</label>
+			<label class="label" for="tagline">{t('campaign.tagline')}</label>
 			<input
 				class="field"
 				id="tagline"
 				maxlength="80"
 				bind:value={tagline}
-				placeholder="Ex.: Almoço com 10% de desconto"
+				placeholder={t('campaign.taglinePlaceholder')}
 			/>
 		</div>
 		<div class="flex flex-wrap items-center gap-3 sm:col-span-2">
 			{#if c?.imageUrl}<img src={c.imageUrl} alt="" class="size-16 rounded-lg object-cover" />{/if}
 			<div class="min-w-0 flex-1">
-				<label class="label" for="campaign-photo">Foto da campanha (opcional)</label>
+				<label class="label" for="campaign-photo">{t('campaign.photo')}</label>
 				<input
 					id="campaign-photo"
 					class="field"
@@ -231,77 +243,78 @@
 			</div>
 			{#if c?.imageUrl}
 				<label class="flex items-center gap-1 text-sm text-muted">
-					<input type="checkbox" name="removePhoto" value="1" /> Tirar foto
+					<input type="checkbox" name="removePhoto" value="1" />
+					{t('campaign.removePhoto')}
 				</label>
 			{/if}
 		</div>
 		<fieldset class="sm:col-span-2">
-			<legend class="label">Tipo de promoção</legend>
+			<legend class="label">{t('campaign.type')}</legend>
 			<div class="grid grid-cols-2 gap-2">
 				<button
 					type="button"
 					class="btn {templateKey === 'code_discount' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={templateKey === 'code_discount'}
-					onclick={() => (templateKey = 'code_discount')}>Desconto no pedido</button
+					onclick={() => (templateKey = 'code_discount')}>{t('campaign.type.code')}</button
 				>
 				<button
 					type="button"
 					class="btn {templateKey === 'buy_x_get_y' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={templateKey === 'buy_x_get_y'}
-					onclick={() => (templateKey = 'buy_x_get_y')}>Leve X, ganhe Y</button
+					onclick={() => (templateKey = 'buy_x_get_y')}>{t('campaign.type.bxgy')}</button
 				>
 			</div>
 		</fieldset>
 	</section>
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
-		<h2 class="font-semibold sm:col-span-2">O que o cliente ganha</h2>
+		<h2 class="font-semibold sm:col-span-2">{t('campaign.benefit')}</h2>
 		{#if templateKey === 'code_discount'}
 			<div>
-				<label class="label" for="btype">Desconto</label>
+				<label class="label" for="btype">{t('campaign.discount')}</label>
 				<select class="field" id="btype" bind:value={benefitType}>
-					<option value="percent">Porcentagem</option>
-					<option value="fixed">Valor fixo (R$)</option>
-					<option value="free_delivery">Frete grátis</option>
+					<option value="percent">{t('campaign.percent')}</option>
+					<option value="fixed">{t('campaign.fixed')}</option>
+					<option value="free_delivery">{t('campaign.freeDelivery')}</option>
 				</select>
 			</div>
 			{#if benefitType === 'percent'}
 				<div>
-					<label class="label" for="pct">Porcentagem (%)</label>
+					<label class="label" for="pct">{t('campaign.percentField')}</label>
 					<input class="field" id="pct" type="number" min="1" max="100" bind:value={percent} />
 				</div>
 				<div>
-					<label class="label" for="maxd">Desconto máximo (R$, opcional)</label>
+					<label class="label" for="maxd">{t('campaign.maxDiscount')}</label>
 					<input class="field" id="maxd" inputmode="decimal" bind:value={maxDiscount} />
 				</div>
 			{:else if benefitType === 'fixed'}
 				<div>
-					<label class="label" for="amt">Valor (R$)</label>
+					<label class="label" for="amt">{t('campaign.amount')}</label>
 					<input class="field" id="amt" inputmode="decimal" bind:value={amount} />
 				</div>
 			{/if}
 			<p class="text-xs text-muted sm:col-span-2">
-				Porcentagem vale só sobre a comida, nunca sobre a taxa de entrega.
+				{t('campaign.percentHint')}
 			</p>
 		{:else}
 			<div>
-				<label class="label" for="tkind">Quando</label>
+				<label class="label" for="tkind">{t('campaign.when')}</label>
 				<select class="field" id="tkind" bind:value={triggerKind}>
-					<option value="quantity">Levar uma quantidade de itens</option>
-					<option value="min_order">Pedido acima do mínimo (brinde)</option>
+					<option value="quantity">{t('campaign.trigger.quantity')}</option>
+					<option value="min_order">{t('campaign.trigger.minOrder')}</option>
 				</select>
 			</div>
 			{#if triggerKind === 'quantity'}
 				<div>
-					<label class="label" for="tqty">Quantidade a levar</label>
+					<label class="label" for="tqty">{t('campaign.triggerQty')}</label>
 					<input class="field" id="tqty" type="number" min="1" max="20" bind:value={triggerQty} />
 				</div>
 				<div>
-					<label class="label" for="tscope">De quais itens</label>
+					<label class="label" for="tscope">{t('campaign.triggerScope')}</label>
 					<select class="field" id="tscope" bind:value={triggerScope}>
-						<option value="all">Qualquer item</option>
-						<option value="products">Produtos escolhidos</option>
-						<option value="categories">Categorias escolhidas</option>
+						<option value="all">{t('campaign.scope.all')}</option>
+						<option value="products">{t('campaign.scope.products')}</option>
+						<option value="categories">{t('campaign.scope.categories')}</option>
 					</select>
 				</div>
 				<div class="sm:col-span-2">
@@ -309,79 +322,84 @@
 						triggerScope,
 						triggerIds,
 						(ids) => (triggerIds = ids),
-						'Itens que contam'
+						t('campaign.triggerItems')
 					)}
 				</div>
 			{:else}
-				<p class="text-sm text-muted">Defina o valor mínimo em "Limites" abaixo.</p>
+				<p class="text-sm text-muted">{t('campaign.minHint')}</p>
 			{/if}
 			<div>
-				<label class="label" for="rscope">Item que ganha</label>
+				<label class="label" for="rscope">{t('campaign.rewardScope')}</label>
 				<select class="field" id="rscope" bind:value={rewardScope}>
-					{#if triggerKind === 'quantity'}<option value="same">Um dos mesmos itens</option>{/if}
-					<option value="products">Produtos escolhidos</option>
-					<option value="categories">Categorias escolhidas</option>
+					{#if triggerKind === 'quantity'}<option value="same">{t('campaign.scope.same')}</option
+						>{/if}
+					<option value="products">{t('campaign.scope.products')}</option>
+					<option value="categories">{t('campaign.scope.categories')}</option>
 				</select>
 			</div>
 			<div>
-				<label class="label" for="rqty">Quantidade que ganha</label>
+				<label class="label" for="rqty">{t('campaign.rewardQty')}</label>
 				<input class="field" id="rqty" type="number" min="1" max="10" bind:value={rewardQty} />
 			</div>
 			<div class="sm:col-span-2">
-				{@render picker(rewardScope, rewardIds, (ids) => (rewardIds = ids), 'Itens de brinde')}
+				{@render picker(
+					rewardScope,
+					rewardIds,
+					(ids) => (rewardIds = ids),
+					t('campaign.rewardItems')
+				)}
 			</div>
 			<div>
-				<label class="label" for="rpct">Desconto no item (%)</label>
+				<label class="label" for="rpct">{t('campaign.rewardPercent')}</label>
 				<input class="field" id="rpct" type="number" min="1" max="100" bind:value={rewardPercent} />
 			</div>
 			<div>
-				<label class="label" for="target">Qual item sai com desconto</label>
+				<label class="label" for="target">{t('campaign.target')}</label>
 				<select class="field" id="target" bind:value={target}>
-					<option value="cheapest">O mais barato</option>
-					<option value="most_expensive">O mais caro</option>
+					<option value="cheapest">{t('campaign.cheapest')}</option>
+					<option value="most_expensive">{t('campaign.mostExpensive')}</option>
 				</select>
 			</div>
 			<div>
-				<label class="label" for="maxpo">Vezes por pedido</label>
+				<label class="label" for="maxpo">{t('campaign.perOrder')}</label>
 				<input class="field" id="maxpo" type="number" min="1" max="20" bind:value={maxPerOrder} />
 			</div>
 			<p class="text-xs text-muted sm:col-span-2">
-				O cliente coloca o item de brinde no carrinho; o desconto aparece no resumo. Adicionais
-				pagos do item continuam cobrados.
+				{t('campaign.rewardHint')}
 			</p>
 		{/if}
 	</section>
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
-		<h2 class="font-semibold sm:col-span-2">Como aplica</h2>
+		<h2 class="font-semibold sm:col-span-2">{t('campaign.howApply')}</h2>
 		<div>
-			<label class="label" for="code">Código do cupom</label>
+			<label class="label" for="code">{t('campaign.code')}</label>
 			<input
 				class="field uppercase"
 				id="code"
 				maxlength="24"
-				placeholder="EX: SEXTA15"
+				placeholder={t('campaign.codePlaceholder')}
 				bind:value={code}
 			/>
 		</div>
 		<label class="flex items-center gap-2 self-end pb-2 text-sm">
 			<input type="checkbox" class="size-5" bind:checked={autoApply} />
-			Aplicar sozinho, sem código
+			{t('campaign.autoApply')}
 		</label>
 	</section>
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
-		<h2 class="font-semibold sm:col-span-2">Quando vale</h2>
+		<h2 class="font-semibold sm:col-span-2">{t('campaign.validity')}</h2>
 		<div>
-			<label class="label" for="starts">Começa (opcional)</label>
+			<label class="label" for="starts">{t('campaign.starts')}</label>
 			<input class="field" id="starts" type="datetime-local" bind:value={startsAt} />
 		</div>
 		<div>
-			<label class="label" for="ends">Termina (opcional)</label>
+			<label class="label" for="ends">{t('campaign.ends')}</label>
 			<input class="field" id="ends" type="datetime-local" bind:value={endsAt} />
 		</div>
 		<div class="space-y-2 sm:col-span-2">
-			<p class="label">Dias e horários (vazio = qualquer horário)</p>
+			<p class="label">{t('campaign.windows')}</p>
 			{#each windows as w, i (i)}
 				<div class="flex flex-wrap items-center gap-2 rounded-lg border border-line p-2">
 					{#each WEEKDAYS_PT as day, d (d)}
@@ -396,13 +414,24 @@
 							/>{day.slice(0, 3)}
 						</label>
 					{/each}
-					<input class="field w-28" type="time" bind:value={w.start} aria-label="Das" />
-					<span class="text-sm">às</span>
-					<input class="field w-28" type="time" bind:value={w.end} aria-label="Até" />
+					<input
+						class="field w-28"
+						type="time"
+						bind:value={w.start}
+						aria-label={t('campaign.from')}
+					/>
+					<span class="text-sm">{t('campaign.to')}</span>
+					<input
+						class="field w-28"
+						type="time"
+						bind:value={w.end}
+						aria-label={t('campaign.toLabel')}
+					/>
 					<button
 						type="button"
 						class="btn-ghost min-h-9 px-2"
-						onclick={() => (windows = windows.filter((_, j) => j !== i))}>Remover</button
+						onclick={() => (windows = windows.filter((_, j) => j !== i))}
+						>{t('campaign.removeWindow')}</button
 					>
 				</div>
 			{/each}
@@ -411,49 +440,50 @@
 				class="btn-secondary"
 				onclick={() =>
 					(windows = [...windows, { days: [1, 2, 3, 4, 5], start: '18:00', end: '20:00' }])}
-				>Adicionar horário</button
+				>{t('campaign.addWindow')}</button
 			>
 		</div>
 	</section>
 
 	<section class="grid gap-3 card p-4 sm:grid-cols-2">
-		<h2 class="font-semibold sm:col-span-2">Limites</h2>
+		<h2 class="font-semibold sm:col-span-2">{t('campaign.limits')}</h2>
 		<div>
-			<label class="label" for="min">Pedido mínimo (R$)</label>
+			<label class="label" for="min">{t('campaign.minOrder')}</label>
 			<input class="field" id="min" inputmode="decimal" bind:value={minOrder} />
 		</div>
 		<div>
-			<label class="label" for="maxt">Total de usos (vazio = sem limite)</label>
+			<label class="label" for="maxt">{t('campaign.maxTotal')}</label>
 			<input class="field" id="maxt" type="number" min="1" bind:value={maxUsesTotal} />
 		</div>
 		<div>
-			<label class="label" for="maxc">Usos por cliente (vazio = sem limite)</label>
+			<label class="label" for="maxc">{t('campaign.maxCustomer')}</label>
 			<input class="field" id="maxc" type="number" min="1" bind:value={maxUsesPerCustomer} />
 		</div>
 		<label class="flex items-center gap-2 self-end pb-2 text-sm">
 			<input type="checkbox" class="size-5" bind:checked={firstOrderOnly} />
-			Só no primeiro pedido do cliente
+			{t('campaign.firstOrder')}
 		</label>
 		{#if maxUsesPerCustomer || firstOrderOnly}
 			<p class="text-xs text-warn sm:col-span-2">
-				Limites por cliente precisam saber quem é o cliente: no site vale pelo telefone; no caixa a
-				promoção não se aplica a vendas sem cliente identificado.
+				{t('campaign.perCustomerHint')}
 			</p>
 		{/if}
 	</section>
 
 	<section class="card bg-brand-50 p-4" aria-live="polite">
-		<h2 class="mb-1 text-sm font-semibold">Como o cliente vai entender</h2>
+		<h2 class="mb-1 text-sm font-semibold">{t('campaign.previewTitle')}</h2>
 		<p>{preview}</p>
 	</section>
 
 	<FormError message={error ?? form?.error} />
 	<div class="flex flex-wrap gap-2">
 		<button class="btn-secondary" name="intent" value="save">
-			{c?.status === 'active' ? 'Salvar' : 'Salvar rascunho'}
+			{c?.status === 'active' ? t('campaign.save') : t('campaign.saveDraft')}
 		</button>
 		{#if c?.status !== 'active'}
-			<button class="btn-primary" name="intent" value="activate">Salvar e ativar</button>
+			<button class="btn-primary" name="intent" value="activate"
+				>{t('campaign.saveActivate')}</button
+			>
 		{/if}
 	</div>
 </form>
