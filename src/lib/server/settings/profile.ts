@@ -4,6 +4,7 @@ import { audit, type Actor } from '../audit';
 import { config } from '../config';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import { preset } from '../presets';
 
 export interface StoreProfile {
 	displayName: string;
@@ -41,7 +42,7 @@ export async function getStoreProfile(
 		}[]
 	>`select * from store_profile where id = 1`;
 	const value: StoreProfile = {
-		displayName: r.display_name ?? config().SHOP_NAME,
+		displayName: r.display_name ?? config().SHOP_NAME ?? preset().shopName,
 		phone: r.phone,
 		addressLine: r.address_line,
 		city: r.city,

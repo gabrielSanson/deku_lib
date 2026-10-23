@@ -8,6 +8,7 @@ import { slugify } from '#lib/domain/slug.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import { preset } from '../presets';
 
 export interface ContentPage {
 	slug: string;
@@ -19,7 +20,7 @@ const DEFAULTS: Record<string, ContentPage> = {
 	sobre: {
 		slug: 'sobre',
 		title: 'Sobre nós',
-		blocks: [{ type: 'paragraph', text: 'Hambúrgueres artesanais feitos na hora.' }]
+		blocks: [{ type: 'paragraph', text: 'Feito na hora, com cuidado.' }]
 	},
 	alergenicos: {
 		slug: 'alergenicos',
@@ -27,7 +28,7 @@ const DEFAULTS: Record<string, ContentPage> = {
 		blocks: [
 			{
 				type: 'paragraph',
-				text: 'Nossos pães contêm glúten e a maioria dos queijos contém lactose. Avise a equipe sobre alergias: marcamos o pedido para a cozinha.'
+				text: 'Avise a equipe sobre alergias: marcamos o pedido para a cozinha.'
 			}
 		]
 	},
@@ -60,6 +61,14 @@ const DEFAULTS: Record<string, ContentPage> = {
 
 export const PAGE_SLUGS = Object.keys(DEFAULTS);
 
+/** A built-in page as the preset words it (see src/lib/server/presets). */
+function defaultPage(slug: string): ContentPage | undefined {
+	const page = DEFAULTS[slug];
+	const text = preset().pages[slug];
+	if (!page || !text) return page;
+	return { ...page, blocks: text.map((t) => ({ type: 'paragraph', text: t })) };
+}
+
 export const pageBlocks = z
 	.array(
 		z.object({ type: z.enum(['heading', 'paragraph']), text: z.string().trim().min(1).max(2000) })
@@ -77,7 +86,7 @@ export async function getPage(slug: string, sql: Db = db()): Promise<ContentPage
 		if (!row.published) return null;
 		return { slug: row.slug, title: row.title, blocks: pageBlocks.parse(row.blocks) };
 	}
-	return DEFAULTS[slug] ?? null;
+	return defaultPage(slug) ?? null;
 }
 
 /** The pages staff can edit: saved ones plus the defaults not yet changed. */
@@ -94,7 +103,7 @@ export async function listPages(
 	);
 	return [
 		...PAGE_SLUGS.map((s) => ({
-			...(saved.get(s) ?? { ...DEFAULTS[s], published: true }),
+			...(saved.get(s) ?? { ...defaultPage(s)!, published: true }),
 			builtIn: true
 		})),
 		...[...saved.values()].filter((p) => !DEFAULTS[p.slug]).map((p) => ({ ...p, builtIn: false }))

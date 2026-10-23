@@ -6,18 +6,22 @@
 
 	let { data, children }: LayoutProps = $props();
 	setTexts(() => data.texts);
-	const iconType = $derived(data.branding.images.icon.endsWith('.png') ? 'image/png' : undefined);
+	const iconType = $derived(
+		!data.branding.custom.icon || data.branding.images.icon.endsWith('.png')
+			? 'image/png'
+			: undefined
+	);
 </script>
 
 <svelte:head>
 	<link
 		rel="icon"
-		href={data.branding.custom.icon ? data.branding.images.icon : '/favicon.png'}
+		href={data.branding.custom.icon ? data.branding.images.icon : data.branding.icons.favicon}
 		type={iconType}
 	/>
 	<link
 		rel="apple-touch-icon"
-		href={data.branding.custom.icon ? data.branding.images.icon : '/apple-touch-icon.png'}
+		href={data.branding.custom.icon ? data.branding.images.icon : data.branding.icons.appleTouch}
 	/>
 	{#if data.themeCss}
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -- built on the server from validated hex colours -->

@@ -5,6 +5,7 @@
 // tender stores: one card checkout can see several attempts (a declined card,
 // then an approved one) and they all map back to the same tender.
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { preset } from '../presets';
 import type { PaymentProvider, ProviderPaymentStatus } from './provider';
 
 const API = 'https://api.mercadopago.com';
@@ -190,7 +191,7 @@ export function mercadoPagoProvider(opts: MercadoPagoOptions): PaymentProvider {
 					},
 					expires: true,
 					expiration_date_to: expiresAt.toISOString().replace('Z', '+00:00'),
-					statement_descriptor: 'DEKU BURGER'
+					statement_descriptor: statementName()
 				})
 			});
 			return { providerPaymentId: reference, expiresAt, redirectUrl: pref.init_point };
@@ -239,4 +240,15 @@ export function mercadoPagoProvider(opts: MercadoPagoOptions): PaymentProvider {
 			});
 		}
 	};
+}
+
+/** The shop's name as it shows on the card statement: plain letters, at most 22. */
+function statementName(): string {
+	const name = process.env.SHOP_NAME || preset().shopName;
+	return name
+		.normalize('NFD')
+		.replace(/[^A-Za-z0-9 ]/g, '')
+		.trim()
+		.toUpperCase()
+		.slice(0, 22);
 }

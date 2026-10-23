@@ -1,6 +1,6 @@
-# Deku Burger platform
+# Shop ordering platform (deku_lib)
 
-Ordering and operations for one burger shop in Brazil: counter POS, web ordering
+Ordering and operations for one food shop in Brazil (built for Deku Burger): counter POS, web ordering
 with pickup and delivery, an in-store totem, kitchen display (KDS) and room screen,
 cash drawer, 80 mm ticket printing, menu editor, campaigns and coupons, optional
 customer accounts, NFC-e, iFood channel, payment reconciliation and analytics. It runs entirely on the shop's own server
@@ -15,6 +15,34 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
 > automatic online payment. **iFood is optional and off by default**: it was
 > written from iFood's public docs and has not been homologated. See
 > [Known gates](#known-gates) before going live.
+
+## Blank or Deku look
+
+The code ships **blank**: neutral colours, a plain mark, the shop's name as the
+wordmark, a plain hero background and wording with no brand in it. Deku Burger's
+logos, photos, yellow-and-black colours and wording are a separate **preset**,
+picked with one setting:
+
+| `SHOP_PRESET`     | What the site looks like                               |
+| ----------------- | ------------------------------------------------------ |
+| `blank` (default) | No brand: for any shop that will put in its own look   |
+| `deku`            | Deku Burger: its logo, burger photos, colours and copy |
+
+To switch, set the variable and restart the app:
+
+- **Local dev:** put `SHOP_PRESET=deku` (or `blank`) in `.env`, then restart `pnpm dev`.
+- **Own server:** put `SHOP_PRESET=deku` in `deploy/supabase/.env`, then run
+  `deploy/shop.sh up -d`. A new server gets it from `sh deploy/setup.sh <domain> "<name>" deku`.
+
+The owner's own changes always win over the preset: anything saved in
+Configurações → Aparência, Textos do site, Páginas do site or Loja (the shop name)
+stays as it is when the preset changes. Each preset lives in
+`src/lib/server/presets/` (colours, picture paths, wording, page text) with its
+pictures in `static/presets/<name>/`. To add one for another shop, copy `blank.ts`,
+point it at a new `static/presets/<name>/` folder, add it to `PRESETS` in
+`index.ts` and to the `SHOP_PRESET` list in `src/lib/server/config.ts`. The sample
+menu (`pnpm seed`, "start from an example") is a generic burger menu and is the same
+for every preset.
 
 ## What is in here
 
@@ -46,7 +74,7 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
   default in `src/lib/texts/` (`catalog.ts` for the customer side, `staff-*.ts`
   for the staff screens, merged into `TEXTS`; read in components with
   `useTexts()`); only the owner's changes are stored, in `ui_texts`. Colours, logos and the app icon live
-  in `store_branding` and fall back to the files in `static/brand`. New copy goes into
+  in `store_branding` and fall back to the shop preset (see [Blank or Deku look](#blank-or-deku-look)). New copy goes into
   the catalog, not straight into a component. Exceptions: words the kitchen
   ticket relies on (a "Sem …" line) and server error messages.
 
@@ -121,7 +149,8 @@ variables.
 | `SUPABASE_INTERNAL_URL`                                                                          | no                                          | Supabase address the server uses inside Docker; the deploy sets it                                 |
 | `GOOGLE_LOGIN_ENABLED`                                                                           | no                                          | Shows "Entrar com Google" on customer accounts (needs Google set up in Supabase Auth)              |
 | `SEED_PASSWORD`                                                                                  | no                                          | Password for the seeded staff accounts                                                             |
-| `SHOP_NAME`, `SHOP_TIMEZONE`                                                                     | no                                          | Defaults: Deku Burger, America/Sao_Paulo                                                           |
+| `SHOP_NAME`, `SHOP_TIMEZONE`                                                                     | no                                          | Defaults: the preset's name, America/Sao_Paulo                                                     |
+| `SHOP_PRESET`                                                                                    | no                                          | `blank` (default) or `deku`; see [Blank or Deku look](#blank-or-deku-look)                         |
 | `ORIGIN`                                                                                         | build time, only when not served over https | CSRF origin                                                                                        |
 | `APP_SECRET`                                                                                     | for iFood, NFC-e and phone alerts           | Encrypts secrets saved in the database; generated by `deploy/setup.sh`                             |
 | `BODY_SIZE_LIMIT`                                                                                | no                                          | Upload limit; the deploy sets `6M` for menu photos                                                 |

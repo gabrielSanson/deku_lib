@@ -20,7 +20,7 @@ background worker and a Caddy proxy that handles HTTPS. Nothing depends on a clo
 
 ```sh
 git clone https://github.com/gabrielSanson/deku_lib.git && cd deku_lib
-sh deploy/setup.sh pedido.dekuburger.com.br "Deku Burger"   # writes deploy/supabase/.env with fresh secrets
+sh deploy/setup.sh pedido.dekuburger.com.br "Deku Burger" deku   # writes deploy/supabase/.env with fresh secrets
 deploy/shop.sh up -d --build                                 # first start pulls ~2 GB of images
 deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts voce@email.com "Seu nome" 'uma-senha-forte'
 ```

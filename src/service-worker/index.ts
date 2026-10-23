@@ -77,7 +77,7 @@ sw.addEventListener('push', (event) => {
 			body: msg.body,
 			tag: msg.tag,
 			data: { url: msg.url ?? '/' },
-			icon: msg.icon ?? '/icon-192.png',
+			icon: msg.icon,
 			// @ts-expect-error renotify is supported by Chromium; a repeated call must buzz again.
 			renotify: true,
 			vibrate: [200, 100, 200]

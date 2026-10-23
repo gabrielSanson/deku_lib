@@ -2,7 +2,8 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/figtree';
 
-/* Deku Burger brand: black and yellow on cream, as in the UI mockups. Yellow is a
+/* Built-in palette (the Deku preset's): black and yellow on cream, as in the UI mockups.
+   Other presets and the owner's colours replace it at runtime. Yellow is a
    fill colour, never text on a light background (brand-700 is the readable
    "yellow" for that). Brand, night and canvas can be swapped from
    Configurações → Aparência (see themeCss in branding.ts). */

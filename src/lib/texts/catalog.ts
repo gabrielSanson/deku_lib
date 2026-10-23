@@ -126,7 +126,7 @@ const CORE_TEXTS = {
 	'account.tagline': {
 		group: 'account',
 		label: 'Entrar: frase sobre a foto',
-		default: 'Mais que burgers.\nÉ a nossa essência.'
+		default: 'Seu pedido,\ndo seu jeito.'
 	},
 	'account.emailPlaceholder': {
 		group: 'account',
@@ -291,7 +291,7 @@ const CORE_TEXTS = {
 	'footer.tagline': {
 		group: 'header',
 		label: 'Frase do rodapé',
-		default: 'Burger de verdade é aqui'
+		default: 'Obrigado pela preferência'
 	},
 
 	// Home
@@ -299,23 +299,23 @@ const CORE_TEXTS = {
 	'home.metaDescription': {
 		group: 'home',
 		label: 'Descrição para buscadores',
-		default: 'Peça seus burgers online para retirada ou entrega.'
+		default: 'Peça online para retirada ou entrega.'
 	},
-	'home.hero.eyebrow': { group: 'home', label: 'Destaque: eyebrow', default: 'Peça no seu ritmo' },
+	'home.hero.eyebrow': { group: 'home', label: 'Destaque: eyebrow', default: 'Peça online' },
 	'home.hero.phoneTitle': {
 		group: 'home',
 		label: 'Destaque: título no celular',
-		default: 'Sua fome merece esse clássico.'
+		default: 'Faça seu pedido.'
 	},
 	'home.hero.title': {
 		group: 'home',
-		label: 'Destaque: título (Enter quebra a linha; a última linha fica amarela)',
-		default: 'Feito na chapa.\nFeito pra você.'
+		label: 'Destaque: título (Enter quebra a linha; a última linha fica na cor principal)',
+		default: 'Bem-vindo.\nFaça seu pedido.'
 	},
 	'home.hero.text': {
 		group: 'home',
 		label: 'Destaque: texto',
-		default: 'Burgers suculentos, ingredientes frescos e muito sabor.'
+		default: 'Escolha no cardápio e acompanhe o pedido até ficar pronto.'
 	},
 	'home.hero.open': {
 		group: 'home',
@@ -346,7 +346,7 @@ const CORE_TEXTS = {
 	'home.featured.title': {
 		group: 'home',
 		label: 'Destaques: título',
-		default: 'Burgers que todo mundo ama.'
+		default: 'Os favoritos da casa.'
 	},
 	'home.featured.seeAll': {
 		group: 'home',
@@ -419,7 +419,7 @@ const CORE_TEXTS = {
 	'menu.subtitle': {
 		group: 'menu',
 		label: 'Subtítulo',
-		default: 'Sabor brasileiro em cada mordida.'
+		default: 'Escolha, personalize e peça.'
 	},
 	'menu.addShort': { group: 'menu', label: 'Botão curto adicionar', default: 'Adicionar' },
 	'menu.search': { group: 'menu', label: 'Busca', default: 'Buscar no cardápio' },
@@ -456,7 +456,7 @@ const CORE_TEXTS = {
 	'cart.emptyHint': {
 		group: 'cart',
 		label: 'Carrinho vazio: dica',
-		default: 'Escolha um burger e ele aparece aqui.'
+		default: 'Escolha um item e ele aparece aqui.'
 	},
 	'cart.seeMenu': { group: 'cart', label: 'Botão ver cardápio', default: 'Ver cardápio' },
 	'cart.removeOne': {
@@ -520,7 +520,7 @@ const CORE_TEXTS = {
 	'product.notePlaceholder': {
 		group: 'product',
 		label: 'Observação: exemplo',
-		default: 'Ex.: sem sal na batata'
+		default: 'Ex.: sem cebola'
 	},
 	'product.missing': { group: 'product', label: 'Falta escolher', default: 'Escolha: {list}.' },
 	'product.less': { group: 'product', label: 'Diminuir (leitor de tela)', default: 'Diminuir' },

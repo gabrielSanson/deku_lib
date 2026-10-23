@@ -14,7 +14,10 @@ const schema = z.object({
 	PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
 	// Self-hosted: how the server reaches the Supabase gateway on the private network.
 	SUPABASE_INTERNAL_URL: z.string().url().optional(),
-	SHOP_NAME: z.string().default('Deku Burger'),
+	// Unset: the preset's name until the owner sets one in Configurações → Loja.
+	SHOP_NAME: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+	// The built-in look and wording (src/lib/server/presets): blank or deku.
+	SHOP_PRESET: z.enum(['blank', 'deku']).default('blank'),
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
 	// Encrypts secrets the owner saves in the app (the iFood client secret).
 	APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),

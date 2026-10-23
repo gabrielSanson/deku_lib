@@ -1,20 +1,19 @@
 // The page the service worker shows when a page can't load. It is cached by
 // the service worker, so it is plain HTML with no scripts or app styles, and
 // uses the owner's texts and colours from when it was last cached.
-import { defaultBranding, DEFAULT_COLORS, getBranding } from '#lib/server/settings/branding.ts';
-import { getTexts } from '#lib/server/settings/texts.ts';
-import { defaultTexts } from '#lib/texts/catalog.ts';
+import { defaultBranding, defaultColors, getBranding } from '#lib/server/settings/branding.ts';
+import { getTexts, shopDefaultTexts } from '#lib/server/settings/texts.ts';
 import type { RequestHandler } from './$types';
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 export const GET: RequestHandler = async () => {
 	const [texts, branding] = await Promise.all([
-		getTexts().catch(() => defaultTexts()),
+		getTexts().catch(() => shopDefaultTexts()),
 		getBranding().catch(() => defaultBranding())
 	]);
-	const primary = branding.colors.primary ?? DEFAULT_COLORS.primary;
-	const background = branding.colors.background ?? DEFAULT_COLORS.background;
+	const primary = branding.colors.primary ?? defaultColors().primary;
+	const background = branding.colors.background ?? defaultColors().background;
 	const html = `<!doctype html>
 <html lang="pt-BR">
 	<head>

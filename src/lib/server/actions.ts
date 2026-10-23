@@ -1,14 +1,14 @@
 import { fail } from '@sveltejs/kit';
 import { ZodError } from 'zod';
 import { PricingError } from '#lib/domain/pricing.ts';
-import { defaultTexts, fill, type TextKey } from '#lib/texts/catalog.ts';
+import { fill, type TextKey } from '#lib/texts/catalog.ts';
 import { CatalogUnavailableError } from './catalog/service';
 import { DomainError, type TextVars } from './errors';
-import { getTexts } from './settings/texts';
+import { getTexts, shopDefaultTexts } from './settings/texts';
 
 /** A catalog text with the owner's edits; the built-in wording if the database is unreachable. */
 export async function shopText(key: TextKey, vars?: TextVars): Promise<string> {
-	const texts = await getTexts().catch(() => defaultTexts());
+	const texts = await getTexts().catch(() => shopDefaultTexts());
 	return fill(texts[key], vars);
 }
 

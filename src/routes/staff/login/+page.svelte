@@ -11,7 +11,6 @@
 	let busy = $state(false);
 	// The uploaded logo and background from Aparência; the built-in brand art otherwise.
 	const images = $derived(data.branding.images);
-	const custom = $derived(data.branding.custom);
 </script>
 
 <svelte:head><title>{t('staffLogin.tabTitle')}</title></svelte:head>
@@ -20,21 +19,19 @@
 	<!-- The staff sign-in background (Aparência), dimmed so the form stays readable. -->
 	<img
 		src={images.staffBackground}
-		srcset={custom.staffBackground
-			? undefined
-			: '/hero/background-960.webp 960w, /hero/background-1920.webp 1920w'}
+		srcset={data.branding.srcset.staffBackground}
 		sizes="100vw"
 		alt=""
 		class="absolute inset-0 -z-10 size-full object-cover"
 	/>
 	<div class="absolute inset-0 -z-10 bg-gradient-to-b from-black/60 via-black/40 to-black/80"></div>
-	{#if custom.logo || custom.wordmark}
+	{#if data.branding.lockup}
+		<img src={data.branding.lockup} alt={data.shopName} class="mb-6 h-36 w-auto" />
+	{:else}
 		<div class="mb-6 flex flex-col items-center gap-3" role="img" aria-label={data.shopName}>
 			<img src={images.logo} alt="" class="h-24 w-auto" />
 			<img src={images.wordmark} alt="" class="h-10 w-auto" />
 		</div>
-	{:else}
-		<img src="/brand/deku-logo.png" alt={data.shopName} class="mb-6 h-36 w-auto" />
 	{/if}
 	<form
 		method="POST"

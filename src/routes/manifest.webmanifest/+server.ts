@@ -1,17 +1,12 @@
-import { DEFAULT_COLORS, getBranding } from '#lib/server/settings/branding.ts';
+import { defaultColors, getBranding } from '#lib/server/settings/branding.ts';
 import { shopName } from '#lib/server/settings/profile.ts';
 import type { RequestHandler } from './$types';
 
-const DEFAULT_ICONS = [
-	{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-	{ src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-	{ src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-];
-
 export const GET: RequestHandler = async () => {
 	const [name, branding] = await Promise.all([shopName(), getBranding()]);
-	const dark = branding.colors.dark ?? DEFAULT_COLORS.dark;
+	const dark = branding.colors.dark ?? defaultColors().dark;
 	const icon = branding.images.icon;
+	const { icon192, icon512, maskable } = branding.icons;
 	const type = icon.endsWith('.png')
 		? 'image/png'
 		: icon.endsWith('.webp')
@@ -28,7 +23,13 @@ export const GET: RequestHandler = async () => {
 			background_color: dark,
 			theme_color: dark,
 			// An uploaded icon is used at every size; the owner is asked for a square image.
-			icons: branding.custom.icon ? [{ src: icon, sizes: 'any', type }] : DEFAULT_ICONS
+			icons: branding.custom.icon
+				? [{ src: icon, sizes: 'any', type }]
+				: [
+						{ src: icon192, sizes: '192x192', type: 'image/png' },
+						{ src: icon512, sizes: '512x512', type: 'image/png' },
+						{ src: maskable, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+					]
 		}),
 		{
 			headers: {

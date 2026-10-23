@@ -98,7 +98,7 @@ export async function sendReadyPush(orderId: string) {
 		url: `/orders/${order.public_token}`,
 		tag: `order-${code}`,
 		// The app icon from Aparência; the built-in one is sent as its 192 px file.
-		icon: branding.custom.icon ? branding.images.icon : '/icon-192.png'
+		icon: branding.custom.icon ? branding.images.icon : branding.icons.icon192
 	});
 	let sent = 0;
 	let failed = 0;

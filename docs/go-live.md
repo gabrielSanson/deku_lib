@@ -25,7 +25,7 @@ On the server:
 
 ```sh
 git clone https://github.com/gabrielSanson/deku_lib.git && cd deku_lib
-sh deploy/setup.sh pedido.example.com "Deku Burger"
+sh deploy/setup.sh pedido.example.com "Minha loja"   # add "deku" as a third word for the Deku look
 deploy/shop.sh up -d --build
 deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts voce@email.com "Seu nome" 'uma-senha-forte'
 ```

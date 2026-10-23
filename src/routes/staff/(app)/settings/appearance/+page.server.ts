@@ -3,7 +3,7 @@ import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
 import {
 	COLOR_KEYS,
-	DEFAULT_COLORS,
+	defaultColors,
 	getBranding,
 	IMAGE_KEYS,
 	saveColors,
@@ -15,7 +15,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);
-	return { look: await getBranding(undefined, { fresh: true }), defaults: DEFAULT_COLORS };
+	return { look: await getBranding(undefined, { fresh: true }), defaults: defaultColors() };
 };
 
 function imageKey(d: FormData): ImageKey | null {

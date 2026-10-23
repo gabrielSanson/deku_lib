@@ -1,5 +1,6 @@
 // The owner's edits to customer-facing texts. Only changed texts are stored;
-// everything else comes from the defaults in src/lib/texts/catalog.ts.
+// everything else comes from the defaults in src/lib/texts/catalog.ts, with the
+// shop preset's wording on top (src/lib/server/presets).
 import {
 	defaultTexts,
 	isTextKey,
@@ -13,10 +14,20 @@ import {
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
+import { preset } from '../presets';
 
 const TTL_MS = 10_000;
 const MAX_LENGTH = 1000;
 let cache: { value: Texts; at: number } | undefined;
+
+/** The texts before any edit: the catalog defaults with the preset's wording. */
+export function shopDefaultTexts(): Texts {
+	return { ...defaultTexts(), ...preset().texts } as Texts;
+}
+
+function defaultOf(key: TextKey): string {
+	return preset().texts[key] ?? TEXTS[key].default;
+}
 
 async function overrides(sql: Db): Promise<Map<TextKey, string>> {
 	const rows = await sql<{ key: string; value: string }[]>`select key, value from ui_texts`;
@@ -26,7 +37,7 @@ async function overrides(sql: Db): Promise<Map<TextKey, string>> {
 
 export async function getTexts(sql: Db = db(), { fresh = false } = {}): Promise<Texts> {
 	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
-	const value = { ...defaultTexts(), ...Object.fromEntries(await overrides(sql)) } as Texts;
+	const value = { ...shopDefaultTexts(), ...Object.fromEntries(await overrides(sql)) } as Texts;
 	cache = { value, at: Date.now() };
 	return value;
 }
@@ -51,8 +62,8 @@ export async function listTextsForEditor(
 			.map((key) => ({
 				key,
 				label: TEXTS[key].label,
-				default: TEXTS[key].default,
-				value: saved.get(key) ?? TEXTS[key].default,
+				default: defaultOf(key),
+				value: saved.get(key) ?? defaultOf(key),
 				changed: saved.has(key)
 			}))
 	}));
@@ -69,7 +80,7 @@ export async function saveTexts(input: Record<string, string>, actor: Actor) {
 		if (!isTextKey(key)) continue;
 		const value = raw.replace(/\r\n/g, '\n').trim();
 		const def = TEXTS[key];
-		if (!value || value === def.default) {
+		if (!value || value === defaultOf(key)) {
 			reset.push(key);
 			continue;
 		}

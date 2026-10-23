@@ -11,7 +11,9 @@ import {
 	themeCss
 } from '#lib/server/settings/branding.ts';
 import { DEFAULT_HOME } from '#lib/server/settings/home.ts';
+import { PRESETS } from '#lib/server/presets/index.ts';
 import { getTexts, listTextsForEditor, saveTexts } from '#lib/server/settings/texts.ts';
+import { TEXTS } from '#lib/texts/catalog.ts';
 import { makeStaff } from './helpers.ts';
 
 let owner: Awaited<ReturnType<typeof makeStaff>>;
@@ -87,11 +89,49 @@ describe('texts', () => {
 	});
 });
 
+describe('presets', () => {
+	afterAll(() => {
+		delete process.env.SHOP_PRESET;
+	});
+
+	it('is blank unless SHOP_PRESET picks deku', async () => {
+		delete process.env.SHOP_PRESET;
+		let b = await getBranding(db(), { fresh: true });
+		expect(b.images.logo).toBe('/presets/blank/mark.svg');
+		expect(b.lockup).toBeNull();
+		expect(themeCss(b.colors)).toContain('--color-brand-500:#60a5fa');
+		expect((await getTexts(db(), { fresh: true }))['home.hero.title']).toBe(
+			TEXTS['home.hero.title'].default
+		);
+
+		process.env.SHOP_PRESET = 'deku';
+		b = await getBranding(db(), { fresh: true });
+		expect(b.images.logo).toBe('/presets/deku/brand/deku-mark.png');
+		expect(b.srcset.heroImage).toContain('banner-960.webp 960w');
+		expect(themeCss(b.colors)).toBe('');
+		const texts = await getTexts(db(), { fresh: true });
+		expect(texts['home.hero.title']).toBe(PRESETS.deku.texts['home.hero.title']);
+		// Saving the preset's own wording is no edit.
+		await saveTexts({ 'footer.tagline': PRESETS.deku.texts['footer.tagline']! }, owner);
+		const footer = (await listTextsForEditor())
+			.flatMap((g) => g.texts)
+			.find((t) => t.key === 'footer.tagline');
+		expect(footer).toMatchObject({ changed: false, default: 'Burger de verdade é aqui' });
+	});
+});
+
 describe('branding', () => {
+	beforeAll(() => {
+		process.env.SHOP_PRESET = 'deku';
+	});
+	afterAll(() => {
+		delete process.env.SHOP_PRESET;
+	});
+
 	it('falls back to the built-in brand', async () => {
 		const b = await getBranding(db(), { fresh: true });
 		expect(b.colors).toEqual({ primary: null, dark: null, background: null });
-		expect(b.images.logo).toBe('/brand/deku-mark.png');
+		expect(b.images.logo).toBe('/presets/deku/brand/deku-mark.png');
 		expect(themeCss(b.colors)).toBe('');
 	});
 
@@ -123,7 +163,7 @@ describe('branding', () => {
 		await expect(setBrandImage('icon', '../etc/passwd', owner)).rejects.toThrow(DomainError);
 		await setBrandImage('logo', null, owner);
 		b = await getBranding();
-		expect(b.images.logo).toBe('/brand/deku-mark.png');
+		expect(b.images.logo).toBe('/presets/deku/brand/deku-mark.png');
 	});
 
 	it('uses the home photo on the sign-in page until the owner picks one', async () => {
@@ -131,7 +171,7 @@ describe('branding', () => {
 		const login = `${'c'.repeat(32)}.webp`;
 		let b = await getBranding(db(), { fresh: true });
 		expect(b.images.loginImage).toBe(b.images.heroImage);
-		expect(b.images.staffBackground).toBe('/hero/background-1920.webp');
+		expect(b.images.staffBackground).toBe('/presets/deku/hero/background-1920.webp');
 		await setBrandImage('heroImage', hero, owner);
 		b = await getBranding();
 		expect(b.images.loginImage).toBe(`/media/menu/${hero}`);
@@ -150,6 +190,6 @@ describe('branding', () => {
 		await saveHome({ ...DEFAULT_HOME, heroAlign: 'center', secondaryHref: '/p/sobre' }, owner);
 		const b = await getBranding();
 		expect(b.home).toMatchObject({ heroAlign: 'center', secondaryHref: '/p/sobre' });
-		expect(b.images.heroImage).toBe('/hero/banner-1920.webp');
+		expect(b.images.heroImage).toBe('/presets/deku/hero/banner-1920.webp');
 	});
 });

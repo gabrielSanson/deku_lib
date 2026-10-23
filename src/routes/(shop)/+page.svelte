@@ -19,12 +19,6 @@
 	// The layout the owner picked in Configurações → Página inicial.
 	const home = $derived(data.branding.home);
 	const images = $derived(data.branding.images);
-	// The built-in photo comes in two sizes; an uploaded one is used as it is.
-	const heroSrcset = $derived(
-		data.branding.custom.heroImage
-			? undefined
-			: '/hero/banner-960.webp 960w, /hero/banner-1920.webp 1920w'
-	);
 	const centered = $derived(home.heroAlign === 'center');
 	const cutout = $derived(home.heroCutout && !centered);
 
@@ -55,7 +49,7 @@
 	<img
 		data-hero-bg
 		src={images.heroImage}
-		srcset={heroSrcset}
+		srcset={data.branding.srcset.heroImage}
 		sizes="100vw"
 		alt=""
 		class="absolute inset-x-0 -top-[10%] -z-10 h-[120%] w-full object-cover"
