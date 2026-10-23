@@ -1,13 +1,15 @@
 # Deku Burger platform
 
 Ordering and operations for one burger shop in Brazil: counter POS, web ordering
-with pickup and delivery, kitchen display (KDS), menu editor, iFood channel,
-payment reconciliation and analytics. It runs entirely on the shop's own server
+with pickup and delivery, an in-store totem, kitchen display (KDS) and room screen,
+cash drawer, 80 mm ticket printing, menu editor, campaigns and coupons, optional
+customer accounts, NFC-e, iFood channel, payment reconciliation and analytics. It runs entirely on the shop's own server
 on top of self-hosted Supabase; there is no cloud host and no paid licence. Staff screens and customer pages are pt-BR; money is
 stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`.
 
-> **Status.** Counter, web ordering, KDS, menu editor, setup wizard, settings,
-> reconciliation and analytics work end to end on self-hosted Supabase. Web
+> **Status.** Counter, web ordering, KDS, cash drawer, printing, menu editor,
+> campaigns, setup wizard, settings, reconciliation and analytics work end to end
+> on self-hosted Supabase. Web
 > customers pay when they order, by **Pix to the shop's own key** (staff
 > confirm it by hand); there is no pay on pickup or delivery. **No payment provider (PSP) is connected**, so there is no
 > automatic online payment. **iFood is optional and off by default**: it was
@@ -39,12 +41,14 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
   time; the browser never sets a price. Every edit bumps a menu revision that
   orders record. Photos go to a private Storage bucket and are served by the app
   at `/media/menu/…`.
-- **Texts and look are edited by the owner** in Configurações → Textos and
-  Configurações → Aparência. Every customer-facing text has a default in
-  `src/lib/texts/catalog.ts` (read in components with `useTexts()`); only the
-  owner's changes are stored, in `ui_texts`. Colours, logos and the app icon live
-  in `store_branding` and fall back to the files in `static/brand`. New
-  customer-facing copy goes into the catalog, not straight into a component.
+- **Texts and look are edited by the owner** in Configurações → Textos do site and
+  Configurações → Aparência. Every text the customer or the staff reads has a
+  default in `src/lib/texts/` (`catalog.ts` for the customer side, `staff-*.ts`
+  for the staff screens, merged into `TEXTS`; read in components with
+  `useTexts()`); only the owner's changes are stored, in `ui_texts`. Colours, logos and the app icon live
+  in `store_branding` and fall back to the files in `static/brand`. New copy goes into
+  the catalog, not straight into a component. Exceptions: words the kitchen
+  ticket relies on (a "Sem …" line) and server error messages.
 
 - **The setup wizard** (`/staff/setup`, owner only) walks through store details,
   menu, pickup/delivery, team, payments (including the Pix key) and iFood. The
@@ -60,9 +64,11 @@ stored as integer centavos (BRL) and every "day" is a day in `America/Sao_Paulo`
 
 Order status: `new → confirmed → preparing → ready → completed`, plus
 `cancelled` and `rejected`. Payment status is tracked separately: `pending`, `paid`, `failed`,
-`cancelled`, `refunded` and `unknown`. Counter orders start `confirmed`. Web
-orders paid online are confirmed by the payment webhook. Pay-on-pickup and iFood
-orders wait in `new` for staff to accept them.
+`cancelled`, `refunded` and `unknown`. Every order is paid when it is placed
+(`src/lib/domain/payment-rules.ts`): counter, online and Pix-key orders wait in
+`new`, out of the kitchen, and confirm themselves once fully paid (by the payment
+webhook or a recorded tender). The totem's "Pagar no caixa" is a counter order.
+iFood collects its own payment, and its orders wait in `new` for staff to accept them.
 
 Counter tenders are recorded manually, each with a reference: cash (with change),
 counter Pix, card terminal, and SoftPOS ("Tap to Pay" in the PSP's own app). The
@@ -72,7 +78,7 @@ app never reads card data.
 static BR Code (EMV, CRC16) with the amount and `PEDIDO<number>` as reference,
 built in `src/lib/domain/pix.ts`. Nobody notifies the app when it is paid, so the
 order waits in `new`; staff check their bank app and record an "external Pix"
-tender from the order page before accepting it.
+tender from the order page, which sends it to the kitchen.
 
 ## Local setup
 
@@ -89,8 +95,8 @@ pnpm worker                       # second terminal: background jobs
 ```
 
 Seeded staff (password `burger123`, or `SEED_PASSWORD`): `admin@burger.local`
-(runs the shop) and `cozinha@burger.local` (kitchen screen only). Customers
-order without an account.
+(runs the shop) and `cozinha@burger.local` (kitchen screen only). Customers order without an account; an optional account (`/conta`) keeps their
+details and order history.
 
 To try online checkout locally set `PAYMENT_PROVIDER=local_stub`. The payment
 page then shows a "simulate approved payment" button that sends a signed webhook,
@@ -112,9 +118,12 @@ variables.
 | `DATABASE_URL`                                                                                   | yes                                         | Session or direct Postgres connection, not the transaction pooler (pg-boss needs session features) |
 | `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`                                                | yes                                         | Staff login and Realtime                                                                           |
 | `SUPABASE_SERVICE_ROLE_KEY`                                                                      | for seed and "add staff"                    | Server only                                                                                        |
+| `SUPABASE_INTERNAL_URL`                                                                          | no                                          | Supabase address the server uses inside Docker; the deploy sets it                                 |
+| `GOOGLE_LOGIN_ENABLED`                                                                           | no                                          | Shows "Entrar com Google" on customer accounts (needs Google set up in Supabase Auth)              |
+| `SEED_PASSWORD`                                                                                  | no                                          | Password for the seeded staff accounts                                                             |
 | `SHOP_NAME`, `SHOP_TIMEZONE`                                                                     | no                                          | Defaults: Deku Burger, America/Sao_Paulo                                                           |
 | `ORIGIN`                                                                                         | build time, only when not served over https | CSRF origin                                                                                        |
-| `APP_SECRET`                                                                                     | to save the iFood secret in the app         | Encrypts secrets saved in the database; generated by `deploy/setup.sh`                             |
+| `APP_SECRET`                                                                                     | for iFood, NFC-e and phone alerts           | Encrypts secrets saved in the database; generated by `deploy/setup.sh`                             |
 | `BODY_SIZE_LIMIT`                                                                                | no                                          | Upload limit; the deploy sets `6M` for menu photos                                                 |
 | `PAYMENT_PROVIDER`                                                                               | no                                          | `none` (default), `mercadopago`, or `local_stub` (dev only)                                        |
 | `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`                                         | with `mercadopago`                          | Mercado Pago access token and webhook signature secret (server only)                               |
@@ -146,7 +155,9 @@ pnpm test:e2e              # Playwright; needs dev server + worker + seeded Supa
 ```
 
 In a container without browser downloads, set `PW_CHROMIUM_PATH` to a Chromium
-binary. CI (`.github/workflows/ci.yml`) runs all of the above. The E2E job runs
+binary. CI (`.github/workflows/ci.yml`) runs all of the above, but it is paused:
+it runs only when started by hand (Actions → CI → Run workflow), so run the
+checks locally before pushing. The E2E job runs
 against a local Supabase.
 
 ## Deploy
@@ -196,10 +207,14 @@ These are deliberate. Nothing below is claimed to work in production yet.
    "ready" on the order page (web push, `order-ready` job, sent on Pronto and on
    each "Chamar"). It needs `APP_SECRET` (the VAPID keys are made on first use
    and stored encrypted) and HTTPS; on iPhone it works only after "Adicionar à
-   Tela de Início". The page also beeps while open. WhatsApp/e-mail messages and
-   a print agent are not connected (`order-placed` is their hook).
-5. **Fiscal documents (NFC-e/SAT)** are out of scope. Use the shop's existing
-   fiscal solution.
+   Tela de Início". The page also beeps while open. Tickets print from the
+   browser to any 80 mm printer ([go-live §4a](docs/go-live.md#4a-cash-drawer-and-printing));
+   there is no separate print agent. WhatsApp/e-mail messages are not connected
+   (`order-placed` is their hook).
+5. **NFC-e is off by default.** It is issued through Focus NFe once the owner's
+   accountant has done the steps in [docs/nota-fiscal.md](docs/nota-fiscal.md)
+   (CNPJ + IE, A1 certificate, CSC). Test it in homologação before switching to
+   produção. SAT is not supported.
 
 ## Analytics definitions
 

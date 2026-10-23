@@ -53,7 +53,7 @@ points to **Configuração** until it is finished:
 Also edit the site's text pages (about, allergens, privacy, delivery terms) in
 Cardápio → Editar cardápio → Páginas do site. Change the site's colours, logos
 and app icon in Configurações → Aparência, and any button, notice or message the
-customer sees in Configurações → Textos.
+customer sees in Configurações → Textos do site.
 
 ## 4. Before opening
 
@@ -155,7 +155,7 @@ to the order. Another PSP is one more `PaymentProvider` in `src/lib/server/payme
 - [ ] Web: order and pay by Pix (shop key). The QR opens in the bank app with the right amount and name. It stays out of the KDS until you record the Pix on the order; then it is confirmed and the KDS shows it.
 - [ ] On an Android phone, place a pickup order, tap "Avisar quando ficar pronto" and allow. Mark it Pronto: the phone shows "Seu pedido está pronto!". Tap "Chamar": it buzzes again.
 - [ ] Web delivery to a CEP outside the zones is refused with a clear message.
-- [ ] Pause the store in Configurações → Loja. The site refuses new orders, and reopening works.
+- [ ] Pause the store in Configurações → Funcionamento. The site refuses new orders, and reopening works.
 - [ ] Edit a product's price and photo. The site and the POS show the change.
 - [ ] Mark an item sold out. It shows as sold out on the site and is disabled in the POS.
 - [ ] Open the drawer with a float, sell in cash, record a sangria, then close it with a blind count. The difference is right and shows in Caixa do dia.
@@ -168,6 +168,6 @@ to the order. Another PSP is one more `PaymentProvider` in `src/lib/server/payme
 
 - **Backups:** see [deploy/README.md](../deploy/README.md#backups).
 - **Alerts:** use an uptime monitor on `/health/ready`, and watch worker logs for `"job failed"`.
-- **Incidents:** if the site misbehaves, pause it in Configurações → Loja. The
+- **Incidents:** if the site misbehaves, pause it in Configurações → Funcionamento. The
   counter keeps working. If iFood misbehaves, turn it off in Configuração → iFood
   and use "iFood (manual)" in the POS.

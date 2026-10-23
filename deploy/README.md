@@ -29,7 +29,8 @@ Then open `https://<domain>/staff/login`, sign in as the owner, and follow the
 setup wizard (store, menu, delivery, team, payments, iFood).
 
 Keep `deploy/supabase/.env` safe. It holds the database password, the signing
-keys and `APP_SECRET` (which encrypts the iFood secret saved in the app), and it
+keys and `APP_SECRET` (which encrypts the iFood secret, the NFC-e certificate and the
+phone-alert keys saved in the app; losing it means entering them again), and it
 is not in Git.
 
 ## Everyday commands
