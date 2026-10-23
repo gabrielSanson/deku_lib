@@ -105,6 +105,40 @@
 	--color-bad: #f87171;
 }
 
+/* The menu page's black field (mockup 02), in either theme. Its background is the owner's
+   dark colour, the same as the header and footer, so Aparência's white-on-dark and
+   yellow-on-dark checks cover its text. The neutral tokens follow the dark theme. */
+.night-field {
+	color-scheme: dark;
+	--color-canvas: var(--color-night);
+	--color-surface: var(--color-night-2);
+	--color-quiet: var(--color-night-2);
+	--color-line: var(--color-night-line);
+	--color-ink: #f5efe6;
+	--color-muted: #b8b0a4;
+	--color-brand-700: #ffca28;
+	--color-ok: #4ade80;
+	--color-warn: #fbbf24;
+	--color-bad: #f87171;
+	--color-bad-tint: #3a1816;
+	background: var(--color-canvas);
+	color: var(--color-ink);
+}
+/* Cream product cards on that field, in either theme: text tokens of the light theme. */
+.cream-card {
+	color-scheme: light;
+	--color-surface: var(--color-cream);
+	--color-line: #e9e3d7;
+	--color-ink: #141414;
+	--color-muted: #5c5650;
+	--color-brand-700: color-mix(in oklab, var(--color-brand-500) 45%, black);
+	--color-ok: #15803d;
+	--color-warn: #b45309;
+	--color-bad: #c62828;
+	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.3);
+	color: var(--color-ink);
+}
+
 html,
 body {
 	background: var(--color-canvas);

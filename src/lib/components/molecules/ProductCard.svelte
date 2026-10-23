@@ -29,7 +29,7 @@
 </script>
 
 <li
-	class="flex flex-col overflow-hidden card transition-shadow hover:shadow-lg {out
+	class="cream-card flex flex-col overflow-hidden card transition-shadow hover:shadow-lg {out
 		? 'opacity-60'
 		: ''}"
 >

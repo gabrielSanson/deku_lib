@@ -102,28 +102,14 @@
 	<meta name="description" content={t('home.metaDescription')} />
 </svelte:head>
 
-<div class="relative overflow-x-clip lg:bg-brand-500 dark:lg:bg-canvas">
-	<!-- brush strokes behind the menu, as in the brand art -->
-	<svg
-		class="pointer-events-none absolute -right-24 bottom-0 hidden h-[60%] w-[55%] text-black/90 lg:block"
-		viewBox="0 0 400 300"
-		preserveAspectRatio="none"
-		aria-hidden="true"
-	>
-		<path d="M400 120c-90 40-190 110-260 180h260z" fill="currentColor" />
-		<path
-			d="M400 40C300 90 200 170 120 300h40C230 200 320 120 400 80z"
-			fill="currentColor"
-			opacity=".55"
-		/>
-	</svg>
-
+<!-- Black field with cream cards in both themes, as in mockup 02. -->
+<div class="night-field overflow-x-clip">
 	<div class="relative mx-auto max-w-7xl">
 		<div class="min-w-0">
 			<!-- Menu -->
 			<section
 				id="cardapio"
-				class="scroll-mt-20 bg-canvas px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 lg:rounded-3xl lg:pb-8"
+				class="scroll-mt-20 bg-canvas px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-12"
 			>
 				<div class="mb-4">
 					<h1 class="page-title">{t('menu.title')}</h1>
