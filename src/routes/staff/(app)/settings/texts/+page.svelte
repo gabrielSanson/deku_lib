@@ -1,6 +1,6 @@
 <script lang="ts">
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
-	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { placeholders } from '#lib/texts/catalog.ts';
 
@@ -28,68 +28,59 @@
 
 	<input class="field" type="search" placeholder={t('texts.search')} bind:value={search} />
 
-	<form
-		method="POST"
-		action="?/save"
-		class="space-y-3"
-		use:enhance={() =>
-			async ({ update }) =>
-				update({ reset: false })}
-	>
+	<GuardedForm action="?/save" class="space-y-3">
 		{#each data.groups as g (g.group)}
 			{@const shown = g.texts.filter(matches)}
-			{#if shown.length}
-				<details class="card" open={q ? true : undefined}>
-					<summary
-						class="flex min-h-12 cursor-pointer items-center justify-between px-4 font-semibold"
+			<!-- Hidden, not removed: every field stays in the form while searching. -->
+			<details class="card {shown.length ? '' : 'hidden'}" open={q ? true : undefined}>
+				<summary
+					class="flex min-h-12 cursor-pointer items-center justify-between px-4 font-semibold"
+				>
+					{g.title}
+					<span class="text-sm font-normal text-muted">{t('texts.count', { n: shown.length })}</span
 					>
-						{g.title}
-						<span class="text-sm font-normal text-muted"
-							>{t('texts.count', { n: shown.length })}</span
-						>
-					</summary>
-					<div class="space-y-4 border-t border-line p-4">
-						{#each g.texts as x (x.key)}
-							{@const vars = placeholders(x.default)}
-							<div class={matches(x) ? '' : 'hidden'}>
-								<label class="label flex items-center justify-between gap-2" for={x.key}>
-									<span>{x.label}</span>
-									{#if x.changed}<span class="rounded bg-brand-100 px-1.5 text-xs text-brand-700"
-											>{t('texts.changedMark')}</span
-										>{/if}
-								</label>
-								{#if x.default.length > 60 || x.default.includes('\n')}
-									<textarea
-										id={x.key}
-										name="t:{x.key}"
-										class="field"
-										rows="3"
-										maxlength="1000"
-										placeholder={x.default}
-										value={x.changed ? x.value : ''}></textarea>
-								{:else}
-									<input
-										id={x.key}
-										name="t:{x.key}"
-										class="field"
-										maxlength="1000"
-										placeholder={x.default}
-										value={x.changed ? x.value : ''}
-									/>
-								{/if}
-								{#if vars.length}<p class="mt-1 text-xs text-muted">
-										{t('texts.needs', { vars: vars.map((v) => `{${v}}`).join(', ') })}
-									</p>{/if}
-							</div>
-						{/each}
-					</div>
-				</details>
-			{/if}
+				</summary>
+				<div class="space-y-4 border-t border-line p-4">
+					{#each g.texts as x (x.key)}
+						{@const vars = placeholders(x.default)}
+						<div class={matches(x) ? '' : 'hidden'}>
+							<label class="label flex items-center justify-between gap-2" for={x.key}>
+								<span>{x.label}</span>
+								{#if x.changed}<span class="rounded bg-brand-100 px-1.5 text-xs text-brand-700"
+										>{t('texts.changedMark')}</span
+									>{/if}
+							</label>
+							{#if x.default.length > 60 || x.default.includes('\n')}
+								<textarea
+									id={x.key}
+									name="t:{x.key}"
+									class="field"
+									rows="3"
+									maxlength="1000"
+									placeholder={x.default}
+									value={x.changed ? x.value : ''}></textarea>
+							{:else}
+								<input
+									id={x.key}
+									name="t:{x.key}"
+									class="field"
+									maxlength="1000"
+									placeholder={x.default}
+									value={x.changed ? x.value : ''}
+								/>
+							{/if}
+							{#if vars.length}<p class="mt-1 text-xs text-muted">
+									{t('texts.needs', { vars: vars.map((v) => `{${v}}`).join(', ') })}
+								</p>{/if}
+						</div>
+					{/each}
+				</div>
+			</details>
 		{/each}
 		<FormError message={form?.error} />
 		{#if form?.ok}<p class="alert-ok">{t('texts.saved')}</p>{/if}
 		<div class="sticky bottom-0 bg-canvas py-3">
 			<button class="btn-primary w-full sm:w-auto">{t('texts.save')}</button>
 		</div>
-	</form>
+	</GuardedForm>
 </div>

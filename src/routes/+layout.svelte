@@ -1,5 +1,6 @@
 <script lang="ts">
 	import './layout.css';
+	import UnsavedPrompt from '#lib/components/molecules/UnsavedPrompt.svelte';
 	import { setTexts } from '#lib/texts/context.ts';
 	import type { LayoutProps } from './$types';
 
@@ -25,3 +26,4 @@
 </svelte:head>
 
 {@render children()}
+<UnsavedPrompt />

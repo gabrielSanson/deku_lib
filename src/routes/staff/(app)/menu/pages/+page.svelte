@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { useTexts } from '#lib/texts/context.ts';
-	import { enhance } from '$app/forms';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 
 	let { data, form } = $props();
@@ -18,14 +18,7 @@
 	<FormError message={form?.error} />
 
 	{#each data.pages as p (p.slug)}
-		<form
-			method="POST"
-			action="?/save"
-			use:enhance={() =>
-				async ({ update }) =>
-					update({ reset: false })}
-			class="space-y-2 card p-4"
-		>
+		<GuardedForm action="?/save" class="space-y-2 card p-4">
 			<input type="hidden" name="slug" value={p.slug} />
 			<div class="flex items-center justify-between gap-2">
 				<input class="field font-semibold" name="title" value={p.title} required maxlength="120" />
@@ -46,6 +39,6 @@
 				<button class="btn-primary">{t('menuEdit.save')}</button>
 			</div>
 			{#if form?.ok === p.slug}<p class="alert-ok">{t('sitePages.saved')}</p>{/if}
-		</form>
+		</GuardedForm>
 	{/each}
 </main>

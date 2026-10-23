@@ -2027,7 +2027,22 @@ const CORE_TEXTS = {
 	'unsaved.confirm': {
 		group: 'staff',
 		label: 'Editor: aviso ao sair sem salvar',
-		default: 'Sair sem salvar? As alterações feitas aqui se perdem.'
+		default: 'As alterações feitas aqui se perdem.'
+	},
+	'unsaved.title': {
+		group: 'staff',
+		label: 'Editor: título do aviso ao sair',
+		default: 'Sair sem salvar?'
+	},
+	'unsaved.leave': {
+		group: 'staff',
+		label: 'Editor: botão sair sem salvar',
+		default: 'Sair sem salvar'
+	},
+	'unsaved.stay': {
+		group: 'staff',
+		label: 'Editor: botão continuar editando',
+		default: 'Continuar editando'
 	},
 	'kitchen.back': { group: 'staff', label: 'Cozinha: voltar ao painel', default: '← Painel' },
 	'kitchen.logout': { group: 'staff', label: 'Cozinha: sair', default: 'Sair' },

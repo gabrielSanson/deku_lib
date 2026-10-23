@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import {
 		buyXGetYParams,
 		codeDiscountParams,
@@ -60,6 +60,23 @@
 	let maxPerOrder = $state(bx?.maxRewardsPerOrder ?? 1);
 
 	let error = $state<string | null>(null);
+
+	// Most of this editor lives in script state, so the guard compares that as well.
+	const editorState = () => [
+		name,
+		tagline,
+		templateKey,
+		code,
+		autoApply,
+		startsAt,
+		endsAt,
+		windows,
+		minOrder,
+		maxUsesTotal,
+		maxUsesPerCustomer,
+		firstOrderOnly,
+		params()
+	];
 
 	// "One of the same items" only makes sense when a quantity triggers the offer.
 	$effect(() => {
@@ -188,21 +205,20 @@
 	{/if}
 {/snippet}
 
-<form
-	method="POST"
+<GuardedForm
 	action="?/save"
 	enctype="multipart/form-data"
 	class="max-w-3xl space-y-5"
-	use:enhance={({ formData, submitter, cancel }) => {
-		const body = payload(submitter?.getAttribute('value') === 'activate');
+	state={editorState}
+	before={(input) => {
+		const body = payload(input.submitter?.getAttribute('value') === 'activate');
 		if (!body) {
 			error = t('campaign.reviewRules');
-			cancel();
-			return;
+			input.cancel();
+			return false;
 		}
 		error = null;
-		formData.set('payload', body);
-		return async ({ update }) => update({ reset: false });
+		input.formData.set('payload', body);
 	}}
 >
 	<div class="flex flex-wrap items-center justify-between gap-2">
@@ -481,4 +497,4 @@
 			>
 		{/if}
 	</div>
-</form>
+</GuardedForm>

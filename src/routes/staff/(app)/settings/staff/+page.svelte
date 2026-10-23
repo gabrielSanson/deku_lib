@@ -1,16 +1,11 @@
 <script lang="ts">
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
-	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
-	let formEl = $state<HTMLFormElement>();
-	const guard = guardUnsaved(
-		() => formEl,
-		() => t('unsaved.confirm')
-	);
 	const roleLabel: Record<string, string> = {
 		admin: t('team.role.admin'),
 		attendant: t('team.role.attendant'),
@@ -64,20 +59,7 @@
 		{t('team.deactivateHint')}
 	</p>
 
-	<form
-		method="POST"
-		action="?/add"
-		bind:this={formEl}
-		use:enhance={() => {
-			guard.saving();
-			return async ({ result, update }) => {
-				await update({ reset: true });
-				if (result.type === 'success') guard.saved();
-				else guard.failed();
-			};
-		}}
-		class="grid gap-3 card p-4 sm:grid-cols-2"
-	>
+	<GuardedForm action="?/add" class="grid gap-3 card p-4 sm:grid-cols-2" reset>
 		<h2 class="font-semibold sm:col-span-2">{t('team.add')}</h2>
 		<div>
 			<label class="label" for="dn">{t('team.name')}</label><input
@@ -118,5 +100,5 @@
 			{data.canCreate ? t('team.linkHint') : t('team.createHint')}
 		</p>
 		<button class="btn-primary sm:col-span-2">{t('team.submit')}</button>
-	</form>
+	</GuardedForm>
 </div>

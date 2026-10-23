@@ -6,16 +6,11 @@
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 	import { cropTo43 } from '#lib/client/image-crop.ts';
-	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
-	let formEl = $state<HTMLFormElement>();
-	const guard = guardUnsaved(
-		() => formEl,
-		() => t('unsaved.confirm')
-	);
 	const p = $derived(data.product);
 	const channels = [
 		{ id: 'counter', label: t('product.channel.counter') },
@@ -86,22 +81,14 @@
 		</div>
 	</section>
 
-	<form
-		bind:this={formEl}
+	<GuardedForm
 		oninput={track}
-		method="POST"
 		action="?/save"
 		enctype="multipart/form-data"
-		use:enhance={() => {
+		before={() => {
 			busy = true;
-			guard.saving();
-			return async ({ result, update }) => {
-				await update({ reset: false });
-				busy = false;
-				if (result.type === 'success' || result.type === 'redirect') guard.saved();
-				else guard.failed();
-			};
 		}}
+		after={() => (busy = false)}
 		class="space-y-4 card p-4"
 	>
 		<div>
@@ -293,7 +280,7 @@
 		<button class="btn-primary w-full" disabled={busy}
 			>{busy ? t('product.saving') : t('product.save')}</button
 		>
-	</form>
+	</GuardedForm>
 
 	{#if !data.isNew}
 		<section class="card p-4">

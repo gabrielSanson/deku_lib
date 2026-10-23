@@ -1,4 +1,5 @@
 <script lang="ts">
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
@@ -31,7 +32,7 @@
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('group.saved')}</p>{/if}
 
-	<form method="POST" action="?/save" use:enhance class="space-y-4 card p-4">
+	<GuardedForm action="?/save" class="space-y-4 card p-4">
 		<div>
 			<label class="label" for="name">{t('group.name')}</label>
 			<input
@@ -136,7 +137,7 @@
 			>
 		</fieldset>
 		<button class="btn-primary w-full">{t('menuEdit.save')}</button>
-	</form>
+	</GuardedForm>
 
 	{#if !data.isNew}
 		<section class="space-y-2 card p-4 text-sm">

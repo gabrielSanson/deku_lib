@@ -2,6 +2,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 
 	let { data, form } = $props();
 	let editing = $state<string | null>(null);
@@ -58,14 +59,11 @@
 			{#each data.ingredients as ing (ing.id)}
 				<li class="p-3">
 					{#if editing === ing.id}
-						<form
-							method="POST"
+						<GuardedForm
 							action="?/save"
-							use:enhance={() =>
-								async ({ result, update }) => {
-									await update({ reset: false });
-									if (result.type === 'success') editing = null;
-								}}
+							after={(result) => {
+								if (result.type === 'success') editing = null;
+							}}
 							class="grid gap-3 sm:grid-cols-[2fr_2fr_5rem_auto] sm:items-end"
 						>
 							<input type="hidden" name="id" value={ing.id} />
@@ -105,7 +103,7 @@
 									>{t('menuEdit.cancel')}</button
 								>
 							</div>
-						</form>
+						</GuardedForm>
 					{:else}
 						<div class="flex flex-wrap items-center gap-3">
 							<div class="min-w-0 flex-1">

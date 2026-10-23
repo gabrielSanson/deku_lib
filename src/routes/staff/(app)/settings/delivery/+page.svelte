@@ -3,7 +3,7 @@
 	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
-	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import type { DeliveryRule } from '#lib/domain/pricing.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -11,11 +11,6 @@
 	let { data, form } = $props();
 	let editing = $state<Partial<DeliveryRule> | null>(null);
 	const t = useTexts();
-	let formEl = $state<HTMLFormElement>();
-	const guard = guardUnsaved(
-		() => formEl,
-		() => t('unsaved.confirm')
-	);
 	let removing = $state<DeliveryRule | null>(null);
 	let removeOpen = $state(false);
 	let removeForm = $state<HTMLFormElement>();
@@ -39,19 +34,11 @@
 	<FormError message={form?.error} />
 
 	{#if editing}
-		<form
-			method="POST"
+		<GuardedForm
 			action="?/save"
-			bind:this={formEl}
-			use:enhance={() => {
-				guard.saving();
-				return async ({ update, result }) => {
-					await update();
-					if (result.type === 'success') {
-						guard.saved();
-						editing = null;
-					} else guard.failed();
-				};
+			reset
+			after={(result) => {
+				if (result.type === 'success') editing = null;
 			}}
 			class="grid gap-3 card p-4 sm:grid-cols-2"
 		>
@@ -119,7 +106,7 @@
 				>
 				<button class="btn-primary">{t('settings.save')}</button>
 			</div>
-		</form>
+		</GuardedForm>
 	{/if}
 
 	<div class="overflow-x-auto card">

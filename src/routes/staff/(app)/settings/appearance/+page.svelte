@@ -1,7 +1,7 @@
 <script lang="ts">
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
-	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
@@ -26,26 +26,6 @@
 		{ key: 'heroLogo', label: t('look.heroLogo'), hint: t('look.heroLogoHint') },
 		{ key: 'icon', label: t('look.icon'), hint: t('look.iconHint') }
 	] as const;
-	let formEl = $state<HTMLFormElement>();
-	const guard = guardUnsaved(
-		() => formEl,
-		() => t('unsaved.confirm')
-	);
-	// The colour form also tells the page guard when a save went through.
-	const keepColors = () => {
-		guard.saving();
-		return async ({
-			result,
-			update
-		}: {
-			result: { type: string };
-			update: (o?: { reset?: boolean }) => Promise<void>;
-		}) => {
-			await update({ reset: false });
-			if (result.type === 'success') guard.saved();
-			else guard.failed();
-		};
-	};
 </script>
 
 <svelte:head><title>{t('look.tabTitle')}</title></svelte:head>
@@ -80,13 +60,7 @@
 		</div>
 	</div>
 
-	<form
-		method="POST"
-		action="?/colors"
-		class="space-y-4 card p-4"
-		bind:this={formEl}
-		use:enhance={keepColors}
-	>
+	<GuardedForm action="?/colors" class="space-y-4 card p-4">
 		<h2 class="font-semibold">{t('look.colors')}</h2>
 		<div class="grid gap-4 sm:grid-cols-3">
 			{#each colorFields as c (c.key)}
@@ -110,7 +84,7 @@
 			<button class="btn-primary">{t('look.saveColors')}</button>
 			<button class="btn-ghost" formaction="?/resetColors">{t('look.resetColors')}</button>
 		</div>
-	</form>
+	</GuardedForm>
 
 	<section class="space-y-3 card p-4">
 		<h2 class="font-semibold">{t('look.images')}</h2>

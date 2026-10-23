@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
-	import { guardUnsaved } from '#lib/client/unsaved.svelte.ts';
 	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -25,12 +24,6 @@
 	});
 	let s = $state(init());
 
-	let formEl = $state<HTMLFormElement>();
-	const guard = guardUnsaved(
-		() => formEl,
-		() => t('unsaved.confirm')
-	);
-
 	const payload = $derived(
 		JSON.stringify({
 			enabled: s.enabled,
@@ -45,20 +38,7 @@
 
 <svelte:head><title>{t('hours.tabTitle')}</title></svelte:head>
 
-<form
-	method="POST"
-	action="?/save"
-	bind:this={formEl}
-	use:enhance={() => {
-		guard.saving();
-		return async ({ result, update }) => {
-			await update({ reset: false });
-			if (result.type === 'success') guard.saved();
-			else guard.failed();
-		};
-	}}
-	class="space-y-4"
->
+<GuardedForm action="?/save" class="space-y-4">
 	<input type="hidden" name="payload" value={payload} />
 	<h1 class="page-title">{t('hours.title')}</h1>
 
@@ -154,4 +134,4 @@
 	<FormError message={form?.error} />
 	{#if form?.ok}<p class="alert-ok">{t('hours.saved')}</p>{/if}
 	<button class="btn-primary">{t('hours.save')}</button>
-</form>
+</GuardedForm>

@@ -2,6 +2,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 
 	let { data, form } = $props();
@@ -46,15 +47,11 @@
 			<div class="card">
 				<div class="flex flex-wrap items-center gap-2 border-b border-line p-3">
 					{#if renaming === c.id}
-						<form
-							method="POST"
+						<GuardedForm
 							action="?/category"
 							enctype="multipart/form-data"
-							use:enhance={() =>
-								async ({ update }) => {
-									await update();
-									renaming = null;
-								}}
+							reset
+							after={() => (renaming = null)}
 							class="flex flex-1 flex-wrap gap-2"
 						>
 							<input type="hidden" name="id" value={c.id} />
@@ -87,7 +84,7 @@
 							<button type="button" class="btn-ghost" onclick={() => (renaming = null)}
 								>{t('menuEdit.cancel')}</button
 							>
-						</form>
+						</GuardedForm>
 					{:else}
 						{#if c.imageUrl}
 							<img src={c.imageUrl} alt="" class="size-10 rounded object-cover" />
