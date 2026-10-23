@@ -192,11 +192,11 @@
 				.map(visible)
 		}
 	]);
-	// A coloured top edge tells the three columns apart from across the room.
-	const laneAccent = {
-		confirmed: 'border-t-4 border-t-red-500',
-		preparing: 'border-t-4 border-t-brand-500',
-		ready: 'border-t-4 border-t-green-500'
+	// A coloured bar under each title tells the three columns apart from across the room (mockup 07).
+	const laneBar = {
+		confirmed: 'bg-stone-500',
+		preparing: 'bg-brand-500',
+		ready: 'bg-green-500'
 	};
 	const nextAction = $derived<Record<string, { to: string; label: string } | undefined>>({
 		confirmed: { to: 'preparing', label: t('kitchen.action.start') },
@@ -260,18 +260,22 @@
 		{#each lanes as lane (lane.key)}
 			<section
 				aria-labelledby="lane-{lane.key}"
-				class="rounded-2xl border border-stone-800 bg-stone-900/60 p-3 {laneAccent[lane.key]}"
+				class="rounded-lg border border-stone-800 bg-stone-900/60 p-3"
 			>
 				<h2
 					id="lane-{lane.key}"
-					class="mb-1 flex items-center justify-between gap-2 text-lg font-bold"
+					class="flex items-baseline gap-2 text-2xl font-black {lane.key === 'preparing'
+						? 'text-brand-500'
+						: ''}"
 				>
-					{lane.title}<span
-						class="grid min-w-8 place-items-center rounded-full bg-stone-800 px-2 py-0.5 text-sm text-stone-100 tabular-nums"
-						>{lane.orders.length}</span
+					{lane.title}<span class="text-lg font-bold text-stone-300 tabular-nums"
+						>({lane.orders.length})</span
 					>
 				</h2>
-				<p class="mb-2 text-sm text-stone-400">{lane.rule}</p>
+				<div class="mt-2 h-1 rounded-full bg-stone-800" aria-hidden="true">
+					<div class="h-1 w-1/2 rounded-full {laneBar[lane.key]}"></div>
+				</div>
+				<p class="mt-2 mb-3 text-sm text-stone-400">{lane.rule}</p>
 				<div class="space-y-3">
 					{#each lane.orders as o (o.id)}
 						{#if o.items.length}
@@ -286,7 +290,7 @@
 						{/if}
 					{:else}
 						<p
-							class="rounded-xl border border-dashed border-stone-700 p-6 text-center text-stone-500"
+							class="rounded-lg border border-dashed border-stone-700 p-6 text-center text-stone-500"
 						>
 							{t('kitchen.empty')}
 						</p>

@@ -91,6 +91,7 @@
    to the values that read on that background. */
 .on-cream {
 	--color-muted: #5c5650;
+	--color-brand-100: #ffecb3;
 	--color-brand-700: #8a5a00;
 	--color-ok: #15803d;
 	--color-warn: #b45309;

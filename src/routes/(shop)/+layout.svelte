@@ -74,6 +74,8 @@
 	const showTabs = $derived(
 		!data.kiosk && (path.startsWith('/orders') || !(onCheckout || path.startsWith('/menu/')))
 	);
+	// The tracking page is a slim shell: the code and the steps, no storefront footer.
+	const slim = $derived(path.startsWith('/orders/'));
 	const showCartBar = $derived(cart.count > 0 && !onCheckout && !cart.panelOpen);
 
 	const close = () => (cart.panelOpen = false);
@@ -259,23 +261,23 @@
 		</div>
 	{/if}
 
-	<footer class="bg-night pb-16 text-stone-400 md:pb-0">
-		<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
-			<p
-				class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
-			>
-				<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>{t('footer.tagline')}<span
-					class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
-				></span>
-			</p>
-			<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-				<a href="/p/sobre" class="hover:text-white">{t('footer.about')}</a>
-				<a href="/p/alergenicos" class="hover:text-white">{t('footer.allergens')}</a>
-				<a href="/p/privacidade" class="hover:text-white">{t('footer.privacy')}</a>
-				<a href="/p/entrega" class="hover:text-white">{t('footer.delivery')}</a>
-			</nav>
-		</div>
-	</footer>
+	{#if !slim}<footer class="bg-night pb-16 text-stone-400 md:pb-0">
+			<div class="mx-auto max-w-7xl space-y-5 px-4 py-8 text-center lg:px-6">
+				<p
+					class="flex items-center justify-center gap-4 text-xs font-bold tracking-[0.2em] text-brand-500 uppercase sm:tracking-[0.35em]"
+				>
+					<span class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"></span>{t('footer.tagline')}<span
+						class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
+					></span>
+				</p>
+				<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+					<a href="/p/sobre" class="hover:text-white">{t('footer.about')}</a>
+					<a href="/p/alergenicos" class="hover:text-white">{t('footer.allergens')}</a>
+					<a href="/p/privacidade" class="hover:text-white">{t('footer.privacy')}</a>
+					<a href="/p/entrega" class="hover:text-white">{t('footer.delivery')}</a>
+				</nav>
+			</div>
+		</footer>{/if}
 
 	<!-- Bottom tabs on phones (mockup 03); the product page has its own bottom bar. -->
 	{#if showTabs}

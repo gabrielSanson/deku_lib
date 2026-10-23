@@ -661,6 +661,13 @@ export const STAFF_OPS_TEXTS = {
 	},
 	'kitchen.seen': { group: 'staff', label: 'Cozinha: botão visto', default: 'Visto' },
 	'kitchen.promo': { group: 'staff', label: 'Cozinha: item de promoção', default: 'promo' },
+	'kitchen.since': { group: 'staff', label: 'Cozinha: tempo desde', default: 'desde o pedido' },
+	'kitchen.allergy': { group: 'staff', label: 'Cozinha: alergia', default: 'ALERGIA' },
+	'kitchen.promised': {
+		group: 'staff',
+		label: 'Cozinha: horário prometido',
+		default: 'Prometido {time}'
+	},
 	'shell.shopNav': { group: 'header', label: 'Menu do site: nome', default: 'Principal' },
 	'account.tabTitle': {
 		group: 'account',
