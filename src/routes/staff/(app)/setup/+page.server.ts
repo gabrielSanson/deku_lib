@@ -1,22 +1,15 @@
 // First-run setup for the owner: shop details, menu, delivery, team, payments
 // and (optionally) iFood. Every step can be revisited later; nothing here is
 // required for the counter to work.
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
 import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { config } from '#lib/server/config.ts';
 import { db } from '#lib/server/db.ts';
-import { checkIfoodConnection } from '#lib/server/integrations/ifood/check.ts';
-import {
-	ifoodSettings,
-	ifoodStatus,
-	invalidateIfoodSettings,
-	recordIfoodCheck,
-	saveIfoodCredentials,
-	setIfoodEnabled
-} from '#lib/server/integrations/ifood/settings.ts';
+import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
+import { ifoodStatus } from '#lib/server/integrations/ifood/settings.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { canStoreSecrets } from '#lib/server/secrets.ts';
 import {
@@ -133,43 +126,7 @@ export const actions: Actions = {
 		}
 		next('ifood');
 	},
-	ifoodSave: async (event) => {
-		const staff = requireStaff(event, [...OWNER]);
-		const d = await event.request.formData();
-		const r = await attempt(async () => {
-			await saveIfoodCredentials(
-				{
-					clientId: formString(d, 'clientId'),
-					clientSecret: formString(d, 'clientSecret'),
-					merchantId: formString(d, 'merchantId')
-				},
-				staffActor(staff)
-			);
-			return { ok: true };
-		});
-		if (!('ok' in r)) return r;
-		return runCheck();
-	},
-	ifoodTest: async (event) => {
-		requireStaff(event, [...OWNER]);
-		return runCheck();
-	},
-	ifoodEnable: async (event) => {
-		const staff = requireStaff(event, [...OWNER]);
-		const d = await event.request.formData();
-		const enable = formString(d, 'enabled') === '1';
-		if (enable && d.get('understood') !== 'on') {
-			return failText(400, 'err.ifood.acknowledge');
-		}
-		return attempt(async () => {
-			await setIfoodEnabled(enable, staffActor(staff));
-			return {
-				ok: enable
-					? 'iFood ligado. Os pedidos novos aparecem em Início e na cozinha. Acompanhe os primeiros pelo Gestor de Pedidos do iFood também.'
-					: 'iFood desligado. Lance pedidos do iFood pelo Caixa em "iFood (manual)".'
-			};
-		});
-	},
+	...ifoodActions,
 	finish: async (event) => {
 		const staff = requireStaff(event, [...OWNER]);
 		const d = await event.request.formData();
@@ -183,25 +140,3 @@ export const actions: Actions = {
 		redirect(303, '/staff');
 	}
 };
-
-async function runCheck() {
-	invalidateIfoodSettings();
-	const s = await ifoodSettings({ fresh: true });
-	if (s.problem) return fail(400, { error: s.problem });
-	if (!s.clientId || !s.clientSecret || !s.merchantId) {
-		return failText(400, 'err.ifood.credentials');
-	}
-	const result = await checkIfoodConnection({
-		base: s.apiBase,
-		clientId: s.clientId,
-		clientSecret: s.clientSecret,
-		merchantId: s.merchantId
-	});
-	if (result.ok) {
-		await recordIfoodCheck(true, null);
-		return { ok: await shopText('ok.ifoodConnected') };
-	}
-	const { problem } = result;
-	await recordIfoodCheck(false, `${problem.title} ${problem.action}`);
-	return fail(400, { ifoodProblem: problem });
-}

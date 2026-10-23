@@ -4,7 +4,7 @@
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SetupProgressRail from '#lib/components/organisms/SetupProgressRail.svelte';
-	import { formatDateTime } from '#lib/domain/time.ts';
+	import IfoodConnect, { type IfoodProblem } from '#lib/components/organisms/IfoodConnect.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
@@ -29,9 +29,7 @@
 			update({ reset: false });
 	let pixEnabled = $derived(data.profile.pix.enabled);
 	const problem = $derived(
-		form && 'ifoodProblem' in form
-			? (form.ifoodProblem as { stage: string; title: string; action: string; detail: string })
-			: null
+		form && 'ifoodProblem' in form ? (form.ifoodProblem as IfoodProblem) : null
 	);
 </script>
 
@@ -212,95 +210,13 @@
 				<li>{t('setup.ifood.step4')}</li>
 			</ol>
 
-			{#if ifood.source === 'env'}
-				<p class="text-sm text-muted">{t('setup.ifood.envNote')}</p>
-			{/if}
-			{#if !data.canStoreSecrets}
-				<p class="alert-error text-sm">{t('setup.ifood.noSecret')}</p>
-			{/if}
-			{#if ifood.problem}<p class="alert-error text-sm">{ifood.problem}</p>{/if}
-
-			<form
-				method="POST"
-				action="?passo={data.step}&/ifoodSave"
-				use:enhance={keep}
-				class="space-y-3"
-			>
-				<TextField
-					label={t('setup.ifood.clientId')}
-					name="clientId"
-					value={ifood.clientId ?? ''}
-					autocomplete="off"
-					required
-					class="font-mono"
-				/>
-				<TextField
-					label={t('setup.ifood.clientSecret')}
-					name="clientSecret"
-					type="password"
-					autocomplete="new-password"
-					placeholder={ifood.hasSecret ? t('setup.ifood.secretSaved') : ''}
-					required={!ifood.hasSecret}
-					class="font-mono"
-				/>
-				<TextField
-					label={t('setup.ifood.merchantId')}
-					name="merchantId"
-					value={ifood.merchantId ?? ''}
-					autocomplete="off"
-					required
-					class="font-mono"
-				/>
-				<div class="flex flex-wrap gap-2">
-					<button class="btn-primary" disabled={!data.canStoreSecrets}
-						>{t('setup.ifood.save')}</button
-					>
-				</div>
-			</form>
-			{#if ifood.clientId}
-				<form method="POST" action="?passo={data.step}&/ifoodTest" use:enhance>
-					<button class="btn-secondary">{t('setup.ifood.retest')}</button>
-				</form>
-			{/if}
-
-			{#if problem}
-				<div class="space-y-1 alert-error" role="alert">
-					<p class="font-semibold">{problem.title}</p>
-					<p>{problem.action}</p>
-					<details class="text-xs">
-						<summary>{t('setup.ifood.technical')}</summary>
-						<code class="break-all">{problem.detail}</code>
-					</details>
-				</div>
-			{:else if ifood.lastCheckAt}
-				<p class="text-sm {ifood.lastCheckOk ? 'text-ok' : 'text-bad'}">
-					{t('setup.ifood.lastTest', {
-						when: formatDateTime(ifood.lastCheckAt),
-						result: ifood.lastCheckOk ? t('setup.ifood.ok') : (ifood.lastCheckError ?? '')
-					})}
-				</p>
-			{/if}
-
-			{#if ifood.enabled}
-				<form method="POST" action="?passo={data.step}&/ifoodEnable" use:enhance>
-					<input type="hidden" name="enabled" value="0" />
-					<button class="btn-danger">{t('setup.ifood.disable')}</button>
-				</form>
-			{:else if ifood.lastCheckOk && ifood.source === 'app'}
-				<form
-					method="POST"
-					action="?passo={data.step}&/ifoodEnable"
-					use:enhance
-					class="space-y-2 border-t border-line pt-3"
-				>
-					<input type="hidden" name="enabled" value="1" />
-					<Checkbox label={t('setup.ifood.ack')} name="understood" required class="text-sm" />
-					<button class="btn-primary">{t('setup.ifood.enable')}</button>
-				</form>
-			{/if}
-			<p class="text-xs text-muted">
-				{t('setup.ifood.webhook', { url: data.webhookUrl })}
-			</p>
+			<IfoodConnect
+				{ifood}
+				{problem}
+				canStoreSecrets={data.canStoreSecrets}
+				webhookUrl={data.webhookUrl}
+				query="passo={data.step}&"
+			/>
 			<a class="btn-ghost w-full" href="?passo={nextStep}"
 				>{ifood.enabled ? t('setup.ifood.continue') : t('setup.ifood.skip')}</a
 			>

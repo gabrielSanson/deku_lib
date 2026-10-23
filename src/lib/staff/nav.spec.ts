@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeHref, NAV, navFor } from './nav';
+import { activeHref, NAV, navFor, SETTINGS_GROUPS } from './nav';
 
 describe('admin navigation', () => {
 	it('marks the most specific link as active', () => {
@@ -9,8 +9,25 @@ describe('admin navigation', () => {
 		expect(activeHref(NAV, '/staff/menu/edit')).toBe('/staff/menu/edit');
 		expect(activeHref(NAV, '/staff/menu/products/X-BURGER')).toBe('/staff/menu/edit');
 		expect(activeHref(NAV, '/staff/menuzinho')).toBeNull();
-		expect(activeHref(NAV, '/staff/settings/hours')).toBe('/staff/settings/store');
-		expect(activeHref(NAV, '/staff/settings/staff')).toBe('/staff/settings/staff');
+		expect(activeHref(NAV, '/staff/settings/hours')).toBe('/staff/settings/profile');
+		expect(activeHref(NAV, '/staff/settings/staff')).toBe('/staff/settings/profile');
+		expect(activeHref(NAV, '/staff/setup')).toBe('/staff/settings/profile');
+	});
+});
+
+describe('settings groups', () => {
+	it('lists every settings page once', () => {
+		const hrefs = SETTINGS_GROUPS.flatMap((g) => g.links.map((l) => l.href));
+		expect(new Set(hrefs).size).toBe(hrefs.length);
+		expect(SETTINGS_GROUPS).toHaveLength(4);
+	});
+
+	it('keeps each page in one place of the main menu', () => {
+		const main = NAV.flatMap((g) => g.links.map((l) => l.href));
+		for (const link of SETTINGS_GROUPS.flatMap((g) => g.links)) {
+			if (link.href === '/staff/settings/profile') continue;
+			expect(main).not.toContain(link.href);
+		}
 	});
 });
 

@@ -1,7 +1,9 @@
+// Configurações → iFood: the connection (credentials, test, on/off) and its health.
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
-import { config } from '#lib/server/config.ts';
-import { getStoreProfile } from '#lib/server/settings/profile.ts';
+import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
+import { ifoodStatus } from '#lib/server/integrations/ifood/settings.ts';
+import { canStoreSecrets } from '#lib/server/secrets.ts';
 import {
 	currentIfoodAlerts,
 	integrationHealth,
@@ -12,19 +14,23 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, ADMIN);
-	const c = config();
-	const [ifood, profile] = await Promise.all([integrationHealth(), getStoreProfile()]);
+	const [ifood, connection, ifoodAlerts] = await Promise.all([
+		integrationHealth(),
+		ifoodStatus(),
+		currentIfoodAlerts()
+	]);
 	return {
 		ifood,
-		ifoodAlerts: await currentIfoodAlerts(),
-		shopPix: profile.pix.enabled,
-		paymentProvider: c.PAYMENT_PROVIDER,
-		webhookSecretSet: !!c.MERCADOPAGO_WEBHOOK_SECRET,
-		production: c.NODE_ENV === 'production'
+		connection,
+		ifoodAlerts,
+		canStoreSecrets: canStoreSecrets(),
+		webhookUrl: new URL('/api/v1/integrations/ifood/webhook', event.url).toString()
 	};
 };
 
+// iFood credentials, test and on/off live here too, not only in the setup wizard.
 export const actions: Actions = {
+	...ifoodActions,
 	replay: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const id = formString(await event.request.formData(), 'id');

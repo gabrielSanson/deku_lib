@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -7,7 +6,6 @@
 
 	let { data, form } = $props();
 	const p = $derived(data.profile);
-	let pixEnabled = $derived(data.profile.pix.enabled);
 	const t = useTexts();
 </script>
 
@@ -53,62 +51,5 @@
 		/>
 	</SettingsSection>
 
-	<SettingsSection
-		title={t('profile.payments')}
-		hint={t('profile.paymentsHint')}
-		action="?/payments"
-		saveLabel={t('profile.paymentsSave')}
-		saved={form?.ok === 'payments' ? t('profile.paymentsSaved') : undefined}
-		warning={form?.ok === 'payments' ? form.warning : undefined}
-	>
-		<fieldset class="space-y-4">
-			<Checkbox
-				label={t('profile.pix')}
-				hint={t('profile.pixHint')}
-				name="pixEnabled"
-				bind:checked={pixEnabled}
-			/>
-			{#if pixEnabled}
-				<div class="space-y-3 rounded-lg border border-line p-3">
-					<TextField
-						label={t('profile.pixKey')}
-						name="pixKey"
-						value={p.pix.key ?? ''}
-						placeholder={t('profile.pixKeyPlaceholder')}
-						required
-					/>
-					<div class="grid gap-3 sm:grid-cols-2">
-						<TextField
-							label={t('profile.pixName')}
-							name="pixMerchantName"
-							value={p.pix.merchantName ?? p.displayName}
-							maxlength={25}
-							required
-						/>
-						<TextField
-							label={t('profile.pixCity')}
-							name="pixMerchantCity"
-							value={p.pix.merchantCity ?? p.city ?? ''}
-							maxlength={15}
-							required
-						/>
-					</div>
-					<p class="text-xs text-muted">
-						{t('profile.pixTest')}
-					</p>
-				</div>
-			{:else}
-				<input type="hidden" name="pixKey" value={p.pix.key ?? ''} />
-				<input type="hidden" name="pixMerchantName" value={p.pix.merchantName ?? ''} />
-				<input type="hidden" name="pixMerchantCity" value={p.pix.merchantCity ?? ''} />
-			{/if}
-		</fieldset>
-		<p class="text-sm text-muted">
-			{t('profile.psp')}
-			{data.onlineProvider
-				? t('profile.pspActive', { name: data.onlineProvider })
-				: t('profile.pspNone')}
-		</p>
-	</SettingsSection>
 	<FormError message={form?.error} />
 </div>

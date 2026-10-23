@@ -11,7 +11,12 @@ export const STAFF_SETTINGS_TEXTS = {
 	'settings.saved': { group: g, label: 'Aviso salvo', default: 'Salvo.' },
 
 	// Loja
-	'store.tabTitle': { group: g, label: 'Loja: título da aba', default: 'Loja · Configurações' },
+	'store.tabTitle': {
+		group: g,
+		label: 'Loja: título da aba',
+		default: 'Tipos de pedido · Configurações'
+	},
+	'store.title': { group: g, label: 'Tipos de pedido: título', default: 'Tipos de pedido' },
 	'store.open': { group: g, label: 'Loja: aberta', default: 'Loja aberta' },
 	'store.paused': { group: g, label: 'Loja: pausada', default: 'Loja pausada' },
 	'store.accepting': {
@@ -83,9 +88,14 @@ export const STAFF_SETTINGS_TEXTS = {
 	'profile.tabTitle': {
 		group: g,
 		label: 'Dados: título da aba',
-		default: 'Dados e Pix · Configurações'
+		default: 'Dados da loja · Configurações'
 	},
-	'profile.title': { group: g, label: 'Dados: título', default: 'Dados da loja e pagamentos' },
+	'profile.title': { group: g, label: 'Dados: título', default: 'Dados da loja' },
+	'payments.tabTitle': {
+		group: g,
+		label: 'Pagamentos: título da aba',
+		default: 'Pagamentos · Configurações'
+	},
 	'profile.store': { group: g, label: 'Dados: seção', default: 'Dados da loja' },
 	'profile.storeHint': {
 		group: g,
@@ -150,28 +160,12 @@ export const STAFF_SETTINGS_TEXTS = {
 		default:
 			'Depois de trocar a chave, faça um pedido de teste e pague R$ 1 para conferir que o Pix cai na conta certa.'
 	},
-	'profile.psp': {
-		group: g,
-		label: 'Pagamentos: provedor',
-		default:
-			'Pagamento online com confirmação automática precisa de um provedor de pagamento (PSP).'
-	},
-	'profile.pspActive': {
-		group: g,
-		label: 'Pagamentos: provedor ativo',
-		default: 'Provedor ativo: {name}.'
-	},
-	'profile.pspNone': {
-		group: g,
-		label: 'Pagamentos: sem provedor',
-		default: 'Nenhum está conectado; isso é opcional.'
-	},
 
 	// Integrações
 	'integrations.tabTitle': {
 		group: g,
 		label: 'Integrações: título da aba',
-		default: 'Integrações · Equipe'
+		default: 'iFood · Configurações'
 	},
 	'integrations.payments': {
 		group: g,
@@ -193,7 +187,6 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Integrações: sem chave Pix',
 		default: 'Sem a chave Pix da loja, o site não aceita pedidos.'
 	},
-	'integrations.change': { group: g, label: 'Integrações: mudar', default: 'Mudar' },
 	'integrations.mercadopago': {
 		group: g,
 		label: 'Integrações: Mercado Pago',
@@ -224,11 +217,8 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Integrações: última consulta',
 		default: 'Última consulta ao iFood com sucesso: {time}.'
 	},
-	'integrations.credentials': {
-		group: g,
-		label: 'Integrações: credenciais',
-		default: 'Credenciais e teste de conexão'
-	},
+
+	'integrations.health': { group: g, label: 'iFood: seção de saúde', default: 'Pedidos e eventos' },
 	'integrations.lastEvent': {
 		group: g,
 		label: 'Integrações: último evento',

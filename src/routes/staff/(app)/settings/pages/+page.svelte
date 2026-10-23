@@ -12,8 +12,7 @@
 
 <svelte:head><title>{t('sitePages.tabTitle')}</title></svelte:head>
 
-<main class="mx-auto max-w-3xl space-y-4 p-4">
-	<a class="btn-ghost min-h-9" href="/staff/menu/edit">{t('menuEdit.back')}</a>
+<div class="space-y-4">
 	<h1 class="page-title">{t('sitePages.title')}</h1>
 	<p class="text-sm text-muted">
 		{t('sitePages.intro')}
@@ -59,4 +58,4 @@
 			{#if form?.ok === p.slug}<p class="alert-ok">{t('sitePages.saved')}</p>{/if}
 		</GuardedForm>
 	{/each}
-</main>
+</div>

@@ -40,8 +40,7 @@ export const NAV: NavGroup[] = [
 				icon: 'burger',
 				match: ['/staff/menu/products', '/staff/menu/groups']
 			},
-			{ href: '/staff/menu/ingredients', label: 'nav.ingredientes', icon: 'list' },
-			{ href: '/staff/menu/pages', label: 'nav.paginasDoSite', icon: 'book' }
+			{ href: '/staff/menu/ingredients', label: 'nav.ingredientes', icon: 'list' }
 		]
 	},
 	{
@@ -49,9 +48,8 @@ export const NAV: NavGroup[] = [
 		links: [
 			{ href: '/staff/analytics', label: 'nav.relatorios', icon: 'chart' },
 			{ href: '/staff/campaigns', label: 'nav.campanhas', icon: 'crown' },
-			{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
 			{
-				href: '/staff/settings/store',
+				href: '/staff/settings/profile',
 				label: 'nav.configuracoes',
 				icon: 'settings',
 				match: ['/staff/settings', '/staff/setup']
@@ -78,20 +76,47 @@ export function navFor(role: 'admin' | 'attendant' | 'kitchen'): NavGroup[] {
 	})).filter((g) => g.links.length);
 }
 
-/** The settings pages, shown as a sub-menu inside Configurações. */
-export const SETTINGS_LINKS: NavLink[] = [
-	{ href: '/staff/settings/store', label: 'nav.funcionamento', icon: 'receipt' },
-	{ href: '/staff/settings/hours', label: 'nav.horarios', icon: 'clock' },
-	{ href: '/staff/settings/profile', label: 'nav.dadosEPix', icon: 'store' },
-	{ href: '/staff/settings/fiscal', label: 'nav.notaFiscal', icon: 'receipt' },
-	{ href: '/staff/settings/home', label: 'nav.paginaInicial', icon: 'home' },
-	{ href: '/staff/settings/appearance', label: 'nav.aparencia', icon: 'settings' },
-	{ href: '/staff/settings/texts', label: 'nav.textosDoSite', icon: 'book' },
-	{ href: '/staff/settings/delivery', label: 'nav.entrega', icon: 'truck' },
-	{ href: '/staff/settings/integrations', label: 'nav.integracoes', icon: 'grid' },
-	{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
-	{ href: '/staff/setup', label: 'nav.configuracaoInicial', icon: 'settings' }
+/**
+ * The settings pages, shown inside Configurações as four groups: the shop itself,
+ * how orders come in, the customer site, and money plus outside services.
+ */
+export const SETTINGS_GROUPS: NavGroup[] = [
+	{
+		label: 'nav.grupoLoja',
+		links: [
+			{ href: '/staff/settings/profile', label: 'nav.dadosDaLoja', icon: 'store' },
+			{ href: '/staff/settings/hours', label: 'nav.horariosEPausa', icon: 'clock' },
+			{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' }
+		]
+	},
+	{
+		label: 'nav.grupoPedidos',
+		links: [
+			{ href: '/staff/settings/store', label: 'nav.tiposDePedido', icon: 'receipt' },
+			{ href: '/staff/settings/delivery', label: 'nav.entrega', icon: 'truck' }
+		]
+	},
+	{
+		label: 'nav.grupoSite',
+		links: [
+			{ href: '/staff/settings/home', label: 'nav.paginaInicial', icon: 'home' },
+			{ href: '/staff/settings/appearance', label: 'nav.aparencia', icon: 'settings' },
+			{ href: '/staff/settings/texts', label: 'nav.textosDoSite', icon: 'book' },
+			{ href: '/staff/settings/pages', label: 'nav.paginasDoSite', icon: 'book' }
+		]
+	},
+	{
+		label: 'nav.grupoPagamentos',
+		links: [
+			{ href: '/staff/settings/payments', label: 'nav.pagamentos', icon: 'cash' },
+			{ href: '/staff/settings/ifood', label: 'nav.ifood', icon: 'grid' },
+			{ href: '/staff/settings/fiscal', label: 'nav.notaFiscal', icon: 'receipt' }
+		]
+	}
 ];
+
+/** The one-time setup wizard, linked from the top of Configurações rather than shown as a tab. */
+export const SETUP_HREF = '/staff/setup';
 
 /** The most specific link for the current path, so "/staff/menu/edit" beats "/staff/menu". */
 export function activeHref(groups: NavGroup[], pathname: string): string | null {

@@ -96,11 +96,7 @@ export const STAFF_MENU_TEXTS = {
 		label: 'Editar cardápio: disponibilidade',
 		default: 'Disponibilidade'
 	},
-	'menuEdit.pages': {
-		group: g,
-		label: 'Editar cardápio: páginas do site',
-		default: 'Páginas do site'
-	},
+
 	'menuEdit.newProduct': {
 		group: g,
 		label: 'Editar cardápio: novo produto',

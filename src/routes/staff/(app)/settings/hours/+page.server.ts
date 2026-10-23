@@ -1,6 +1,8 @@
+// Horários e pausa: open or pause the shop now, weekly hours and closed days.
 import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getSchedule, listClosures, saveSchedule } from '#lib/server/settings/hours.ts';
+import { updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -25,6 +27,21 @@ export const actions: Actions = {
 		return attempt(async () => {
 			await saveSchedule(payload as Parameters<typeof saveSchedule>[0], staffActor(staff));
 			return { ok: true };
+		});
+	},
+	toggle: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const d = await event.request.formData();
+		const open = formString(d, 'open') === '1';
+		return attempt(async () => {
+			await updateStoreSettings(
+				{
+					acceptingOrders: open,
+					pauseReason: open ? null : formString(d, 'pauseReason') || 'Pausado pela equipe'
+				},
+				staffActor(staff)
+			);
+			return { toggled: true };
 		});
 	}
 };

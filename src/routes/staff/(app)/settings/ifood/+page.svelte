@@ -2,6 +2,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import IfoodConnect, { type IfoodProblem } from '#lib/components/organisms/IfoodConnect.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();
@@ -17,37 +18,16 @@
 		dead: 'text-bad font-semibold'
 	};
 	const t = useTexts();
+	const problem = $derived(
+		form && 'ifoodProblem' in form ? (form.ifoodProblem as IfoodProblem) : null
+	);
 </script>
 
 <svelte:head><title>{t('integrations.tabTitle')}</title></svelte:head>
 
 <div class="space-y-6">
-	<FormError message={form?.error} />
-	{#if form?.ok}<p class="alert-ok">{form.ok}</p>{/if}
-
-	<section class="space-y-2 card p-4">
-		<h2 class="text-lg font-bold">{t('integrations.payments')}</h2>
-		{#if data.paymentProvider === 'none'}
-			<p class="text-sm">
-				{t('integrations.noPsp')}
-				{data.shopPix ? t('integrations.shopPix') : t('integrations.noPix')}
-				<a class="underline" href="/staff/setup?passo=pagamentos">{t('integrations.change')}</a>
-			</p>
-		{:else if data.paymentProvider === 'mercadopago'}
-			<p class="text-sm">
-				{t('integrations.mercadopago')}
-			</p>
-			{#if !data.webhookSecretSet}
-				<p class="alert-error" role="alert">
-					{t('integrations.noWebhookSecret')}
-				</p>
-			{/if}
-		{:else if data.paymentProvider === 'local_stub'}
-			<p class="alert-warn">
-				{t('integrations.stub')}
-			</p>
-		{/if}
-	</section>
+	<FormError message={form && 'error' in form ? (form.error as string) : undefined} />
+	{#if form && 'ok' in form && typeof form.ok === 'string'}<p class="alert-ok">{form.ok}</p>{/if}
 
 	<section class="space-y-3 card p-4">
 		<div class="flex items-center justify-between gap-2">
@@ -59,6 +39,16 @@
 				>{data.ifood.enabled ? t('integrations.on') : t('integrations.off')}</span
 			>
 		</div>
+		<IfoodConnect
+			ifood={data.connection}
+			{problem}
+			canStoreSecrets={data.canStoreSecrets}
+			webhookUrl={data.webhookUrl}
+		/>
+	</section>
+
+	<section class="space-y-3 card p-4">
+		<h2 class="text-lg font-bold">{t('integrations.health')}</h2>
 		{#each data.ifoodAlerts as alert, i (i)}
 			<p class="alert-error" role="alert">{alert}</p>
 		{/each}
@@ -71,9 +61,6 @@
 			{#if data.ifood.status.lastPollOkAt}
 				{t('integrations.lastPoll', { time: formatDateTime(data.ifood.status.lastPollOkAt) })}
 			{/if}
-			{#if data.staff.role === 'admin'}<a class="underline" href="/staff/setup?passo=ifood"
-					>{t('integrations.credentials')}</a
-				>{/if}
 		</p>
 		<dl class="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
 			<div>

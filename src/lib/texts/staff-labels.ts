@@ -39,13 +39,27 @@ export const STAFF_LABEL_TEXTS = {
 		label: 'Menu da equipe: configurações',
 		default: 'Configurações'
 	},
-	'nav.funcionamento': {
+	'nav.grupoLoja': { group: g, label: 'Configurações: grupo loja', default: 'Loja' },
+	'nav.grupoPedidos': { group: g, label: 'Configurações: grupo pedidos', default: 'Pedidos' },
+	'nav.grupoSite': { group: g, label: 'Configurações: grupo site', default: 'Site' },
+	'nav.grupoPagamentos': {
 		group: g,
-		label: 'Menu da equipe: funcionamento',
-		default: 'Funcionamento'
+		label: 'Configurações: grupo pagamentos e integrações',
+		default: 'Pagamentos e integrações'
 	},
-	'nav.horarios': { group: g, label: 'Menu da equipe: horários', default: 'Horários' },
-	'nav.dadosEPix': { group: g, label: 'Menu da equipe: dados e pix', default: 'Dados e Pix' },
+	'nav.dadosDaLoja': { group: g, label: 'Menu da equipe: dados da loja', default: 'Dados da loja' },
+	'nav.horariosEPausa': {
+		group: g,
+		label: 'Menu da equipe: horários e pausa',
+		default: 'Horários e pausa'
+	},
+	'nav.tiposDePedido': {
+		group: g,
+		label: 'Menu da equipe: tipos de pedido',
+		default: 'Tipos de pedido'
+	},
+	'nav.pagamentos': { group: g, label: 'Menu da equipe: pagamentos', default: 'Pagamentos' },
+	'nav.ifood': { group: g, label: 'Menu da equipe: iFood', default: 'iFood' },
 	'nav.notaFiscal': { group: g, label: 'Menu da equipe: nota fiscal', default: 'Nota fiscal' },
 	'nav.aparencia': { group: g, label: 'Menu da equipe: aparência', default: 'Aparência' },
 	'nav.paginaInicial': {
@@ -59,7 +73,6 @@ export const STAFF_LABEL_TEXTS = {
 		default: 'Textos do site'
 	},
 	'nav.entrega': { group: g, label: 'Menu da equipe: entrega', default: 'Entrega' },
-	'nav.integracoes': { group: g, label: 'Menu da equipe: integrações', default: 'Integrações' },
 	'nav.configuracaoInicial': {
 		group: g,
 		label: 'Menu da equipe: configuração inicial',

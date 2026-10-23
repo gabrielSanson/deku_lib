@@ -328,13 +328,13 @@
 				</div>
 				{#if isAdmin}
 					{#if data.settings.acceptingOrders}
-						<form method="POST" action="/staff/settings/store?/toggle">
+						<form method="POST" action="/staff/settings/hours?/toggle">
 							<input type="hidden" name="open" value="0" />
 							<input type="hidden" name="pauseReason" value={t('dash.closedByTeam')} />
 							<button class="btn-danger w-full">{t('dash.closeStore')}</button>
 						</form>
 					{:else}
-						<form method="POST" action="/staff/settings/store?/toggle">
+						<form method="POST" action="/staff/settings/hours?/toggle">
 							<input type="hidden" name="open" value="1" />
 							<button class="btn-success w-full">{t('dash.openStore')}</button>
 						</form>

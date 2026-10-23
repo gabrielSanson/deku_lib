@@ -29,7 +29,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-3 alert-error" role="alert">
 		<span><strong>{t('alerts.ifood')}</strong> {alert}</span>
 		{#if isAdmin}
-			<a class="btn-secondary min-h-9" href="/staff/settings/integrations">{t('alerts.details')}</a>
+			<a class="btn-secondary min-h-9" href="/staff/settings/ifood">{t('alerts.details')}</a>
 		{/if}
 	</div>
 {/each}
