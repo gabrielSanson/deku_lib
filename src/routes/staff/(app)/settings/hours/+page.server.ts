@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getSchedule, listClosures, saveSchedule } from '#lib/server/settings/hours.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -21,7 +20,7 @@ export const actions: Actions = {
 		try {
 			payload = JSON.parse(formString(d, 'payload'));
 		} catch {
-			return fail(400, { error: 'Dados inválidos.' });
+			return failText(400, 'err.data.invalid');
 		}
 		return attempt(async () => {
 			await saveSchedule(payload as Parameters<typeof saveSchedule>[0], staffActor(staff));

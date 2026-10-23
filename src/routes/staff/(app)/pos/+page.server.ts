@@ -1,7 +1,7 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { cartLineInput, priceCart } from '#lib/domain/pricing.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { COUNTER, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { unavailableReason } from '#lib/domain/catalog.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
@@ -71,7 +71,7 @@ export const actions: Actions = {
 			/* falls through to the validation error */
 		}
 		const parsed = quoteForm.safeParse(raw);
-		if (!parsed.success) return fail(400, { error: 'Pedido inválido.' });
+		if (!parsed.success) return failText(400, 'err.order.invalid');
 		return attempt(async () => {
 			const sql = db();
 			const catalog = await getCatalogForPricing();
@@ -106,19 +106,17 @@ export const actions: Actions = {
 		try {
 			parsed = orderForm.parse(JSON.parse(formString(data, 'payload')));
 		} catch {
-			return fail(400, { error: 'Pedido inválido. Revise o carrinho.' });
+			return failText(400, 'err.order.invalidCart');
 		}
 		// Fallback while the iFood API is not live: staff re-key the iFood order here.
 		// iFood has already collected the payment, so the order is recorded as paid by the channel.
 		const ifood = parsed.fulfillmentType === 'ifood';
-		if (ifood && !parsed.ifoodCode)
-			return fail(400, { error: 'Informe o código do pedido no iFood.' });
+		if (ifood && !parsed.ifoodCode) return failText(400, 'err.order.ifoodCode');
 		// An optional phone links the sale to the customer, for coupons, stamps and the ready alert.
 		const phone = !ifood && parsed.phone ? normalizeBrPhone(parsed.phone) : null;
-		if (!ifood && parsed.phone && !phone)
-			return fail(400, { error: 'Telefone inválido. Use DDD + número.' });
+		if (!ifood && parsed.phone && !phone) return failText(400, 'err.order.phone');
 		const name = parsed.customerLabel || null;
-		if (phone && !name) return fail(400, { error: 'Informe o nome do cliente.' });
+		if (phone && !name) return failText(400, 'err.order.customerName');
 		const result = await attempt(() =>
 			createOrder({
 				channel: ifood ? 'ifood' : 'counter',

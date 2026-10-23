@@ -66,8 +66,7 @@ export async function saveStoreInfo(
 	actor: Actor
 ) {
 	const displayName = input.displayName.trim();
-	if (!displayName || displayName.length > 80)
-		throw new DomainError('Informe o nome da loja (até 80 letras).');
+	if (!displayName || displayName.length > 80) throw new DomainError('err.settings.shopName');
 	await db().begin(async (tx) => {
 		await tx`update store_profile set display_name = ${displayName}, phone = ${input.phone.trim() || null},
 			address_line = ${input.addressLine.trim() || null}, city = ${input.city.trim() || null},
@@ -86,17 +85,12 @@ export async function savePixSettings(
 	let merchantCity: string | null = null;
 	if (input.key.trim() || input.enabled) {
 		const k = normalizePixKey(input.key);
-		if (!k)
-			throw new DomainError(
-				'Chave Pix inválida. Use CPF, CNPJ, celular com DDD, e-mail ou chave aleatória.',
-				'pix_key'
-			);
+		if (!k) throw new DomainError('err.settings.pixKey', { code: 'pix_key' });
 		key = k.key;
 		merchantName = pixText(input.merchantName, 25);
 		merchantCity = pixText(input.merchantCity, 15);
-		if (!merchantName)
-			throw new DomainError('Informe o nome do recebedor (como aparece no banco).');
-		if (!merchantCity) throw new DomainError('Informe a cidade do recebedor.');
+		if (!merchantName) throw new DomainError('err.settings.pixName');
+		if (!merchantCity) throw new DomainError('err.settings.pixCity');
 	}
 	await db().begin(async (tx) => {
 		await tx`update store_profile set pix_enabled = ${input.enabled}, pix_key = ${key},

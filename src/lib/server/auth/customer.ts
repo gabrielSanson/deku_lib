@@ -90,7 +90,8 @@ export async function updateCustomerProfile(
 	if (input.phoneE164) {
 		const [row] = await db()`select 1 from customers
 			where phone_e164 = ${input.phoneE164} and id <> ${customerId} and deleted_at is null`;
-		if (row) throw new DomainError('Este celular já está em outra conta.', 'phone_taken', 409);
+		if (row)
+			throw new DomainError('account.error.phoneTaken', { code: 'phone_taken', status: 409 });
 	}
 	await db()`update customers set name = ${input.name}, phone_e164 = ${input.phoneE164}
 		where id = ${customerId}`;

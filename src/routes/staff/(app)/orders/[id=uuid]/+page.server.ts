@@ -1,6 +1,6 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { ORDER_STATUSES, type OrderStatus } from '#lib/domain/order-status.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	cancelFiscal,
@@ -35,7 +35,7 @@ export const actions: Actions = {
 		const staff = requireStaff(event);
 		const data = await event.request.formData();
 		const to = formString(data, 'to') as OrderStatus;
-		if (!ORDER_STATUSES.includes(to)) return fail(400, { error: 'Status inválido.' });
+		if (!ORDER_STATUSES.includes(to)) return failText(400, 'err.order.badStatus');
 		const version = Number(formString(data, 'version'));
 		return attempt(async () => {
 			await transitionOrder({

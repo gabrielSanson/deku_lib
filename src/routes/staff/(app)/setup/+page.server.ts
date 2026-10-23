@@ -2,7 +2,7 @@
 // and (optionally) iFood. Every step can be revisited later; nothing here is
 // required for the counter to work.
 import { fail, redirect } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
 import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
@@ -86,10 +86,10 @@ export const actions: Actions = {
 	},
 	sampleMenu: async (event) => {
 		const staff = requireStaff(event, [...OWNER]);
-		if (!(await menuIsEmpty())) return fail(400, { error: 'O cardápio já tem produtos.' });
+		if (!(await menuIsEmpty())) return failText(400, 'err.menu.notEmpty');
 		await importCatalog(fixtureCatalog, staffActor(staff));
 		return {
-			ok: 'Cardápio de exemplo carregado. Troque nomes, preços e fotos em Editar cardápio.'
+			ok: await shopText('ok.sampleMenuSetup')
 		};
 	},
 	fulfillment: async (event) => {
@@ -97,8 +97,7 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const pickup = d.get('pickupEnabled') === 'on';
 		const delivery = d.get('deliveryEnabled') === 'on';
-		if (!pickup && !delivery)
-			return fail(400, { error: 'Escolha retirada, entrega ou as duas para os pedidos do site.' });
+		if (!pickup && !delivery) return failText(400, 'err.settings.channels');
 		const r = await attempt(async () => {
 			await updateStoreSettings(
 				{ pickupEnabled: pickup, deliveryEnabled: delivery },
@@ -160,10 +159,7 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const enable = formString(d, 'enabled') === '1';
 		if (enable && d.get('understood') !== 'on') {
-			return fail(400, {
-				error:
-					'Marque que você entendeu que a integração ainda não foi homologada pelo iFood antes de ligar.'
-			});
+			return failText(400, 'err.ifood.acknowledge');
 		}
 		return attempt(async () => {
 			await setIfoodEnabled(enable, staffActor(staff));
@@ -193,7 +189,7 @@ async function runCheck() {
 	const s = await ifoodSettings({ fresh: true });
 	if (s.problem) return fail(400, { error: s.problem });
 	if (!s.clientId || !s.clientSecret || !s.merchantId) {
-		return fail(400, { error: 'Preencha Client ID, Client Secret e Merchant ID e salve.' });
+		return failText(400, 'err.ifood.credentials');
 	}
 	const result = await checkIfoodConnection({
 		base: s.apiBase,
@@ -203,7 +199,7 @@ async function runCheck() {
 	});
 	if (result.ok) {
 		await recordIfoodCheck(true, null);
-		return { ok: 'Conexão com o iFood funcionando.' };
+		return { ok: await shopText('ok.ifoodConnected') };
 	}
 	const { problem } = result;
 	await recordIfoodCheck(false, `${problem.title} ${problem.action}`);

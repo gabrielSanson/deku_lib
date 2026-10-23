@@ -1,5 +1,5 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { formString } from '#lib/server/actions.ts';
+import { redirect } from '@sveltejs/kit';
+import { failText, formString } from '#lib/server/actions.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 function safeNext(next: string | null) {
@@ -16,11 +16,10 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const email = formString(data, 'email');
 		const password = formString(data, 'password');
-		if (!locals.supabase)
-			return fail(503, { email, error: 'Login indisponível: Supabase não configurado.' });
-		if (!email || !password) return fail(400, { email, error: 'Informe e-mail e senha.' });
+		if (!locals.supabase) return failText(503, 'err.login.unavailable', { data: { email } });
+		if (!email || !password) return failText(400, 'err.login.missing', { data: { email } });
 		const { error } = await locals.supabase.auth.signInWithPassword({ email, password });
-		if (error) return fail(400, { email, error: 'E-mail ou senha incorretos.' });
+		if (error) return failText(400, 'err.login.wrong', { data: { email } });
 		redirect(303, safeNext(url.searchParams.get('next')));
 	}
 };

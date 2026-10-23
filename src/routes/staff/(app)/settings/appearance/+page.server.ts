@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
 import {
@@ -33,14 +32,14 @@ export const actions: Actions = {
 		) as Record<ColorKey, string | null>;
 		return attempt(async () => {
 			await saveColors(colors, staffActor(staff));
-			return { ok: 'Cores salvas.' };
+			return { ok: await shopText('ok.colorsSaved') };
 		});
 	},
 	resetColors: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		return attempt(async () => {
 			await saveColors({ primary: null, dark: null, background: null }, staffActor(staff));
-			return { ok: 'Cores padrão de volta.' };
+			return { ok: await shopText('ok.colorsReset') };
 		});
 	},
 	upload: async (event) => {
@@ -48,21 +47,20 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const key = imageKey(d);
 		const file = d.get('file');
-		if (!key) return fail(400, { error: 'Imagem desconhecida.' });
-		if (!(file instanceof File) || file.size === 0)
-			return fail(400, { error: 'Escolha uma imagem.' });
+		if (!key) return failText(400, 'err.image.unknown');
+		if (!(file instanceof File) || file.size === 0) return failText(400, 'err.image.pick');
 		return attempt(async () => {
 			await setBrandImage(key, await uploadMenuImage(file), staffActor(staff));
-			return { ok: 'Imagem trocada.' };
+			return { ok: await shopText('ok.imageChanged') };
 		});
 	},
 	resetImage: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const key = imageKey(await event.request.formData());
-		if (!key) return fail(400, { error: 'Imagem desconhecida.' });
+		if (!key) return failText(400, 'err.image.unknown');
 		return attempt(async () => {
 			await setBrandImage(key, null, staffActor(staff));
-			return { ok: 'Imagem padrão de volta.' };
+			return { ok: await shopText('ok.imageReset') };
 		});
 	}
 };

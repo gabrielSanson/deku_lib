@@ -74,16 +74,17 @@ export async function saveTexts(input: Record<string, string>, actor: Actor) {
 			continue;
 		}
 		if (value.length > MAX_LENGTH)
-			throw new DomainError(`"${def.label}" pode ter no máximo ${MAX_LENGTH} letras.`, key);
+			throw new DomainError('err.texts.tooLong', {
+				code: key,
+				vars: { label: def.label, max: MAX_LENGTH }
+			});
 		const need = placeholders(def.default);
 		const have = placeholders(value);
 		if (need.join() !== have.join()) {
-			throw new DomainError(
-				need.length
-					? `"${def.label}" precisa ter ${need.map((n) => `{${n}}`).join(', ')}, e nada além disso entre chaves.`
-					: `"${def.label}" não pode ter palavras entre chaves.`,
-				key
-			);
+			throw new DomainError(need.length ? 'err.texts.placeholders' : 'err.texts.noPlaceholders', {
+				code: key,
+				vars: { label: def.label, names: need.map((n) => `{${n}}`).join(', ') }
+			});
 		}
 		set.push([key, value]);
 	}

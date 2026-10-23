@@ -65,20 +65,17 @@ export async function saveFiscalSettings(
 ) {
 	const cnpj = input.cnpj.replace(/\D/g, '');
 	const ncm = input.defaultNcm.replace(/\D/g, '');
-	if (cnpj && cnpj.length !== 14) throw new DomainError('O CNPJ tem 14 números.');
-	if (ncm && ncm.length !== 8) throw new DomainError('O NCM tem 8 números.');
-	if (!/^\d{4}$/.test(input.defaultCfop)) throw new DomainError('O CFOP tem 4 números.');
-	if (!/^\d{3}$/.test(input.defaultCsosn)) throw new DomainError('O CSOSN/CST tem 3 números.');
+	if (cnpj && cnpj.length !== 14) throw new DomainError('err.fiscal.cnpj');
+	if (ncm && ncm.length !== 8) throw new DomainError('err.fiscal.ncm');
+	if (!/^\d{4}$/.test(input.defaultCfop)) throw new DomainError('err.fiscal.cfop');
+	if (!/^\d{3}$/.test(input.defaultCsosn)) throw new DomainError('err.fiscal.csosn');
 	return db().begin(async (tx) => {
 		const current = await settingsRow(tx);
 		const tokenEnc = input.token?.trim()
 			? encryptSecret(input.token.trim())
 			: current.api_token_enc;
 		if (input.enabled && (!cnpj || !tokenEnc || !ncm))
-			throw new DomainError(
-				'Para ligar a nota fiscal, preencha CNPJ, token do provedor e NCM padrão.',
-				'incomplete'
-			);
+			throw new DomainError('err.fiscal.incomplete', { code: 'incomplete' });
 		await tx`
 			update fiscal_settings set enabled = ${input.enabled}, environment = ${input.environment},
 				cnpj = ${cnpj || null}, api_token_enc = ${tokenEnc}, default_ncm = ${ncm || null},
@@ -250,16 +247,17 @@ export async function retryFiscal(orderId: string, actor: Actor) {
 }
 
 export async function cancelFiscal(orderId: string, reason: string, actor: Actor) {
-	if (reason.trim().length < 15)
-		throw new DomainError('A justificativa do cancelamento precisa ter pelo menos 15 letras.');
+	if (reason.trim().length < 15) throw new DomainError('err.fiscal.justification');
 	const s = await settingsRow();
-	if (!s.api_token_enc) throw new DomainError('Nota fiscal não configurada.');
+	if (!s.api_token_enc) throw new DomainError('err.fiscal.off');
 	const [doc] = await db()<{ id: string; ref: string }[]>`
 		select id, ref from fiscal_documents where order_id = ${orderId} and status = 'authorized'`;
-	if (!doc) throw new DomainError('Este pedido não tem nota autorizada.');
+	if (!doc) throw new DomainError('err.fiscal.noDocument');
 	const r = await cancelNfce(s.environment, decryptSecret(s.api_token_enc), doc.ref, reason.trim());
 	if (r.status !== 'cancelled')
-		throw new DomainError(r.message ?? 'A SEFAZ não aceitou o cancelamento.', 'fiscal_cancel');
+		throw new DomainError(r.message ? { text: r.message } : 'err.fiscal.cancelRefused', {
+			code: 'fiscal_cancel'
+		});
 	await saveResult(doc.id, r);
 	await audit(db(), actor, 'fiscal.cancelled', 'order', orderId, { reason });
 }

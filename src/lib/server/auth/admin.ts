@@ -47,12 +47,12 @@ export async function updateStaff(
 		const [target] = await tx<
 			{ role: StaffRole }[]
 		>`select role from staff_users where id = ${id} for update`;
-		if (!target) throw new DomainError('Pessoa não encontrada.', 'not_found', 404);
+		if (!target) throw new DomainError('err.staff.notFound', { code: 'not_found', status: 404 });
 		if (!canManage(actor)) {
-			throw new DomainError('Seu perfil não pode alterar esta conta.', 'forbidden', 403);
+			throw new DomainError('err.staff.cannotEdit', { code: 'forbidden', status: 403 });
 		}
 		if (id === actor.id && (patch.active === false || (patch.role && patch.role !== actor.role))) {
-			throw new DomainError('Você não pode desativar ou rebaixar a própria conta.', 'self');
+			throw new DomainError('err.staff.self', { code: 'self' });
 		}
 		if (
 			target.role === 'admin' &&
@@ -61,8 +61,7 @@ export async function updateStaff(
 			const [{ n }] = await tx<
 				{ n: number }[]
 			>`select count(*)::int n from staff_users where role = 'admin' and active`;
-			if (n <= 1)
-				throw new DomainError('A loja precisa de pelo menos um admin ativo.', 'last_owner');
+			if (n <= 1) throw new DomainError('err.staff.lastOwner', { code: 'last_owner' });
 		}
 		await tx`
 			update staff_users set
@@ -80,17 +79,12 @@ export async function createStaffAccount(
 	input: { email: string; displayName: string; role: StaffRole; password: string }
 ) {
 	if (!canManage(actor))
-		throw new DomainError('Seu perfil não pode criar esta conta.', 'forbidden', 403);
-	if (input.password.length < 10)
-		throw new DomainError('A senha precisa ter pelo menos 10 caracteres.');
+		throw new DomainError('err.staff.cannotCreate', { code: 'forbidden', status: 403 });
+	if (input.password.length < 10) throw new DomainError('err.staff.password');
 	const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 	const url = supabaseServerUrl();
 	if (!key || !url) {
-		throw new DomainError(
-			'Crie a conta no painel do Supabase e depois atribua o perfil aqui.',
-			'no_admin_key',
-			501
-		);
+		throw new DomainError('err.staff.noAdminKey', { code: 'no_admin_key', status: 501 });
 	}
 	const admin = createClient(url, key, {
 		auth: { persistSession: false, autoRefreshToken: false }
@@ -101,7 +95,7 @@ export async function createStaffAccount(
 		email_confirm: true
 	});
 	if (error || !data.user)
-		throw new DomainError(`Não foi possível criar a conta: ${error?.message ?? ''}`);
+		throw new DomainError('err.staff.createFailed', { vars: { detail: error?.message ?? '' } });
 	await db().begin(async (tx) => {
 		await tx`insert into staff_users (id, display_name, role) values (${data.user.id}, ${input.displayName}, ${input.role})`;
 		await audit(tx, { type: 'staff', id: actor.id }, 'staff.created', 'staff_user', data.user.id, {
@@ -119,13 +113,12 @@ export async function linkExistingUser(
 	role: StaffRole
 ) {
 	if (!canManage(actor))
-		throw new DomainError('Seu perfil não pode criar esta conta.', 'forbidden', 403);
+		throw new DomainError('err.staff.cannotCreate', { code: 'forbidden', status: 403 });
 	await db().begin(async (tx) => {
 		const [u] = await tx<
 			{ id: string }[]
 		>`select id from auth.users where lower(email) = lower(${email})`;
-		if (!u)
-			throw new DomainError('Nenhum usuário com este e-mail no Supabase Auth.', 'not_found', 404);
+		if (!u) throw new DomainError('err.staff.noAuthUser', { code: 'not_found', status: 404 });
 		await tx`
 			insert into staff_users (id, display_name, role) values (${u.id}, ${displayName}, ${role})
 			on conflict (id) do update set role = excluded.role, display_name = excluded.display_name, active = true`;

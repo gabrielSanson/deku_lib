@@ -63,12 +63,13 @@ export async function saveCategory(input: z.input<typeof categoryInput>, actor: 
 					active = ${c.active}, updated_at = now(),
 					image_path = ${c.imagePath === undefined ? tx`image_path` : c.imagePath}
 					where id = ${c.id}`;
-				if (!r.count) throw new DomainError('Categoria não encontrada.', 'not_found', 404);
+				if (!r.count)
+					throw new DomainError('err.menu.categoryNotFound', { code: 'not_found', status: 404 });
 			} else {
 				const r = await tx`insert into menu_categories (id, name, position, active, image_path)
 					values (${catId}, ${c.name}, ${c.position}, ${c.active}, ${c.imagePath ?? null})
 					on conflict (id) do nothing`;
-				if (!r.count) throw new DomainError('Já existe uma categoria com esse nome.', 'duplicate');
+				if (!r.count) throw new DomainError('err.menu.categoryTaken', { code: 'duplicate' });
 			}
 			await changed(
 				tx,
@@ -88,8 +89,7 @@ export async function deleteCategory(catId: string, actor: Actor) {
 		await db().begin(async (tx) => {
 			const [{ n }] = await tx<{ n: number }[]>`
 				select count(*)::int n from menu_products where category_id = ${catId}`;
-			if (n)
-				throw new DomainError('Mova ou apague os produtos desta categoria primeiro.', 'not_empty');
+			if (n) throw new DomainError('err.menu.categoryNotEmpty', { code: 'not_empty' });
 			await tx`delete from menu_categories where id = ${catId}`;
 			await changed(tx, actor, 'menu.category_deleted', 'menu_category', catId);
 		})
@@ -147,7 +147,7 @@ export async function saveProduct(input: ProductInput, actor: Actor, existingSku
 	return done(
 		await db().begin(async (tx) => {
 			const [cat] = await tx`select 1 from menu_categories where id = ${p.categoryId}`;
-			if (!cat) throw new DomainError('Escolha uma categoria.', 'category');
+			if (!cat) throw new DomainError('err.menu.pickCategory', { code: 'category' });
 			let productSku = existingSku;
 			const slug = await uniqueSlug(tx, p.slug ?? slugify(p.name, 80), existingSku ?? null);
 			if (existingSku) {
@@ -159,12 +159,13 @@ export async function saveProduct(input: ProductInput, actor: Actor, existingSku
 						image_path = ${p.imagePath === undefined ? tx`image_path` : p.imagePath},
 						updated_at = now()
 					where sku = ${existingSku}`;
-				if (!r.count) throw new DomainError('Produto não encontrado.', 'not_found', 404);
+				if (!r.count)
+					throw new DomainError('err.menu.productNotFound', { code: 'not_found', status: 404 });
 			} else {
 				productSku = p.sku ?? (await uniqueSku(tx, skuFrom(p.name)));
 				const [clash] = await tx`select 1 from menu_products where sku = ${productSku}
 					union all select 1 from menu_modifier_options where sku = ${productSku}`;
-				if (clash) throw new DomainError('Já existe um item com esse código (SKU).', 'duplicate');
+				if (clash) throw new DomainError('err.menu.skuTaken', { code: 'duplicate' });
 				await tx`
 					insert into menu_products (sku, slug, name, description, category_id, price_cents, prep_station,
 						channels, allergens, position, active, image_path)
@@ -182,7 +183,7 @@ export async function saveProduct(input: ProductInput, actor: Actor, existingSku
 					await tx`insert into menu_product_ingredients (product_sku, ingredient_id, removable, position)
 					select ${productSku!}, id, ${ing.removable}, ${i} from menu_ingredients where id = ${ing.id}
 					on conflict do nothing`;
-				if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'ingredient');
+				if (!r.count) throw new DomainError('err.menu.ingredientNotFound', { code: 'ingredient' });
 			}
 			await changed(
 				tx,
@@ -240,12 +241,13 @@ export async function saveGroup(input: z.input<typeof groupInput>, actor: Actor)
 				const r = await tx`update menu_modifier_groups set name = ${g.name},
 					min_selections = ${g.minSelections}, max_selections = ${g.maxSelections}, updated_at = now()
 					where id = ${g.id}`;
-				if (!r.count) throw new DomainError('Grupo não encontrado.', 'not_found', 404);
+				if (!r.count)
+					throw new DomainError('err.menu.groupNotFound', { code: 'not_found', status: 404 });
 			} else {
 				const r =
 					await tx`insert into menu_modifier_groups (id, name, min_selections, max_selections)
 					values (${groupId}, ${g.name}, ${g.minSelections}, ${g.maxSelections}) on conflict (id) do nothing`;
-				if (!r.count) throw new DomainError('Já existe um grupo com esse nome.', 'duplicate');
+				if (!r.count) throw new DomainError('err.menu.groupTaken', { code: 'duplicate' });
 			}
 			const prefix = skuFrom(g.name).split('-')[0]?.slice(0, 6) || 'OPC';
 			const kept: string[] = [];
@@ -256,7 +258,10 @@ export async function saveGroup(input: z.input<typeof groupInput>, actor: Actor)
 					select group_id from menu_modifier_options where sku = ${optionSku}`;
 				const [productClash] = await tx`select 1 from menu_products where sku = ${optionSku}`;
 				if (productClash || (owner && owner.group_id !== groupId)) {
-					throw new DomainError(`O código ${optionSku} já é usado por outro item.`, 'duplicate');
+					throw new DomainError('err.menu.optionSkuTaken', {
+						code: 'duplicate',
+						vars: { sku: optionSku }
+					});
 				}
 				await tx`
 					insert into menu_modifier_options (sku, group_id, name, price_cents, max_quantity, position, active)
@@ -308,12 +313,13 @@ export async function saveIngredient(input: z.input<typeof ingredientInput>, act
 			if (g.id) {
 				const r = await tx`update menu_ingredients set name = ${g.name}, allergens = ${g.allergens},
 					position = ${g.position}, updated_by = ${actor.id}, updated_at = now() where id = ${g.id}`;
-				if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'not_found', 404);
+				if (!r.count)
+					throw new DomainError('err.menu.ingredientNotFound', { code: 'not_found', status: 404 });
 			} else {
 				const r = await tx`insert into menu_ingredients (id, name, allergens, position, updated_by)
 					values (${ingredientId}, ${g.name}, ${g.allergens}, ${g.position}, ${actor.id})
 					on conflict (id) do nothing`;
-				if (!r.count) throw new DomainError('Já existe um ingrediente com esse nome.', 'duplicate');
+				if (!r.count) throw new DomainError('err.menu.ingredientTaken', { code: 'duplicate' });
 			}
 			await changed(
 				tx,
@@ -347,7 +353,8 @@ export async function setIngredientAvailable(
 		const r = await tx`update menu_ingredients set available = ${available},
 			unavailable_at = ${available ? null : tx`now()`}, updated_by = ${actor.id}, updated_at = now()
 			where id = ${ingredientId}`;
-		if (!r.count) throw new DomainError('Ingrediente não encontrado.', 'not_found', 404);
+		if (!r.count)
+			throw new DomainError('err.menu.ingredientNotFound', { code: 'not_found', status: 404 });
 		await audit(
 			tx,
 			actor,

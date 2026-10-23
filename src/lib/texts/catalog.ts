@@ -7,6 +7,7 @@ import { STAFF_CAMPAIGN_TEXTS } from './staff-campaigns';
 import { STAFF_MENU_TEXTS } from './staff-menu';
 import { STAFF_SETTINGS_TEXTS } from './staff-settings';
 import { STAFF_LABEL_TEXTS } from './staff-labels';
+import { SERVER_ERROR_TEXTS } from './server-errors';
 
 export interface TextDef {
 	group: TextGroup;
@@ -29,7 +30,8 @@ export const TEXT_GROUPS = {
 	staffSettings: 'Equipe: configurações',
 	staffMenu: 'Equipe: cardápio',
 	staffCampaigns: 'Equipe: campanhas',
-	staffLabels: 'Equipe: menu, tipos e situações'
+	staffLabels: 'Equipe: menu, tipos e situações',
+	staffErrors: 'Equipe: avisos e erros'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
@@ -2522,7 +2524,8 @@ export const TEXT_MODULES = [
 	STAFF_SETTINGS_TEXTS,
 	STAFF_MENU_TEXTS,
 	STAFF_CAMPAIGN_TEXTS,
-	STAFF_LABEL_TEXTS
+	STAFF_LABEL_TEXTS,
+	SERVER_ERROR_TEXTS
 ] as const;
 
 export const TEXTS = {
@@ -2531,7 +2534,8 @@ export const TEXTS = {
 	...STAFF_SETTINGS_TEXTS,
 	...STAFF_MENU_TEXTS,
 	...STAFF_CAMPAIGN_TEXTS,
-	...STAFF_LABEL_TEXTS
+	...STAFF_LABEL_TEXTS,
+	...SERVER_ERROR_TEXTS
 };
 
 export type TextKey = keyof typeof TEXTS;

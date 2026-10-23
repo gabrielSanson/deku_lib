@@ -114,32 +114,31 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		if (input.channel === 'web') {
 			if (!settings.acceptingOrders || !settings.webOrderingEnabled) {
 				throw new DomainError(
-					settings.pauseReason || 'A loja não está aceitando pedidos agora.',
-					'paused',
-					409
+					settings.pauseReason ? 'err.order.pausedReason' : 'err.order.paused',
+					{
+						code: 'paused',
+						status: 409,
+						vars: { reason: settings.pauseReason ?? '' }
+					}
 				);
 			}
 			if (!(await inHoursNow(tx))) {
-				throw new DomainError('A loja está fora do horário de funcionamento.', 'closed_hours', 409);
+				throw new DomainError('err.order.closedHours', { code: 'closed_hours', status: 409 });
 			}
 			if (input.fulfillmentType === 'delivery' && !settings.deliveryEnabled) {
-				throw new DomainError('Entrega indisponível no momento.', 'delivery_off', 409);
+				throw new DomainError('err.order.deliveryOff', { code: 'delivery_off', status: 409 });
 			}
 			if (input.fulfillmentType === 'pickup' && !settings.pickupEnabled) {
-				throw new DomainError('Retirada indisponível no momento.', 'pickup_off', 409);
+				throw new DomainError('err.order.pickupOff', { code: 'pickup_off', status: 409 });
 			}
 			if (input.fulfillmentType === 'dine_in' && !settings.dineInEnabled) {
-				throw new DomainError('Pedidos para comer no local estão desligados.', 'dine_in_off', 409);
+				throw new DomainError('err.order.dineInOff', { code: 'dine_in_off', status: 409 });
 			}
 			if (settings.maxOpenOrders) {
 				const [{ open }] = await tx<{ open: number }[]>`
 					select count(*)::int as open from orders where status in ('new','confirmed','preparing')`;
 				if (open >= settings.maxOpenOrders) {
-					throw new DomainError(
-						'Cozinha lotada. Tente novamente em alguns minutos.',
-						'capacity',
-						409
-					);
+					throw new DomainError('err.order.capacity', { code: 'capacity', status: 409 });
 				}
 			}
 		}
@@ -159,10 +158,10 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				: 0;
 		if (input.fulfillmentType === 'delivery' && input.channel === 'web') {
 			if (!input.deliveryRule || !input.address) {
-				throw new DomainError('Endereço fora da área de entrega.', 'no_zone');
+				throw new DomainError('err.order.noZone', { code: 'no_zone' });
 			}
 			if (cart.subtotalCents < input.deliveryRule.minOrderCents) {
-				throw new DomainError('Pedido abaixo do mínimo para entrega neste endereço.', 'min_order');
+				throw new DomainError('err.order.minOrder', { code: 'min_order' });
 			}
 		}
 		const now = new Date();
@@ -198,7 +197,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 					offer.couponProblem,
 					offer.couponMinOrderCents
 				);
-				throw new DomainError(message, 'coupon', 409);
+				throw new DomainError({ text: message }, { code: 'coupon', status: 409 });
 			}
 		}
 		const applied = offer?.applied ?? null;
@@ -237,7 +236,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		if (inserted.length === 0) {
 			// A concurrent request with the same key committed first.
 			const again = await findByIdempotencyKey(tx, input.idempotencyKey);
-			if (!again) throw new DomainError('Pedido duplicado.', 'duplicate', 409);
+			if (!again) throw new DomainError('err.order.duplicate', { code: 'duplicate', status: 409 });
 			return again;
 		}
 		const order = inserted[0];
@@ -352,41 +351,33 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 		>`
 			select status, version, channel, payment_plan, payment_status from orders
 			where id = ${input.orderId} for update`;
-		if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
+		if (!order) throw new DomainError('err.order.notFound', { code: 'not_found', status: 404 });
 
 		// Repeated clicks and duplicate events land here: already done, nothing to do.
 		if (order.status === input.to) {
 			return { changed: false, from: order.status, to: input.to, version: order.version };
 		}
 		if (input.expectedVersion !== undefined && input.expectedVersion !== order.version) {
-			throw new DomainError(
-				'O pedido foi atualizado por outra pessoa. Recarregue e tente de novo.',
-				'stale',
-				409
-			);
+			throw new DomainError('err.order.stale', { code: 'stale', status: 409 });
 		}
 		if (!canTransition(order.status, input.to)) {
-			throw new DomainError(
-				`Não é possível mudar de ${order.status} para ${input.to}.`,
-				'bad_transition',
-				409
-			);
+			throw new DomainError('err.order.badTransition', {
+				code: 'bad_transition',
+				status: 409,
+				vars: { from: order.status, to: input.to }
+			});
 		}
 		if (input.actor.type === 'staff') {
 			if (!input.actor.role || !roleMayTransition(input.actor.role, order.status, input.to)) {
-				throw new DomainError('Seu perfil não permite esta ação.', 'forbidden', 403);
+				throw new DomainError('err.order.forbidden', { code: 'forbidden', status: 403 });
 			}
 		}
 		if (input.to === 'confirmed' && !mayConfirm(order.payment_plan, order.payment_status)) {
-			throw new DomainError(
-				'Receba o pagamento antes de enviar o pedido para a cozinha.',
-				'unpaid',
-				409
-			);
+			throw new DomainError('err.order.unpaid', { code: 'unpaid', status: 409 });
 		}
 		const reason = input.reason?.trim() || null;
 		if (requiresReason(input.to) && !reason) {
-			throw new DomainError('Informe o motivo.', 'reason_required');
+			throw new DomainError('err.order.reason', { code: 'reason_required' });
 		}
 
 		const column = STATUS_TIMESTAMP[input.to];
@@ -450,9 +441,9 @@ export async function callOrder(orderId: string, actor: OrderActor) {
 	return db().begin(async (tx) => {
 		const [o] = await tx<{ status: OrderStatus }[]>`
 			select status from orders where id = ${orderId} for update`;
-		if (!o) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
+		if (!o) throw new DomainError('err.order.notFound', { code: 'not_found', status: 404 });
 		if (!mayCall(o.status)) {
-			throw new DomainError('Só pedidos prontos podem ser chamados.', 'not_ready', 409);
+			throw new DomainError('err.order.notReady', { code: 'not_ready', status: 409 });
 		}
 		const [row] = await tx<{ called_at: Date; call_count: number }[]>`
 			update orders set called_at = now(), call_count = call_count + 1, version = version + 1

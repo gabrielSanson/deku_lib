@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { campaignResults, setCampaignStatus } from '#lib/server/campaigns/service.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -49,7 +48,7 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const status = formString(d, 'status');
 		if (status !== 'active' && status !== 'paused' && status !== 'ended')
-			return fail(400, { error: 'Ação inválida.' });
+			return failText(400, 'err.action.invalid');
 		return attempt(async () => {
 			await setCampaignStatus(formString(d, 'id'), status, staffActor(staff));
 			return { ok: true };

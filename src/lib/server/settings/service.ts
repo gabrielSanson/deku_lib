@@ -57,7 +57,7 @@ export async function updateStoreSettings(
 	return db().begin(async (tx) => {
 		const current = await getStoreSettings(tx);
 		if (expectedVersion !== undefined && expectedVersion !== current.version) {
-			throw new DomainError('As configurações mudaram. Recarregue a página.', 'stale', 409);
+			throw new DomainError('err.settings.stale', { code: 'stale', status: 409 });
 		}
 		const next = { ...current, ...patch };
 		if (!next.acceptingOrders && !next.pauseReason) next.pauseReason = 'Pausado pela equipe';
@@ -122,7 +122,8 @@ export async function saveDeliveryRule(
 				values (${rule.name}, ${rule.matchKind}, ${rule.matchValue}, ${rule.feeCents},
 					${rule.minOrderCents}, ${rule.enabled}, ${rule.priority}, ${actor.id})
 				returning id`;
-		if (!row) throw new DomainError('Regra não encontrada.', 'not_found', 404);
+		if (!row)
+			throw new DomainError('err.settings.ruleNotFound', { code: 'not_found', status: 404 });
 		await audit(
 			tx,
 			actor,

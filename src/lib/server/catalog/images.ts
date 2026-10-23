@@ -31,11 +31,7 @@ function storage() {
 	const url = supabaseServerUrl();
 	const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 	if (!url || !key) {
-		throw new DomainError(
-			'O envio de fotos precisa do Supabase Storage configurado no servidor.',
-			'no_storage',
-			501
-		);
+		throw new DomainError('err.image.noStorage', { code: 'no_storage', status: 501 });
 	}
 	return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
 		.storage;
@@ -43,11 +39,11 @@ function storage() {
 
 /** Checks the file really is a small JPEG/PNG/WebP, then stores it under its content hash. */
 export async function uploadMenuImage(file: File): Promise<string> {
-	if (file.size === 0) throw new DomainError('Escolha uma foto.');
-	if (file.size > MAX_BYTES) throw new DomainError('A foto pode ter no máximo 5 MB.');
+	if (file.size === 0) throw new DomainError('err.image.missing');
+	if (file.size > MAX_BYTES) throw new DomainError('err.image.tooBig');
 	const type = TYPES[file.type];
 	const bytes = new Uint8Array(await file.arrayBuffer());
-	if (!type || !type.magic(bytes)) throw new DomainError('Envie uma foto JPG, PNG ou WebP.');
+	if (!type || !type.magic(bytes)) throw new DomainError('err.image.type');
 	const path = `${createHash('sha256').update(bytes).digest('hex').slice(0, 32)}.${type.ext}`;
 	const s = storage();
 	const created = await s.createBucket(BUCKET, {
@@ -56,12 +52,12 @@ export async function uploadMenuImage(file: File): Promise<string> {
 		allowedMimeTypes: Object.keys(TYPES)
 	});
 	if (created.error && !/exist/i.test(created.error.message)) {
-		throw new DomainError(`Não foi possível preparar o armazenamento: ${created.error.message}`);
+		throw new DomainError('err.image.bucket', { vars: { detail: created.error.message } });
 	}
 	const { error } = await s
 		.from(BUCKET)
 		.upload(path, bytes, { contentType: file.type, upsert: true });
-	if (error) throw new DomainError(`Não foi possível enviar a foto: ${error.message}`);
+	if (error) throw new DomainError('err.image.upload', { vars: { detail: error.message } });
 	return path;
 }
 

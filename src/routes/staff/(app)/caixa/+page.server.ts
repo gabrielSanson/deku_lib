@@ -1,6 +1,6 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { COUNTER, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	closeSession,
@@ -31,7 +31,7 @@ export const actions: Actions = {
 		const staff = requireStaff(event, COUNTER);
 		const data = await event.request.formData();
 		const floatCents = money(data, 'float');
-		if (floatCents === null) return fail(400, { error: 'Informe o fundo de troco (pode ser 0).' });
+		if (floatCents === null) return failText(400, 'err.cash.floatZero');
 		const result = await attempt(() => openSession({ floatCents, actor: staffActor(staff) }));
 		if ('id' in result) return { opened: true };
 		return result;
@@ -40,10 +40,9 @@ export const actions: Actions = {
 		const staff = requireStaff(event, COUNTER);
 		const data = await event.request.formData();
 		const kind = formString(data, 'kind');
-		if (kind !== 'sangria' && kind !== 'suprimento')
-			return fail(400, { error: 'Movimento inválido.' });
+		if (kind !== 'sangria' && kind !== 'suprimento') return failText(400, 'err.cash.movement');
 		const amountCents = money(data, 'amount');
-		if (!amountCents) return fail(400, { error: 'Informe o valor.' });
+		if (!amountCents) return failText(400, 'err.amount.required');
 		const result = await attempt(() =>
 			recordDrawerMovement({
 				kind,
@@ -58,8 +57,7 @@ export const actions: Actions = {
 		const staff = requireStaff(event, COUNTER);
 		const data = await event.request.formData();
 		const countedCents = money(data, 'counted');
-		if (countedCents === null)
-			return fail(400, { error: 'Informe o valor contado na gaveta (pode ser 0).' });
+		if (countedCents === null) return failText(400, 'err.cash.countedZero');
 		const result = await attempt(() =>
 			closeSession({ countedCents, note: formString(data, 'note'), actor: staffActor(staff) })
 		);

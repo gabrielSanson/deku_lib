@@ -1,6 +1,6 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { deleteProduct, PREP_STATIONS, saveProduct } from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
@@ -94,7 +94,7 @@ export const actions: Actions = {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const price = parseBRL(formString(d, 'price'));
-		if (price === null) return fail(400, { error: 'Preço inválido. Use por exemplo 29,90.' });
+		if (price === null) return failText(400, 'err.menu.price');
 		const isNew = event.params.sku === 'novo';
 		const result = await attempt(async () => {
 			const photo = d.get('photo');

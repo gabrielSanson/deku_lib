@@ -66,11 +66,11 @@ export async function savePushSubscription(publicToken: string, sub: PushSubscri
 	const [order] = await sql<{ id: string; status: OrderStatus; fulfillment_type: Fulfillment }[]>`
 		select id, status, fulfillment_type from orders where public_token = ${publicToken}`;
 	if (!order || TERMINAL_STATUSES.includes(order.status) || !getsReadyAlert(order.fulfillment_type))
-		throw new DomainError('Este pedido não recebe aviso de pronto.', 'no_alert', 409);
+		throw new DomainError('err.push.noAlert', { code: 'no_alert', status: 409 });
 	const [{ n }] = await sql<{ n: number }[]>`
 		select count(*)::int as n from order_push_subscriptions where order_id = ${order.id}`;
 	if (n >= MAX_PER_ORDER)
-		throw new DomainError('Limite de avisos para este pedido.', 'too_many', 429);
+		throw new DomainError('err.push.tooMany', { code: 'too_many', status: 429 });
 	await sql`
 		insert into order_push_subscriptions (order_id, endpoint, p256dh, auth)
 		values (${order.id}, ${sub.endpoint}, ${sub.p256dh}, ${sub.auth})

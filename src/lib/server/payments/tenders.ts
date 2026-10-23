@@ -27,24 +27,24 @@ export interface ManualTenderInput {
 
 export async function recordManualTender(input: ManualTenderInput) {
 	if (input.actor.role === 'kitchen')
-		throw new DomainError('Seu perfil não permite receber pagamentos.', 'forbidden', 403);
-	if (input.amountCents <= 0) throw new DomainError('Valor inválido.');
+		throw new DomainError('err.tender.forbidden', { code: 'forbidden', status: 403 });
+	if (input.amountCents <= 0) throw new DomainError('err.tender.badAmount');
 	let change: number | null = null;
 	if (input.method === 'cash') {
 		const received = input.cashReceivedCents ?? input.amountCents;
-		if (received < input.amountCents) throw new DomainError('Valor recebido menor que o total.');
+		if (received < input.amountCents) throw new DomainError('err.tender.short');
 		change = received - input.amountCents;
 	} else if (!input.providerReference?.trim()) {
 		// Without a reference nobody can reconcile the payment later.
-		throw new DomainError('Informe o código/NSU da transação.', 'reference_required');
+		throw new DomainError('err.tender.nsu', { code: 'reference_required' });
 	}
 
 	return db().begin(async (tx) => {
 		const [order] = await tx<{ total_cents: number; status: string }[]>`
 			select total_cents, status from orders where id = ${input.orderId} for update`;
-		if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
+		if (!order) throw new DomainError('err.order.notFound', { code: 'not_found', status: 404 });
 		if (order.status === 'cancelled' || order.status === 'rejected') {
-			throw new DomainError('Pedido cancelado não recebe pagamento.');
+			throw new DomainError('err.tender.cancelled');
 		}
 		const [already] = await tx<{ change_cents: number | null }[]>`
 			select change_cents from tenders where idempotency_key = ${input.idempotencyKey}`;
@@ -53,7 +53,7 @@ export async function recordManualTender(input: ManualTenderInput) {
 			select coalesce(sum(amount_cents), 0)::int as paid from tenders
 			where order_id = ${input.orderId} and status = 'paid'`;
 		if (paid + input.amountCents > order.total_cents) {
-			throw new DomainError('O pagamento ultrapassa o total do pedido.');
+			throw new DomainError('err.tender.over');
 		}
 		const inserted = await tx<{ id: string }[]>`
 			insert into tenders (order_id, method, provider, provider_reference, amount_cents, cash_received_cents,
@@ -85,22 +85,18 @@ export async function refundTender(
 	actor: Actor & { role: StaffRole }
 ) {
 	if (actor.role !== 'admin') {
-		throw new DomainError('Somente um admin pode estornar.', 'forbidden', 403);
+		throw new DomainError('err.tender.refundAdmin', { code: 'forbidden', status: 403 });
 	}
-	if (!reason.trim()) throw new DomainError('Informe o motivo do estorno.', 'reason_required');
+	if (!reason.trim()) throw new DomainError('err.tender.refundReason', { code: 'reason_required' });
 	return db().begin(async (tx) => {
 		const [t] = await tx<
 			{ order_id: string; status: string; provider: string; method: string; amount_cents: number }[]
 		>`
 			select order_id, status, provider, method, amount_cents from tenders where id = ${tenderId} for update`;
-		if (!t) throw new DomainError('Pagamento não encontrado.', 'not_found', 404);
-		if (t.status !== 'paid')
-			throw new DomainError('Só pagamentos confirmados podem ser estornados.');
+		if (!t) throw new DomainError('err.tender.notFound', { code: 'not_found', status: 404 });
+		if (t.status !== 'paid') throw new DomainError('err.tender.refundConfirmed');
 		if (t.provider !== 'manual') {
-			throw new DomainError(
-				'Estorno online deve ser feito pelo provedor de pagamento.',
-				'provider_refund'
-			);
+			throw new DomainError('err.tender.providerRefund', { code: 'provider_refund' });
 		}
 		await tx`update tenders set status = 'refunded', refunded_at = now(), refund_reason = ${reason} where id = ${tenderId}`;
 		if (t.method === 'cash') await recordCashRefund(tx, tenderId, t.amount_cents, actor);

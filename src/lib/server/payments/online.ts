@@ -21,7 +21,7 @@ export async function startOnlinePayment(input: {
 }) {
 	const provider = paymentProvider();
 	if (!provider || !provider.methods.includes(input.method)) {
-		throw new DomainError('Pagamento online indisponível no momento.', 'no_provider', 503);
+		throw new DomainError('err.pay.onlineOff', { code: 'no_provider', status: 503 });
 	}
 	const sql = db();
 	const [existing] = await sql<
@@ -52,11 +52,11 @@ export async function startOnlinePayment(input: {
 		select o.order_number, o.total_cents, o.status, o.payment_status, o.customer_label, c.email, c.phone_e164
 		from orders o left join customers c on c.id = o.customer_id
 		where o.id = ${input.orderId}`;
-	if (!order) throw new DomainError('Pedido não encontrado.', 'not_found', 404);
+	if (!order) throw new DomainError('err.order.notFound', { code: 'not_found', status: 404 });
 	if (order.payment_status === 'paid')
-		throw new DomainError('Este pedido já está pago.', 'paid', 409);
+		throw new DomainError('err.pay.alreadyPaid', { code: 'paid', status: 409 });
 	if (order.status === 'cancelled' || order.status === 'rejected')
-		throw new DomainError('Pedido cancelado.', 'cancelled', 409);
+		throw new DomainError('err.pay.cancelled', { code: 'cancelled', status: 409 });
 
 	const checkout = await provider.createCheckout({
 		orderId: input.orderId,

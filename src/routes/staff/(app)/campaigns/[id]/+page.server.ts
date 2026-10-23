@@ -1,7 +1,7 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { fromShopInput } from '#lib/domain/time.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getCampaign, saveCampaign } from '#lib/server/campaigns/service.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
@@ -34,13 +34,13 @@ export const actions: Actions = {
 		try {
 			raw = JSON.parse(formString(form, 'payload'));
 		} catch {
-			return fail(400, { error: 'Dados inválidos.' });
+			return failText(400, 'err.data.invalid');
 		}
 		const d = dates.parse(raw);
 		const startsAt = d.startsAt ? fromShopInput(d.startsAt) : null;
 		const endsAt = d.endsAt ? fromShopInput(d.endsAt) : null;
 		if ((d.startsAt && !startsAt) || (d.endsAt && !endsAt))
-			return fail(400, { error: 'Data inválida.' });
+			return failText(400, 'err.date.invalid');
 		const photo = form.get('photo');
 		const result = await attempt(async () => {
 			const imagePath =

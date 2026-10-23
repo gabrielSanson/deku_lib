@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { listKitchenOrders } from '#lib/server/orders/queries.ts';
 import { callOrder, markKitchenSeen, transitionOrder } from '#lib/server/orders/service.ts';
@@ -31,7 +30,7 @@ export const actions: Actions = {
 		const data = await event.request.formData();
 		const to = formString(data, 'to');
 		if (to !== 'preparing' && to !== 'ready' && to !== 'completed')
-			return fail(400, { error: 'Ação inválida.' });
+			return failText(400, 'err.action.invalid');
 		return attempt(async () => {
 			await transitionOrder({ orderId: formString(data, 'orderId'), to, actor: staffActor(staff) });
 			return { ok: true };

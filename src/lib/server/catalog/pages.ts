@@ -98,9 +98,9 @@ export async function savePage(
 	input: { slug: string; title: string; text: string; published: boolean },
 	actor: Actor
 ) {
-	if (!/^[a-z0-9][a-z0-9-]{0,59}$/.test(input.slug)) throw new DomainError('Endereço inválido.');
+	if (!/^[a-z0-9][a-z0-9-]{0,59}$/.test(input.slug)) throw new DomainError('err.menu.pageSlug');
 	const title = input.title.trim();
-	if (!title) throw new DomainError('Informe o título.');
+	if (!title) throw new DomainError('err.menu.pageTitle');
 	const blocks = pageBlocks.parse(textToBlocks(input.text));
 	await db().begin(async (tx) => {
 		await tx`

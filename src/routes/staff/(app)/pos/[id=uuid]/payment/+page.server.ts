@@ -1,6 +1,6 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { COUNTER, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
@@ -26,10 +26,9 @@ export const actions: Actions = {
 		const staff = requireStaff(event, COUNTER);
 		const data = await event.request.formData();
 		const method = formString(data, 'method') as ManualMethod;
-		if (!MANUAL_METHODS.includes(method))
-			return fail(400, { error: 'Forma de pagamento inválida.' });
+		if (!MANUAL_METHODS.includes(method)) return failText(400, 'err.tender.method');
 		const amountCents = parseBRL(formString(data, 'amount'));
-		if (!amountCents) return fail(400, { error: 'Informe o valor.' });
+		if (!amountCents) return failText(400, 'err.amount.required');
 		const received = formString(data, 'received');
 		const result = await attempt(() =>
 			recordManualTender({

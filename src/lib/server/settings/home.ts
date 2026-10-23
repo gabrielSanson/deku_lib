@@ -73,11 +73,7 @@ export function parseHome(raw: unknown): HomeLayout {
 export function validateHome(input: Record<string, unknown>): HomeLayout {
 	for (const k of ['primaryHref', 'secondaryHref'] as const) {
 		const v = typeof input[k] === 'string' ? (input[k] as string).trim() : '';
-		if (v && !isLink(v))
-			throw new DomainError(
-				'Link inválido. Use um endereço do site, como /cardapio, ou https://…',
-				k
-			);
+		if (v && !isLink(v)) throw new DomainError('err.settings.link', { code: k });
 	}
 	return parseHome(input);
 }

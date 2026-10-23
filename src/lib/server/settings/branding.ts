@@ -88,7 +88,7 @@ export async function saveColors(input: Record<ColorKey, string | null>, actor: 
 	const next = {} as Record<ColorKey, string | null>;
 	for (const k of COLOR_KEYS) {
 		const v = input[k]?.trim().toLowerCase() || null;
-		if (v !== null && !HEX.test(v)) throw new DomainError('Cor inválida. Use o formato #RRGGBB.');
+		if (v !== null && !HEX.test(v)) throw new DomainError('err.settings.color');
 		next[k] = v === DEFAULT_COLORS[k] ? null : v;
 	}
 	// Refuse colours that would make storefront text unreadable, naming each pair.
@@ -101,7 +101,7 @@ export async function saveColors(input: Record<ColorKey, string | null>, actor: 
 		const list = fails
 			.map((f) => `${CONTRAST_LABELS_PT[f.id]} (${String(f.ratio).replace('.', ',')}:1)`)
 			.join('; ');
-		throw new DomainError(`Pouco contraste, mínimo 4,5:1: ${list}.`);
+		throw new DomainError('err.settings.contrast', { vars: { list } });
 	}
 	await db().begin(async (tx) => {
 		await tx`update store_branding set color_primary = ${next.primary}, color_dark = ${next.dark},
@@ -113,8 +113,8 @@ export async function saveColors(input: Record<ColorKey, string | null>, actor: 
 
 /** `path` is an uploaded image's Storage path; null goes back to the built-in image. */
 export async function setBrandImage(key: ImageKey, path: string | null, actor: Actor) {
-	if (!IMAGE_KEYS.includes(key)) throw new DomainError('Imagem desconhecida.');
-	if (path !== null && !menuImageUrl(path)) throw new DomainError('Imagem inválida.');
+	if (!IMAGE_KEYS.includes(key)) throw new DomainError('err.image.unknown');
+	if (path !== null && !menuImageUrl(path)) throw new DomainError('err.image.invalid');
 	await db().begin(async (tx) => {
 		await tx`update store_branding set ${tx({ [COLUMNS[key]]: path })},
 			updated_by = ${actor.id}, updated_at = now() where id = 1`;

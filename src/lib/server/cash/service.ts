@@ -73,7 +73,7 @@ function toSession(r: SessionRow): CashSession {
 
 function requireCounter(actor: StaffActor) {
 	if (actor.role === 'kitchen')
-		throw new DomainError('Seu perfil não permite mexer no caixa.', 'forbidden', 403);
+		throw new DomainError('err.cash.forbidden', { code: 'forbidden', status: 403 });
 }
 
 const SESSION_COLUMNS = (sql: Db) => sql`
@@ -164,16 +164,16 @@ export async function sessionBalance(
 export async function openSession(input: { floatCents: number; actor: StaffActor }) {
 	requireCounter(input.actor);
 	if (!Number.isInteger(input.floatCents) || input.floatCents < 0)
-		throw new DomainError('Informe o fundo de troco.');
+		throw new DomainError('err.cash.float');
 	return db().begin(async (tx) => {
 		const [open] = await tx`select id from cash_sessions where status = 'open' for update`;
-		if (open) throw new DomainError('O caixa já está aberto.', 'already_open', 409);
+		if (open) throw new DomainError('err.cash.alreadyOpen', { code: 'already_open', status: 409 });
 		const [row] = await tx<{ id: string }[]>`
 			insert into cash_sessions (opened_by, opening_float_cents)
 			values (${input.actor.id}, ${input.floatCents})
 			on conflict do nothing
 			returning id`;
-		if (!row) throw new DomainError('O caixa já está aberto.', 'already_open', 409);
+		if (!row) throw new DomainError('err.cash.alreadyOpen', { code: 'already_open', status: 409 });
 		await audit(tx, input.actor, 'cash.opened', 'cash_session', row.id, {
 			float_cents: input.floatCents
 		});
@@ -190,15 +190,14 @@ export async function recordDrawerMovement(input: {
 }) {
 	requireCounter(input.actor);
 	if (!Number.isInteger(input.amountCents) || input.amountCents <= 0)
-		throw new DomainError('Informe o valor.');
+		throw new DomainError('err.amount.required');
 	if (input.kind === 'sangria' && !input.reason.trim())
-		throw new DomainError('Informe o motivo da sangria.', 'reason_required');
+		throw new DomainError('err.cash.reason', { code: 'reason_required' });
 	return db().begin(async (tx) => {
 		const session = await lockOpenSession(tx);
 		if (input.kind === 'sangria') {
 			const balance = await sessionBalance(session, tx);
-			if (input.amountCents > balance.expectedCents)
-				throw new DomainError('A sangria é maior que o dinheiro na gaveta.');
+			if (input.amountCents > balance.expectedCents) throw new DomainError('err.cash.overdraw');
 		}
 		const signed = input.kind === 'sangria' ? -input.amountCents : input.amountCents;
 		await tx`
@@ -222,7 +221,7 @@ export async function closeSession(input: {
 }) {
 	requireCounter(input.actor);
 	if (!Number.isInteger(input.countedCents) || input.countedCents < 0)
-		throw new DomainError('Informe o valor contado na gaveta.');
+		throw new DomainError('err.cash.counted');
 	return db().begin(async (tx) => {
 		const session = await lockOpenSession(tx);
 		const balance = await sessionBalance(session, tx);
@@ -249,7 +248,7 @@ export async function closeSession(input: {
 async function lockOpenSession(tx: Tx) {
 	const [row] = await tx<{ id: string; opening_float_cents: number }[]>`
 		select id, opening_float_cents from cash_sessions where status = 'open' for update`;
-	if (!row) throw new DomainError('Abra o caixa antes de continuar.', 'cash_closed', 409);
+	if (!row) throw new DomainError('err.cash.closed', { code: 'cash_closed', status: 409 });
 	return { id: row.id, openingFloatCents: row.opening_float_cents };
 }
 
@@ -257,7 +256,7 @@ async function lockOpenSession(tx: Tx) {
 export async function recordCashSale(tx: Tx, tenderId: string, amountCents: number, actor: Actor) {
 	const [row] = await tx<{ id: string }[]>`
 		select id from cash_sessions where status = 'open' for share`;
-	if (!row) throw new DomainError('Abra o caixa antes de receber em dinheiro.', 'cash_closed', 409);
+	if (!row) throw new DomainError('err.cash.closedCash', { code: 'cash_closed', status: 409 });
 	await tx`
 		insert into cash_movements (session_id, kind, amount_cents, tender_id, recorded_by)
 		values (${row.id}, 'sale', ${amountCents}, ${tenderId}, ${actor.id})
@@ -273,7 +272,7 @@ export async function recordCashRefund(
 ) {
 	const [row] = await tx<{ id: string }[]>`
 		select id from cash_sessions where status = 'open' for share`;
-	if (!row) throw new DomainError('Abra o caixa para devolver o dinheiro.', 'cash_closed', 409);
+	if (!row) throw new DomainError('err.cash.closedRefund', { code: 'cash_closed', status: 409 });
 	await tx`
 		insert into cash_movements (session_id, kind, amount_cents, tender_id, recorded_by)
 		values (${row.id}, 'refund', ${-amountCents}, ${tenderId}, ${actor.id})

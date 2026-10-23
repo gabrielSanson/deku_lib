@@ -120,15 +120,11 @@ export async function saveIfoodCredentials(
 	const clientId = input.clientId.trim();
 	const merchantId = input.merchantId.trim();
 	const clientSecret = input.clientSecret.trim();
-	if (!clientId) throw new DomainError('Informe o Client ID.');
-	if (!merchantId) throw new DomainError('Informe o Merchant ID (código da loja no iFood).');
-	if (!/^[A-Za-z0-9-]{8,64}$/.test(merchantId))
-		throw new DomainError(
-			'O Merchant ID costuma ser um código como 1a2b3c4d-…; confira se copiou o valor certo.'
-		);
+	if (!clientId) throw new DomainError('err.ifood.clientId');
+	if (!merchantId) throw new DomainError('err.ifood.merchantId');
+	if (!/^[A-Za-z0-9-]{8,64}$/.test(merchantId)) throw new DomainError('err.ifood.merchantIdShape');
 	const current = await row();
-	if (!clientSecret && !current.client_secret_enc)
-		throw new DomainError('Informe o Client Secret.');
+	if (!clientSecret && !current.client_secret_enc) throw new DomainError('err.ifood.clientSecret');
 	const secretEnc = clientSecret ? encryptSecret(clientSecret) : current.client_secret_enc;
 	await db().begin(async (tx) => {
 		const credentialsChanged =
@@ -167,9 +163,8 @@ export async function setIfoodEnabled(enabled: boolean, actor: Actor) {
 	const r = await row();
 	if (enabled) {
 		if (!r.client_id || !r.client_secret_enc || !r.merchant_id)
-			throw new DomainError('Salve as credenciais do iFood antes de ligar.', 'not_configured');
-		if (!r.last_check_ok)
-			throw new DomainError('Teste a conexão com sucesso antes de ligar o iFood.', 'not_tested');
+			throw new DomainError('err.ifood.saveFirst', { code: 'not_configured' });
+		if (!r.last_check_ok) throw new DomainError('err.ifood.testFirst', { code: 'not_tested' });
 	}
 	await db().begin(async (tx) => {
 		await tx`update ifood_settings set enabled = ${enabled}, updated_by = ${actor.id}, updated_at = now() where id = 1`;

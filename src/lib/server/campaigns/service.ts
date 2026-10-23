@@ -22,7 +22,7 @@ import {
 import type { Catalog } from '#lib/domain/catalog.ts';
 import { formatBRL } from '#lib/domain/money.ts';
 import type { PricedCart } from '#lib/domain/pricing.ts';
-import { fill, type TextKey, type Texts } from '#lib/texts/catalog.ts';
+import { fill, isTextKey, type TextKey, type Texts } from '#lib/texts/catalog.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
@@ -262,13 +262,13 @@ export const campaignInput = z
 		tagline: z.string().trim().max(80).default(''),
 		/** undefined keeps the current photo, null removes it. */
 		imagePath: z.string().regex(IMAGE_PATH).nullable().optional(),
-		templateKey: z.string().refine(isTemplateKey, 'Tipo inválido'),
+		templateKey: z.string().refine(isTemplateKey, 'err.type.invalid'),
 		params: z.unknown(),
 		code: z
 			.string()
 			.transform(normalizeCode)
 			.refine((c) => c === '' || /^[A-Z0-9_-]{3,24}$/.test(c), {
-				message: 'O código deve ter de 3 a 24 letras, números, - ou _.'
+				message: 'err.campaign.code'
 			})
 			.default(''),
 		autoApply: z.boolean().default(false),
@@ -286,13 +286,13 @@ export const campaignInput = z
 			ctx.addIssue({
 				code: 'custom',
 				path: ['code'],
-				message: 'Informe o código do cupom ou marque "aplicar sozinho".'
+				message: 'err.campaign.codeOrAuto'
 			});
 		if (v.startsAt && v.endsAt && v.endsAt <= v.startsAt)
 			ctx.addIssue({
 				code: 'custom',
 				path: ['endsAt'],
-				message: 'O fim deve ser depois do início.'
+				message: 'err.campaign.dates'
 			});
 		if (isTemplateKey(v.templateKey)) {
 			const res = TEMPLATES[v.templateKey].params.safeParse(v.params);
@@ -300,7 +300,7 @@ export const campaignInput = z
 				ctx.addIssue({
 					code: 'custom',
 					path: ['params'],
-					message: 'Revise as regras da promoção.'
+					message: 'err.campaign.rules'
 				});
 		}
 	});
@@ -355,6 +355,11 @@ export async function getCampaign(id: string, sql: Db = db()): Promise<CampaignD
 	};
 }
 
+/** Zod messages in the campaign schema are catalog keys. */
+function issueKey(message: string): TextKey {
+	return isTextKey(message) ? message : 'err.data.invalid';
+}
+
 /** Creates or updates a campaign and its code. Returns the campaign id. */
 export async function saveCampaign(
 	raw: CampaignInput,
@@ -362,7 +367,8 @@ export async function saveCampaign(
 	id: string | null = null
 ): Promise<string> {
 	const parsed = campaignInput.safeParse(raw);
-	if (!parsed.success) throw new DomainError(parsed.error.issues[0].message, 'validation', 400);
+	if (!parsed.success)
+		throw new DomainError(issueKey(parsed.error.issues[0].message), { code: 'validation' });
 	const v = parsed.data;
 	const key = v.templateKey as TemplateKey;
 	const params = TEMPLATES[key].params.parse(v.params);
@@ -372,7 +378,7 @@ export async function saveCampaign(
 			const [taken] = await tx<{ campaign_id: string }[]>`
 				select campaign_id from coupons where code = ${v.code}`;
 			if (taken && taken.campaign_id !== id)
-				throw new DomainError('Já existe um cupom com esse código.', 'code_taken', 409);
+				throw new DomainError('err.campaign.codeTaken', { code: 'code_taken', status: 409 });
 		}
 		const status = v.activate ? 'active' : undefined;
 		let campaignId = id;
@@ -386,7 +392,7 @@ export async function saveCampaign(
 					max_uses_per_customer = ${v.maxUsesPerCustomer}, first_order_only = ${v.firstOrderOnly},
 					status = coalesce(${status ?? null}, status)
 				where id = ${id} returning id`;
-			if (!row) throw new DomainError('Campanha não encontrada.', 'not_found', 404);
+			if (!row) throw new DomainError('err.campaign.notFound', { code: 'not_found', status: 404 });
 		} else {
 			const [row] = await tx<{ id: string }[]>`
 				insert into campaigns (name, tagline, template_key, params, auto_apply, starts_at, ends_at, time_windows,
@@ -425,7 +431,7 @@ export async function setCampaignStatus(id: string, status: CampaignStatus, acto
 	await db().begin(async (tx) => {
 		const [row] = await tx<{ id: string }[]>`
 			update campaigns set status = ${status} where id = ${id} returning id`;
-		if (!row) throw new DomainError('Campanha não encontrada.', 'not_found', 404);
+		if (!row) throw new DomainError('err.campaign.notFound', { code: 'not_found', status: 404 });
 		await audit(tx, actor, 'campaign.status', 'campaign', id, { status });
 	});
 }

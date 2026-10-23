@@ -1,6 +1,5 @@
-import { fail } from '@sveltejs/kit';
 import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	deleteCategory,
@@ -81,24 +80,24 @@ export const actions: Actions = {
 				},
 				staffActor(staff)
 			);
-			return { ok: 'Categoria salva.' };
+			return { ok: await shopText('ok.categorySaved') };
 		});
 	},
 	deleteCategory: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const id = formString(await event.request.formData(), 'id');
-		if (!id) return fail(400, { error: 'Categoria inválida.' });
+		if (!id) return failText(400, 'err.menu.badCategory');
 		return attempt(async () => {
 			await deleteCategory(id, staffActor(staff));
-			return { ok: 'Categoria apagada.' };
+			return { ok: await shopText('ok.categoryDeleted') };
 		});
 	},
 	sample: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		return attempt(async () => {
-			if (!(await menuIsEmpty())) return fail(400, { error: 'O cardápio já tem produtos.' });
+			if (!(await menuIsEmpty())) return failText(400, 'err.menu.notEmpty');
 			await importCatalog(fixtureCatalog, staffActor(staff));
-			return { ok: 'Cardápio de exemplo carregado. Ajuste nomes, preços e fotos.' };
+			return { ok: await shopText('ok.sampleMenu') };
 		});
 	}
 };

@@ -1,7 +1,6 @@
-import { fail } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { matchDeliveryRule } from '#lib/domain/pricing.ts';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	deleteDeliveryRule,
@@ -25,13 +24,12 @@ export const actions: Actions = {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
 		const kind = formString(d, 'matchKind');
-		if (kind !== 'cep_prefix' && kind !== 'neighborhood')
-			return fail(400, { error: 'Tipo inválido.' });
+		if (kind !== 'cep_prefix' && kind !== 'neighborhood') return failText(400, 'err.type.invalid');
 		const fee = parseBRL(formString(d, 'fee'));
 		const min = parseBRL(formString(d, 'minOrder') || '0');
 		const value = formString(d, 'matchValue');
 		if (fee === null || min === null || !value || !formString(d, 'name')) {
-			return fail(400, { error: 'Preencha nome, área e taxa.' });
+			return failText(400, 'err.delivery.fields');
 		}
 		return attempt(async () => {
 			await saveDeliveryRule(

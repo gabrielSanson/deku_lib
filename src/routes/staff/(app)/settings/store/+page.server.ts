@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -17,9 +16,9 @@ export const actions: Actions = {
 		const maxRaw = formString(d, 'maxOpenOrders');
 		const max = maxRaw ? Number(maxRaw) : null;
 		if (!Number.isInteger(prep) || prep < 1 || prep > 240)
-			return fail(400, { error: 'Tempo de preparo inválido.' });
+			return failText(400, 'err.settings.prepTime');
 		if (max !== null && (!Number.isInteger(max) || max < 1))
-			return fail(400, { error: 'Capacidade inválida.' });
+			return failText(400, 'err.settings.capacity');
 		return attempt(async () => {
 			await updateStoreSettings(
 				{

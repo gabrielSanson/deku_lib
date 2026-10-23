@@ -1,5 +1,6 @@
 // Customer-facing texts and the shop's look, edited by the owner.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { attempt } from '#lib/server/actions.ts';
 import { closeDb, db } from '#lib/server/db.ts';
 import { DomainError } from '#lib/server/errors.ts';
 import {
@@ -66,6 +67,25 @@ describe('texts', () => {
 		);
 		await saveTexts({ 'home.hero.prepTime': 'Pronto em {minutes} minutinhos' }, owner);
 		expect((await getTexts())['home.hero.prepTime']).toBe('Pronto em {minutes} minutinhos');
+	});
+
+	it("shows the owner's wording for a refused form", async () => {
+		const refuse = () =>
+			attempt(async () => {
+				throw new DomainError('err.cash.overdraw');
+			});
+		expect(await refuse()).toMatchObject({
+			status: 400,
+			data: { error: 'A sangria é maior que o dinheiro na gaveta.', code: 'invalid' }
+		});
+		await saveTexts({ 'err.cash.overdraw': 'Não tem tanto dinheiro na gaveta.' }, owner);
+		expect(await refuse()).toMatchObject({
+			data: { error: 'Não tem tanto dinheiro na gaveta.' }
+		});
+		const priced = await attempt(async () => {
+			throw new DomainError('err.order.badTransition', { vars: { from: 'ready', to: 'new' } });
+		});
+		expect(priced).toMatchObject({ data: { error: 'Não é possível mudar de ready para new.' } });
 	});
 });
 

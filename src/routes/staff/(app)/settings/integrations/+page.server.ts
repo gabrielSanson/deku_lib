@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { config } from '#lib/server/config.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
@@ -29,19 +28,19 @@ export const actions: Actions = {
 	replay: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const id = formString(await event.request.formData(), 'id');
-		if (!id) return fail(400, { error: 'Evento inválido.' });
+		if (!id) return failText(400, 'err.integrations.event');
 		return attempt(async () => {
 			await replayChannelEvent(id, staffActor(staff));
-			return { ok: 'Evento reenviado para processamento.' };
+			return { ok: await shopText('ok.eventRetried') };
 		});
 	},
 	retry: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const id = formString(await event.request.formData(), 'id');
-		if (!id) return fail(400, { error: 'Envio inválido.' });
+		if (!id) return failText(400, 'err.integrations.delivery');
 		return attempt(async () => {
 			await retryOutbound(id, staffActor(staff));
-			return { ok: 'Nova tentativa agendada.' };
+			return { ok: await shopText('ok.deliveryRetried') };
 		});
 	}
 };

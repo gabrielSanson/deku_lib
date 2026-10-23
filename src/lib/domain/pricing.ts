@@ -1,6 +1,7 @@
 // Server-side cart pricing. The client sends SKUs, quantities and chosen
 // options; every price comes from the catalog, never from the client.
 import { z } from 'zod';
+import { fill, TEXTS, type TextKey } from '#lib/texts/catalog.ts';
 import { productBySku, REMOVE_GROUP, type Catalog, type Channel } from './catalog';
 
 export const cartLineInput = z.object({
@@ -50,12 +51,18 @@ export interface PricedCart {
 	subtotalCents: number;
 }
 
+/** A cart the shop cannot sell as sent. `key` names the message in the text catalog. */
 export class PricingError extends Error {
+	readonly vars: Record<string, string | number>;
+	readonly sku?: string;
+
 	constructor(
-		message: string,
-		public readonly sku?: string
+		readonly key: TextKey,
+		{ vars = {}, sku }: { vars?: Record<string, string | number>; sku?: string } = {}
 	) {
-		super(message);
+		super(fill(TEXTS[key].default, vars));
+		this.vars = vars;
+		this.sku = sku;
 	}
 }
 
@@ -72,17 +79,20 @@ export function priceCart(
 	rawLines: CartLineInput[],
 	ctx: PricingContext
 ): PricedCart {
-	if (rawLines.length === 0) throw new PricingError('O carrinho está vazio.');
-	if (rawLines.length > 60) throw new PricingError('Itens demais no pedido.');
+	if (rawLines.length === 0) throw new PricingError('err.cart.empty');
+	if (rawLines.length > 60) throw new PricingError('err.cart.tooMany');
 
 	const lines = rawLines.map((raw, index) => {
 		const input = cartLineInput.parse(raw);
 		const product = productBySku(catalog, input.sku);
 		if (!product || !product.channels.includes(ctx.channel)) {
-			throw new PricingError('Produto indisponível.', input.sku);
+			throw new PricingError('err.cart.unavailable', { sku: input.sku });
 		}
 		if (ctx.soldOut.has(product.sku)) {
-			throw new PricingError(`${product.name} está esgotado.`, product.sku);
+			throw new PricingError('err.cart.soldOut', {
+				vars: { name: product.name },
+				sku: product.sku
+			});
 		}
 
 		const modifiers: PricedModifier[] = [];
@@ -90,19 +100,31 @@ export function priceCart(
 			const picked = input.options.filter((o) => o.groupId === group.id);
 			const count = picked.reduce((n, o) => n + o.quantity, 0);
 			if (count < group.minSelections) {
-				throw new PricingError(`Escolha ${group.name} para ${product.name}.`, product.sku);
+				throw new PricingError('err.cart.pickOption', {
+					vars: { group: group.name, product: product.name },
+					sku: product.sku
+				});
 			}
 			if (count > group.maxSelections) {
-				throw new PricingError(`Opções demais em ${group.name}.`, product.sku);
+				throw new PricingError('err.cart.tooManyOptions', {
+					vars: { group: group.name },
+					sku: product.sku
+				});
 			}
 			for (const choice of picked) {
 				const option = group.options.find((o) => o.sku === choice.sku);
-				if (!option) throw new PricingError('Opção inválida.', product.sku);
+				if (!option) throw new PricingError('err.cart.badOption', { sku: product.sku });
 				if (ctx.soldOut.has(option.sku)) {
-					throw new PricingError(`${option.name} está esgotado.`, option.sku);
+					throw new PricingError('err.cart.soldOut', {
+						vars: { name: option.name },
+						sku: option.sku
+					});
 				}
 				if (choice.quantity > option.maxQuantity) {
-					throw new PricingError(`Quantidade inválida para ${option.name}.`, product.sku);
+					throw new PricingError('err.cart.badQuantity', {
+						vars: { name: option.name },
+						sku: product.sku
+					});
 				}
 				modifiers.push({
 					groupName: group.name,
@@ -118,7 +140,7 @@ export function priceCart(
 		);
 		for (const id of removed) {
 			const ingredient = product.ingredients.find((i) => i.id === id && i.removable);
-			if (!ingredient) throw new PricingError('Opção inválida.', product.sku);
+			if (!ingredient) throw new PricingError('err.cart.badOption', { sku: product.sku });
 			modifiers.push({
 				groupName: 'Retirar',
 				optionSku: null,
@@ -129,17 +151,17 @@ export function priceCart(
 		}
 		for (const ingredient of product.ingredients) {
 			if (!ctx.missingIngredients?.has(ingredient.id) || removed.has(ingredient.id)) continue;
-			throw new PricingError(
-				ingredient.removable
-					? `${ingredient.name} acabou. Retire do ${product.name} para continuar.`
-					: `${product.name} está esgotado.`,
-				product.sku
-			);
+			throw ingredient.removable
+				? new PricingError('err.cart.ingredientOut', {
+						vars: { ingredient: ingredient.name, product: product.name },
+						sku: product.sku
+					})
+				: new PricingError('err.cart.soldOut', { vars: { name: product.name }, sku: product.sku });
 		}
 		const unknownGroup = input.options.find(
 			(o) => o.groupId !== REMOVE_GROUP && !product.modifierGroups.some((g) => g.id === o.groupId)
 		);
-		if (unknownGroup) throw new PricingError('Opção inválida.', product.sku);
+		if (unknownGroup) throw new PricingError('err.cart.badOption', { sku: product.sku });
 
 		const modifiersUnitCents = modifiers.reduce((n, m) => n + m.unitPriceCents * m.quantity, 0);
 		const category = catalog.categories.find((c) => c.id === product.categoryId);

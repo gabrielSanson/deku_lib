@@ -8,11 +8,7 @@ import { DomainError } from './errors';
 function key() {
 	const secret = config().APP_SECRET;
 	if (!secret) {
-		throw new DomainError(
-			'O servidor não tem APP_SECRET configurado, então não pode guardar senhas. Rode deploy/setup.sh de novo ou defina APP_SECRET.',
-			'no_app_secret',
-			501
-		);
+		throw new DomainError('err.settings.appSecret', { code: 'no_app_secret', status: 501 });
 	}
 	return createHash('sha256').update(`deku-shop:${secret}`).digest();
 }
