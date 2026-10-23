@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
+	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
@@ -13,7 +12,6 @@
 	const t = useTexts();
 	let removing = $state<DeliveryRule | null>(null);
 	let removeOpen = $state(false);
-	let removeForm = $state<HTMLFormElement>();
 	const brl = (c: number) => formatBRL(c).replace(/[R$\s]/g, '');
 </script>
 
@@ -185,16 +183,13 @@
 		{/if}
 	</form>
 
-	<form method="POST" action="?/delete" use:enhance bind:this={removeForm} hidden>
-		<input type="hidden" name="id" value={removing?.id ?? ''} />
-	</form>
-	<ConfirmDialog
+	<ConfirmedPost
 		bind:open={removeOpen}
+		action="?/delete"
+		fields={{ id: removing?.id ?? '' }}
 		title={t('delivery.deleteConfirm', { name: removing?.name ?? '' })}
 		text={t('delivery.deleteText')}
 		confirmLabel={t('delivery.delete')}
 		cancelLabel={t('delivery.cancel')}
-		danger
-		onconfirm={() => removeForm?.requestSubmit()}
 	/>
 </div>

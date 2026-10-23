@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
-	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
+	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
@@ -29,7 +29,6 @@
 	let reference = $state('');
 	let busy = $state(false);
 	let cancelOpen = $state(false);
-	let cancelForm = $state<HTMLFormElement>();
 	let key = $state(crypto.randomUUID());
 
 	const changePreview = $derived.by(() => {
@@ -148,19 +147,18 @@
 			>
 		</form>
 
-		<form method="POST" action="?/cancel" use:enhance class="text-center" bind:this={cancelForm}>
+		<p class="text-center">
 			<button type="button" class="btn-ghost text-sm text-bad" onclick={() => (cancelOpen = true)}>
 				{t('posPay.cancel')}
 			</button>
-		</form>
-		<ConfirmDialog
+		</p>
+		<ConfirmedPost
 			bind:open={cancelOpen}
+			action="?/cancel"
 			title={t('posPay.cancelConfirm')}
 			text={t('posPay.cancelText')}
 			confirmLabel={t('posPay.cancel')}
 			cancelLabel={t('posPay.keep')}
-			danger
-			onconfirm={() => cancelForm?.requestSubmit()}
 		/>
 	{/if}
 </main>

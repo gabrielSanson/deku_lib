@@ -4,7 +4,7 @@
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
 	import StatusPill, { type PillTone } from '#lib/components/atoms/StatusPill.svelte';
-	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
+	import ConfirmedPost from '#lib/components/organisms/ConfirmedPost.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import RowMenu from '#lib/components/molecules/RowMenu.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
@@ -20,7 +20,6 @@
 	// Ending a campaign asks first, in a dialog.
 	let ending = $state<{ id: string; name: string } | null>(null);
 	let endOpen = $state(false);
-	let endForm = $state<HTMLFormElement>();
 
 	const STATUS: Record<CampaignStatus, { label: string; tone: PillTone }> = {
 		draft: { label: t('campaigns.status.draft'), tone: 'quiet' },
@@ -209,17 +208,13 @@
 		{t('campaigns.showing', { shown: data.campaigns.length, total: data.total })}
 	</p>
 
-	<form method="POST" action="?/status" use:enhance bind:this={endForm} hidden>
-		<input type="hidden" name="id" value={ending?.id ?? ''} />
-		<input type="hidden" name="status" value="ended" />
-	</form>
-	<ConfirmDialog
+	<ConfirmedPost
 		bind:open={endOpen}
+		action="?/status"
+		fields={{ id: ending?.id ?? '', status: 'ended' }}
 		title={t('campaigns.endTitle')}
 		text={t('campaigns.endText', { name: ending?.name ?? t('campaigns.endThis') })}
 		confirmLabel={t('campaigns.end')}
-		danger
-		onconfirm={() => endForm?.requestSubmit()}
 	/>
 
 	<details class="card p-4 text-sm text-muted">

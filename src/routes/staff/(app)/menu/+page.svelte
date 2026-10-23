@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { useTexts } from '#lib/texts/context.ts';
-	import { enhance } from '$app/forms';
+	import AvailabilityRow from '#lib/components/organisms/AvailabilityRow.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { unavailableReason } from '#lib/domain/catalog.ts';
@@ -48,9 +48,13 @@
 			<div class="divide-y divide-line card">
 				{#each data.catalog.products.filter((p) => p.categoryId === c.id) as p (p.sku)}
 					{@const o = out.get(p.sku)}
-					<form method="POST" action="?/toggle" use:enhance class="flex items-center gap-3 p-3">
-						<input type="hidden" name="sku" value={p.sku} />
-						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
+					<AvailabilityRow
+						action="?/toggle"
+						fields={{ sku: p.sku, soldOut: o ? '0' : '1' }}
+						off={!!o}
+						offLabel={t('avail.soldOutBack')}
+						onLabel={t('avail.markSoldOut')}
+					>
 						<div class="flex-1">
 							<p class="font-medium">{p.name} <span class="text-xs text-muted">{p.sku}</span></p>
 							{#if o}<p class="text-xs text-bad">
@@ -71,10 +75,7 @@
 								</p>{/if}
 						</div>
 						<Money cents={p.priceCents} class="text-sm text-muted" />
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
-							>{o ? t('avail.soldOutBack') : t('avail.markSoldOut')}</button
-						>
-					</form>
+					</AvailabilityRow>
 				{/each}
 			</div>
 		</section>
@@ -88,22 +89,20 @@
 			</p>
 			<div class="divide-y divide-line card">
 				{#each data.ingredients as ing (ing.id)}
-					<form method="POST" action="?/ingredient" use:enhance class="flex items-center gap-3 p-3">
-						<input type="hidden" name="id" value={ing.id} />
-						<input type="hidden" name="available" value={ing.available ? '0' : '1'} />
+					<AvailabilityRow
+						action="?/ingredient"
+						fields={{ id: ing.id, available: ing.available ? '0' : '1' }}
+						off={!ing.available}
+						offLabel={t('avail.missingBack')}
+						onLabel={t('avail.markMissing')}
+					>
 						<div class="flex-1">
 							<p class="font-medium">{ing.name}</p>
 							{#if !ing.available && ing.unavailableAt}<p class="text-xs text-bad">
 									{t('avail.missingSince', { time: formatTime(ing.unavailableAt) })}
 								</p>{/if}
 						</div>
-						<button
-							class="btn min-h-9 text-sm {ing.available
-								? 'btn-secondary'
-								: 'bg-bad-strong text-white'}"
-							>{ing.available ? t('avail.markMissing') : t('avail.missingBack')}</button
-						>
-					</form>
+					</AvailabilityRow>
 				{/each}
 			</div>
 		</section>
@@ -115,14 +114,15 @@
 			<div class="divide-y divide-line card">
 				{#each optionSkus as opt (opt.sku)}
 					{@const o = out.get(opt.sku)}
-					<form method="POST" action="?/toggle" use:enhance class="flex items-center gap-3 p-3">
-						<input type="hidden" name="sku" value={opt.sku} />
-						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
+					<AvailabilityRow
+						action="?/toggle"
+						fields={{ sku: opt.sku, soldOut: o ? '0' : '1' }}
+						off={!!o}
+						offLabel={t('avail.soldOutBack')}
+						onLabel={t('avail.markSoldOut')}
+					>
 						<p class="flex-1 font-medium">{opt.name}</p>
-						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
-							>{o ? t('avail.soldOutBack') : t('avail.markSoldOut')}</button
-						>
-					</form>
+					</AvailabilityRow>
 				{/each}
 			</div>
 		</section>
