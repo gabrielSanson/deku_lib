@@ -718,11 +718,6 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Página inicial: mostrar aberto/fechado',
 		default: 'Mostrar se a loja está aberta'
 	},
-	'homeEdit.modes': {
-		group: g,
-		label: 'Página inicial: mostrar modos',
-		default: 'Mostrar retirada, entrega e tempo de preparo'
-	},
 	'homeEdit.texts': { group: g, label: 'Página inicial: textos', default: 'Textos' },
 	'homeEdit.textsHint': {
 		group: g,

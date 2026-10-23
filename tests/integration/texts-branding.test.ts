@@ -59,14 +59,12 @@ describe('texts', () => {
 	});
 
 	it('keeps the {names} the app fills in', async () => {
-		await expect(
-			saveTexts({ 'home.hero.prepTime': 'Fica pronto rapidinho' }, owner)
-		).rejects.toThrow(DomainError);
+		await expect(saveTexts({ 'home.pageTitle': 'Cardápio' }, owner)).rejects.toThrow(DomainError);
 		await expect(saveTexts({ 'footer.tagline': 'Oi {name}' }, owner)).rejects.toThrow(
 			/não pode ter palavras entre chaves/
 		);
-		await saveTexts({ 'home.hero.prepTime': 'Pronto em {minutes} minutinhos' }, owner);
-		expect((await getTexts())['home.hero.prepTime']).toBe('Pronto em {minutes} minutinhos');
+		await saveTexts({ 'home.pageTitle': 'Cardápio de {name}' }, owner);
+		expect((await getTexts())['home.pageTitle']).toBe('Cardápio de {name}');
 	});
 
 	it("shows the owner's wording for a refused form", async () => {

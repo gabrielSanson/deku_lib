@@ -16,8 +16,6 @@ export interface HomeLayout {
 	heroCutout: boolean;
 	/** The open/closed pill above the title. */
 	showStatus: boolean;
-	/** The row with retirada, entrega and the preparation time. */
-	showModes: boolean;
 	primaryHref: string;
 	/** Null hides the second button. */
 	secondaryHref: string | null;
@@ -36,7 +34,6 @@ export const DEFAULT_HOME: HomeLayout = {
 	heroSize: 'tall',
 	heroCutout: false,
 	showStatus: true,
-	showModes: true,
 	primaryHref: '/cardapio',
 	secondaryHref: null,
 	showFeatured: true,
@@ -75,7 +72,6 @@ export function parseHome(raw: unknown): HomeLayout {
 		heroSize: r.heroSize === 'compact' ? 'compact' : 'tall',
 		heroCutout: bool('heroCutout'),
 		showStatus: bool('showStatus'),
-		showModes: bool('showModes'),
 		primaryHref: isLink(str('primaryHref')) ? str('primaryHref') : DEFAULT_HOME.primaryHref,
 		secondaryHref: isLink(str('secondaryHref')) ? str('secondaryHref') : null,
 		showFeatured: bool('showFeatured'),

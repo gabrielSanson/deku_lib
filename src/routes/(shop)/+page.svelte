@@ -1,6 +1,6 @@
 <script lang="ts">
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
-	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
+	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { heroMotion } from '#lib/client/hero-motion.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -37,19 +37,11 @@
 		const pool = pick ? pick.products : categories.flatMap((c) => c.products);
 		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, home.featuredCount);
 	});
-	// Signed out, the header's Início and Cardápio are the only things to press: the hero
-	// buttons, the featured row and the menu button are left out.
+	// Signed out, the hero buttons and the menu button are left out, and the featured row
+	// shows its burgers as photos that do not link anywhere.
 	const bare = $derived(!data.customer && !data.kiosk);
 	const external = (href: string) => (href.startsWith('https://') ? '_blank' : undefined);
 	const titleLines = $derived(t('home.hero.title').split('\n'));
-
-	const modes = $derived(
-		[
-			data.store.pickup && { icon: 'bag', label: t('home.mode.pickup') },
-			data.store.delivery && { icon: 'truck', label: t('home.mode.delivery') },
-			data.store.dineIn && { icon: 'store', label: t('home.mode.dineIn') }
-		].filter(Boolean) as { icon: IconName; label: string }[]
-	);
 </script>
 
 <svelte:head>
@@ -137,26 +129,6 @@
 						>
 					{/if}
 				</div>{/if}
-			{#if home.showModes}
-				<ul
-					data-hero-in
-					class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-200 {centered
-						? 'justify-center'
-						: ''}"
-				>
-					{#each modes as m (m.label)}
-						<li class="flex items-center gap-2">
-							<Icon name={m.icon} class="size-5 text-brand-500" />{m.label}
-						</li>
-					{/each}
-					{#if data.store.open}
-						<li class="flex items-center gap-2">
-							<Icon name="clock" class="size-5 text-brand-500" />
-							{t('home.hero.prepTime', { minutes: data.store.prepTimeMinutes })}
-						</li>
-					{/if}
-				</ul>
-			{/if}
 		</div>
 		{#if cutout}
 			<img
@@ -169,10 +141,34 @@
 	</div>
 </section>
 
+{#snippet card(p: (typeof quickMenu)[number], link: boolean)}
+	<span class="block aspect-[4/3] overflow-hidden">
+		<img
+			src={p.imageUrl}
+			alt=""
+			class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+			loading="lazy"
+		/>
+	</span>
+	<span class="flex flex-1 items-end justify-between gap-3 p-4">
+		<span class="min-w-0">
+			<span class="block truncate font-bold">{p.name}</span>
+			<span class="mt-0.5 line-clamp-1 text-sm text-stone-400">{p.description}</span>
+			<span class="mt-2 block font-black text-brand-500 tabular-nums"
+				><Money cents={p.priceCents} /></span
+			>
+		</span>
+		{#if link}<span
+				class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 text-black"
+				aria-hidden="true"><Icon name="arrow" /></span
+			>{/if}
+	</span>
+{/snippet}
+
 {#snippet featuredBlock()}
 	<!-- Quick menu: a row of four on desktop, two on tablets, a swipe row on phones
      (mockup 01 "Nossos destaques") -->
-	{#if !bare && home.showFeatured && quickMenu.length}
+	{#if home.showFeatured && quickMenu.length}
 		<section aria-labelledby="home-destaques">
 			<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 				<div>
@@ -183,41 +179,31 @@
 						{t('home.featured.title')}
 					</h2>
 				</div>
-				<a href="/cardapio" class="flex items-center gap-1 text-sm font-semibold hover:underline"
-					>{t('home.featured.seeAll')}<Icon name="arrow" class="size-4" /></a
-				>
+				{#if !bare}<a
+						href="/cardapio"
+						class="flex items-center gap-1 text-sm font-semibold hover:underline"
+						>{t('home.featured.seeAll')}<Icon name="arrow" class="size-4" /></a
+					>{/if}
 			</div>
 			<ul
 				class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
 			>
 				{#each quickMenu as p (p.sku)}
 					<li class="snap-start">
-						<a
-							href="/menu/{p.slug}"
-							class="group flex h-full flex-col overflow-hidden rounded-(--radius-card) bg-night text-white shadow-(--shadow-card)"
-						>
-							<span class="block aspect-[4/3] overflow-hidden">
-								<img
-									src={p.imageUrl}
-									alt=""
-									class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-									loading="lazy"
-								/>
-							</span>
-							<span class="flex flex-1 items-end justify-between gap-3 p-4">
-								<span class="min-w-0">
-									<span class="block truncate font-bold">{p.name}</span>
-									<span class="mt-0.5 line-clamp-1 text-sm text-stone-400">{p.description}</span>
-									<span class="mt-2 block font-black text-brand-500 tabular-nums"
-										><Money cents={p.priceCents} /></span
-									>
-								</span>
-								<span
-									class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 text-black"
-									aria-hidden="true"><Icon name="arrow" /></span
-								>
-							</span>
-						</a>
+						{#if bare}
+							<div
+								class="flex h-full flex-col overflow-hidden rounded-(--radius-card) bg-night text-white shadow-(--shadow-card)"
+							>
+								{@render card(p, false)}
+							</div>
+						{:else}
+							<a
+								href="/menu/{p.slug}"
+								class="group flex h-full flex-col overflow-hidden rounded-(--radius-card) bg-night text-white shadow-(--shadow-card)"
+							>
+								{@render card(p, true)}
+							</a>
+						{/if}
 					</li>
 				{/each}
 			</ul>
@@ -236,15 +222,13 @@
 	{/if}
 {/snippet}
 
-{#if !bare || categories.length === 0}
-	<div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
-		{#if categories.length === 0}
-			<EmptyState title={t('home.emptyMenu')} />
-		{/if}
+<div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
+	{#if categories.length === 0}
+		<EmptyState title={t('home.emptyMenu')} />
+	{/if}
 
-		<!-- The blocks under the hero, in the order chosen in Configurações → Página inicial. -->
-		{#each home.blockOrder as block (block)}
-			{#if block === 'featured'}{@render featuredBlock()}{:else}{@render menuButtonBlock()}{/if}
-		{/each}
-	</div>
-{/if}
+	<!-- The blocks under the hero, in the order chosen in Configurações → Página inicial. -->
+	{#each home.blockOrder as block (block)}
+		{#if block === 'featured'}{@render featuredBlock()}{:else}{@render menuButtonBlock()}{/if}
+	{/each}
+</div>

@@ -121,7 +121,6 @@
 					hint={t('homeEdit.cutoutHint')}
 				/>
 				<Checkbox name="showStatus" checked={home.showStatus} label={t('homeEdit.status')} />
-				<Checkbox name="showModes" checked={home.showModes} label={t('homeEdit.modes')} />
 			</div>
 
 			<h3 class="pt-2 font-semibold">{t('homeEdit.texts')}</h3>

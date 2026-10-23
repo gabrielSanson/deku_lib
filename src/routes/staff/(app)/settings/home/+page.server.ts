@@ -69,7 +69,6 @@ export const actions: Actions = {
 				heroSize: formString(d, 'heroSize'),
 				heroCutout: on('heroCutout'),
 				showStatus: on('showStatus'),
-				showModes: on('showModes'),
 				primaryHref: formString(d, 'primaryHref'),
 				secondaryHref: formString(d, 'secondaryHref'),
 				showFeatured: on('showFeatured'),

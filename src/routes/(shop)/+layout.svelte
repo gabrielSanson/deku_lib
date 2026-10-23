@@ -76,12 +76,7 @@
 	// The product page has its own bottom bar with the add button. The bar stays in place
 	// under the open drawer so focus can return to it. While it shows, it is the only way
 	// to the cart: the ··· menu drops its cart entry.
-	// A visitor who is not signed in sees only Início and Cardápio on the home page: no
-	// ··· menu, no cart bar, no footer links and no logo link (Início already goes home).
-	const bareHome = $derived(isHome && !data.customer && !data.kiosk);
-	const showCartBar = $derived(
-		cart.count > 0 && !onCheckout && !path.startsWith('/menu/') && !bareHome
-	);
+	const showCartBar = $derived(cart.count > 0 && !onCheckout && !path.startsWith('/menu/'));
 
 	const close = () => (cart.panelOpen = false);
 
@@ -137,8 +132,6 @@
 		{ href: '/cardapio', label: t('header.nav.menu'), active: isMenu }
 	]);
 	const accountHref = $derived(data.customer ? '/conta' : '/conta/entrar');
-	// Order tracking has its own slim header (mockup 10): back arrow, wordmark and mascot.
-	const slimHeader = $derived(path.startsWith('/orders/'));
 </script>
 
 <svelte:head>
@@ -149,99 +142,63 @@
 <div class="flex min-h-dvh flex-col">
 	<!-- Everything but the cart drawer; inert while the drawer is open. -->
 	<div class="contents" inert={cart.panelOpen}>
-		{#if slimHeader}
-			<header class="sticky top-0 z-30 bg-night text-white">
-				<div class="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4">
-					<a
-						href="/cardapio"
-						class="grid size-11 place-items-center rounded-full bg-night-2 hover:bg-night-line"
-						aria-label={t('errors.backToMenu')}
-					>
-						<Icon name="back" class="size-5" />
-					</a>
-					<a
-						href="/"
-						class="flex items-center gap-2"
-						aria-label={t('header.home', { name: data.shopName })}
-					>
-						<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
-					</a>
-					<img src={data.branding.images.logo} alt="" class="h-10 w-auto" />
-				</div>
-			</header>
-		{:else}
-			<header
-				class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]"
+		<header class="sticky top-0 z-30 bg-night text-white shadow-[0_1px_0_var(--color-night-line)]">
+			<div
+				class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
 			>
-				<div
-					class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
+				<a
+					href="/"
+					class="flex shrink-0 items-center gap-2.5"
+					aria-label={t('header.home', { name: data.shopName })}
 				>
-					{#snippet brand()}
-						<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
-						<img
-							src={data.branding.images.wordmark}
-							alt={data.shopName}
-							class="hidden h-7 w-auto sm:block"
-						/>
-					{/snippet}
-					{#if bareHome}
-						<span class="flex shrink-0 items-center gap-2.5">{@render brand()}</span>
-					{:else}
+					<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
+					<img
+						src={data.branding.images.wordmark}
+						alt={data.shopName}
+						class="hidden h-7 w-auto sm:block"
+					/>
+				</a>
+				<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
+					{#each nav as n (n.href)}
 						<a
-							href="/"
-							class="flex shrink-0 items-center gap-2.5"
-							aria-label={t('header.home', { name: data.shopName })}
+							href={n.href}
+							class="relative px-3 py-2 text-[15px] font-semibold transition-colors sm:px-4 {n.active
+								? 'text-white'
+								: 'text-stone-300 hover:text-white'}"
+							aria-current={n.active ? 'page' : undefined}
 						>
-							{@render brand()}
+							{n.label}
+							{#if n.active}<span
+									class="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 sm:inset-x-4"
+									aria-hidden="true"
+								></span>{/if}
 						</a>
-					{/if}
-					<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
-						{#each nav as n (n.href)}
-							<a
-								href={n.href}
-								class="relative px-3 py-2 text-[15px] font-semibold transition-colors sm:px-4 {n.active
-									? 'text-white'
-									: 'text-stone-300 hover:text-white'}"
-								aria-current={n.active ? 'page' : undefined}
-							>
-								{n.label}
-								{#if n.active}<span
-										class="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 sm:inset-x-4"
-										aria-hidden="true"
-									></span>{/if}
-							</a>
-						{/each}
-					</nav>
-					{#if data.kiosk}
-						<button
-							type="button"
-							class="shrink-0 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
-							onclick={restart}>{t('header.kiosk.restart')}</button
-						>
-					{/if}
-					{#if !bareHome}
-						<MoreMenu
-							{accountHref}
-							signedIn={!!data.customer}
-							cartInBar={showCartBar}
-							trackHref={orderToken ? `/orders/${orderToken}` : null}
-							kiosk={data.kiosk}
-						/>
-					{/if}
-				</div>
-				{#if !data.store.open}
-					<p
-						class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white"
-						role="status"
+					{/each}
+				</nav>
+				{#if data.kiosk}
+					<button
+						type="button"
+						class="shrink-0 rounded-full bg-night-2 px-4 py-2.5 text-[15px] font-semibold transition-colors hover:bg-night-line"
+						onclick={restart}>{t('header.kiosk.restart')}</button
 					>
-						{data.store.pauseReason ??
-							(data.store.outOfHours
-								? t('header.closedUntil', { when: data.store.outOfHours })
-								: t('header.closed'))}
-					</p>
 				{/if}
-			</header>
-		{/if}
+				<MoreMenu
+					{accountHref}
+					signedIn={!!data.customer}
+					cartInBar={showCartBar}
+					trackHref={orderToken ? `/orders/${orderToken}` : null}
+					kiosk={data.kiosk}
+				/>
+			</div>
+			{#if !data.store.open}
+				<p class="bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white" role="status">
+					{data.store.pauseReason ??
+						(data.store.outOfHours
+							? t('header.closedUntil', { when: data.store.outOfHours })
+							: t('header.closed'))}
+				</p>
+			{/if}
+		</header>
 
 		{#if isHome || isMenu}
 			<div class="flex-1">{@render children()}</div>
@@ -264,13 +221,11 @@
 							class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
 						></span>
 					</p>
-					{#if !bareHome}
-						<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-							{#each data.pages as p (p.slug)}
-								<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
-							{/each}
-						</nav>
-					{/if}
+					<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+						{#each data.pages as p (p.slug)}
+							<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
+						{/each}
+					</nav>
 				</div>
 			</footer>{/if}
 

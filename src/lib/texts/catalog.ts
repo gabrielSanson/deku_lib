@@ -327,9 +327,6 @@ const CORE_TEXTS = {
 		label: 'Destaque: selo loja fechada',
 		default: '{name} · fechado'
 	},
-	'home.mode.pickup': { group: 'home', label: 'Modo: retirada', default: 'Retirada' },
-	'home.mode.delivery': { group: 'home', label: 'Modo: entrega', default: 'Entrega' },
-	'home.mode.dineIn': { group: 'home', label: 'Modo: comer no local', default: 'Comer no local' },
 	'home.categoriesTitle': {
 		group: 'home',
 		label: 'Categorias: título',
@@ -362,11 +359,6 @@ const CORE_TEXTS = {
 		group: 'home',
 		label: 'Destaques: botão Ver cardápio',
 		default: 'Ver cardápio'
-	},
-	'home.hero.prepTime': {
-		group: 'home',
-		label: 'Destaque: tempo de preparo',
-		default: 'Pronto em cerca de {minutes} min'
 	},
 	'home.badge.both.title': {
 		group: 'home',

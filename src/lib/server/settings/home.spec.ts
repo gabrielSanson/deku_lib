@@ -13,7 +13,7 @@ describe('home layout', () => {
 		const home = parseHome({
 			heroAlign: 'center',
 			heroSize: 'compact',
-			showModes: false,
+			showStatus: false,
 			secondaryHref: '/p/sobre',
 			featuredCategoryId: '0b6f7a0e-1c2d-4e5f-8a9b-0c1d2e3f4a5b',
 			featuredCount: 8
@@ -21,7 +21,7 @@ describe('home layout', () => {
 		expect(home).toMatchObject({
 			heroAlign: 'center',
 			heroSize: 'compact',
-			showModes: false,
+			showStatus: false,
 			secondaryHref: '/p/sobre',
 			featuredCount: 8
 		});
