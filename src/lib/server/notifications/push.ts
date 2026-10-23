@@ -17,22 +17,36 @@ const MAX_PER_ORDER = 5;
 
 async function vapidKeys(sql: Db): Promise<{ publicKey: string; privateKey: string } | null> {
 	if (!canStoreSecrets()) return null;
-	const read = async () => {
+	type Keys = { publicKey: string; privateKey: string };
+	const read = async (): Promise<Keys | { stale: string } | null> => {
 		const [row] = await sql<{ public_key: string; private_key_enc: string }[]>`
 			select public_key, private_key_enc from web_push_keys where id = 1`;
-		return row
-			? { publicKey: row.public_key, privateKey: decryptSecret(row.private_key_enc) }
-			: null;
+		if (!row) return null;
+		try {
+			return { publicKey: row.public_key, privateKey: decryptSecret(row.private_key_enc) };
+		} catch {
+			// APP_SECRET changed since the keys were made, so the private key can't be read.
+			return { stale: row.private_key_enc };
+		}
 	};
 	const existing = await read();
-	if (existing) return existing;
+	if (existing && !('stale' in existing)) return existing;
 	const fresh = webpush.generateVAPIDKeys();
-	// Two first visits at once: the first insert wins and both read it back.
-	await sql`
-		insert into web_push_keys (id, public_key, private_key_enc)
-		values (1, ${fresh.publicKey}, ${encryptSecret(fresh.privateKey)})
-		on conflict (id) do nothing`;
-	return read();
+	if (existing) {
+		// Phones subscribed with the old key could not get alerts anyway; new orders use the new key.
+		await sql`
+			update web_push_keys
+			set public_key = ${fresh.publicKey}, private_key_enc = ${encryptSecret(fresh.privateKey)}
+			where id = 1 and private_key_enc = ${existing.stale}`;
+	} else {
+		// Two first visits at once: the first insert wins and both read it back.
+		await sql`
+			insert into web_push_keys (id, public_key, private_key_enc)
+			values (1, ${fresh.publicKey}, ${encryptSecret(fresh.privateKey)})
+			on conflict (id) do nothing`;
+	}
+	const keys = await read();
+	return keys && !('stale' in keys) ? keys : null;
 }
 
 /** The key the browser needs to subscribe, or null when push can't work on this server. */

@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -93,16 +94,11 @@
 		>
 			<input type="hidden" name="method" value={method} />
 			<input type="hidden" name="idempotencyKey" value={key} />
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('posPay.methods')}>
-				{#each methods as m (m.id)}
-					<button
-						type="button"
-						class="btn {method === m.id ? 'bg-ink text-canvas' : 'btn-secondary'}"
-						aria-pressed={method === m.id}
-						onclick={() => (method = m.id)}>{m.label}</button
-					>
-				{/each}
-			</div>
+			<ChoiceButtons
+				label={t('posPay.methods')}
+				choices={methods.map((m) => ({ value: m.id, label: m.label }))}
+				bind:value={method}
+			/>
 			<p class="text-sm text-muted">{current.hint}</p>
 			<div>
 				<label class="label" for="amount">{t('posPay.amount')}</label>

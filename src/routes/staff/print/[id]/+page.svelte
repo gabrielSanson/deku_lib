@@ -3,6 +3,7 @@
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
+	import { formatTime, SHOP_TZ } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
@@ -26,13 +27,7 @@
 			year: '2-digit',
 			hour: '2-digit',
 			minute: '2-digit',
-			timeZone: 'America/Sao_Paulo'
-		});
-	const hour = (d: Date | string) =>
-		new Date(d).toLocaleTimeString('pt-BR', {
-			hour: '2-digit',
-			minute: '2-digit',
-			timeZone: 'America/Sao_Paulo'
+			timeZone: SHOP_TZ
 		});
 
 	onMount(() => {
@@ -62,7 +57,7 @@
 		{#if o.channelDisplayId}<p class="center">iFood {o.channelDisplayId}</p>{/if}
 		<p class="center">
 			{stamp(o.createdAt)}{o.promisedAt
-				? ` · ${t('print.promised', { time: hour(o.promisedAt) })}`
+				? ` · ${t('print.promised', { time: formatTime(o.promisedAt) })}`
 				: ''}
 		</p>
 		{#if o.customerLabel}<p class="center strong">{o.customerLabel}</p>{/if}

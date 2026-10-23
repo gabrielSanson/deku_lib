@@ -1,26 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { formatDateTime as dateTime, formatTime as time } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
-
-	const time = (d: Date | string) =>
-		new Date(d).toLocaleTimeString('pt-BR', {
-			hour: '2-digit',
-			minute: '2-digit',
-			timeZone: 'America/Sao_Paulo'
-		});
-	const dateTime = (d: Date | string) =>
-		new Date(d).toLocaleString('pt-BR', {
-			day: '2-digit',
-			month: '2-digit',
-			hour: '2-digit',
-			minute: '2-digit',
-			timeZone: 'America/Sao_Paulo'
-		});
 
 	let kind = $state<'sangria' | 'suprimento'>('sangria');
 	let busy = $state(false);
@@ -123,20 +110,14 @@
 		<form method="POST" action="?/movement" class="space-y-3 card p-4" use:enhance={submit}>
 			<h2 class="font-semibold">{t('drawer.moveTitle')}</h2>
 			<input type="hidden" name="kind" value={kind} />
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('drawer.moveKind')}>
-				<button
-					type="button"
-					class="btn {kind === 'sangria' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-					aria-pressed={kind === 'sangria'}
-					onclick={() => (kind = 'sangria')}>{t('drawer.sangria')}</button
-				>
-				<button
-					type="button"
-					class="btn {kind === 'suprimento' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-					aria-pressed={kind === 'suprimento'}
-					onclick={() => (kind = 'suprimento')}>{t('drawer.suprimento')}</button
-				>
-			</div>
+			<ChoiceButtons
+				label={t('drawer.moveKind')}
+				choices={[
+					{ value: 'sangria', label: t('drawer.sangria') },
+					{ value: 'suprimento', label: t('drawer.suprimento') }
+				]}
+				bind:value={kind}
+			/>
 			<div>
 				<label class="label" for="amount">{t('drawer.amount')}</label>
 				<input id="amount" name="amount" class="field text-lg" inputmode="decimal" required />

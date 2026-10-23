@@ -2,6 +2,7 @@
 	import { untrack } from 'svelte';
 	import { applyAction, deserialize, enhance } from '$app/forms';
 	import { cart } from '#lib/client/cart.svelte.ts';
+	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import type { CheckoutPaymentMethod } from '#lib/domain/payment-rules.ts';
@@ -302,36 +303,30 @@
 			{#if step === 'receive'}
 				<fieldset class="space-y-2">
 					<legend class="mb-2 text-lg font-bold">{t('checkout.how')}</legend>
-					<div
+					<ChoiceButtons
+						label={t('checkout.how')}
 						class="grid gap-2 {data.store.dineIn && !data.kiosk ? 'grid-cols-3' : 'grid-cols-2'}"
-					>
-						{#if data.store.dineIn}
-							<button
-								type="button"
-								class="btn {fulfillmentType === 'dine_in' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-								aria-pressed={fulfillmentType === 'dine_in'}
-								onclick={() => (fulfillmentType = 'dine_in')}>{t('checkout.dineIn')}</button
-							>
-						{/if}
-						<button
-							type="button"
-							disabled={!data.store.pickup}
-							class="btn {fulfillmentType === 'pickup' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-							aria-pressed={fulfillmentType === 'pickup'}
-							onclick={() => (fulfillmentType = 'pickup')}>{t('checkout.pickup')}</button
-						>
-						{#if !data.kiosk}
-							<button
-								type="button"
-								disabled={!data.store.delivery}
-								class="btn {fulfillmentType === 'delivery'
-									? 'bg-ink text-canvas'
-									: 'btn-secondary'}"
-								aria-pressed={fulfillmentType === 'delivery'}
-								onclick={() => (fulfillmentType = 'delivery')}>{t('checkout.delivery')}</button
-							>
-						{/if}
-					</div>
+						choices={[
+							...(data.store.dineIn
+								? [{ value: 'dine_in' as const, label: t('checkout.dineIn') }]
+								: []),
+							{
+								value: 'pickup' as const,
+								label: t('checkout.pickup'),
+								disabled: !data.store.pickup
+							},
+							...(data.kiosk
+								? []
+								: [
+										{
+											value: 'delivery' as const,
+											label: t('checkout.delivery'),
+											disabled: !data.store.delivery
+										}
+									])
+						]}
+						bind:value={fulfillmentType}
+					/>
 					{#if fulfillmentType === 'dine_in'}
 						<div>
 							<label class="label" for="table">{t('checkout.table')}</label>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import ChoiceButtons from '#lib/components/molecules/ChoiceButtons.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import {
 		buyXGetYParams,
@@ -250,20 +251,14 @@
 		</div>
 		<fieldset class="sm:col-span-2">
 			<legend class="label">{t('campaign.type')}</legend>
-			<div class="grid grid-cols-2 gap-2">
-				<button
-					type="button"
-					class="btn {templateKey === 'code_discount' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-					aria-pressed={templateKey === 'code_discount'}
-					onclick={() => (templateKey = 'code_discount')}>{t('campaign.type.code')}</button
-				>
-				<button
-					type="button"
-					class="btn {templateKey === 'buy_x_get_y' ? 'bg-ink text-canvas' : 'btn-secondary'}"
-					aria-pressed={templateKey === 'buy_x_get_y'}
-					onclick={() => (templateKey = 'buy_x_get_y')}>{t('campaign.type.bxgy')}</button
-				>
-			</div>
+			<ChoiceButtons
+				label={t('campaign.type')}
+				choices={[
+					{ value: 'code_discount', label: t('campaign.type.code') },
+					{ value: 'buy_x_get_y', label: t('campaign.type.bxgy') }
+				]}
+				bind:value={templateKey}
+			/>
 		</fieldset>
 	</section>
 

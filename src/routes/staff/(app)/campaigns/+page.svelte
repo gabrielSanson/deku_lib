@@ -10,6 +10,7 @@
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
 	import StatTile from '#lib/components/molecules/StatTile.svelte';
 	import { TEMPLATES, isTemplateKey, type CampaignStatus } from '#lib/domain/campaigns.ts';
+	import { formatBRL } from '#lib/domain/money.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
@@ -30,8 +31,6 @@
 	const templateLabel = (k: string) => (isTemplateKey(k) ? TEMPLATES[k].label : k);
 	const ret = (revenue: number, discount: number) =>
 		discount > 0 ? `R$ ${(revenue / discount).toFixed(1).replace('.', ',')}` : '—';
-	const brl = (cents: number) =>
-		(cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 	const tabs = $derived(
 		[
@@ -80,7 +79,7 @@
 		<StatTile
 			icon="tag"
 			label={t('campaigns.tile.discount')}
-			value={brl(data.totals.discountCents)}
+			value={formatBRL(data.totals.discountCents)}
 			hint={periodLabel}
 		/>
 		<StatTile

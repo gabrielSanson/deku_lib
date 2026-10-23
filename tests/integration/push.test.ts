@@ -64,6 +64,18 @@ describe('ready alert', () => {
 		expect(b).toBe(a);
 	});
 
+	it('makes new keys when the saved ones were sealed with another APP_SECRET', async () => {
+		const before = await pushPublicKey();
+		const [saved] = await db()<{ private_key_enc: string }[]>`
+			select private_key_enc from web_push_keys where id = 1`;
+		await db()`update web_push_keys set private_key_enc = 'not-readable' where id = 1`;
+		const after = await pushPublicKey();
+		expect(after).toMatch(/^[A-Za-z0-9_-]{80,}$/);
+		expect(after).not.toBe(before);
+		// Put the readable keys back for the tests below.
+		await db()`update web_push_keys set public_key = ${before!}, private_key_enc = ${saved.private_key_enc} where id = 1`;
+	});
+
 	it('is queued when the order is ready and on every call', async () => {
 		const order = await paidOrder();
 		await savePushSubscription(order.token, fakeSubscription());
