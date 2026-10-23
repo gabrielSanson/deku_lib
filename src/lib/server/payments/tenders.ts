@@ -3,6 +3,7 @@
 // tenders: staff confirm them and we store the provider reference.
 import type { PaymentStatus, StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
+import { recordCashRefund, recordCashSale } from '../cash/service';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { confirmIfPaid } from '../orders/service';
@@ -62,6 +63,9 @@ export async function recordManualTender(input: ManualTenderInput) {
 			on conflict (idempotency_key) do nothing
 			returning id`;
 		if (inserted.length === 0) return { duplicate: true, changeCents: change };
+		// Cash kept from the sale goes into the open drawer; without one the sale is refused.
+		if (input.method === 'cash')
+			await recordCashSale(tx, inserted[0].id, input.amountCents, input.actor);
 		await audit(tx, input.actor, 'tender.recorded', 'order', input.orderId, {
 			method: input.method,
 			amount_cents: input.amountCents,
@@ -84,8 +88,10 @@ export async function refundTender(
 	}
 	if (!reason.trim()) throw new DomainError('Informe o motivo do estorno.', 'reason_required');
 	return db().begin(async (tx) => {
-		const [t] = await tx<{ order_id: string; status: string; provider: string }[]>`
-			select order_id, status, provider from tenders where id = ${tenderId} for update`;
+		const [t] = await tx<
+			{ order_id: string; status: string; provider: string; method: string; amount_cents: number }[]
+		>`
+			select order_id, status, provider, method, amount_cents from tenders where id = ${tenderId} for update`;
 		if (!t) throw new DomainError('Pagamento não encontrado.', 'not_found', 404);
 		if (t.status !== 'paid')
 			throw new DomainError('Só pagamentos confirmados podem ser estornados.');
@@ -96,6 +102,7 @@ export async function refundTender(
 			);
 		}
 		await tx`update tenders set status = 'refunded', refunded_at = now(), refund_reason = ${reason} where id = ${tenderId}`;
+		if (t.method === 'cash') await recordCashRefund(tx, tenderId, t.amount_cents, actor);
 		await audit(tx, actor, 'tender.refunded', 'order', t.order_id, { tender_id: tenderId, reason });
 		await refreshPaymentStatus(tx, t.order_id);
 	});

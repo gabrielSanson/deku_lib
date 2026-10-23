@@ -150,6 +150,9 @@
 				</div>
 			{/if}
 			<FormError message={form?.error} />
+			{#if form?.code === 'cash_closed'}
+				<a class="btn-secondary w-full" href="/staff/caixa">Abrir o caixa</a>
+			{/if}
 			<button class="btn-primary w-full text-lg" disabled={busy}
 				>{busy ? 'Registrando…' : 'Confirmar pagamento'}</button
 			>

@@ -16,3 +16,11 @@ export const classic = {
 	quantity: 1,
 	options: [{ groupId: 'ponto', sku: 'PONTO-AO' }]
 };
+
+/** Cash tenders need an open drawer; opens one unless a session is already open. */
+export async function ensureCashOpen(actor: Awaited<ReturnType<typeof makeStaff>>) {
+	const sql = db();
+	const [open] = await sql`select id from cash_sessions where status = 'open'`;
+	if (!open)
+		await sql`insert into cash_sessions (opened_by, opening_float_cents) values (${actor.id}, 0)`;
+}

@@ -19,8 +19,14 @@ describe('navFor', () => {
 		expect(navFor('admin')).toBe(NAV);
 	});
 
-	it('gives attendants only the counter, orders and kitchen', () => {
+	it('gives attendants only the counter, drawer, orders and kitchen', () => {
 		const hrefs = navFor('attendant').flatMap((g) => g.links.map((l) => l.href));
-		expect(hrefs.sort()).toEqual(['/kitchen', '/staff', '/staff/orders', '/staff/pos']);
+		expect(hrefs.sort()).toEqual([
+			'/kitchen',
+			'/staff',
+			'/staff/caixa',
+			'/staff/orders',
+			'/staff/pos'
+		]);
 	});
 });

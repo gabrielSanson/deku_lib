@@ -6,7 +6,7 @@ import { callOrder, createOrder, transitionOrder } from '#lib/server/orders/serv
 import { getOrderDetail, getPublicOrder, listKitchenOrders } from '#lib/server/orders/queries.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
 import { setSoldOut, updateStoreSettings } from '#lib/server/settings/service.ts';
-import { classic, makeStaff } from './helpers.ts';
+import { classic, ensureCashOpen, makeStaff } from './helpers.ts';
 
 let cashier: Awaited<ReturnType<typeof makeStaff>>;
 let kitchen: Awaited<ReturnType<typeof makeStaff>>;
@@ -16,6 +16,7 @@ beforeAll(async () => {
 	cashier = await makeStaff('admin');
 	kitchen = await makeStaff('kitchen');
 	manager = await makeStaff('admin');
+	await ensureCashOpen(cashier);
 });
 
 afterAll(async () => {

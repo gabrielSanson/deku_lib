@@ -22,9 +22,10 @@ export const NAV: NavGroup[] = [
 		links: [
 			{ href: '/staff', label: 'Início', icon: 'home' },
 			{ href: '/staff/pos', label: 'Caixa', icon: 'cart' },
+			{ href: '/staff/caixa', label: 'Gaveta', icon: 'cash' },
 			{ href: '/staff/orders', label: 'Pedidos', icon: 'list' },
 			{ href: '/kitchen', label: 'Cozinha', icon: 'chef' },
-			{ href: '/staff/reconciliation', label: 'Caixa do dia', icon: 'cash' }
+			{ href: '/staff/reconciliation', label: 'Caixa do dia', icon: 'receipt' }
 		]
 	},
 	{
@@ -57,8 +58,14 @@ export const NAV: NavGroup[] = [
 	}
 ];
 
-/** What an attendant sees in the menu: the counter, the orders and the kitchen screen. */
-const ATTENDANT_HREFS = new Set(['/staff', '/staff/pos', '/staff/orders', '/kitchen']);
+/** What an attendant sees in the menu: the counter, the drawer, the orders and the kitchen screen. */
+const ATTENDANT_HREFS = new Set([
+	'/staff',
+	'/staff/pos',
+	'/staff/caixa',
+	'/staff/orders',
+	'/kitchen'
+]);
 
 /** The menu for a role. Admins see everything; attendants only the counter and orders. */
 export function navFor(role: 'admin' | 'attendant' | 'kitchen'): NavGroup[] {

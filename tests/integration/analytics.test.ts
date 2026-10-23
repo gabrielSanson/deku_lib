@@ -12,7 +12,7 @@ import { closeDb, db } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { createOrder, transitionOrder } from '#lib/server/orders/service.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
-import { classic, makeStaff } from './helpers.ts';
+import { classic, ensureCashOpen, makeStaff } from './helpers.ts';
 
 let cashier: Awaited<ReturnType<typeof makeStaff>>;
 let manager: Awaited<ReturnType<typeof makeStaff>>;
@@ -59,6 +59,7 @@ async function orderAt(
 beforeAll(async () => {
 	cashier = await makeStaff('admin');
 	manager = await makeStaff('admin');
+	await ensureCashOpen(cashier);
 	// 2025-03-10 local (UTC-3): one order just after midnight, one at 23:30 local (02:30 UTC next day).
 	await orderAt('2025-03-10T03:05:00Z', { pay: true, complete: true });
 	await orderAt('2025-03-11T02:30:00Z', { pay: true, complete: true });

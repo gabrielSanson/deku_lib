@@ -34,7 +34,7 @@
 
 	<section class="grid gap-3 sm:grid-cols-3">
 		<AnalyticsMetric label="Total recebido" value={formatBRL(totalPaid)} />
-		<AnalyticsMetric label="Dinheiro esperado na gaveta" value={formatBRL(cash)} />
+		<AnalyticsMetric label="Vendas em dinheiro" value={formatBRL(cash)} />
 		<AnalyticsMetric
 			label="iFood ({data.ifood.count} pedidos, pago no app)"
 			value={formatBRL(data.ifood.amountCents)}
@@ -64,6 +64,42 @@
 					>{/each}
 			</tbody>
 		</table>
+	</section>
+
+	<section class="card p-4">
+		<h2 class="mb-2 font-semibold">
+			Gaveta ({data.sessions.length} abertura{data.sessions.length === 1 ? '' : 's'})
+		</h2>
+		{#if data.sessions.length === 0}
+			<p class="text-sm text-muted">O caixa não foi aberto neste dia.</p>
+		{:else}
+			<table class="w-full text-sm">
+				<thead
+					><tr class="text-left text-muted"
+						><th>Aberto por</th><th>Fechado</th><th class="text-right">Esperado</th><th
+							class="text-right">Contado</th
+						><th class="text-right">Diferença</th></tr
+					></thead
+				>
+				<tbody class="divide-y divide-line">
+					{#each data.sessions as s (s.id)}
+						<tr>
+							<td class="py-2">{s.openedByName}</td>
+							<td>{s.status === 'open' ? 'Ainda aberto' : (s.closedByName ?? '')}</td>
+							<td class="text-right"
+								>{#if s.expectedCents !== null}<Money cents={s.expectedCents} />{/if}</td
+							>
+							<td class="text-right"
+								>{#if s.countedCents !== null}<Money cents={s.countedCents} />{/if}</td
+							>
+							<td class="text-right font-semibold {(s.differenceCents ?? 0) < 0 ? 'text-bad' : ''}"
+								>{#if s.differenceCents !== null}<Money cents={s.differenceCents} />{/if}</td
+							>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
 	</section>
 
 	<section class="card p-4">
