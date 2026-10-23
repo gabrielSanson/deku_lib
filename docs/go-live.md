@@ -63,6 +63,9 @@ customer sees in Configurações → Textos.
 
 ## 4a. Cash drawer and printing
 
+The staff's day-to-day routine (open, serve, close) is in plain Portuguese in
+[rotina-diaria.md](rotina-diaria.md).
+
 **Gaveta (Operação → Gaveta).** Open the drawer at the start of the day with the
 change float. Cash sales are refused while it is closed. Record cash taken out
 (sangria, with a reason) or put in (suprimento) there. To close, count all the
