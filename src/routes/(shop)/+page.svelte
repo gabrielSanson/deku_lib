@@ -37,6 +37,9 @@
 		const pool = pick ? pick.products : categories.flatMap((c) => c.products);
 		return pool.filter((p) => p.imageUrl && !soldOut.has(p.sku)).slice(0, home.featuredCount);
 	});
+	// Signed out, the header's Início and Cardápio are the only things to press: the hero
+	// buttons, the featured row and the menu button are left out.
+	const bare = $derived(!data.customer && !data.kiosk);
 	const external = (href: string) => (href.startsWith('https://') ? '_blank' : undefined);
 	const titleLines = $derived(t('home.hero.title').split('\n'));
 
@@ -113,27 +116,27 @@
 			>
 				{t('home.hero.text')}
 			</p>
-			<div
-				data-hero-in
-				class="mt-7 flex flex-wrap items-center gap-3 {centered ? 'justify-center' : ''}"
-			>
-				<a
-					href={home.primaryHref}
-					target={external(home.primaryHref)}
-					class="btn-primary btn-lg px-7"
+			{#if !bare}<div
+					data-hero-in
+					class="mt-7 flex flex-wrap items-center gap-3 {centered ? 'justify-center' : ''}"
 				>
-					{t('home.hero.cta')}
-					<Icon name="arrow" />
-				</a>
-				{#if home.secondaryHref}
 					<a
-						href={home.secondaryHref}
-						target={external(home.secondaryHref)}
-						class="btn btn-lg border border-white/30 bg-black/30 px-7 text-white backdrop-blur hover:bg-white/10"
-						>{t('home.hero.cta2')}</a
+						href={home.primaryHref}
+						target={external(home.primaryHref)}
+						class="btn-primary btn-lg px-7"
 					>
-				{/if}
-			</div>
+						{t('home.hero.cta')}
+						<Icon name="arrow" />
+					</a>
+					{#if home.secondaryHref}
+						<a
+							href={home.secondaryHref}
+							target={external(home.secondaryHref)}
+							class="btn btn-lg border border-white/30 bg-black/30 px-7 text-white backdrop-blur hover:bg-white/10"
+							>{t('home.hero.cta2')}</a
+						>
+					{/if}
+				</div>{/if}
 			{#if home.showModes}
 				<ul
 					data-hero-in
@@ -166,70 +169,72 @@
 	</div>
 </section>
 
-<div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
-	{#if categories.length === 0}
-		<EmptyState title={t('home.emptyMenu')} />
-	{/if}
+{#if !bare || categories.length === 0}
+	<div class="mx-auto max-w-7xl space-y-12 px-4 py-10 pb-32 sm:px-6 md:pb-14">
+		{#if categories.length === 0}
+			<EmptyState title={t('home.emptyMenu')} />
+		{/if}
 
-	<!-- Quick menu: a row of four on desktop, two on tablets, a swipe row on phones
+		<!-- Quick menu: a row of four on desktop, two on tablets, a swipe row on phones
 	     (mockup 01 "Nossos destaques") -->
-	{#if home.showFeatured && quickMenu.length}
-		<section aria-labelledby="home-destaques">
-			<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
-				<div>
-					<p class="text-xs font-bold tracking-[0.18em] text-muted uppercase">
-						{t('home.featured.eyebrow')}
-					</p>
-					<h2 id="home-destaques" class="font-display text-2xl sm:text-3xl">
-						{t('home.featured.title')}
-					</h2>
+		{#if !bare && home.showFeatured && quickMenu.length}
+			<section aria-labelledby="home-destaques">
+				<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="text-xs font-bold tracking-[0.18em] text-muted uppercase">
+							{t('home.featured.eyebrow')}
+						</p>
+						<h2 id="home-destaques" class="font-display text-2xl sm:text-3xl">
+							{t('home.featured.title')}
+						</h2>
+					</div>
+					<a href="/cardapio" class="flex items-center gap-1 text-sm font-semibold hover:underline"
+						>{t('home.featured.seeAll')}<Icon name="arrow" class="size-4" /></a
+					>
 				</div>
-				<a href="/cardapio" class="flex items-center gap-1 text-sm font-semibold hover:underline"
-					>{t('home.featured.seeAll')}<Icon name="arrow" class="size-4" /></a
+				<ul
+					class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
 				>
-			</div>
-			<ul
-				class="-mx-4 grid snap-x auto-cols-[70%] grid-flow-col gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
-			>
-				{#each quickMenu as p (p.sku)}
-					<li class="snap-start">
-						<a
-							href="/menu/{p.slug}"
-							class="group flex h-full flex-col overflow-hidden rounded-(--radius-card) bg-night text-white shadow-(--shadow-card)"
-						>
-							<span class="block aspect-[4/3] overflow-hidden">
-								<img
-									src={p.imageUrl}
-									alt=""
-									class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-									loading="lazy"
-								/>
-							</span>
-							<span class="flex flex-1 items-end justify-between gap-3 p-4">
-								<span class="min-w-0">
-									<span class="block truncate font-bold">{p.name}</span>
-									<span class="mt-0.5 line-clamp-1 text-sm text-stone-400">{p.description}</span>
-									<span class="mt-2 block font-black text-brand-500 tabular-nums"
-										><Money cents={p.priceCents} /></span
+					{#each quickMenu as p (p.sku)}
+						<li class="snap-start">
+							<a
+								href="/menu/{p.slug}"
+								class="group flex h-full flex-col overflow-hidden rounded-(--radius-card) bg-night text-white shadow-(--shadow-card)"
+							>
+								<span class="block aspect-[4/3] overflow-hidden">
+									<img
+										src={p.imageUrl}
+										alt=""
+										class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+										loading="lazy"
+									/>
+								</span>
+								<span class="flex flex-1 items-end justify-between gap-3 p-4">
+									<span class="min-w-0">
+										<span class="block truncate font-bold">{p.name}</span>
+										<span class="mt-0.5 line-clamp-1 text-sm text-stone-400">{p.description}</span>
+										<span class="mt-2 block font-black text-brand-500 tabular-nums"
+											><Money cents={p.priceCents} /></span
+										>
+									</span>
+									<span
+										class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 text-black"
+										aria-hidden="true"><Icon name="arrow" /></span
 									>
 								</span>
-								<span
-									class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-500 text-black"
-									aria-hidden="true"><Icon name="arrow" /></span
-								>
-							</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</section>
-	{/if}
-	{#if home.showMenuButton && categories.length}
-		<div class="flex justify-center">
-			<a href="/cardapio" class="btn-primary btn-lg px-7">
-				{t('home.menuButton')}
-				<Icon name="arrow" />
-			</a>
-		</div>
-	{/if}
-</div>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+		{#if !bare && home.showMenuButton && categories.length}
+			<div class="flex justify-center">
+				<a href="/cardapio" class="btn-primary btn-lg px-7">
+					{t('home.menuButton')}
+					<Icon name="arrow" />
+				</a>
+			</div>
+		{/if}
+	</div>
+{/if}

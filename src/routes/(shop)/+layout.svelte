@@ -76,7 +76,12 @@
 	// The product page has its own bottom bar with the add button. The bar stays in place
 	// under the open drawer so focus can return to it. While it shows, it is the only way
 	// to the cart: the ··· menu drops its cart entry.
-	const showCartBar = $derived(cart.count > 0 && !onCheckout && !path.startsWith('/menu/'));
+	// A visitor who is not signed in sees only Início and Cardápio on the home page: no
+	// ··· menu, no cart bar, no footer links and no logo link (Início already goes home).
+	const bareHome = $derived(isHome && !data.customer && !data.kiosk);
+	const showCartBar = $derived(
+		cart.count > 0 && !onCheckout && !path.startsWith('/menu/') && !bareHome
+	);
 
 	const close = () => (cart.panelOpen = false);
 
@@ -171,18 +176,25 @@
 				<div
 					class="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:h-[4.5rem] sm:gap-4 lg:px-6"
 				>
-					<a
-						href="/"
-						class="flex shrink-0 items-center gap-2.5"
-						aria-label={t('header.home', { name: data.shopName })}
-					>
+					{#snippet brand()}
 						<img src={data.branding.images.logo} alt="" class="h-10 w-auto sm:h-12" />
 						<img
 							src={data.branding.images.wordmark}
 							alt={data.shopName}
 							class="hidden h-7 w-auto sm:block"
 						/>
-					</a>
+					{/snippet}
+					{#if bareHome}
+						<span class="flex shrink-0 items-center gap-2.5">{@render brand()}</span>
+					{:else}
+						<a
+							href="/"
+							class="flex shrink-0 items-center gap-2.5"
+							aria-label={t('header.home', { name: data.shopName })}
+						>
+							{@render brand()}
+						</a>
+					{/if}
 					<nav class="ml-auto flex items-center" aria-label={t('shell.shopNav')}>
 						{#each nav as n (n.href)}
 							<a
@@ -207,13 +219,15 @@
 							onclick={restart}>{t('header.kiosk.restart')}</button
 						>
 					{/if}
-					<MoreMenu
-						{accountHref}
-						signedIn={!!data.customer}
-						cartInBar={showCartBar}
-						trackHref={orderToken ? `/orders/${orderToken}` : null}
-						kiosk={data.kiosk}
-					/>
+					{#if !bareHome}
+						<MoreMenu
+							{accountHref}
+							signedIn={!!data.customer}
+							cartInBar={showCartBar}
+							trackHref={orderToken ? `/orders/${orderToken}` : null}
+							kiosk={data.kiosk}
+						/>
+					{/if}
 				</div>
 				{#if !data.store.open}
 					<p
@@ -250,11 +264,13 @@
 							class="h-0.5 w-6 shrink-0 bg-brand-500 sm:w-10"
 						></span>
 					</p>
-					<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-						{#each data.pages as p (p.slug)}
-							<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
-						{/each}
-					</nav>
+					{#if !bareHome}
+						<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+							{#each data.pages as p (p.slug)}
+								<a href="/p/{p.slug}" class="hover:text-white">{p.title}</a>
+							{/each}
+						</nav>
+					{/if}
 				</div>
 			</footer>{/if}
 
