@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import IconButton from '#lib/components/atoms/IconButton.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
@@ -58,20 +59,22 @@
 				<div class="flex flex-1 flex-wrap items-center gap-2">
 					{#each s.days[wd] as shift, i (i)}
 						<span class="flex items-center gap-1">
-							<input
-								class="field w-32"
+							<TextField
+								label={t('hours.opens', { day: label.weekday(wd) })}
+								hideLabel
+								class="w-32"
 								type="time"
 								bind:value={shift.opens}
 								required
-								aria-label={t('hours.opens', { day: label.weekday(wd) })}
 							/>
 							<span class="text-muted">{t('hours.until')}</span>
-							<input
-								class="field w-32"
+							<TextField
+								label={t('hours.closes', { day: label.weekday(wd) })}
+								hideLabel
+								class="w-32"
 								type="time"
 								bind:value={shift.closes}
 								required
-								aria-label={t('hours.closes', { day: label.weekday(wd) })}
 							/>
 							<button
 								type="button"
@@ -109,13 +112,14 @@
 		<p class="text-sm text-muted">{t('hours.closuresHint')}</p>
 		{#each s.closures as c, i (i)}
 			<div class="flex flex-wrap items-center gap-2">
-				<input class="field w-44" type="date" bind:value={c.day} aria-label={t('hours.date')} />
-				<input
-					class="field flex-1"
+				<TextField label={t('hours.date')} hideLabel class="w-44" type="date" bind:value={c.day} />
+				<TextField
+					label={t('hours.reason')}
+					hideLabel
+					wrapClass="flex-1"
 					bind:value={c.reason}
 					maxlength={80}
 					placeholder={t('hours.reasonOptional')}
-					aria-label={t('hours.reason')}
 				/>
 				<IconButton
 					label={t('hours.removeDay')}

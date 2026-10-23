@@ -72,34 +72,31 @@
 					class="grid grid-cols-[1fr_7rem_5rem] items-end gap-2 rounded-lg border border-line p-2 sm:grid-cols-[1fr_7rem_5rem_auto]"
 				>
 					<input type="hidden" name="optionSku" value={row.sku} />
-					<label class="text-xs text-muted"
-						>{t('group.optionName')}<input
-							class="field"
-							name="optionName"
-							bind:value={row.name}
-							maxlength={80}
-							placeholder={t('group.optionNamePlaceholder')}
-						/></label
-					>
-					<label class="text-xs text-muted"
-						>{t('group.optionPrice')}<input
-							class="field"
-							name="optionPrice"
-							bind:value={row.price}
-							inputmode="decimal"
-							placeholder="0,00"
-						/></label
-					>
-					<label class="text-xs text-muted"
-						>{t('group.optionMax')}<input
-							class="field"
-							name="optionMax"
-							type="number"
-							min={1}
-							max={20}
-							bind:value={row.maxQuantity}
-						/></label
-					>
+					<TextField
+						label={t('group.optionName')}
+						id="option-name-{i}"
+						name="optionName"
+						bind:value={row.name}
+						maxlength={80}
+						placeholder={t('group.optionNamePlaceholder')}
+					/>
+					<TextField
+						label={t('group.optionPrice')}
+						id="option-price-{i}"
+						name="optionPrice"
+						bind:value={row.price}
+						inputmode="decimal"
+						placeholder="0,00"
+					/>
+					<TextField
+						label={t('group.optionMax')}
+						id="option-max-{i}"
+						name="optionMax"
+						type="number"
+						min={1}
+						max={20}
+						bind:value={row.maxQuantity}
+					/>
 					<div class="col-span-3 flex items-center gap-3 sm:col-span-1">
 						<Checkbox
 							label={t('group.optionActive')}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
@@ -123,14 +124,15 @@
 				value={data.q}
 				class="min-w-56 flex-1 sm:max-w-80"
 			/>
-			<select
-				class="field max-w-48"
+			<SelectField
+				label={t('orders.channelLabel')}
+				hideLabel
+				class="max-w-48"
 				value={data.channel}
 				onchange={(e) => setFilter('channel', e.currentTarget.value)}
-				aria-label={t('orders.channelLabel')}
 			>
 				{#each channels as [v, l] (v)}<option value={v}>{l}</option>{/each}
-			</select>
+			</SelectField>
 		</form>
 	</div>
 

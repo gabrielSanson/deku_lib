@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -46,7 +47,14 @@
 				>
 					<input type="hidden" name="to" value={to} />
 					<input type="hidden" name="version" value={version} />
-					<input class="field" name="reason" placeholder={t('actions.reason')} required />
+					<TextField
+						label={t('actions.reason')}
+						hideLabel
+						id="status-reason"
+						name="reason"
+						placeholder={t('actions.reason')}
+						required
+					/>
 					<div class="flex gap-2">
 						<button type="button" class="btn-secondary flex-1" onclick={() => (reasonFor = null)}
 							>{t('actions.back')}</button

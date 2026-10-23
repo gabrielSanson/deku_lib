@@ -1,6 +1,6 @@
 <script lang="ts">
+	import BrandImageRow from '#lib/components/organisms/BrandImageRow.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
-	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { contrastFailures, type ContrastPairId } from '#lib/domain/contrast.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -116,43 +116,13 @@
 		<p class="text-sm text-muted">{t('look.imagesHint')}</p>
 		<ul class="divide-y divide-line">
 			{#each imageFields as f (f.key)}
-				<li class="flex flex-wrap items-center gap-4 py-4">
-					<div class="grid size-20 shrink-0 place-items-center rounded-lg bg-night p-2">
-						<img src={look.images[f.key]} alt="" class="size-full object-contain" />
-					</div>
-					<div class="min-w-48 flex-1">
-						<p class="font-medium">
-							{f.label}
-							{#if !look.custom[f.key]}<span class="text-xs font-normal text-muted"
-									>{t('look.default')}</span
-								>{/if}
-						</p>
-						<p class="text-xs text-muted">{f.hint}</p>
-					</div>
-					<form
-						method="POST"
-						action="?/upload"
-						enctype="multipart/form-data"
-						class="flex flex-wrap items-center gap-2"
-						use:enhance
-					>
-						<input type="hidden" name="image" value={f.key} />
-						<input
-							type="file"
-							name="file"
-							accept="image/png,image/jpeg,image/webp"
-							class="max-w-56 text-sm"
-							required
-							aria-label={t('look.newImage', { name: f.label })}
-						/>
-						<button class="btn-secondary">{t('look.upload')}</button>
-						{#if look.custom[f.key]}
-							<button class="btn-ghost" formaction="?/resetImage" formnovalidate
-								>{t('look.useDefault')}</button
-							>
-						{/if}
-					</form>
-				</li>
+				<BrandImageRow
+					key={f.key}
+					label={f.label}
+					hint={f.hint}
+					src={look.images[f.key]}
+					custom={!!look.custom[f.key]}
+				/>
 			{/each}
 		</ul>
 	</section>

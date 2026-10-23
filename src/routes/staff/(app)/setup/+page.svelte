@@ -335,15 +335,11 @@
 			{#if data.counts.products === 0}
 				<p class="alert-warn text-sm">{t('setup.done.noProducts')}</p>
 			{/if}
-			<label class="flex min-h-11 items-center gap-3"
-				><input
-					type="checkbox"
-					class="size-5"
-					name="open"
-					checked={!data.settings.acceptingOrders && data.counts.products > 0}
-				/>
-				{t('setup.done.open')}</label
-			>
+			<Checkbox
+				label={t('setup.done.open')}
+				name="open"
+				checked={!data.settings.acceptingOrders && data.counts.products > 0}
+			/>
 			<button class="btn-primary w-full">{t('setup.done.submit')}</button>
 			<p class="text-xs text-muted">{t('setup.done.hint')}</p>
 		</form>

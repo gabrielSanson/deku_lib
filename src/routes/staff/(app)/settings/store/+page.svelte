@@ -32,8 +32,9 @@
 		<form method="POST" action="?/toggle" use:enhance class="flex gap-2">
 			<input type="hidden" name="open" value={s.acceptingOrders ? '0' : '1'} />
 			{#if s.acceptingOrders}
-				<input
-					class="field"
+				<TextField
+					label={t('store.pauseReason')}
+					hideLabel
 					name="pauseReason"
 					placeholder={t('store.pauseReason')}
 					bind:value={pauseReason}

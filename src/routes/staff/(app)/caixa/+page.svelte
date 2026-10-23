@@ -124,20 +124,14 @@
 				required
 				class="text-lg"
 			/>
-			<div>
-				<label class="label" for="reason"
-					>{kind === 'sangria' ? t('drawer.reason') : t('drawer.reasonOptional')}</label
-				>
-				<input
-					id="reason"
-					name="reason"
-					class="field"
-					placeholder={kind === 'sangria'
-						? t('drawer.sangriaPlaceholder')
-						: t('drawer.suprimentoPlaceholder')}
-					required={kind === 'sangria'}
-				/>
-			</div>
+			<TextField
+				label={kind === 'sangria' ? t('drawer.reason') : t('drawer.reasonOptional')}
+				name="reason"
+				placeholder={kind === 'sangria'
+					? t('drawer.sangriaPlaceholder')
+					: t('drawer.suprimentoPlaceholder')}
+				required={kind === 'sangria'}
+			/>
 			{#if form?.recorded}
 				<p class="alert-ok" role="status">
 					{form.recorded === 'sangria' ? t('drawer.sangriaDone') : t('drawer.suprimentoDone')}

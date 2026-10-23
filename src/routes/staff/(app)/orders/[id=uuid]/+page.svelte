@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
 	import OrderActionBar from '#lib/components/organisms/OrderActionBar.svelte';
@@ -188,8 +189,10 @@
 								class="mt-1 space-y-1"
 							>
 								<input type="hidden" name="tenderId" value={tender.id} />
-								<input
-									class="field"
+								<TextField
+									label={t('orderDetail.refundReason')}
+									hideLabel
+									id="refund-reason"
 									name="reason"
 									placeholder={t('orderDetail.refundReason')}
 									required
@@ -272,10 +275,12 @@
 									cancellingNote = false;
 								}}
 						>
-							<input
-								class="field"
+							<TextField
+								label={t('orderDetail.fiscalReason')}
+								hideLabel
+								id="fiscal-reason"
 								name="reason"
-								minlength="15"
+								minlength={15}
 								placeholder={t('orderDetail.fiscalReason')}
 								required
 							/>

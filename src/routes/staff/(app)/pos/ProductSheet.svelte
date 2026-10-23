@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	// Modifier picker. Enforces min/max per group before the item can be added.
 	import { useTexts } from '#lib/texts/context.ts';
@@ -159,10 +160,10 @@
 			</fieldset>
 		{/if}
 
-		<label class="label" for="note">{t('pos.lineNote')}</label>
-		<input
+		<TextField
+			label={t('pos.lineNote')}
 			id="note"
-			class="mb-2 field"
+			wrapClass="mb-2"
 			maxlength={200}
 			bind:value={note}
 			placeholder={t('pos.lineNotePlaceholder')}

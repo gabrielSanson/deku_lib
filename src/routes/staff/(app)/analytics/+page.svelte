@@ -1,4 +1,6 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { goto } from '$app/navigation';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import AnalyticsMetric from '#lib/components/molecules/AnalyticsMetric.svelte';
@@ -132,30 +134,32 @@
 				onclick={() => set({ range: k, from: '', to: '' })}>{l}</button
 			>
 		{/each}
-		<input
-			class="field w-40"
+		<TextField
+			label={t('analytics.from')}
+			hideLabel
+			class="w-40"
 			type="date"
 			bind:value={customFrom}
-			aria-label={t('analytics.from')}
 		/>
-		<input class="field w-40" type="date" bind:value={customTo} aria-label={t('analytics.to')} />
+		<TextField label={t('analytics.to')} hideLabel class="w-40" type="date" bind:value={customTo} />
 		<button
 			class="btn-secondary min-h-9 text-sm"
 			onclick={() => set({ range: 'custom', from: customFrom, to: customTo })}
 			>{t('analytics.apply')}</button
 		>
-		<select
-			class="field w-40"
+		<SelectField
+			label={t('analytics.channel')}
+			hideLabel
+			class="w-48"
 			value={data.filters.channel ?? ''}
 			onchange={(e) => set({ channel: e.currentTarget.value })}
-			aria-label={t('analytics.channel')}
 		>
 			<option value="">{t('analytics.allChannels')}</option><option value="counter"
 				>{t('analytics.channel.counter')}</option
 			><option value="web">{t('analytics.channel.web')}</option><option value="ifood"
 				>{t('analytics.channel.ifood')}</option
 			>
-		</select>
+		</SelectField>
 		<a class="btn-secondary min-h-9 text-sm" href={exportHref}>{t('analytics.exportCsv')}</a>
 	</div>
 	<p class="text-sm text-muted">

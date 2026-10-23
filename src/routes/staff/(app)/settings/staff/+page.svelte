@@ -32,18 +32,20 @@
 				</div>
 				<form method="POST" action="?/update" use:enhance class="flex items-center gap-2">
 					<input type="hidden" name="id" value={p.id} />
-					<select
-						class="field w-36"
+					<SelectField
+						label={t('team.roleOf', { name: p.displayName })}
+						hideLabel
+						id="role-{p.id}"
+						class="w-36"
 						name="role"
 						value={p.role}
-						aria-label={t('team.roleOf', { name: p.displayName })}
 						disabled={!assignable.includes(p.role)}
 						onchange={(e) => e.currentTarget.form?.requestSubmit()}
 					>
 						{#each Object.entries(roleLabel) as [value, label] (value)}
 							<option {value} disabled={!assignable.includes(value)}>{label}</option>
 						{/each}
-					</select>
+					</SelectField>
 				</form>
 				{#if p.id !== data.staff.id && assignable.includes(p.role)}
 					<form method="POST" action="?/update" use:enhance>

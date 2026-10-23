@@ -5,14 +5,29 @@ const password = process.env.SEED_PASSWORD ?? 'burger123';
 async function login(page: Page, email: string, next = '/staff') {
 	await page.goto(`/staff/login?next=${encodeURIComponent(next)}`);
 	await page.getByLabel('E-mail').fill(email);
-	await page.getByLabel('Senha').fill(password);
+	await page.getByLabel('Senha', { exact: true }).fill(password);
 	await page.getByRole('button', { name: 'Entrar' }).click();
 	await page.waitForURL((u) => !u.pathname.startsWith('/staff/login'));
 	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
 }
 
+/** Cash sales need an open drawer; open it with no float unless an earlier run did. */
+async function openDrawer(page: Page) {
+	await page.goto('/staff/caixa');
+	await page.waitForLoadState('networkidle');
+	const open = page.getByRole('button', { name: 'Abrir caixa' });
+	if (await open.isVisible()) {
+		await page.getByLabel('Fundo de troco (R$)').fill('0');
+		await open.click();
+		await expect(open).toBeHidden();
+	}
+}
+
 test('admin sells at the counter and the kitchen completes it', async ({ page, browser }) => {
-	await login(page, 'admin@burger.local', '/staff/pos');
+	await login(page, 'admin@burger.local', '/staff/caixa');
+	await openDrawer(page);
+	await page.goto('/staff/pos');
+	await page.waitForLoadState('networkidle');
 
 	await page.getByRole('button', { name: /Bacon Cheddar/ }).click();
 	const sheet = page.getByRole('dialog');
@@ -64,7 +79,12 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 	// The attendant calls the code out and taps "Chamar"; the board shows when it was called.
 	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
 	await page.getByRole('button', { name: new RegExp(`Chamar ${code}`) }).click();
-	await expect(page.getByText(/Chamado às/)).toBeVisible();
+	await expect(
+		page
+			.getByRole('listitem')
+			.filter({ hasText: `#${orderNumber}` })
+			.getByText(/Chamado às/)
+	).toBeVisible();
 	await expect(
 		kitchen.locator('article', { hasText: orderNumber }).getByText(/Chamado às/)
 	).toBeVisible({ timeout: 15_000 });

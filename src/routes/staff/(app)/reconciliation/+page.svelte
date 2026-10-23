@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { goto } from '$app/navigation';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
@@ -23,12 +24,13 @@
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center gap-2">
 		<h1 class="mr-auto page-title">{t('recon.title')}</h1>
-		<input
-			class="field w-44"
+		<TextField
+			label={t('recon.day')}
+			hideLabel
+			class="w-44"
 			type="date"
 			value={data.day}
 			onchange={(e) => goto(`?day=${e.currentTarget.value}`)}
-			aria-label={t('recon.day')}
 		/>
 	</div>
 	<p class="text-sm text-muted">

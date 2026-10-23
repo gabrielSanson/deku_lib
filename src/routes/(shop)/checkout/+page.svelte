@@ -1,5 +1,6 @@
 <script lang="ts">
 	import TextField from '#lib/components/molecules/TextField.svelte';
+	import CouponField from '#lib/components/molecules/CouponField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
 	import { untrack } from 'svelte';
@@ -50,7 +51,6 @@
 	let phone = $state(untrack(() => data.prefill.phone));
 	let email = $state(untrack(() => data.prefill.email));
 	let marketingConsent = $state(false);
-	let couponInput = $state('');
 	let couponCode = $state('');
 	let addr = $state({
 		cep: '',
@@ -417,23 +417,16 @@
 						bind:value={name}
 						required
 					/>
-					<div>
-						<label class="label" for="phone"
-							>{phoneOptional ? t('checkout.phoneOptional') : t('checkout.phone')}</label
-						><input
-							id="phone"
-							class="field"
-							type="tel"
-							autocomplete="tel"
-							bind:value={phone}
-							placeholder="(11) 98765-4321"
-							required={!phoneOptional}
-							aria-describedby={phoneOptional ? 'phone-hint' : undefined}
-						/>
-						{#if phoneOptional}<p id="phone-hint" class="mt-1 text-xs text-muted">
-								{t('checkout.phoneOptional.hint')}
-							</p>{/if}
-					</div>
+					<TextField
+						label={phoneOptional ? t('checkout.phoneOptional') : t('checkout.phone')}
+						id="phone"
+						type="tel"
+						autocomplete="tel"
+						bind:value={phone}
+						placeholder="(11) 98765-4321"
+						required={!phoneOptional}
+						hint={phoneOptional ? t('checkout.phoneOptional.hint') : null}
+					/>
 					<TextField
 						label={t('checkout.email')}
 						id="email"
@@ -480,50 +473,16 @@
 				</fieldset>
 
 				<div class="card p-4">
-					<label class="label" for="coupon">{t('checkout.coupon')}</label>
-					<div class="flex gap-2">
-						<input
-							id="coupon"
-							class="field uppercase"
-							maxlength={24}
-							autocomplete="off"
-							autocapitalize="characters"
-							bind:value={couponInput}
-							readonly={!!couponCode}
-							onkeydown={(e) => {
-								if (e.key === 'Enter') {
-									e.preventDefault();
-									couponCode = couponInput.trim();
-								}
-							}}
-						/>
-						{#if couponCode}
-							<button
-								type="button"
-								class="btn-secondary"
-								onclick={() => {
-									couponCode = '';
-									couponInput = '';
-								}}>{t('checkout.coupon.remove')}</button
-							>
-						{:else}
-							<button
-								type="button"
-								class="btn-secondary"
-								disabled={!couponInput.trim()}
-								onclick={() => (couponCode = couponInput.trim())}
-								>{t('checkout.coupon.apply')}</button
-							>
-						{/if}
-					</div>
-					{#if couponCode && quote?.couponError}
-						<p
-							class="mt-2 {quote.couponBlocks ? 'alert-error' : 'text-sm text-muted'}"
-							role="status"
-						>
-							{quote.couponError}
-						</p>
-					{/if}
+					<CouponField
+						id="coupon"
+						label={t('checkout.coupon')}
+						bind:code={couponCode}
+						applyLabel={t('checkout.coupon.apply')}
+						removeLabel={t('checkout.coupon.remove')}
+						problem={quote?.couponError}
+						blocks={quote?.couponBlocks}
+						errorClass="alert-error"
+					/>
 				</div>
 			{:else}
 				<section class="space-y-1 card p-4" aria-live="polite">

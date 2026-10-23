@@ -1,6 +1,8 @@
 <script lang="ts">
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
+	import CouponField from '#lib/components/molecules/CouponField.svelte';
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { deserialize, enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -30,7 +32,6 @@
 	let phone = $state('');
 	let notes = $state('');
 	let discountText = $state('');
-	let couponInput = $state('');
 	let couponCode = $state('');
 	let offer = $state<{
 		name: string | null;
@@ -261,104 +262,73 @@
 		>
 			<input type="hidden" name="payload" value={payload} />
 			{#if fulfillmentType === 'ifood'}
-				<input
-					class="field"
+				<TextField
+					label={t('pos.ifoodCode')}
+					hideLabel
 					placeholder={t('pos.ifoodCode')}
 					maxlength={20}
 					bind:value={ifoodCode}
-					aria-label={t('pos.ifoodCode')}
 					required
+					hint={t('pos.ifoodPaidHint')}
 				/>
-				<p class="text-xs text-muted">
-					Já pago no iFood. Confirme e atualize o pedido também no app do iFood.
-				</p>
 			{/if}
 			{#if fulfillmentType === 'dine_in'}
-				<input
-					class="field"
+				<TextField
+					label={t('pos.table')}
+					hideLabel
 					placeholder={t('pos.table')}
 					maxlength={20}
 					bind:value={tableLabel}
-					aria-label={t('pos.table')}
 				/>
 			{/if}
-			<input
-				class="field"
+			<TextField
+				label={t('pos.nameLabel')}
+				hideLabel
 				placeholder={t('pos.nameField')}
 				maxlength={60}
 				bind:value={customerLabel}
-				aria-label={t('pos.nameLabel')}
+				hint={t('pos.nameHint')}
 			/>
-			<p class="text-xs text-muted">{t('pos.nameHint')}</p>
 
 			<details class="rounded-(--radius-control) border border-line p-3">
 				<summary class="cursor-pointer text-sm font-semibold">{t('pos.more')}</summary>
 				<div class="mt-3 space-y-2">
 					{#if fulfillmentType !== 'ifood'}
-						<input
-							class="field"
+						<TextField
+							label={t('pos.phone')}
+							hideLabel
 							type="tel"
 							inputmode="tel"
 							autocomplete="off"
 							placeholder={t('pos.phone')}
 							maxlength={25}
 							bind:value={phone}
-							aria-label={t('pos.phone')}
 						/>
-						<div class="flex gap-2">
-							<input
-								class="field uppercase"
-								placeholder={t('pos.coupon')}
-								maxlength={24}
-								autocomplete="off"
-								bind:value={couponInput}
-								readonly={!!couponCode}
-								aria-label={t('pos.coupon')}
-								onkeydown={(e) => {
-									if (e.key === 'Enter') {
-										e.preventDefault();
-										couponCode = couponInput.trim();
-									}
-								}}
-							/>
-							{#if couponCode}
-								<button
-									type="button"
-									class="btn-secondary"
-									onclick={() => {
-										couponCode = '';
-										couponInput = '';
-									}}>{t('pos.remove')}</button
-								>
-							{:else}
-								<button
-									type="button"
-									class="btn-secondary"
-									disabled={!couponInput.trim()}
-									onclick={() => (couponCode = couponInput.trim())}>{t('pos.apply')}</button
-								>
-							{/if}
-						</div>
-						{#if couponCode && offer?.couponError}
-							<p class="text-sm {offer.couponBlocks ? 'text-bad' : 'text-muted'}" role="status">
-								{offer.couponError}
-							</p>
-						{/if}
+						<CouponField
+							label={t('pos.coupon')}
+							hideLabel
+							placeholder={t('pos.coupon')}
+							bind:code={couponCode}
+							applyLabel={t('pos.apply')}
+							removeLabel={t('pos.remove')}
+							problem={offer?.couponError}
+							blocks={offer?.couponBlocks}
+						/>
 					{/if}
-					<input
-						class="field"
+					<TextField
+						label={t('pos.note')}
+						hideLabel
 						placeholder={t('pos.note')}
 						maxlength={300}
 						bind:value={notes}
-						aria-label={t('pos.note')}
 					/>
 					{#if canDiscount}
-						<input
-							class="field"
+						<TextField
+							label={t('pos.manualDiscountLabel')}
+							hideLabel
 							inputmode="decimal"
 							placeholder={t('pos.manualDiscount')}
 							bind:value={discountText}
-							aria-label={t('pos.manualDiscountLabel')}
 						/>
 					{/if}
 				</div>

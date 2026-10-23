@@ -1,4 +1,6 @@
 <script lang="ts">
+	import TextArea from '#lib/components/molecules/TextArea.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -17,6 +19,10 @@
 </script>
 
 <svelte:head><title>{t('texts.tabTitle')}</title></svelte:head>
+
+{#snippet changedMark()}
+	<span class="rounded bg-brand-100 px-1.5 text-xs text-brand-700">{t('texts.changedMark')}</span>
+{/snippet}
 
 <div class="space-y-4">
 	<header class="space-y-1">
@@ -44,35 +50,33 @@
 				<div class="space-y-4 border-t border-line p-4">
 					{#each g.texts as x (x.key)}
 						{@const vars = placeholders(x.default)}
+						{@const hint = vars.length
+							? t('texts.needs', { vars: vars.map((v) => `{${v}}`).join(', ') })
+							: null}
 						<div class={matches(x) ? '' : 'hidden'}>
-							<label class="label flex items-center justify-between gap-2" for={x.key}>
-								<span>{x.label}</span>
-								{#if x.changed}<span class="rounded bg-brand-100 px-1.5 text-xs text-brand-700"
-										>{t('texts.changedMark')}</span
-									>{/if}
-							</label>
 							{#if x.default.length > 60 || x.default.includes('\n')}
-								<textarea
+								<TextArea
+									label={x.label}
+									aside={x.changed ? changedMark : undefined}
+									{hint}
 									id={x.key}
 									name="t:{x.key}"
-									class="field"
-									rows={3}
 									maxlength={1000}
 									placeholder={x.default}
-									value={x.changed ? x.value : ''}></textarea>
+									value={x.changed ? x.value : ''}
+								/>
 							{:else}
-								<input
+								<TextField
+									label={x.label}
+									aside={x.changed ? changedMark : undefined}
+									{hint}
 									id={x.key}
 									name="t:{x.key}"
-									class="field"
 									maxlength={1000}
 									placeholder={x.default}
 									value={x.changed ? x.value : ''}
 								/>
 							{/if}
-							{#if vars.length}<p class="mt-1 text-xs text-muted">
-									{t('texts.needs', { vars: vars.map((v) => `{${v}}`).join(', ') })}
-								</p>{/if}
 						</div>
 					{/each}
 				</div>

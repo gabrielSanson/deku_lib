@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FileField from '#lib/components/molecules/FileField.svelte';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
@@ -127,13 +128,7 @@
 				{#if preview || p.imageUrl}
 					<img src={preview ?? p.imageUrl} alt="" class="size-20 rounded-lg object-cover" />
 				{/if}
-				<input
-					type="file"
-					name="photo"
-					accept="image/jpeg,image/png,image/webp"
-					onchange={pick}
-					class="text-sm"
-				/>
+				<FileField label={t('product.photo')} hideLabel id="photo" onchange={pick} />
 			</div>
 			{#if p.imageUrl}
 				<Checkbox
@@ -152,16 +147,12 @@
 			<legend class="label">{t('product.channels')}</legend>
 			<div class="flex flex-wrap gap-4">
 				{#each channels as c (c.id)}
-					<label class="flex min-h-11 items-center gap-2"
-						><input
-							type="checkbox"
-							class="size-5"
-							name="channels"
-							value={c.id}
-							checked={p.channels.includes(c.id)}
-						/>
-						{c.label}</label
-					>
+					<Checkbox
+						label={c.label}
+						name="channels"
+						value={c.id}
+						checked={p.channels.includes(c.id)}
+					/>
 				{/each}
 			</div>
 		</fieldset>
@@ -171,16 +162,12 @@
 				<legend class="label">{t('product.groups')}</legend>
 				<div class="flex flex-wrap gap-4">
 					{#each data.groups as g (g.id)}
-						<label class="flex min-h-11 items-center gap-2"
-							><input
-								type="checkbox"
-								class="size-5"
-								name="groupIds"
-								value={g.id}
-								checked={p.groupIds.includes(g.id)}
-							/>
-							{g.name}</label
-						>
+						<Checkbox
+							label={g.name}
+							name="groupIds"
+							value={g.id}
+							checked={p.groupIds.includes(g.id)}
+						/>
 					{/each}
 				</div>
 			</fieldset>
@@ -196,21 +183,14 @@
 					{#each data.ingredients as ing (ing.id)}
 						{@const current = p.ingredients.find((i) => i.id === ing.id)}
 						<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
-							<label class="flex min-h-10 flex-1 items-center gap-2"
-								><input
-									type="checkbox"
-									class="size-5"
-									name="ingredientIds"
-									value={ing.id}
-									checked={Boolean(current)}
-								/>
-								<span
-									>{ing.name}
-									{#if ing.allergens.length}<span class="text-xs text-muted"
-											>· {ing.allergens.join(', ')}</span
-										>{/if}</span
-								></label
-							>
+							<Checkbox
+								label={ing.name}
+								hint={ing.allergens.length ? ing.allergens.join(', ') : undefined}
+								class="flex-1"
+								name="ingredientIds"
+								value={ing.id}
+								checked={Boolean(current)}
+							/>
 							<Checkbox
 								label={t('product.removable')}
 								name="removable"

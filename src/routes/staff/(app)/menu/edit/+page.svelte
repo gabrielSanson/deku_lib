@@ -1,4 +1,7 @@
 <script lang="ts">
+	import FileField from '#lib/components/molecules/FileField.svelte';
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
@@ -56,14 +59,17 @@
 							class="flex flex-1 flex-wrap gap-2"
 						>
 							<input type="hidden" name="id" value={c.id} />
-							<input class="field flex-1" name="name" value={c.name} required maxlength={80} />
-							<input
-								class="field w-56 text-sm"
-								type="file"
-								name="photo"
-								accept="image/jpeg,image/png,image/webp"
-								aria-label={t('menuEdit.categoryPhoto')}
+							<TextField
+								label={t('menuEdit.categoryName')}
+								hideLabel
+								id="category-name-{c.id}"
+								wrapClass="flex-1"
+								name="name"
+								value={c.name}
+								required
+								maxlength={80}
 							/>
+							<FileField label={t('menuEdit.categoryPhoto')} hideLabel class="w-56" />
 							{#if c.imageUrl}
 								<Checkbox
 									label={t('menuEdit.removePhoto')}
@@ -72,17 +78,27 @@
 									class="text-sm"
 								/>
 							{/if}
-							<input
-								class="field w-24"
+							<TextField
+								label={t('menuEdit.order')}
+								hideLabel
+								id="category-position-{c.id}"
+								class="w-24"
 								name="position"
 								type="number"
 								value={c.position}
-								aria-label={t('menuEdit.order')}
 							/>
-							<select class="field w-36" name="active" value={c.active ? '1' : '0'}>
-								<option value="1">{t('menuEdit.visible')}</option>
-								<option value="0">{t('menuEdit.hidden')}</option>
-							</select>
+							<SelectField
+								label={t('menuEdit.visibility')}
+								hideLabel
+								id="category-active-{c.id}"
+								class="w-36"
+								name="active"
+								value={c.active ? '1' : '0'}
+								options={[
+									{ value: '1', label: t('menuEdit.visible') },
+									{ value: '0', label: t('menuEdit.hidden') }
+								]}
+							/>
 							<button class="btn-primary">{t('menuEdit.save')}</button>
 							<button type="button" class="btn-ghost" onclick={() => (renaming = null)}
 								>{t('menuEdit.cancel')}</button
@@ -144,20 +160,17 @@
 			use:enhance
 			class="flex flex-wrap gap-2 card p-3"
 		>
-			<input
-				class="field flex-1"
+			<TextField
+				label={t('menuEdit.newCategory')}
+				hideLabel
+				id="new-category"
+				wrapClass="flex-1"
 				name="name"
 				placeholder={t('menuEdit.newCategory')}
 				required
 				maxlength={80}
 			/>
-			<input
-				class="field w-56 text-sm"
-				type="file"
-				name="photo"
-				accept="image/jpeg,image/png,image/webp"
-				aria-label={t('menuEdit.categoryPhoto')}
-			/>
+			<FileField label={t('menuEdit.categoryPhoto')} hideLabel class="w-56" />
 			<input type="hidden" name="position" value={data.categories.length + 1} />
 			<button class="btn-secondary">{t('menuEdit.addCategory')}</button>
 		</form>

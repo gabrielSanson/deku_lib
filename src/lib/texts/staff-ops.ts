@@ -126,6 +126,11 @@ export const STAFF_OPS_TEXTS = {
 		label: 'Login: aviso de acesso',
 		default: 'Acesso restrito à equipe da loja'
 	},
+	'staffLogin.notConfigured': {
+		group: 'staff',
+		label: 'Login: Supabase não configurado',
+		default: 'Configure PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY para habilitar o login.'
+	},
 	'staffLogin.back': { group: 'staff', label: 'Login: voltar ao site', default: 'Voltar ao site' },
 
 	// Charts

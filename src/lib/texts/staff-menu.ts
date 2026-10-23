@@ -134,6 +134,16 @@ export const STAFF_MENU_TEXTS = {
 	},
 	'menuEdit.removePhoto': { group: g, label: 'Editar cardápio: tirar foto', default: 'Tirar foto' },
 	'menuEdit.order': { group: g, label: 'Editar cardápio: ordem', default: 'Ordem' },
+	'menuEdit.categoryName': {
+		group: g,
+		label: 'Editar cardápio: nome da categoria',
+		default: 'Nome da categoria'
+	},
+	'menuEdit.visibility': {
+		group: g,
+		label: 'Editar cardápio: visibilidade',
+		default: 'Visibilidade'
+	},
 	'menuEdit.visible': { group: g, label: 'Editar cardápio: visível', default: 'Visível' },
 	'menuEdit.hidden': { group: g, label: 'Editar cardápio: oculta', default: 'Oculta' },
 	'menuEdit.save': { group: g, label: 'Editar cardápio: salvar', default: 'Salvar' },
@@ -203,6 +213,7 @@ export const STAFF_MENU_TEXTS = {
 	'sitePages.view': { group: g, label: 'Páginas: ver', default: 'Ver ↗' },
 	'sitePages.text': { group: g, label: 'Páginas: texto de', default: 'Texto de {title}' },
 	'sitePages.published': { group: g, label: 'Páginas: publicada', default: 'Publicada' },
+	'sitePages.pageTitle': { group: g, label: 'Páginas: título de', default: 'Título de {title}' },
 	'sitePages.saved': { group: g, label: 'Páginas: salvo', default: 'Salvo.' },
 	'group.tabTitle': { group: g, label: 'Grupo: título da aba', default: '{name} · Cardápio' },
 	'group.new': { group: g, label: 'Grupo: novo (aba)', default: 'Novo grupo' },

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
+	import PasswordField from '#lib/components/molecules/PasswordField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
 	const mode = $derived(form?.mode ?? data.mode);
-	let showPassword = $state(false);
 
 	function modeHref(m: 'entrar' | 'criar') {
 		return `?modo=${m}${data.next !== '/conta' ? `&next=${encodeURIComponent(data.next)}` : ''}`;
@@ -112,54 +112,27 @@
 							value={form?.phone ?? ''}
 						/>
 					{/if}
-					<div>
-						<label class="label" for="email">{t('account.email')}</label>
-						<div class="relative">
-							<Icon
-								name="mail"
-								class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
-							/>
-							<input
-								id="email"
-								name="email"
-								type="email"
-								class="field pl-10"
-								autocomplete="email"
-								placeholder={t('account.emailPlaceholder')}
-								required
-								maxlength={120}
-								value={form?.email ?? ''}
-							/>
-						</div>
-					</div>
-					<div>
-						<label class="label" for="password">{t('account.password')}</label>
-						<div class="relative">
-							<Icon
-								name="lock"
-								class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
-							/>
-							<input
-								id="password"
-								name="password"
-								type={showPassword ? 'text' : 'password'}
-								class="field pr-12 pl-10"
-								autocomplete={mode === 'criar' ? 'new-password' : 'current-password'}
-								placeholder={t('account.passwordPlaceholder')}
-								required
-								minlength={mode === 'criar' ? 8 : undefined}
-								maxlength={72}
-							/>
-							<button
-								type="button"
-								class="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-(--radius-control) text-stone-500 hover:text-ink"
-								aria-label={t(showPassword ? 'account.hidePassword' : 'account.showPassword')}
-								aria-pressed={showPassword}
-								onclick={() => (showPassword = !showPassword)}
-							>
-								<Icon name={showPassword ? 'eyeOff' : 'eye'} class="size-5" />
-							</button>
-						</div>
+					<TextField
+						label={t('account.email')}
+						name="email"
+						type="email"
+						icon="mail"
+						autocomplete="email"
+						placeholder={t('account.emailPlaceholder')}
+						required
+						maxlength={120}
+						value={form?.email ?? ''}
+					/>
+					<PasswordField
+						label={t('account.password')}
+						showLabel={t('account.showPassword')}
+						hideLabel={t('account.hidePassword')}
+						autocomplete={mode === 'criar' ? 'new-password' : 'current-password'}
+						placeholder={t('account.passwordPlaceholder')}
+						required
+						minlength={mode === 'criar' ? 8 : undefined}
+						maxlength={72}
+					>
 						{#if mode === 'criar'}<p class="mt-1 text-xs text-muted">
 								{t('account.passwordHint')}
 							</p>{:else}<a
@@ -167,7 +140,7 @@
 								class="mt-2 block text-right text-sm font-medium underline"
 								>{t('account.recover.forgot')}</a
 							>{/if}
-					</div>
+					</PasswordField>
 					<button class="relative btn-primary w-full" disabled={!data.configured}>
 						{t(mode === 'criar' ? 'account.submitSignup' : 'account.submitLogin')}
 						<Icon name="arrow" class="absolute right-4 size-5" />

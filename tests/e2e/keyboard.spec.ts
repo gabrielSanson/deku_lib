@@ -14,7 +14,7 @@ async function loginByKeyboard(page: Page, email: string, next: string) {
 	await typeInto(page, 'E-mail', email);
 	await page.keyboard.press('Tab');
 	await page.keyboard.type(password);
-	await page.keyboard.press('Tab');
+	// Enter in the password field sends the form (Tab would land on "Mostrar senha").
 	await page.keyboard.press('Enter');
 	await page.waitForURL((u) => !u.pathname.startsWith('/staff/login'));
 	await page.waitForLoadState('networkidle');

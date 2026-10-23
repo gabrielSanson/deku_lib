@@ -110,11 +110,10 @@
 			/>
 			{#if method === 'cash'}
 				<div>
-					<label class="label" for="received">{t('posPay.received')}</label>
-					<input
-						id="received"
+					<TextField
+						label={t('posPay.received')}
 						name="received"
-						class="field text-lg"
+						class="text-lg"
 						inputmode="decimal"
 						bind:value={received}
 					/>

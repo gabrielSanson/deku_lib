@@ -1952,6 +1952,11 @@ const CORE_TEXTS = {
 		label: 'Caixa: código do pedido iFood',
 		default: 'Código do pedido no iFood'
 	},
+	'pos.ifoodPaidHint': {
+		group: 'staff',
+		label: 'Caixa: aviso de pedido já pago no iFood',
+		default: 'Já pago no iFood. Confirme e atualize o pedido também no app do iFood.'
+	},
 	'pos.nameField': {
 		group: 'staff',
 		label: 'Caixa: campo nome ou mesa',

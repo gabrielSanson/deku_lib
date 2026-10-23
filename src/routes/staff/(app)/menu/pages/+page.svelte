@@ -1,4 +1,6 @@
 <script lang="ts">
+	import TextArea from '#lib/components/molecules/TextArea.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
@@ -22,16 +24,29 @@
 		<GuardedForm action="?/save" class="space-y-2 card p-4">
 			<input type="hidden" name="slug" value={p.slug} />
 			<div class="flex items-center justify-between gap-2">
-				<input class="field font-semibold" name="title" value={p.title} required maxlength={120} />
+				<TextField
+					label={t('sitePages.pageTitle', { title: p.title })}
+					hideLabel
+					id="title-{p.slug}"
+					wrapClass="flex-1"
+					class="font-semibold"
+					name="title"
+					value={p.title}
+					required
+					maxlength={120}
+				/>
 				<a class="btn-ghost min-h-9 text-sm whitespace-nowrap" href="/p/{p.slug}" target="_blank"
 					>{t('sitePages.view')}</a
 				>
 			</div>
-			<textarea
-				class="field min-h-36"
+			<TextArea
+				label={t('sitePages.text', { title: p.title })}
+				hideLabel
+				id="text-{p.slug}"
+				class="min-h-36"
 				name="text"
-				aria-label={t('sitePages.text', { title: p.title })}>{p.text}</textarea
-			>
+				value={p.text}
+			/>
 			<div class="flex items-center justify-between">
 				<Checkbox
 					label={t('sitePages.published')}

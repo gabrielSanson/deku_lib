@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
 	import { enhance } from '$app/forms';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -101,10 +102,11 @@
 				class="w-full sm:w-56"
 				inputClass="min-h-10"
 			/>
-			<select
-				class="field min-h-10 w-auto"
+			<SelectField
+				label={t('campaigns.period')}
+				hideLabel
+				class="min-h-10 w-auto"
 				name="dias"
-				aria-label={t('campaigns.period')}
 				onchange={(e) => e.currentTarget.form?.requestSubmit()}
 			>
 				{#each periods as d (d)}
@@ -112,7 +114,7 @@
 						>{d === 365 ? t('campaigns.periodYear') : t('campaigns.periodDays', { n: d })}</option
 					>
 				{/each}
-			</select>
+			</SelectField>
 		</form>
 	</div>
 

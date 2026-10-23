@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FileField from '#lib/components/molecules/FileField.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
@@ -194,15 +195,12 @@
 		<fieldset class="max-h-48 overflow-y-auto rounded-lg border border-line p-2">
 			<legend class="px-1 text-sm font-semibold">{label}</legend>
 			{#each type === 'products' ? data.products.map( (p) => ({ id: p.sku, name: p.name }) ) : data.categories as item (item.id)}
-				<label class="flex items-center gap-2 py-1 text-sm">
-					<input
-						type="checkbox"
-						class="size-4"
-						checked={ids.includes(item.id)}
-						onchange={() => onchange(toggle(ids, item.id))}
-					/>
-					{item.name}
-				</label>
+				<Checkbox
+					label={item.name}
+					class="text-sm"
+					checked={ids.includes(item.id)}
+					onchange={() => onchange(toggle(ids, item.id))}
+				/>
 			{/each}
 		</fieldset>
 	{/if}
@@ -249,16 +247,7 @@
 		</div>
 		<div class="flex flex-wrap items-center gap-3 sm:col-span-2">
 			{#if c?.imageUrl}<img src={c.imageUrl} alt="" class="size-16 rounded-lg object-cover" />{/if}
-			<div class="min-w-0 flex-1">
-				<label class="label" for="campaign-photo">{t('campaign.photo')}</label>
-				<input
-					id="campaign-photo"
-					class="field"
-					type="file"
-					name="photo"
-					accept="image/jpeg,image/png,image/webp"
-				/>
-			</div>
+			<FileField label={t('campaign.photo')} id="campaign-photo" wrapClass="min-w-0 flex-1" />
 			{#if c?.imageUrl}
 				<Checkbox label={t('campaign.removePhoto')} name="removePhoto" value="1" class="text-sm" />
 			{/if}
@@ -415,29 +404,30 @@
 				<div class="flex flex-wrap items-center gap-2 rounded-lg border border-line p-2">
 					{#each [0, 1, 2, 3, 4, 5, 6] as d (d)}
 						{@const day = label.weekday(d)}
-						<label class="flex items-center gap-1 text-xs">
-							<input
-								type="checkbox"
-								checked={w.days.includes(d)}
-								onchange={() =>
-									(w.days = w.days.includes(d)
-										? w.days.filter((x) => x !== d)
-										: [...w.days, d].sort())}
-							/>{day.slice(0, 3)}
-						</label>
+						<Checkbox
+							label={day.slice(0, 3)}
+							class="gap-1.5 text-xs"
+							checked={w.days.includes(d)}
+							onchange={() =>
+								(w.days = w.days.includes(d)
+									? w.days.filter((x) => x !== d)
+									: [...w.days, d].sort())}
+						/>
 					{/each}
-					<input
-						class="field w-28"
+					<TextField
+						label={t('campaign.from')}
+						hideLabel
+						class="w-28"
 						type="time"
 						bind:value={w.start}
-						aria-label={t('campaign.from')}
 					/>
 					<span class="text-sm">{t('campaign.to')}</span>
-					<input
-						class="field w-28"
+					<TextField
+						label={t('campaign.toLabel')}
+						hideLabel
+						class="w-28"
 						type="time"
 						bind:value={w.end}
-						aria-label={t('campaign.toLabel')}
 					/>
 					<button
 						type="button"

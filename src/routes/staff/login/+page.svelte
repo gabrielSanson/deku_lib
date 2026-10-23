@@ -2,12 +2,13 @@
 	import { enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import PasswordField from '#lib/components/molecules/PasswordField.svelte';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
 	let busy = $state(false);
-	let showPassword = $state(false);
 </script>
 
 <svelte:head><title>{t('staffLogin.tabTitle')}</title></svelte:head>
@@ -39,57 +40,27 @@
 			<p class="mt-1 text-sm text-muted">{t('staffLogin.subtitle')}</p>
 		</div>
 		{#if !data.configured}
-			<p class="alert-warn">
-				Configure PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY para habilitar o login.
-			</p>
+			<p class="alert-warn">{t('staffLogin.notConfigured')}</p>
 		{/if}
 		<FormError message={form?.error} />
-		<div>
-			<label class="label" for="email">{t('staffLogin.email')}</label>
-			<div class="relative">
-				<Icon
-					name="mail"
-					class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
-				/>
-				<input
-					class="field pl-10"
-					id="email"
-					name="email"
-					type="email"
-					autocomplete="username"
-					placeholder={t('staffLogin.emailPlaceholder')}
-					required
-					value={form?.email ?? ''}
-				/>
-			</div>
-		</div>
-		<div>
-			<label class="label" for="password">{t('staffLogin.password')}</label>
-			<div class="relative">
-				<Icon
-					name="lock"
-					class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-stone-400"
-				/>
-				<input
-					class="field pr-12 pl-10"
-					id="password"
-					name="password"
-					type={showPassword ? 'text' : 'password'}
-					autocomplete="current-password"
-					placeholder={t('staffLogin.passwordPlaceholder')}
-					required
-				/>
-				<button
-					type="button"
-					class="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-(--radius-control) text-stone-500 hover:text-ink"
-					aria-label={showPassword ? t('staffLogin.hide') : t('staffLogin.show')}
-					aria-pressed={showPassword}
-					onclick={() => (showPassword = !showPassword)}
-				>
-					<Icon name={showPassword ? 'eyeOff' : 'eye'} class="size-5" />
-				</button>
-			</div>
-		</div>
+		<TextField
+			label={t('staffLogin.email')}
+			name="email"
+			type="email"
+			icon="mail"
+			autocomplete="username"
+			placeholder={t('staffLogin.emailPlaceholder')}
+			required
+			value={form?.email ?? ''}
+		/>
+		<PasswordField
+			label={t('staffLogin.password')}
+			showLabel={t('staffLogin.show')}
+			hideLabel={t('staffLogin.hide')}
+			autocomplete="current-password"
+			placeholder={t('staffLogin.passwordPlaceholder')}
+			required
+		/>
 		<button class="relative btn-primary w-full" disabled={busy}>
 			{busy ? t('staffLogin.busy') : t('staffLogin.submit')}
 			<Icon name="arrow" class="absolute right-4 size-5" />
