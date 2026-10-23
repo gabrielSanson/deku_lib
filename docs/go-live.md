@@ -61,6 +61,28 @@ customer sees in Configurações → Textos.
 - Run a backup and a restore drill ([deploy/README.md](../deploy/README.md#backups)).
 - Run the [smoke tests](#6-smoke-tests).
 
+## 4a. Cash drawer and printing
+
+**Gaveta (Operação → Gaveta).** Open the drawer at the start of the day with the
+change float. Cash sales are refused while it is closed. Record cash taken out
+(sangria, with a reason) or put in (suprimento) there. To close, count all the
+cash in the drawer and type the total: the difference against what the system
+expected shows only after closing and cannot be edited. Admins see the expected
+amount while the drawer is open; Caixa do dia lists each day's sessions.
+
+**Printing.** Any 80 mm thermal printer that the shop PC can print to works.
+
+1. Install the printer's Windows driver and set paper width to 80 mm and margins to 0.
+2. Make it the default printer on the PC that shows the kitchen screen.
+3. Start Chrome or Edge with `--kiosk-printing` (add it to the shortcut, as for the
+   totem in [totem.md](totem.md)) so tickets print without a dialog.
+4. On `/kitchen`, tap **Impressão desligada** to turn on automatic tickets: each new
+   order prints once on that PC. Orders already on the screen are not reprinted.
+
+Staff can also print the kitchen ticket or the customer receipt from any order
+page (**Imprimir comanda**, **Imprimir recibo**) and the receipt right after a
+counter sale. The receipt says it is not a fiscal document.
+
 ## 5. Optional parts
 
 ### iFood
@@ -121,6 +143,8 @@ to the order. Another PSP is one more `PaymentProvider` in `src/lib/server/payme
 - [ ] Pause the store in Configurações → Loja. The site refuses new orders, and reopening works.
 - [ ] Edit a product's price and photo. The site and the POS show the change.
 - [ ] Mark an item sold out. It shows as sold out on the site and is disabled in the POS.
+- [ ] Open the drawer with a float, sell in cash, record a sangria, then close it with a blind count. The difference is right and shows in Caixa do dia.
+- [ ] With automatic printing on, a new order prints one kitchen ticket; reloading the kitchen screen does not reprint it.
 - [ ] `/staff/reconciliation` for today matches the drawer count.
 - [ ] Analytics CSV export opens in a spreadsheet with correct accents.
 - [ ] Install the KDS on the kitchen tablet ("Add to home screen" on `/kitchen`).

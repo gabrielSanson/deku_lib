@@ -45,7 +45,8 @@ export default defineConfig(({ mode }) => {
 						],
 						'worker-src': ['self'],
 						'manifest-src': ['self'],
-						'frame-ancestors': ['none'],
+						// Same origin only: the kitchen screen prints tickets from a hidden frame.
+						'frame-ancestors': ['self'],
 						'base-uri': ['self'],
 						'form-action': ['self'],
 						'object-src': ['none']

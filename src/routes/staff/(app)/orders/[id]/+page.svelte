@@ -43,6 +43,16 @@
 			<h1 class="page-title">#{o.orderNumber}</h1>
 			<StatusBadge status={o.status} />
 			<PaymentBadge status={o.paymentStatus} />
+			<span class="ml-auto flex gap-2">
+				<a
+					class="btn-secondary min-h-9"
+					href="/staff/print/{o.id}?tipo=cozinha&auto"
+					target="_blank">{t('orderDetail.printKitchen')}</a
+				>
+				<a class="btn-secondary min-h-9" href="/staff/print/{o.id}?tipo=recibo&auto" target="_blank"
+					>{t('orderDetail.printReceipt')}</a
+				>
+			</span>
 		</div>
 		<p class="text-sm text-muted">
 			{t('orderDetail.meta', {

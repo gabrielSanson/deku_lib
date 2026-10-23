@@ -39,6 +39,11 @@
 				</div>{/if}
 		{/each}
 	</div>
+	<a
+		class="btn-secondary w-full"
+		href="/staff/print/{data.order.id}?tipo=recibo&auto"
+		target="_blank">Imprimir recibo</a
+	>
 	<a class="btn-primary w-full text-lg" href="/staff/pos">Nova venda</a>
 	<a class="btn-ghost w-full" href="/staff/orders/{data.order.id}">Ver detalhes do pedido</a>
 </main>

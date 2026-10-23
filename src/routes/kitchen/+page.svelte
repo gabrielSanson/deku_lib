@@ -11,6 +11,12 @@
 	const t = useTexts();
 
 	let muted = $state(false);
+	// Automatic kitchen tickets: this screen's browser prints each new order once.
+	// Remembered per device; with Chrome's --kiosk-printing flag no dialog appears.
+	const PRINT_KEY = 'deku-auto-print';
+	const PRINTED_KEY = 'deku-printed';
+	let autoPrint = $state(false);
+	let printQueue = Promise.resolve();
 	let station = $state('all');
 	let known = new Set<string>();
 	let knownReady = new Set<string>();
@@ -42,11 +48,66 @@
 
 	const readyChime = () => chime([1320, 990, 660]);
 
+	function readPrinted(): string[] {
+		try {
+			return JSON.parse(localStorage.getItem(PRINTED_KEY) ?? '[]');
+		} catch {
+			return [];
+		}
+	}
+
+	function markPrinted(ids: string[]) {
+		try {
+			const all = [...new Set([...readPrinted(), ...ids])].slice(-300);
+			localStorage.setItem(PRINTED_KEY, JSON.stringify(all));
+		} catch {
+			/* storage blocked: tickets may print again after a reload */
+		}
+	}
+
+	/** Prints the kitchen ticket in a hidden frame, one at a time, never twice on this device. */
+	function printOnce(id: string) {
+		if (readPrinted().includes(id)) return;
+		markPrinted([id]);
+		printQueue = printQueue.then(
+			() =>
+				new Promise<void>((done) => {
+					const frame = document.createElement('iframe');
+					frame.style.cssText = 'position:fixed;width:0;height:0;border:0;right:0;bottom:0';
+					frame.src = `/staff/print/${id}?tipo=cozinha&auto`;
+					frame.onload = () => {
+						try {
+							frame.contentWindow?.print();
+						} finally {
+							setTimeout(() => {
+								frame.remove();
+								done();
+							}, 1500);
+						}
+					};
+					document.body.append(frame);
+				})
+		);
+	}
+
+	function toggleAutoPrint() {
+		autoPrint = !autoPrint;
+		try {
+			localStorage.setItem(PRINT_KEY, autoPrint ? '1' : '0');
+		} catch {
+			/* not remembered after a reload */
+		}
+		// Turning it on prints only what arrives from now on, not the whole queue.
+		if (autoPrint)
+			markPrinted(data.orders.filter((o) => o.status === 'confirmed').map((o) => o.id));
+	}
+
 	// Chime once per order that enters the queue, turns ready or is called after the screen loaded.
 	$effect(() => {
 		const ids = data.orders.filter((o) => o.status === 'confirmed').map((o) => o.id);
 		const ready = data.orders.filter((o) => o.status === 'ready');
 		const calls = new Map(ready.map((o) => [o.id, o.calledAt ? +new Date(o.calledAt) : 0]));
+		if (autoPrint) for (const id of ids) printOnce(id);
 		if (primed) {
 			if (
 				ready.some((o) => !knownReady.has(o.id)) ||
@@ -62,6 +123,11 @@
 	});
 
 	onMount(() => {
+		try {
+			autoPrint = localStorage.getItem(PRINT_KEY) === '1';
+		} catch {
+			/* storage blocked: stays off */
+		}
 		const tick = setInterval(() => (now = Date.now()), 1000);
 		// Keep the TV or tablet awake; the lock drops when the tab is hidden, so take it again.
 		let lock: WakeLockSentinel | null = null;
@@ -174,6 +240,11 @@
 				muted = !muted;
 				if (!muted) chime();
 			}}>{muted ? t('kitchen.sound.off') : t('kitchen.sound.on')}</button
+		>
+		<button
+			class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
+			aria-pressed={autoPrint}
+			onclick={toggleAutoPrint}>{autoPrint ? t('kitchen.print.on') : t('kitchen.print.off')}</button
 		>
 		{#if data.staff.role === 'kitchen'}
 			<form method="POST" action="/staff/logout">

@@ -1388,6 +1388,16 @@ export const TEXTS = {
 		label: 'Pedidos: título da aba do navegador',
 		default: 'Pedidos · Equipe'
 	},
+	'orderDetail.printKitchen': {
+		group: 'staff',
+		label: 'Pedido: imprimir comanda',
+		default: 'Imprimir comanda'
+	},
+	'orderDetail.printReceipt': {
+		group: 'staff',
+		label: 'Pedido: imprimir recibo',
+		default: 'Imprimir recibo'
+	},
 	'orderDetail.back': {
 		group: 'staff',
 		label: 'Pedido: voltar',
@@ -2010,6 +2020,16 @@ export const TEXTS = {
 		default: 'Atualizado {time}'
 	},
 	'kitchen.sound.on': { group: 'staff', label: 'Cozinha: som ligado', default: '🔔 Som ligado' },
+	'kitchen.print.on': {
+		group: 'staff',
+		label: 'Cozinha: impressão automática ligada',
+		default: '🖨 Imprimindo novos'
+	},
+	'kitchen.print.off': {
+		group: 'staff',
+		label: 'Cozinha: impressão automática desligada',
+		default: '🖨 Impressão desligada'
+	},
 	'kitchen.sound.off': {
 		group: 'staff',
 		label: 'Cozinha: som desligado',

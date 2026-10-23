@@ -62,7 +62,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
 	response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
 	if (isStaff) {
-		response.headers.set('x-frame-options', 'DENY');
+		// Tickets are printed from a hidden frame on the kitchen screen; nothing else may be framed.
+		response.headers.set(
+			'x-frame-options',
+			path.startsWith('/staff/print/') ? 'SAMEORIGIN' : 'DENY'
+		);
 		response.headers.set('cache-control', 'no-store');
 	}
 	return response;
