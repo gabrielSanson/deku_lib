@@ -401,6 +401,41 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Aparência: fundo (dica)',
 		default: 'Atrás do cardápio.'
 	},
+	'look.contrast.title': {
+		group: g,
+		label: 'Aparência: aviso de contraste',
+		default: 'Pouco contraste. Estes textos ficariam difíceis de ler (mínimo 4,5:1):'
+	},
+	'look.contrast.ratio': {
+		group: g,
+		label: 'Aparência: contraste medido',
+		default: '{ratio}'
+	},
+	'look.contrast.onPrimary': {
+		group: g,
+		label: 'Aparência: par botões',
+		default: 'Texto preto na cor principal (botões)'
+	},
+	'look.contrast.onDark': {
+		group: g,
+		label: 'Aparência: par topo',
+		default: 'Texto branco na cor escura (topo e rodapé)'
+	},
+	'look.contrast.primaryOnDark': {
+		group: g,
+		label: 'Aparência: par destaques',
+		default: 'Cor principal sobre a cor escura (preços e destaques)'
+	},
+	'look.contrast.inkOnBackground': {
+		group: g,
+		label: 'Aparência: par texto',
+		default: 'Texto do site sobre o fundo da página'
+	},
+	'look.contrast.mutedOnBackground': {
+		group: g,
+		label: 'Aparência: par texto secundário',
+		default: 'Texto secundário sobre o fundo da página'
+	},
 	'look.saveColors': { group: g, label: 'Aparência: salvar cores', default: 'Salvar cores' },
 	'look.resetColors': {
 		group: g,

@@ -2,18 +2,31 @@
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { contrastFailures, type ContrastPairId } from '#lib/domain/contrast.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
 	const look = $derived(data.look);
 
-	// Follows the saved colours, and the colour pickers edit it locally until saved.
+	// Follows the saved colours, and the colour pickers replace it locally until saved (a
+	// derived object is not deeply reactive, so the pickers reassign it rather than bind).
 	let colors = $derived({
 		primary: look.colors.primary ?? data.defaults.primary,
 		dark: look.colors.dark ?? data.defaults.dark,
 		background: look.colors.background ?? data.defaults.background
 	});
+
+	// Checked as the pickers move; saving with a failing pair is refused by the server too.
+	const fails = $derived(contrastFailures(colors));
+	const pairLabel: Record<ContrastPairId, string> = {
+		onPrimary: t('look.contrast.onPrimary'),
+		onDark: t('look.contrast.onDark'),
+		primaryOnDark: t('look.contrast.primaryOnDark'),
+		inkOnBackground: t('look.contrast.inkOnBackground'),
+		mutedOnBackground: t('look.contrast.mutedOnBackground')
+	};
+	const ratio = (r: number) => `${String(r).replace('.', ',')}:1`;
 
 	const colorFields = [
 		{ key: 'primary', label: t('look.primary'), hint: t('look.primaryHint') },
@@ -71,13 +84,26 @@
 							type="color"
 							name={c.key}
 							class="h-11 w-14 cursor-pointer rounded border border-line bg-surface"
-							bind:value={colors[c.key]}
+							value={colors[c.key]}
+							oninput={(e) => (colors = { ...colors, [c.key]: e.currentTarget.value })}
 						/>
 						<code class="text-sm">{colors[c.key]}</code>
 					</div>
 					<p class="mt-1 text-xs text-muted">{c.hint}</p>
 				</div>
 			{/each}
+		</div>
+		<div role="status" aria-live="polite">
+			{#if fails.length}
+				<div class="space-y-1 alert-error">
+					<p class="font-semibold">{t('look.contrast.title')}</p>
+					<ul class="list-disc pl-5 text-sm">
+						{#each fails as f (f.id)}
+							<li>{pairLabel[f.id]}: {t('look.contrast.ratio', { ratio: ratio(f.ratio) })}</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<button class="btn-primary">{t('look.saveColors')}</button>

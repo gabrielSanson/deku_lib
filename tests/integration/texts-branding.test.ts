@@ -89,6 +89,13 @@ describe('branding', () => {
 		).rejects.toThrow(DomainError);
 	});
 
+	it('refuses colours that leave text unreadable and says which', async () => {
+		await expect(
+			saveColors({ primary: '#1d3557', dark: null, background: null }, owner)
+		).rejects.toThrow(/texto preto na cor principal \(botões\) \(\d,\d:1\)/);
+		expect((await getBranding(db(), { fresh: true })).colors.primary).toBe('#e63946');
+	});
+
 	it('uses an uploaded logo and goes back to the default', async () => {
 		const path = `${'a'.repeat(32)}.png`;
 		await setBrandImage('logo', path, owner);

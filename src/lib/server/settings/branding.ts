@@ -1,5 +1,6 @@
 // The shop's look: brand colours, logos and app icon, edited by the owner.
 // Anything not set falls back to the Deku Burger brand files in static/brand.
+import { CONTRAST_LABELS_PT, contrastFailures } from '../../domain/contrast';
 import { audit, type Actor } from '../audit';
 import { menuImageUrl } from '../catalog/images';
 import { db, type Db } from '../db';
@@ -89,6 +90,18 @@ export async function saveColors(input: Record<ColorKey, string | null>, actor: 
 		const v = input[k]?.trim().toLowerCase() || null;
 		if (v !== null && !HEX.test(v)) throw new DomainError('Cor inválida. Use o formato #RRGGBB.');
 		next[k] = v === DEFAULT_COLORS[k] ? null : v;
+	}
+	// Refuse colours that would make storefront text unreadable, naming each pair.
+	const fails = contrastFailures({
+		primary: next.primary ?? DEFAULT_COLORS.primary,
+		dark: next.dark ?? DEFAULT_COLORS.dark,
+		background: next.background ?? DEFAULT_COLORS.background
+	});
+	if (fails.length) {
+		const list = fails
+			.map((f) => `${CONTRAST_LABELS_PT[f.id]} (${String(f.ratio).replace('.', ',')}:1)`)
+			.join('; ');
+		throw new DomainError(`Pouco contraste, mínimo 4,5:1: ${list}.`);
 	}
 	await db().begin(async (tx) => {
 		await tx`update store_branding set color_primary = ${next.primary}, color_dark = ${next.dark},
