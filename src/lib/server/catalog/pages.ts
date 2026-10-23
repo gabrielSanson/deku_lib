@@ -1,6 +1,7 @@
 // Customer-facing pages, stored as a constrained list of text blocks (no raw
 // HTML or scripts) and edited in the staff area. Until a page is edited, the
-// default below is served.
+// default below is served; once saved, the saved row decides, so an unpublished
+// page is a 404 rather than the default.
 import { z } from 'zod';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
@@ -65,12 +66,14 @@ export const pageBlocks = z
 
 export async function getPage(slug: string, sql: Db = db()): Promise<ContentPage | null> {
 	if (!/^[a-z0-9-]+$/.test(slug)) return null;
-	try {
-		const [row] = await sql<{ slug: string; title: string; blocks: unknown }[]>`
-			select slug, title, blocks from content_pages where slug = ${slug} and published`;
-		if (row) return { slug: row.slug, title: row.title, blocks: pageBlocks.parse(row.blocks) };
-	} catch (err) {
-		console.error(JSON.stringify({ msg: 'page load failed', slug, err: String(err) }));
+	// A failed query is an error, not a reason to show the default: the saved page
+	// may be unpublished on purpose.
+	const [row] = await sql<
+		{ slug: string; title: string; blocks: unknown; published: boolean }[]
+	>`select slug, title, blocks, published from content_pages where slug = ${slug}`;
+	if (row) {
+		if (!row.published) return null;
+		return { slug: row.slug, title: row.title, blocks: pageBlocks.parse(row.blocks) };
 	}
 	return DEFAULTS[slug] ?? null;
 }

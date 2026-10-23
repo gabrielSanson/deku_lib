@@ -163,6 +163,20 @@ describe('menu editor', () => {
 			{ type: 'paragraph', text: 'Burgers <b>na chapa</b>.' }
 		]);
 	});
+
+	it('hides an unpublished page instead of serving its default', async () => {
+		expect((await getPage('entrega'))?.title).toBe('Entrega, cancelamento e reembolso');
+		await savePage(
+			{ slug: 'entrega', title: 'Entrega', text: 'Só retirada.', published: false },
+			owner
+		);
+		expect(await getPage('entrega')).toBeNull();
+		await savePage(
+			{ slug: 'entrega', title: 'Entrega', text: 'Só retirada.', published: true },
+			owner
+		);
+		expect((await getPage('entrega'))?.title).toBe('Entrega');
+	});
 });
 
 describe('Pix with the shop key', () => {
