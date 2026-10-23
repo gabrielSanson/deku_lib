@@ -51,7 +51,7 @@
 		return () => clearTimeout(qTimer);
 	});
 	function setParam(key: string, value: string | null) {
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		if (value) url.searchParams.set(key, value);
 		else url.searchParams.delete(key);
 		if (url.search === page.url.search) return;
