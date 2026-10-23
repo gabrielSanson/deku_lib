@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -17,19 +18,22 @@
 	let confirmDelete = $state(false);
 	const add = () =>
 		rows.push({ sku: '', name: '', priceCents: 0, price: '', maxQuantity: 1, active: true });
+	const t = useTexts();
 </script>
 
-<svelte:head><title>{data.isNew ? 'Novo grupo' : g.name} · Cardápio</title></svelte:head>
+<svelte:head
+	><title>{t('group.tabTitle', { name: data.isNew ? t('group.new') : g.name })}</title></svelte:head
+>
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
-	<a class="btn-ghost min-h-9" href="/staff/menu/edit">← Cardápio</a>
-	<h1 class="page-title">{data.isNew ? 'Novo grupo de opções' : g.name}</h1>
+	<a class="btn-ghost min-h-9" href="/staff/menu/edit">{t('menuEdit.back')}</a>
+	<h1 class="page-title">{data.isNew ? t('group.newTitle') : g.name}</h1>
 	<FormError message={form?.error} />
-	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">Salvo.</p>{/if}
+	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('group.saved')}</p>{/if}
 
 	<form method="POST" action="?/save" use:enhance class="space-y-4 card p-4">
 		<div>
-			<label class="label" for="name">Nome do grupo</label>
+			<label class="label" for="name">{t('group.name')}</label>
 			<input
 				class="field"
 				id="name"
@@ -37,12 +41,12 @@
 				value={g.name}
 				required
 				maxlength="80"
-				placeholder="Adicionais"
+				placeholder={t('group.namePlaceholder')}
 			/>
 		</div>
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label class="label" for="min">Mínimo de escolhas</label>
+				<label class="label" for="min">{t('group.min')}</label>
 				<input
 					class="field"
 					id="min"
@@ -52,10 +56,10 @@
 					max="20"
 					value={g.minSelections}
 				/>
-				<p class="mt-1 text-xs text-muted">0 = opcional. 1 = obrigatório (ex.: ponto da carne).</p>
+				<p class="mt-1 text-xs text-muted">{t('group.minHint')}</p>
 			</div>
 			<div>
-				<label class="label" for="max">Máximo de escolhas</label>
+				<label class="label" for="max">{t('group.max')}</label>
 				<input
 					class="field"
 					id="max"
@@ -69,23 +73,23 @@
 		</div>
 
 		<fieldset class="space-y-2">
-			<legend class="label">Opções</legend>
+			<legend class="label">{t('group.options')}</legend>
 			{#each rows as row, i (i)}
 				<div
 					class="grid grid-cols-[1fr_7rem_5rem] items-end gap-2 rounded-lg border border-line p-2 sm:grid-cols-[1fr_7rem_5rem_auto]"
 				>
 					<input type="hidden" name="optionSku" value={row.sku} />
 					<label class="text-xs text-muted"
-						>Nome<input
+						>{t('group.optionName')}<input
 							class="field"
 							name="optionName"
 							bind:value={row.name}
 							maxlength="80"
-							placeholder="Bacon"
+							placeholder={t('group.optionNamePlaceholder')}
 						/></label
 					>
 					<label class="text-xs text-muted"
-						>Preço extra<input
+						>{t('group.optionPrice')}<input
 							class="field"
 							name="optionPrice"
 							bind:value={row.price}
@@ -94,7 +98,7 @@
 						/></label
 					>
 					<label class="text-xs text-muted"
-						>Até<input
+						>{t('group.optionMax')}<input
 							class="field"
 							name="optionMax"
 							type="number"
@@ -111,43 +115,47 @@
 								name="optionActive"
 								value={String(i)}
 								bind:checked={row.active}
-							/> Ativa</label
+							/>
+							{t('group.optionActive')}</label
 						>
 						<button
 							type="button"
 							class="btn-ghost min-h-9 text-sm text-bad"
 							onclick={() => rows.splice(i, 1)}
-							aria-label="Remover {row.name || 'opção'}">Remover</button
+							aria-label={t('group.removeOption', { name: row.name || t('group.option') })}
+							>{t('group.remove')}</button
 						>
 					</div>
-					{#if row.sku}<p class="col-span-full text-xs text-muted">Código: {row.sku}</p>{/if}
+					{#if row.sku}<p class="col-span-full text-xs text-muted">
+							{t('group.code', { sku: row.sku })}
+						</p>{/if}
 				</div>
 			{/each}
 			<button type="button" class="btn-secondary min-h-9 text-sm" onclick={add}
-				>Adicionar opção</button
+				>{t('group.addOption')}</button
 			>
 		</fieldset>
-		<button class="btn-primary w-full">Salvar</button>
+		<button class="btn-primary w-full">{t('menuEdit.save')}</button>
 	</form>
 
 	{#if !data.isNew}
 		<section class="space-y-2 card p-4 text-sm">
 			<p>
-				Usado em:
+				{t('group.usedBy')}
 				{#each data.usedBy as p, i (p.sku)}<a class="underline" href="/staff/menu/products/{p.sku}"
 						>{p.name}</a
-					>{i < data.usedBy.length - 1 ? ', ' : ''}{:else}nenhum produto{/each}
+					>{i < data.usedBy.length - 1 ? ', ' : ''}{:else}{t('group.noProduct')}{/each}
 			</p>
 			{#if confirmDelete}
 				<form method="POST" action="?/delete" use:enhance class="flex gap-2">
-					<button class="btn-danger">Apagar grupo</button>
+					<button class="btn-danger">{t('group.delete')}</button>
 					<button type="button" class="btn-ghost" onclick={() => (confirmDelete = false)}
-						>Cancelar</button
+						>{t('menuEdit.cancel')}</button
 					>
 				</form>
 			{:else}
 				<button class="btn-ghost text-bad" onclick={() => (confirmDelete = true)}
-					>Apagar grupo…</button
+					>{t('group.deleteAsk')}</button
 				>
 			{/if}
 		</section>

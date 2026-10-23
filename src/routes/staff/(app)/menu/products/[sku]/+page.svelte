@@ -18,9 +18,9 @@
 	);
 	const p = $derived(data.product);
 	const channels = [
-		{ id: 'counter', label: 'Caixa' },
-		{ id: 'web', label: 'Site' },
-		{ id: 'ifood', label: 'iFood' }
+		{ id: 'counter', label: t('product.channel.counter') },
+		{ id: 'web', label: t('product.channel.web') },
+		{ id: 'ifood', label: t('product.channel.ifood') }
 	];
 	let busy = $state(false);
 	let confirmDelete = $state(false);
@@ -55,16 +55,19 @@
 	}
 </script>
 
-<svelte:head><title>{data.isNew ? 'Novo produto' : p.name} · Cardápio</title></svelte:head>
+<svelte:head
+	><title>{t('product.tabTitle', { name: data.isNew ? t('product.new') : p.name })}</title
+	></svelte:head
+>
 
 <main class="mx-auto max-w-2xl space-y-4 p-4">
-	<a class="btn-ghost min-h-9" href="/staff/menu/edit">← Cardápio</a>
-	<h1 class="page-title">{data.isNew ? 'Novo produto' : p.name}</h1>
+	<a class="btn-ghost min-h-9" href="/staff/menu/edit">{t('menuEdit.back')}</a>
+	<h1 class="page-title">{data.isNew ? t('product.new') : p.name}</h1>
 	<FormError message={form?.error} />
-	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">Salvo.</p>{/if}
+	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('product.saved')}</p>{/if}
 
-	<section class="card p-4" aria-label="Como aparece no cardápio">
-		<p class="mb-3 section-label">Como aparece no cardápio</p>
+	<section class="card p-4" aria-label={t('product.preview')}>
+		<p class="mb-3 section-label">{t('product.preview')}</p>
 		<div class="flex gap-3">
 			{#if preview || p.imageUrl}
 				<img src={preview ?? p.imageUrl} alt="" class="size-24 shrink-0 rounded-lg object-cover" />
@@ -72,11 +75,11 @@
 				<div
 					class="grid size-24 shrink-0 place-items-center rounded-lg bg-night text-xs text-stone-400"
 				>
-					Sem foto
+					{t('product.noPhoto')}
 				</div>
 			{/if}
 			<div class="min-w-0">
-				<p class="font-bold">{live.name || 'Nome do produto'}</p>
+				<p class="font-bold">{live.name || t('product.namePlaceholder')}</p>
 				<p class="line-clamp-2 text-sm text-muted">{live.description}</p>
 				<Money cents={parseBRL(live.price) ?? 0} class="mt-1 block font-black" />
 			</div>
@@ -92,27 +95,28 @@
 		use:enhance={() => {
 			busy = true;
 			guard.saving();
-			return async ({ update }) => {
+			return async ({ result, update }) => {
 				await update({ reset: false });
 				busy = false;
-				guard.saved();
+				if (result.type === 'success' || result.type === 'redirect') guard.saved();
+				else guard.failed();
 			};
 		}}
 		class="space-y-4 card p-4"
 	>
 		<div>
-			<label class="label" for="name">Nome</label>
+			<label class="label" for="name">{t('product.name')}</label>
 			<input class="field" id="name" name="name" value={p.name} required maxlength="120" />
 		</div>
 		<div>
-			<label class="label" for="description">Descrição</label>
+			<label class="label" for="description">{t('product.description')}</label>
 			<textarea class="field min-h-20" id="description" name="description" maxlength="600"
 				>{p.description}</textarea
 			>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
 			<div>
-				<label class="label" for="price">Preço (R$)</label>
+				<label class="label" for="price">{t('product.price')}</label>
 				<input
 					class="field"
 					id="price"
@@ -124,25 +128,25 @@
 				/>
 			</div>
 			<div>
-				<label class="label" for="categoryId">Categoria</label>
+				<label class="label" for="categoryId">{t('product.category')}</label>
 				<select class="field" id="categoryId" name="categoryId" value={p.categoryId}>
 					{#each data.categories as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
 				</select>
 			</div>
 			<div>
-				<label class="label" for="prepStation">Preparado em</label>
+				<label class="label" for="prepStation">{t('product.station')}</label>
 				<select class="field" id="prepStation" name="prepStation" value={p.prepStation}>
 					{#each data.stations as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
 				</select>
 			</div>
 			<div>
-				<label class="label" for="position">Ordem na categoria</label>
+				<label class="label" for="position">{t('product.position')}</label>
 				<input class="field" id="position" name="position" type="number" value={p.position} />
 			</div>
 		</div>
 
 		<fieldset>
-			<legend class="label">Foto</legend>
+			<legend class="label">{t('product.photo')}</legend>
 			<div class="flex items-center gap-3">
 				{#if preview || p.imageUrl}
 					<img src={preview ?? p.imageUrl} alt="" class="size-20 rounded-lg object-cover" />
@@ -157,16 +161,17 @@
 			</div>
 			{#if p.imageUrl}
 				<label class="mt-2 flex items-center gap-2 text-sm"
-					><input type="checkbox" name="removePhoto" value="1" /> Remover foto</label
+					><input type="checkbox" name="removePhoto" value="1" />
+					{t('product.removePhoto')}</label
 				>
 			{/if}
 			<p class="mt-1 text-xs text-muted">
-				JPG, PNG ou WebP, até 5 MB. A foto é cortada no centro no formato do cardápio (4:3).
+				{t('product.photoHint')}
 			</p>
 		</fieldset>
 
 		<fieldset>
-			<legend class="label">Vender em</legend>
+			<legend class="label">{t('product.channels')}</legend>
 			<div class="flex flex-wrap gap-4">
 				{#each channels as c (c.id)}
 					<label class="flex min-h-11 items-center gap-2"
@@ -185,7 +190,7 @@
 
 		{#if data.groups.length}
 			<fieldset>
-				<legend class="label">Grupos de opções</legend>
+				<legend class="label">{t('product.groups')}</legend>
 				<div class="flex flex-wrap gap-4">
 					{#each data.groups as g (g.id)}
 						<label class="flex min-h-11 items-center gap-2"
@@ -204,11 +209,10 @@
 		{/if}
 
 		<fieldset>
-			<legend class="label">Ingredientes</legend>
+			<legend class="label">{t('product.ingredients')}</legend>
 			{#if data.ingredients.length}
 				<p class="mb-2 text-xs text-muted">
-					Marque o que vai no produto. "Cliente pode retirar" mostra a opção "sem" no site e no
-					caixa. Quando um ingrediente que não pode ser retirado acaba, o produto fica indisponível.
+					{t('product.ingredientsHint')}
 				</p>
 				<ul class="divide-y divide-line rounded-lg border border-line">
 					{#each data.ingredients as ing (ing.id)}
@@ -236,60 +240,59 @@
 									name="removable"
 									value={ing.id}
 									checked={current?.removable ?? true}
-								/> Cliente pode retirar</label
+								/>
+								{t('product.removable')}</label
 							>
 						</li>
 					{/each}
 				</ul>
 			{:else}
 				<p class="text-sm text-muted">
-					Nenhum ingrediente cadastrado. Cadastre em <a
-						class="underline"
-						href="/staff/menu/ingredients">Ingredientes</a
-					>.
+					{t('product.noIngredients')}
+					<a class="underline" href="/staff/menu/ingredients">{t('product.ingredientsLink')}</a>.
 				</p>
 			{/if}
 		</fieldset>
 
 		<div>
-			<label class="label" for="allergens"
-				>Outros alergênicos (separados por vírgula; os dos ingredientes entram sozinhos)</label
-			>
+			<label class="label" for="allergens">{t('product.allergens')}</label>
 			<input
 				class="field"
 				id="allergens"
 				name="allergens"
 				value={p.allergens.join(', ')}
-				placeholder="glúten, lactose"
+				placeholder={t('product.allergensPlaceholder')}
 			/>
 		</div>
 
 		{#if data.isNew}
 			<div>
-				<label class="label" for="sku">Código (SKU), opcional</label>
+				<label class="label" for="sku">{t('product.sku')}</label>
 				<input
 					class="field uppercase"
 					id="sku"
 					name="sku"
 					maxlength="40"
 					pattern="[A-Za-z0-9-]+"
-					placeholder="Gerado a partir do nome"
+					placeholder={t('product.skuPlaceholder')}
 				/>
 				<p class="mt-1 text-xs text-muted">
-					Use o mesmo código como "código externo" no cardápio do iFood. Não pode ser mudado depois.
+					{t('product.skuHint')}
 				</p>
 			</div>
 		{:else}
 			<p class="text-sm text-muted">
-				Código (SKU): <strong>{p.sku}</strong>. Use este código como "código externo" no cardápio do
-				iFood.
+				{t('product.skuShow', { sku: p.sku })}
 			</p>
 		{/if}
 
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="active" checked={p.active} /> Mostrar no cardápio</label
+			><input type="checkbox" class="size-5" name="active" checked={p.active} />
+			{t('product.active')}</label
 		>
-		<button class="btn-primary w-full" disabled={busy}>{busy ? 'Salvando…' : 'Salvar'}</button>
+		<button class="btn-primary w-full" disabled={busy}
+			>{busy ? t('product.saving') : t('product.save')}</button
+		>
 	</form>
 
 	{#if !data.isNew}
@@ -297,19 +300,18 @@
 			{#if confirmDelete}
 				<form method="POST" action="?/delete" use:enhance class="space-y-2">
 					<p class="text-sm">
-						Apagar <strong>{p.name}</strong>? Pedidos antigos continuam com o nome e o preço da
-						época. Para tirar do cardápio por um tempo, desmarque "Mostrar no cardápio".
+						{t('product.deleteText', { name: p.name })}
 					</p>
 					<div class="flex gap-2">
-						<button class="btn-danger">Apagar produto</button>
+						<button class="btn-danger">{t('product.delete')}</button>
 						<button type="button" class="btn-ghost" onclick={() => (confirmDelete = false)}
-							>Cancelar</button
+							>{t('product.cancel')}</button
 						>
 					</div>
 				</form>
 			{:else}
 				<button class="btn-ghost text-bad" onclick={() => (confirmDelete = true)}
-					>Apagar produto…</button
+					>{t('product.deleteAsk')}</button
 				>
 			{/if}
 		</section>

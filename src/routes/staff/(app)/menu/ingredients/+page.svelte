@@ -1,21 +1,22 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 
 	let { data, form } = $props();
 	let editing = $state<string | null>(null);
 	let confirming = $state<string | null>(null);
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Ingredientes · Cardápio</title></svelte:head>
+<svelte:head><title>{t('ingredients.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-3xl space-y-4 p-4">
 	<div>
-		<h1 class="page-title">Ingredientes</h1>
+		<h1 class="page-title">{t('ingredients.title')}</h1>
 		<p class="text-sm text-muted">
-			Cadastre aqui o que vai nos produtos e marque em cada produto quais ingredientes ele usa. Os
-			alergênicos dos ingredientes aparecem sozinhos no produto. Quando um ingrediente acabar,
-			marque em <a class="underline" href="/staff/menu">Disponibilidade</a>.
+			{t('ingredients.introBefore')}
+			<a class="underline" href="/staff/menu">{t('ingredients.availability')}</a>.
 		</p>
 	</div>
 	<FormError message={form?.error} />
@@ -27,26 +28,31 @@
 		class="grid gap-3 card p-4 sm:grid-cols-[2fr_2fr_auto] sm:items-end"
 	>
 		<div>
-			<label class="label" for="new-name">Novo ingrediente</label>
+			<label class="label" for="new-name">{t('ingredients.new')}</label>
 			<input
 				class="field"
 				id="new-name"
 				name="name"
 				required
 				maxlength="80"
-				placeholder="Cebola roxa"
+				placeholder={t('ingredients.newPlaceholder')}
 			/>
 		</div>
 		<div>
-			<label class="label" for="new-allergens">Alergênicos (vírgula)</label>
-			<input class="field" id="new-allergens" name="allergens" placeholder="lactose" />
+			<label class="label" for="new-allergens">{t('ingredients.allergensComma')}</label>
+			<input
+				class="field"
+				id="new-allergens"
+				name="allergens"
+				placeholder={t('ingredients.allergensPlaceholder')}
+			/>
 		</div>
 		<input type="hidden" name="position" value={data.ingredients.length} />
-		<button class="btn-primary">Adicionar</button>
+		<button class="btn-primary">{t('ingredients.add')}</button>
 	</form>
 
 	{#if data.ingredients.length === 0}
-		<p class="alert-warn">Nenhum ingrediente ainda.</p>
+		<p class="alert-warn">{t('ingredients.none')}</p>
 	{:else}
 		<ul class="divide-y divide-line card">
 			{#each data.ingredients as ing (ing.id)}
@@ -64,7 +70,7 @@
 						>
 							<input type="hidden" name="id" value={ing.id} />
 							<div>
-								<label class="label" for="name-{ing.id}">Nome</label>
+								<label class="label" for="name-{ing.id}">{t('ingredients.name')}</label>
 								<input
 									class="field"
 									id="name-{ing.id}"
@@ -75,7 +81,7 @@
 								/>
 							</div>
 							<div>
-								<label class="label" for="all-{ing.id}">Alergênicos</label>
+								<label class="label" for="all-{ing.id}">{t('ingredients.allergens')}</label>
 								<input
 									class="field"
 									id="all-{ing.id}"
@@ -84,7 +90,7 @@
 								/>
 							</div>
 							<div>
-								<label class="label" for="pos-{ing.id}">Ordem</label>
+								<label class="label" for="pos-{ing.id}">{t('menuEdit.order')}</label>
 								<input
 									class="field"
 									id="pos-{ing.id}"
@@ -94,9 +100,9 @@
 								/>
 							</div>
 							<div class="flex gap-2">
-								<button class="btn-primary">Salvar</button>
+								<button class="btn-primary">{t('menuEdit.save')}</button>
 								<button type="button" class="btn-ghost" onclick={() => (editing = null)}
-									>Cancelar</button
+									>{t('menuEdit.cancel')}</button
 								>
 							</div>
 						</form>
@@ -107,34 +113,36 @@
 									{ing.name}
 									{#if !ing.available}<span
 											class="ml-1 rounded-full bg-bad-tint px-2 py-0.5 text-xs font-semibold text-bad"
-											>Em falta</span
+											>{t('ingredients.missing')}</span
 										>{/if}
 								</p>
 								<p class="text-xs text-muted">
-									{ing.allergens.length ? `Alergênicos: ${ing.allergens.join(', ')} · ` : ''}
+									{ing.allergens.length
+										? `${t('ingredients.allergensLine', { list: ing.allergens.join(', ') })} `
+										: ''}
 									{ing.products.length
-										? `Usado em ${ing.products.join(', ')}`
-										: 'Não está em nenhum produto'}
+										? t('ingredients.usedIn', { list: ing.products.join(', ') })
+										: t('ingredients.unused')}
 								</p>
 							</div>
 							{#if confirming === ing.id}
 								<form method="POST" action="?/delete" use:enhance class="flex items-center gap-2">
 									<input type="hidden" name="id" value={ing.id} />
-									<span class="text-sm">Apagar e tirar dos produtos?</span>
-									<button class="btn-danger min-h-9 text-sm">Apagar</button>
+									<span class="text-sm">{t('ingredients.deleteAsk')}</span>
+									<button class="btn-danger min-h-9 text-sm">{t('menuEdit.delete')}</button>
 									<button
 										type="button"
 										class="btn-ghost min-h-9 text-sm"
-										onclick={() => (confirming = null)}>Não</button
+										onclick={() => (confirming = null)}>{t('ingredients.no')}</button
 									>
 								</form>
 							{:else}
 								<button class="btn-secondary min-h-9 text-sm" onclick={() => (editing = ing.id)}
-									>Editar</button
+									>{t('menuEdit.edit')}</button
 								>
 								<button
 									class="btn-ghost min-h-9 text-sm text-bad"
-									onclick={() => (confirming = ing.id)}>Apagar…</button
+									onclick={() => (confirming = ing.id)}>{t('ingredients.deleteMore')}</button
 								>
 							{/if}
 						</div>

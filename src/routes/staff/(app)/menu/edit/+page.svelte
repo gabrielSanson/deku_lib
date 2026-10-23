@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -8,18 +9,19 @@
 	const productsOf = (categoryId: string) =>
 		data.catalog.products.filter((p) => p.categoryId === categoryId);
 	let renaming = $state<string | null>(null);
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Editar cardápio · Equipe</title></svelte:head>
+<svelte:head><title>{t('menuEdit.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-5 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="page-title">Editar cardápio</h1>
+		<h1 class="page-title">{t('menuEdit.title')}</h1>
 		<div class="flex flex-wrap gap-2">
-			<a class="btn-ghost" href="/staff/menu">Disponibilidade</a>
-			<a class="btn-ghost" href="/staff/menu/pages">Páginas do site</a>
+			<a class="btn-ghost" href="/staff/menu">{t('menuEdit.availability')}</a>
+			<a class="btn-ghost" href="/staff/menu/pages">{t('menuEdit.pages')}</a>
 			{#if data.categories.length}
-				<a class="btn-primary" href="/staff/menu/products/novo">Novo produto</a>
+				<a class="btn-primary" href="/staff/menu/products/novo">{t('menuEdit.newProduct')}</a>
 			{/if}
 		</div>
 	</div>
@@ -28,19 +30,18 @@
 
 	{#if data.empty}
 		<section class="space-y-2 card p-4">
-			<h2 class="font-semibold">O cardápio está vazio</h2>
+			<h2 class="font-semibold">{t('menuEdit.emptyTitle')}</h2>
 			<p class="text-sm text-muted">
-				Crie uma categoria (por exemplo "Burgers") e depois os produtos. Ou comece com o cardápio de
-				exemplo e ajuste nomes, preços e fotos.
+				{t('menuEdit.emptyText')}
 			</p>
 			<form method="POST" action="?/sample" use:enhance>
-				<button class="btn-secondary">Carregar cardápio de exemplo</button>
+				<button class="btn-secondary">{t('menuEdit.sample')}</button>
 			</form>
 		</section>
 	{/if}
 
 	<section class="space-y-2">
-		<h2 class="font-semibold">Categorias e produtos</h2>
+		<h2 class="font-semibold">{t('menuEdit.categories')}</h2>
 		{#each data.categories as c (c.id)}
 			<div class="card">
 				<div class="flex flex-wrap items-center gap-2 border-b border-line p-3">
@@ -63,11 +64,12 @@
 								type="file"
 								name="photo"
 								accept="image/jpeg,image/png,image/webp"
-								aria-label="Foto da categoria"
+								aria-label={t('menuEdit.categoryPhoto')}
 							/>
 							{#if c.imageUrl}
 								<label class="flex items-center gap-1 text-sm text-muted">
-									<input type="checkbox" name="removePhoto" value="1" /> Tirar foto
+									<input type="checkbox" name="removePhoto" value="1" />
+									{t('menuEdit.removePhoto')}
 								</label>
 							{/if}
 							<input
@@ -75,15 +77,15 @@
 								name="position"
 								type="number"
 								value={c.position}
-								aria-label="Ordem"
+								aria-label={t('menuEdit.order')}
 							/>
 							<select class="field w-36" name="active" value={c.active ? '1' : '0'}>
-								<option value="1">Visível</option>
-								<option value="0">Oculta</option>
+								<option value="1">{t('menuEdit.visible')}</option>
+								<option value="0">{t('menuEdit.hidden')}</option>
 							</select>
-							<button class="btn-primary">Salvar</button>
+							<button class="btn-primary">{t('menuEdit.save')}</button>
 							<button type="button" class="btn-ghost" onclick={() => (renaming = null)}
-								>Cancelar</button
+								>{t('menuEdit.cancel')}</button
 							>
 						</form>
 					{:else}
@@ -92,15 +94,17 @@
 						{/if}
 						<h3 class="flex-1 font-semibold">
 							{c.name}
-							{#if !c.active}<span class="text-xs font-normal text-muted">(oculta)</span>{/if}
+							{#if !c.active}<span class="text-xs font-normal text-muted"
+									>{t('menuEdit.hiddenMark')}</span
+								>{/if}
 						</h3>
 						<button class="btn-ghost min-h-9 text-sm" onclick={() => (renaming = c.id)}
-							>Editar</button
+							>{t('menuEdit.edit')}</button
 						>
 						{#if c.products === 0}
 							<form method="POST" action="?/deleteCategory" use:enhance>
 								<input type="hidden" name="id" value={c.id} />
-								<button class="btn-ghost min-h-9 text-sm text-bad">Apagar</button>
+								<button class="btn-ghost min-h-9 text-sm text-bad">{t('menuEdit.delete')}</button>
 							</form>
 						{/if}
 					{/if}
@@ -120,13 +124,15 @@
 								<span class="flex-1">
 									<span class="font-medium">{p.name}</span>
 									<span class="text-xs text-muted">{p.sku}</span>
-									{#if hidden.has(p.sku)}<span class="text-xs text-warn"> · oculto</span>{/if}
+									{#if hidden.has(p.sku)}<span class="text-xs text-warn">
+											{t('menuEdit.productHidden')}</span
+										>{/if}
 								</span>
 								<Money cents={p.priceCents} class="text-sm text-muted" />
 							</a>
 						</li>
 					{:else}
-						<li class="p-3 text-sm text-muted">Nenhum produto nesta categoria.</li>
+						<li class="p-3 text-sm text-muted">{t('menuEdit.noProducts')}</li>
 					{/each}
 				</ul>
 			</div>
@@ -141,7 +147,7 @@
 			<input
 				class="field flex-1"
 				name="name"
-				placeholder="Nova categoria, por exemplo Bebidas"
+				placeholder={t('menuEdit.newCategory')}
 				required
 				maxlength="80"
 			/>
@@ -150,20 +156,22 @@
 				type="file"
 				name="photo"
 				accept="image/jpeg,image/png,image/webp"
-				aria-label="Foto da categoria"
+				aria-label={t('menuEdit.categoryPhoto')}
 			/>
 			<input type="hidden" name="position" value={data.categories.length + 1} />
-			<button class="btn-secondary">Adicionar categoria</button>
+			<button class="btn-secondary">{t('menuEdit.addCategory')}</button>
 		</form>
 	</section>
 
 	<section class="space-y-2">
 		<div class="flex items-center justify-between">
-			<h2 class="font-semibold">Grupos de opções</h2>
-			<a class="btn-secondary min-h-9 text-sm" href="/staff/menu/groups/novo">Novo grupo</a>
+			<h2 class="font-semibold">{t('menuEdit.groups')}</h2>
+			<a class="btn-secondary min-h-9 text-sm" href="/staff/menu/groups/novo"
+				>{t('menuEdit.newGroup')}</a
+			>
 		</div>
 		<p class="text-sm text-muted">
-			Adicionais, ponto da carne, tamanhos. Um grupo pode ser usado em vários produtos.
+			{t('menuEdit.groupsHint')}
 		</p>
 		<ul class="divide-y divide-line card">
 			{#each data.groups as g (g.id)}
@@ -171,14 +179,19 @@
 					<a href="/staff/menu/groups/{g.id}" class="flex items-center gap-3 p-3 hover:bg-quiet">
 						<span class="flex-1 font-medium">{g.name}</span>
 						<span class="text-xs text-muted"
-							>{g.options} opções · escolhe {g.min_selections === g.max_selections
-								? g.min_selections
-								: `${g.min_selections} a ${g.max_selections}`} · em {g.products} produtos</span
+							>{t('menuEdit.groupSummary', {
+								options: g.options,
+								choose:
+									g.min_selections === g.max_selections
+										? g.min_selections
+										: t('menuEdit.range', { min: g.min_selections, max: g.max_selections }),
+								products: g.products
+							})}</span
 						>
 					</a>
 				</li>
 			{:else}
-				<li class="p-3 text-sm text-muted">Nenhum grupo ainda.</li>
+				<li class="p-3 text-sm text-muted">{t('menuEdit.noGroups')}</li>
 			{/each}
 		</ul>
 	</section>

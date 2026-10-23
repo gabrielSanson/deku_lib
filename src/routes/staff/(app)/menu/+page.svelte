@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -17,28 +18,27 @@
 			).values()
 		].filter((o) => o.priceCents > 0)
 	);
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Cardápio · Equipe</title></svelte:head>
+<svelte:head><title>{t('avail.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="page-title">Disponibilidade do cardápio</h1>
+		<h1 class="page-title">{t('avail.title')}</h1>
 		{#if data.staff.role === 'admin'}
-			<a class="btn-secondary" href="/staff/menu/edit">Editar cardápio</a>
+			<a class="btn-secondary" href="/staff/menu/edit">{t('avail.edit')}</a>
 		{/if}
 	</div>
 	<p class="text-sm text-muted">
-		Marcar como esgotado vale na hora para o caixa, o site e (quando ativo) o iFood. O produto
-		continua cadastrado.
+		{t('avail.intro')}
 	</p>
 	<FormError message={form?.error} />
 
 	{#if data.catalog.products.length === 0}
 		<p class="alert-warn">
-			O cardápio está vazio. {data.staff.role === 'admin'
-				? 'Cadastre os produtos em "Editar cardápio".'
-				: 'Peça a um admin para cadastrar os produtos.'}
+			{t('avail.empty')}
+			{data.staff.role === 'admin' ? t('avail.emptyAdmin') : t('avail.emptyStaff')}
 		</p>
 	{/if}
 
@@ -53,20 +53,26 @@
 						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
 						<div class="flex-1">
 							<p class="font-medium">{p.name} <span class="text-xs text-muted">{p.sku}</span></p>
-							{#if o}<p class="text-xs text-bad">Esgotado desde {formatTime(o.updated_at)}</p>
+							{#if o}<p class="text-xs text-bad">
+									{t('avail.soldOutSince', { time: formatTime(o.updated_at) })}
+								</p>
 							{:else if unavailableReason(p, new Set(), missing)}<p class="text-xs text-bad">
-									Indisponível: {unavailableReason(p, new Set(), missing)}
+									{t('avail.unavailable', {
+										reason: unavailableReason(p, new Set(), missing) ?? ''
+									})}
 								</p>
 							{:else if p.ingredients.some((i) => missing.has(i.id))}<p class="text-xs text-warn">
-									Sai sem {p.ingredients
-										.filter((i) => missing.has(i.id))
-										.map((i) => i.name.toLowerCase())
-										.join(', ')}
+									{t('avail.without', {
+										names: p.ingredients
+											.filter((i) => missing.has(i.id))
+											.map((i) => i.name.toLowerCase())
+											.join(', ')
+									})}
 								</p>{/if}
 						</div>
 						<Money cents={p.priceCents} class="text-sm text-muted" />
 						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
-							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
+							>{o ? t('avail.soldOutBack') : t('avail.markSoldOut')}</button
 						>
 					</form>
 				{/each}
@@ -76,10 +82,9 @@
 
 	{#if data.ingredients.length}
 		<section>
-			<h2 class="mb-1 font-semibold">Ingredientes</h2>
+			<h2 class="mb-1 font-semibold">{t('avail.ingredients')}</h2>
 			<p class="mb-2 text-sm text-muted">
-				Se um ingrediente acabar, os produtos que não saem sem ele ficam indisponíveis; nos outros o
-				cliente precisa pedir "sem".
+				{t('avail.ingredientsHint')}
 			</p>
 			<div class="divide-y divide-line card">
 				{#each data.ingredients as ing (ing.id)}
@@ -89,14 +94,14 @@
 						<div class="flex-1">
 							<p class="font-medium">{ing.name}</p>
 							{#if !ing.available && ing.unavailableAt}<p class="text-xs text-bad">
-									Em falta desde {formatTime(ing.unavailableAt)}
+									{t('avail.missingSince', { time: formatTime(ing.unavailableAt) })}
 								</p>{/if}
 						</div>
 						<button
 							class="btn min-h-9 text-sm {ing.available
 								? 'btn-secondary'
 								: 'bg-bad-strong text-white'}"
-							>{ing.available ? 'Marcar em falta' : 'Em falta · voltar'}</button
+							>{ing.available ? t('avail.markMissing') : t('avail.missingBack')}</button
 						>
 					</form>
 				{/each}
@@ -106,7 +111,7 @@
 
 	{#if optionSkus.length}
 		<section>
-			<h2 class="mb-2 font-semibold">Adicionais</h2>
+			<h2 class="mb-2 font-semibold">{t('avail.extras')}</h2>
 			<div class="divide-y divide-line card">
 				{#each optionSkus as opt (opt.sku)}
 					{@const o = out.get(opt.sku)}
@@ -115,7 +120,7 @@
 						<input type="hidden" name="soldOut" value={o ? '0' : '1'} />
 						<p class="flex-1 font-medium">{opt.name}</p>
 						<button class="btn min-h-9 text-sm {o ? 'bg-bad-strong text-white' : 'btn-secondary'}"
-							>{o ? 'Esgotado · voltar' : 'Marcar esgotado'}</button
+							>{o ? t('avail.soldOutBack') : t('avail.markSoldOut')}</button
 						>
 					</form>
 				{/each}
