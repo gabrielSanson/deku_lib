@@ -1,6 +1,5 @@
 <script lang="ts">
 	import SearchField from '#lib/components/molecules/SearchField.svelte';
-	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import Age from '#lib/components/atoms/Age.svelte';
@@ -17,12 +16,13 @@
 	import { formatTime } from '#lib/domain/time.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import type { TextKey } from '#lib/texts/catalog.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	let { data, form } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 	const live = useLiveOrders(() => data.live);
 
 	const tabDefs: { key: string; label: TextKey; icon: IconName }[] = [
@@ -161,7 +161,7 @@
 								<!-- Meta chips: channel, fulfilment and customer, one line each. -->
 								<ul class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
 									<li class="chip">{channelLabel[o.channel]}</li>
-									<li class="chip">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</li>
+									<li class="chip">{label.fulfillment(o.fulfillmentType, o.tableLabel)}</li>
 									{#if o.customerLabel}<li class="chip">{o.customerLabel}</li>{/if}
 								</ul>
 								<ul class="mt-2 space-y-0.5 text-sm font-medium">
@@ -240,7 +240,10 @@
 								{/if}
 							</td>
 							<td class="p-3"
-								>{channelLabel[o.channel]} · {fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</td
+								>{channelLabel[o.channel]} · {label.fulfillment(
+									o.fulfillmentType,
+									o.tableLabel
+								)}</td
 							>
 							<td class="p-3">{o.customerLabel ?? '—'}</td>
 							<td class="p-3 text-muted"

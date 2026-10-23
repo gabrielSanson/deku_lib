@@ -7,15 +7,15 @@
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import Timeline, { type Step } from '#lib/components/organisms/Timeline.svelte';
-	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import { getsReadyAlert, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import { rememberOrder } from '#lib/client/last-order.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 	const o = $derived(data.order);
 	const code = $derived(pickupCode(o.orderNumber));
 	const collects = $derived(getsReadyAlert(o.fulfillmentType));
@@ -229,7 +229,7 @@
 					class="font-display text-7xl leading-none tracking-tight text-brand-500 sm:text-8xl"
 					fullClass="text-xl font-bold text-stone-300"
 				/>
-				<p class="mt-1 text-stone-300">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</p>
+				<p class="mt-1 text-stone-300">{label.fulfillment(o.fulfillmentType, o.tableLabel)}</p>
 			</div>
 			<span class="pill shrink-0 bg-brand-500 px-4 py-1.5 text-sm font-bold text-black"
 				>{cancelled ? t('order.cancelled') : statusLabel}</span

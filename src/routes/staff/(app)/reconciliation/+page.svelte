@@ -4,14 +4,14 @@
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import AnalyticsMetric from '#lib/components/molecules/AnalyticsMetric.svelte';
 	import { formatBRL } from '#lib/domain/money.ts';
-	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import type { PaymentStatus } from '#lib/domain/order-status.ts';
 
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const t = useTexts();
-	const methodLabel = (m: string) => METHOD_LABEL_PT[m as keyof typeof METHOD_LABEL_PT] ?? m;
+	const label = useLabels(t);
+	const methodLabel = (m: string) => label.method(m);
 	const paid = $derived(data.byMethod.filter((m) => m.status === 'paid'));
 	const refunded = $derived(data.byMethod.filter((m) => m.status === 'refunded'));
 	const totalPaid = $derived(paid.reduce((n, m) => n + m.amountCents, 0));

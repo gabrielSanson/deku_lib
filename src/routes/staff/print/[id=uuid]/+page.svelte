@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { pickupCode } from '#lib/domain/pickup.ts';
-	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatTime, SHOP_TZ } from '#lib/domain/time.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 	const o = $derived(data.order);
 	const kitchen = $derived(data.kind === 'kitchen');
 	const paidTenders = $derived(o.tenders.filter((x) => x.status === 'paid'));
@@ -55,7 +54,7 @@
 	{#if kitchen}
 		<p class="center big">{pickupCode(o.orderNumber)}</p>
 		<p class="center strong">#{o.orderNumber}</p>
-		<p class="center strong">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {channel}</p>
+		<p class="center strong">{label.fulfillment(o.fulfillmentType, o.tableLabel)} · {channel}</p>
 		{#if o.channelDisplayId}<p class="center">iFood {o.channelDisplayId}</p>{/if}
 		<p class="center">
 			{stamp(o.createdAt)}{o.promisedAt
@@ -100,7 +99,9 @@
 		<hr />
 		<p class="center big">{t('print.order', { n: o.orderNumber })}</p>
 		<p class="center strong">{t('print.code', { code: pickupCode(o.orderNumber) })}</p>
-		<p class="center">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {stamp(o.createdAt)}</p>
+		<p class="center">
+			{label.fulfillment(o.fulfillmentType, o.tableLabel)} · {stamp(o.createdAt)}
+		</p>
 		{#if o.customerLabel}<p class="center">{o.customerLabel}</p>{/if}
 		<hr />
 		{#each o.items as item (item.id)}
@@ -130,9 +131,7 @@
 			<hr />
 			{#each paidTenders as tender (tender.id)}
 				<p class="row">
-					<span
-						>{METHOD_LABEL_PT[tender.method as keyof typeof METHOD_LABEL_PT] ?? tender.method}</span
-					><span>{formatBRL(tender.amountCents)}</span>
+					<span>{label.method(tender.method)}</span><span>{formatBRL(tender.amountCents)}</span>
 				</p>
 				{#if tender.changeCents}<p class="row">
 						<span>{t('print.change')}</span><span>{formatBRL(tender.changeCents)}</span>

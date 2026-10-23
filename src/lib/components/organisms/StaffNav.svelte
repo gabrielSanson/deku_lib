@@ -18,7 +18,7 @@
 	{#each groups as g (g.label)}
 		<div>
 			<p class="px-3 pb-1.5 text-[13px] font-medium text-stone-400">
-				{g.label}
+				{t(g.label)}
 			</p>
 			<ul class="space-y-1">
 				{#each g.links as item (item.href)}
@@ -32,7 +32,7 @@
 							aria-current={current === item.href ? 'page' : undefined}
 						>
 							<Icon name={item.icon} class="size-5 shrink-0" />
-							{item.label}
+							{t(item.label)}
 						</a>
 					</li>
 				{/each}

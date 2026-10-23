@@ -6,6 +6,7 @@ import { STAFF_OPS_TEXTS } from './staff-ops';
 import { STAFF_CAMPAIGN_TEXTS } from './staff-campaigns';
 import { STAFF_MENU_TEXTS } from './staff-menu';
 import { STAFF_SETTINGS_TEXTS } from './staff-settings';
+import { STAFF_LABEL_TEXTS } from './staff-labels';
 
 export interface TextDef {
 	group: TextGroup;
@@ -27,7 +28,8 @@ export const TEXT_GROUPS = {
 	staff: 'Telas da equipe',
 	staffSettings: 'Equipe: configurações',
 	staffMenu: 'Equipe: cardápio',
-	staffCampaigns: 'Equipe: campanhas'
+	staffCampaigns: 'Equipe: campanhas',
+	staffLabels: 'Equipe: menu, tipos e situações'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
@@ -2501,7 +2503,8 @@ export const TEXT_MODULES = [
 	STAFF_OPS_TEXTS,
 	STAFF_SETTINGS_TEXTS,
 	STAFF_MENU_TEXTS,
-	STAFF_CAMPAIGN_TEXTS
+	STAFF_CAMPAIGN_TEXTS,
+	STAFF_LABEL_TEXTS
 ] as const;
 
 export const TEXTS = {
@@ -2509,7 +2512,8 @@ export const TEXTS = {
 	...STAFF_OPS_TEXTS,
 	...STAFF_SETTINGS_TEXTS,
 	...STAFF_MENU_TEXTS,
-	...STAFF_CAMPAIGN_TEXTS
+	...STAFF_CAMPAIGN_TEXTS,
+	...STAFF_LABEL_TEXTS
 };
 
 export type TextKey = keyof typeof TEXTS;

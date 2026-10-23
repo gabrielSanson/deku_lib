@@ -2,55 +2,57 @@
 // menu, the shop itself and the back office. Kitchen accounts never see it;
 // they are sent to the kitchen screen.
 import type { IconName } from '#lib/components/atoms/Icon.svelte';
+import type { TextKey } from '#lib/texts/catalog.ts';
 
 export interface NavLink {
 	href: string;
-	label: string;
+	/** Text catalog key, so the owner can rename menu items in Textos do site. */
+	label: TextKey;
 	icon: IconName;
 	/** Other paths that light up this link. */
 	match?: string[];
 }
 
 export interface NavGroup {
-	label: string;
+	label: TextKey;
 	links: NavLink[];
 }
 
 export const NAV: NavGroup[] = [
 	{
-		label: 'Operação',
+		label: 'nav.operacao',
 		links: [
-			{ href: '/staff', label: 'Início', icon: 'home' },
-			{ href: '/staff/pos', label: 'Caixa', icon: 'cart' },
-			{ href: '/staff/caixa', label: 'Gaveta', icon: 'cash' },
-			{ href: '/staff/orders', label: 'Pedidos', icon: 'list' },
-			{ href: '/kitchen', label: 'Cozinha', icon: 'chef' },
-			{ href: '/staff/reconciliation', label: 'Caixa do dia', icon: 'receipt' }
+			{ href: '/staff', label: 'nav.inicio', icon: 'home' },
+			{ href: '/staff/pos', label: 'nav.caixa', icon: 'cart' },
+			{ href: '/staff/caixa', label: 'nav.gaveta', icon: 'cash' },
+			{ href: '/staff/orders', label: 'nav.pedidos', icon: 'list' },
+			{ href: '/kitchen', label: 'nav.cozinha', icon: 'chef' },
+			{ href: '/staff/reconciliation', label: 'nav.caixaDoDia', icon: 'receipt' }
 		]
 	},
 	{
-		label: 'Cardápio',
+		label: 'nav.cardapio',
 		links: [
-			{ href: '/staff/menu', label: 'Disponibilidade', icon: 'check' },
+			{ href: '/staff/menu', label: 'nav.disponibilidade', icon: 'check' },
 			{
 				href: '/staff/menu/edit',
-				label: 'Produtos e adicionais',
+				label: 'nav.produtosEAdicionais',
 				icon: 'burger',
 				match: ['/staff/menu/products', '/staff/menu/groups']
 			},
-			{ href: '/staff/menu/ingredients', label: 'Ingredientes', icon: 'list' },
-			{ href: '/staff/menu/pages', label: 'Páginas do site', icon: 'book' }
+			{ href: '/staff/menu/ingredients', label: 'nav.ingredientes', icon: 'list' },
+			{ href: '/staff/menu/pages', label: 'nav.paginasDoSite', icon: 'book' }
 		]
 	},
 	{
-		label: 'Gestão',
+		label: 'nav.gestao',
 		links: [
-			{ href: '/staff/analytics', label: 'Relatórios', icon: 'chart' },
-			{ href: '/staff/campaigns', label: 'Campanhas', icon: 'crown' },
-			{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users' },
+			{ href: '/staff/analytics', label: 'nav.relatorios', icon: 'chart' },
+			{ href: '/staff/campaigns', label: 'nav.campanhas', icon: 'crown' },
+			{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
 			{
 				href: '/staff/settings/store',
-				label: 'Configurações',
+				label: 'nav.configuracoes',
 				icon: 'settings',
 				match: ['/staff/settings', '/staff/setup']
 			}
@@ -78,16 +80,16 @@ export function navFor(role: 'admin' | 'attendant' | 'kitchen'): NavGroup[] {
 
 /** The settings pages, shown as a sub-menu inside Configurações. */
 export const SETTINGS_LINKS: NavLink[] = [
-	{ href: '/staff/settings/store', label: 'Funcionamento', icon: 'receipt' },
-	{ href: '/staff/settings/hours', label: 'Horários', icon: 'clock' },
-	{ href: '/staff/settings/profile', label: 'Dados e Pix', icon: 'store' },
-	{ href: '/staff/settings/fiscal', label: 'Nota fiscal', icon: 'receipt' },
-	{ href: '/staff/settings/appearance', label: 'Aparência', icon: 'settings' },
-	{ href: '/staff/settings/texts', label: 'Textos do site', icon: 'book' },
-	{ href: '/staff/settings/delivery', label: 'Entrega', icon: 'truck' },
-	{ href: '/staff/settings/integrations', label: 'Integrações', icon: 'grid' },
-	{ href: '/staff/settings/staff', label: 'Equipe', icon: 'users' },
-	{ href: '/staff/setup', label: 'Configuração inicial', icon: 'settings' }
+	{ href: '/staff/settings/store', label: 'nav.funcionamento', icon: 'receipt' },
+	{ href: '/staff/settings/hours', label: 'nav.horarios', icon: 'clock' },
+	{ href: '/staff/settings/profile', label: 'nav.dadosEPix', icon: 'store' },
+	{ href: '/staff/settings/fiscal', label: 'nav.notaFiscal', icon: 'receipt' },
+	{ href: '/staff/settings/appearance', label: 'nav.aparencia', icon: 'settings' },
+	{ href: '/staff/settings/texts', label: 'nav.textosDoSite', icon: 'book' },
+	{ href: '/staff/settings/delivery', label: 'nav.entrega', icon: 'truck' },
+	{ href: '/staff/settings/integrations', label: 'nav.integracoes', icon: 'grid' },
+	{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
+	{ href: '/staff/setup', label: 'nav.configuracaoInicial', icon: 'settings' }
 ];
 
 /** The most specific link for the current path, so "/staff/menu/edit" beats "/staff/menu". */

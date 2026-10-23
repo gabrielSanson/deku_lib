@@ -3,11 +3,11 @@
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
-	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 
 	type Shift = { opens: string; closes: string };
 	// Monday first, the way the shop reads its week.
@@ -54,7 +54,7 @@
 	<section class="divide-y divide-line card" aria-label={t('hours.byDay')}>
 		{#each order as wd (wd)}
 			<div class="flex flex-wrap items-center gap-3 p-3">
-				<span class="w-20 font-medium">{WEEKDAYS_PT[wd]}</span>
+				<span class="w-20 font-medium">{label.weekday(wd)}</span>
 				<div class="flex flex-1 flex-wrap items-center gap-2">
 					{#each s.days[wd] as shift, i (i)}
 						<span class="flex items-center gap-1">
@@ -63,7 +63,7 @@
 								type="time"
 								bind:value={shift.opens}
 								required
-								aria-label={t('hours.opens', { day: WEEKDAYS_PT[wd] })}
+								aria-label={t('hours.opens', { day: label.weekday(wd) })}
 							/>
 							<span class="text-muted">{t('hours.until')}</span>
 							<input
@@ -71,7 +71,7 @@
 								type="time"
 								bind:value={shift.closes}
 								required
-								aria-label={t('hours.closes', { day: WEEKDAYS_PT[wd] })}
+								aria-label={t('hours.closes', { day: label.weekday(wd) })}
 							/>
 							<button
 								type="button"

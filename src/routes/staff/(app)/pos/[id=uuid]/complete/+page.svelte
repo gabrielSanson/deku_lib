@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
-	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 
 	let { data } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 </script>
 
 <svelte:head><title>{t('posDone.tabTitle', { n: data.order.orderNumber })}</title></svelte:head>
@@ -37,8 +37,9 @@
 		{#each data.order.tenders as tender (tender.id)}
 			<div class="flex justify-between text-sm text-muted">
 				<span
-					>{METHOD_LABEL_PT[tender.method as keyof typeof METHOD_LABEL_PT] ??
-						tender.method}{tender.providerReference ? ` · ${tender.providerReference}` : ''}</span
+					>{label.method(tender.method)}{tender.providerReference
+						? ` · ${tender.providerReference}`
+						: ''}</span
 				>
 				<Money cents={tender.amountCents} />
 			</div>

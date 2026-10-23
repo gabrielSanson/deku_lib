@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { STATUS_LABEL_PT, type OrderStatus } from '#lib/domain/order-status.ts';
+	import { useLabels } from '#lib/texts/context.ts';
+	import { type OrderStatus } from '#lib/domain/order-status.ts';
 
 	let { status }: { status: OrderStatus } = $props();
+	const label = useLabels();
 
 	const tone: Record<OrderStatus, string> = {
 		new: 'bg-bad-tint text-bad',
@@ -19,5 +21,5 @@
 		status
 	]}"
 >
-	{STATUS_LABEL_PT[status]}
+	{label.status(status)}
 </span>

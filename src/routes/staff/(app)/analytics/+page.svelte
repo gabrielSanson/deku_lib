@@ -4,13 +4,13 @@
 	import AnalyticsMetric from '#lib/components/molecules/AnalyticsMetric.svelte';
 	import DailySalesChart from '#lib/components/organisms/DailySalesChart.svelte';
 	import { formatBRL } from '#lib/domain/money.ts';
-	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
 	import type { TextKey } from '#lib/texts/catalog.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 	const c = $derived(data.current);
 	const p = $derived(data.previous);
 
@@ -227,11 +227,8 @@
 				>
 				<tbody>
 					{#each data.methods as m, i (i)}<tr
-							><td class="py-1"
-								>{METHOD_LABEL_PT[m.method as keyof typeof METHOD_LABEL_PT] ?? m.method}</td
-							><td>{m.status}</td><td>{m.count}</td><td class="text-right"
-								><Money cents={m.amountCents} /></td
-							></tr
+							><td class="py-1">{label.method(m.method)}</td><td>{m.status}</td><td>{m.count}</td
+							><td class="text-right"><Money cents={m.amountCents} /></td></tr
 						>{:else}<tr
 							><td colspan="4" class="py-4 text-center text-muted">{t('analytics.noData')}</td></tr
 						>{/each}

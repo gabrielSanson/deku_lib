@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { PAYMENT_LABEL_PT, type PaymentStatus } from '#lib/domain/order-status.ts';
+	import type { PaymentStatus } from '#lib/domain/order-status.ts';
+	import { useLabels } from '#lib/texts/context.ts';
 
 	let { status }: { status: PaymentStatus } = $props();
+	const label = useLabels();
 	const tone: Record<PaymentStatus, string> = {
 		pending: 'text-warn bg-brand-tint',
 		paid: 'text-ok bg-ok-tint',
@@ -15,5 +17,5 @@
 <span
 	class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {tone[status]}"
 >
-	{PAYMENT_LABEL_PT[status]}
+	{label.payment(status)}
 </span>

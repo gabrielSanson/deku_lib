@@ -13,13 +13,13 @@
 		type TemplateKey,
 		type TimeWindow
 	} from '#lib/domain/campaigns.ts';
-	import { WEEKDAYS_PT } from '#lib/domain/hours.ts';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 	import { toShopInput } from '#lib/domain/time.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 
 	// The form starts from the saved campaign; a save redirects back to the list.
 	// svelte-ignore state_referenced_locally
@@ -413,7 +413,8 @@
 			<p class="label">{t('campaign.windows')}</p>
 			{#each windows as w, i (i)}
 				<div class="flex flex-wrap items-center gap-2 rounded-lg border border-line p-2">
-					{#each WEEKDAYS_PT as day, d (d)}
+					{#each [0, 1, 2, 3, 4, 5, 6] as d (d)}
+						{@const day = label.weekday(d)}
 						<label class="flex items-center gap-1 text-xs">
 							<input
 								type="checkbox"

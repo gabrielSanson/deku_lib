@@ -4,11 +4,11 @@
 	import { enhance } from '$app/forms';
 	import Age from '#lib/components/atoms/Age.svelte';
 	import Icon, { type IconName } from '#lib/components/atoms/Icon.svelte';
-	import { fulfillmentLabel, type Fulfillment } from '#lib/domain/fulfillment.ts';
+	import type { Fulfillment } from '#lib/domain/fulfillment.ts';
 	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	type Lane = 'confirmed' | 'preparing' | 'ready';
 
@@ -32,6 +32,7 @@
 	} = $props();
 
 	const t = useTexts();
+	const label = useLabels(t);
 	const dark = $derived(lane === 'ready');
 	const fulfillmentIcon: Record<Fulfillment, IconName> = {
 		counter: 'store',
@@ -117,9 +118,11 @@
 			: 'text-night/80'}"
 	>
 		<Icon name={fulfillmentIcon[o.fulfillmentType]} class="size-5 shrink-0" />
-		<span class="font-medium">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</span>
+		<span class="font-medium">{label.fulfillment(o.fulfillmentType, o.tableLabel)}</span>
 		{#if o.channel !== 'counter'}<span class="text-xs font-bold tracking-wider text-brand-700"
-				>{o.channel === 'ifood' ? `IFOOD ${o.channelDisplayId ?? ''}` : 'SITE'}</span
+				>{o.channel === 'ifood'
+					? `IFOOD ${o.channelDisplayId ?? ''}`
+					: t('orderDetail.channelWeb').toUpperCase()}</span
 			>{/if}
 		<span class="ml-auto tabular-nums">{formatTime(o.createdAt)}</span>
 	</div>

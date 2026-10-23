@@ -7,7 +7,9 @@
 	// Configurações: the settings pages share one sub-menu, reached from the "Gestão" group.
 	let { data, children } = $props();
 	const t = useTexts();
-	const current = $derived(activeHref([{ label: '', links: SETTINGS_LINKS }], page.url.pathname));
+	const current = $derived(
+		activeHref([{ label: 'nav.configuracoes', links: SETTINGS_LINKS }], page.url.pathname)
+	);
 </script>
 
 <div class="mx-auto max-w-4xl space-y-5 p-4">
@@ -19,7 +21,7 @@
 			active={current ?? SETTINGS_LINKS[0].href}
 			tabs={SETTINGS_LINKS.map((l) => ({
 				key: l.href,
-				label: l.label,
+				label: t(l.label),
 				icon: l.icon,
 				href: l.href
 			}))}

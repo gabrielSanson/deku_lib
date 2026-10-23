@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
 	import OrderActionBar from '#lib/components/organisms/OrderActionBar.svelte';
@@ -8,19 +7,15 @@
 	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
-	import {
-		allowedNextStatuses,
-		roleMayTransition,
-		STATUS_LABEL_PT
-	} from '#lib/domain/order-status.ts';
+	import { allowedNextStatuses, roleMayTransition } from '#lib/domain/order-status.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { mayConfirm } from '#lib/domain/payment-rules.ts';
-	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
-	import { useTexts } from '#lib/texts/context.ts';
+	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
+	const label = useLabels(t);
 	const live = useLiveOrders(() => data.live);
 	const o = $derived(data.order);
 	const next = $derived(
@@ -64,7 +59,7 @@
 					o.channel === 'ifood'
 						? t('orderDetail.channelIfood', { id: o.channelDisplayId ?? '' })
 						: t(o.channel === 'web' ? 'orderDetail.channelWeb' : 'orderDetail.channelCounter'),
-				fulfillment: fulfillmentLabel(o.fulfillmentType, o.tableLabel),
+				fulfillment: label.fulfillment(o.fulfillmentType, o.tableLabel),
 				courier:
 					o.fulfillmentProvider === 'ifood_courier' ? `${t('orderDetail.ifoodCourier')} ` : '',
 				created: formatDateTime(o.createdAt),
@@ -149,8 +144,8 @@
 				{#each o.history as h, i (i)}
 					<li class="flex justify-between gap-2">
 						<span
-							>{h.fromStatus ? `${STATUS_LABEL_PT[h.fromStatus]} → ` : ''}<strong
-								>{STATUS_LABEL_PT[h.toStatus]}</strong
+							>{h.fromStatus ? `${label.status(h.fromStatus)} → ` : ''}<strong
+								>{label.status(h.toStatus)}</strong
 							>
 							{h.reason ? `· ${h.reason}` : ''}</span
 						>
@@ -171,10 +166,7 @@
 			{#each o.tenders as tender (tender.id)}
 				<div class="text-sm">
 					<div class="flex justify-between">
-						<span
-							>{METHOD_LABEL_PT[tender.method as keyof typeof METHOD_LABEL_PT] ??
-								tender.method}</span
-						><Money cents={tender.amountCents} />
+						<span>{label.method(tender.method)}</span><Money cents={tender.amountCents} />
 					</div>
 					<div class="flex justify-between text-xs text-muted">
 						<span
