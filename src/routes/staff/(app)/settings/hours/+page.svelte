@@ -6,6 +6,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	type Shift = { opens: string; closes: string };
 	// Monday first, the way the shop reads its week.
@@ -24,7 +25,6 @@
 	});
 	let s = $state(init());
 
-	const t = useTexts();
 	let formEl = $state<HTMLFormElement>();
 	const guard = guardUnsaved(
 		() => formEl,
@@ -43,7 +43,7 @@
 	};
 </script>
 
-<svelte:head><title>Horários · Configurações</title></svelte:head>
+<svelte:head><title>{t('hours.tabTitle')}</title></svelte:head>
 
 <form
 	method="POST"
@@ -60,21 +60,17 @@
 	class="space-y-4"
 >
 	<input type="hidden" name="payload" value={payload} />
-	<h1 class="page-title">Horário de funcionamento</h1>
+	<h1 class="page-title">{t('hours.title')}</h1>
 
 	<label class="flex min-h-11 items-start gap-3 card p-4"
 		><input type="checkbox" class="mt-1 size-5" bind:checked={s.enabled} />
 		<span
-			>Abrir e fechar o site sozinho pelos horários abaixo
-			<span class="block text-sm text-muted"
-				>Fora do horário o site mostra quando a loja abre e não aceita pedidos. O botão "Pausar
-				pedidos" continua valendo a qualquer hora. Se fechar depois da meia-noite, use por exemplo
-				18:00 até 02:00.</span
-			></span
+			>{t('hours.auto')}
+			<span class="block text-sm text-muted">{t('hours.autoHint')}</span></span
 		></label
 	>
 
-	<section class="divide-y divide-line card" aria-label="Horários por dia">
+	<section class="divide-y divide-line card" aria-label={t('hours.byDay')}>
 		{#each order as wd (wd)}
 			<div class="flex flex-wrap items-center gap-3 p-3">
 				<span class="w-20 font-medium">{WEEKDAYS_PT[wd]}</span>
@@ -86,25 +82,25 @@
 								type="time"
 								bind:value={shift.opens}
 								required
-								aria-label="{WEEKDAYS_PT[wd]}: abre"
+								aria-label={t('hours.opens', { day: WEEKDAYS_PT[wd] })}
 							/>
-							<span class="text-muted">até</span>
+							<span class="text-muted">{t('hours.until')}</span>
 							<input
 								class="field w-32"
 								type="time"
 								bind:value={shift.closes}
 								required
-								aria-label="{WEEKDAYS_PT[wd]}: fecha"
+								aria-label={t('hours.closes', { day: WEEKDAYS_PT[wd] })}
 							/>
 							<button
 								type="button"
 								class="btn-ghost min-h-9 px-2"
-								aria-label="Remover horário"
+								aria-label={t('hours.removeShift')}
 								onclick={() => s.days[wd].splice(i, 1)}>✕</button
 							>
 						</span>
 					{:else}
-						<span class="text-sm text-muted">Fechado</span>
+						<span class="text-sm text-muted">{t('hours.closed')}</span>
 					{/each}
 				</div>
 				<button
@@ -116,11 +112,11 @@
 							s.days[wd].length
 								? { opens: '18:00', closes: '23:00' }
 								: { opens: '11:00', closes: '23:00' }
-						)}>+ Horário</button
+						)}>{t('hours.addShift')}</button
 				>
 				{#if s.days[wd].length}
 					<button type="button" class="btn-ghost min-h-9 text-sm" onclick={() => copyToAll(wd)}
-						>Copiar para todos</button
+						>{t('hours.copy')}</button
 					>
 				{/if}
 			</div>
@@ -128,22 +124,22 @@
 	</section>
 
 	<section class="space-y-2 card p-4">
-		<h2 class="font-semibold">Dias fechados</h2>
-		<p class="text-sm text-muted">Feriados, folgas e reformas. Valem o dia inteiro.</p>
+		<h2 class="font-semibold">{t('hours.closures')}</h2>
+		<p class="text-sm text-muted">{t('hours.closuresHint')}</p>
 		{#each s.closures as c, i (i)}
 			<div class="flex flex-wrap items-center gap-2">
-				<input class="field w-44" type="date" bind:value={c.day} aria-label="Data" />
+				<input class="field w-44" type="date" bind:value={c.day} aria-label={t('hours.date')} />
 				<input
 					class="field flex-1"
 					bind:value={c.reason}
 					maxlength="80"
-					placeholder="Motivo (opcional)"
-					aria-label="Motivo"
+					placeholder={t('hours.reasonOptional')}
+					aria-label={t('hours.reason')}
 				/>
 				<button
 					type="button"
 					class="btn-ghost min-h-9 px-2"
-					aria-label="Remover dia"
+					aria-label={t('hours.removeDay')}
 					onclick={() => s.closures.splice(i, 1)}>✕</button
 				>
 			</div>
@@ -151,11 +147,11 @@
 		<button
 			type="button"
 			class="btn-secondary min-h-9 text-sm"
-			onclick={() => s.closures.push({ day: '', reason: '' })}>+ Dia fechado</button
+			onclick={() => s.closures.push({ day: '', reason: '' })}>{t('hours.addClosure')}</button
 		>
 	</section>
 
 	<FormError message={form?.error} />
-	{#if form?.ok}<p class="alert-ok">Horários salvos.</p>{/if}
-	<button class="btn-primary">Salvar horários</button>
+	{#if form?.ok}<p class="alert-ok">{t('hours.saved')}</p>{/if}
+	<button class="btn-primary">{t('hours.save')}</button>
 </form>

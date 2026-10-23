@@ -1,26 +1,28 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 
 	let { data, form } = $props();
 	const p = $derived(data.profile);
 	let pixEnabled = $derived(data.profile.pix.enabled);
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Dados e Pix · Configurações</title></svelte:head>
+<svelte:head><title>{t('profile.tabTitle')}</title></svelte:head>
 
 <div class="space-y-4">
-	<h1 class="page-title">Dados da loja e pagamentos</h1>
+	<h1 class="page-title">{t('profile.title')}</h1>
 
 	<SettingsSection
-		title="Dados da loja"
-		hint="Aparecem no site, no app instalado e nos comprovantes."
+		title={t('profile.store')}
+		hint={t('profile.storeHint')}
 		action="?/store"
-		saveLabel="Salvar dados"
-		saved={form?.ok === 'store' ? 'Dados salvos.' : undefined}
+		saveLabel={t('profile.storeSave')}
+		saved={form?.ok === 'store' ? t('profile.storeSaved') : undefined}
 	>
 		<div>
-			<label class="label" for="displayName">Nome da loja</label>
+			<label class="label" for="displayName">{t('profile.name')}</label>
 			<input
 				class="field"
 				id="displayName"
@@ -32,68 +34,71 @@
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
 			<div>
-				<label class="label" for="phone">Telefone ou WhatsApp</label>
+				<label class="label" for="phone">{t('profile.phone')}</label>
 				<input
 					class="field"
 					id="phone"
 					name="phone"
 					value={p.phone ?? ''}
 					inputmode="tel"
-					placeholder="(11) 99999-9999"
+					placeholder={t('profile.phonePlaceholder')}
 				/>
 			</div>
 			<div>
-				<label class="label" for="city">Cidade</label>
-				<input class="field" id="city" name="city" value={p.city ?? ''} placeholder="São Paulo" />
+				<label class="label" for="city">{t('profile.city')}</label>
+				<input
+					class="field"
+					id="city"
+					name="city"
+					value={p.city ?? ''}
+					placeholder={t('profile.cityPlaceholder')}
+				/>
 			</div>
 		</div>
 		<div>
-			<label class="label" for="addressLine">Endereço para retirada</label>
+			<label class="label" for="addressLine">{t('profile.address')}</label>
 			<input
 				class="field"
 				id="addressLine"
 				name="addressLine"
 				value={p.addressLine ?? ''}
-				placeholder="Rua Exemplo, 123 - Centro"
+				placeholder={t('profile.addressPlaceholder')}
 			/>
 		</div>
 	</SettingsSection>
 
 	<SettingsSection
-		title="Como o cliente do site paga"
-		hint="Todo pedido do site é pago na hora, antes de ir para a cozinha."
+		title={t('profile.payments')}
+		hint={t('profile.paymentsHint')}
 		action="?/payments"
-		saveLabel="Salvar pagamentos"
-		saved={form?.ok === 'payments' ? 'Pagamentos salvos.' : undefined}
+		saveLabel={t('profile.paymentsSave')}
+		saved={form?.ok === 'payments' ? t('profile.paymentsSaved') : undefined}
 		warning={form?.ok === 'payments' ? form.warning : undefined}
 	>
 		<fieldset class="space-y-4">
 			<label class="flex min-h-11 items-start gap-3"
 				><input type="checkbox" class="mt-1 size-5" name="pixEnabled" bind:checked={pixEnabled} />
 				<span
-					>Pix na chave da loja
-					<span class="block text-sm text-muted"
-						>O site mostra um QR Code com o valor e o número do pedido. A equipe confere o Pix no
-						app do banco e registra no pedido.</span
-					></span
+					>{t('profile.pix')}
+					<span class="block text-sm text-muted">{t('profile.pixHint')}</span></span
 				></label
 			>
 			{#if pixEnabled}
 				<div class="space-y-3 rounded-lg border border-line p-3">
 					<div>
-						<label class="label" for="pixKey">Chave Pix</label>
+						<label class="label" for="pixKey">{t('profile.pixKey')}</label>
 						<input
 							class="field"
 							id="pixKey"
 							name="pixKey"
 							value={p.pix.key ?? ''}
-							placeholder="CNPJ, CPF, celular, e-mail ou chave aleatória"
+							placeholder={t('profile.pixKeyPlaceholder')}
 							required
 						/>
 					</div>
 					<div class="grid gap-3 sm:grid-cols-2">
 						<div>
-							<label class="label" for="pixMerchantName">Nome do recebedor</label>
+							<label class="label" for="pixMerchantName">{t('profile.pixName')}</label>
 							<input
 								class="field"
 								id="pixMerchantName"
@@ -104,7 +109,7 @@
 							/>
 						</div>
 						<div>
-							<label class="label" for="pixMerchantCity">Cidade do recebedor</label>
+							<label class="label" for="pixMerchantCity">{t('profile.pixCity')}</label>
 							<input
 								class="field"
 								id="pixMerchantCity"
@@ -116,8 +121,7 @@
 						</div>
 					</div>
 					<p class="text-xs text-muted">
-						Depois de trocar a chave, faça um pedido de teste e pague R$ 1 para conferir que o Pix
-						cai na conta certa.
+						{t('profile.pixTest')}
 					</p>
 				</div>
 			{:else}
@@ -127,10 +131,10 @@
 			{/if}
 		</fieldset>
 		<p class="text-sm text-muted">
-			Pagamento online com confirmação automática precisa de um provedor de pagamento (PSP).
+			{t('profile.psp')}
 			{data.onlineProvider
-				? `Provedor ativo: ${data.onlineProvider}.`
-				: 'Nenhum está conectado; isso é opcional.'}
+				? t('profile.pspActive', { name: data.onlineProvider })
+				: t('profile.pspNone')}
 		</p>
 	</SettingsSection>
 	<FormError message={form?.error} />

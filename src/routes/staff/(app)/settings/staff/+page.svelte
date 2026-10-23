@@ -12,25 +12,25 @@
 		() => t('unsaved.confirm')
 	);
 	const roleLabel: Record<string, string> = {
-		admin: 'Admin',
-		attendant: 'Atendente',
-		kitchen: 'Cozinha'
+		admin: t('team.role.admin'),
+		attendant: t('team.role.attendant'),
+		kitchen: t('team.role.kitchen')
 	};
 	const assignable = ['admin', 'attendant', 'kitchen'];
 </script>
 
-<svelte:head><title>Equipe · Configurações</title></svelte:head>
+<svelte:head><title>{t('team.tabTitle')}</title></svelte:head>
 
 <div class="space-y-4">
-	<h1 class="page-title">Equipe</h1>
+	<h1 class="page-title">{t('team.title')}</h1>
 	<FormError message={form?.error} />
-	{#if form?.added}<p class="alert-ok">{form.added} adicionado(a).</p>{/if}
+	{#if form?.added}<p class="alert-ok">{t('team.added', { name: form.added })}</p>{/if}
 
 	<div class="divide-y divide-line card">
 		{#each data.people as p (p.id)}
 			<div class="flex flex-wrap items-center gap-3 p-3 {p.active ? '' : 'opacity-60'}">
 				<div class="flex-1">
-					<p class="font-semibold">{p.displayName} {p.id === data.staff.id ? '(você)' : ''}</p>
+					<p class="font-semibold">{p.displayName} {p.id === data.staff.id ? t('team.you') : ''}</p>
 					<p class="text-sm text-muted">{p.email}</p>
 				</div>
 				<form method="POST" action="?/update" use:enhance class="flex items-center gap-2">
@@ -39,7 +39,7 @@
 						class="field w-36"
 						name="role"
 						value={p.role}
-						aria-label="Perfil de {p.displayName}"
+						aria-label={t('team.roleOf', { name: p.displayName })}
 						disabled={!assignable.includes(p.role)}
 						onchange={(e) => e.currentTarget.form?.requestSubmit()}
 					>
@@ -53,7 +53,7 @@
 						<input type="hidden" name="id" value={p.id} />
 						<input type="hidden" name="active" value={p.active ? '0' : '1'} />
 						<button class="btn-secondary min-h-9 text-sm {p.active ? 'text-bad' : ''}"
-							>{p.active ? 'Desativar' : 'Reativar'}</button
+							>{p.active ? t('team.deactivate') : t('team.reactivate')}</button
 						>
 					</form>
 				{/if}
@@ -61,7 +61,7 @@
 		{/each}
 	</div>
 	<p class="text-sm text-muted">
-		Desativar uma pessoa encerra o acesso imediatamente, em todos os aparelhos.
+		{t('team.deactivateHint')}
 	</p>
 
 	<form
@@ -78,9 +78,9 @@
 		}}
 		class="grid gap-3 card p-4 sm:grid-cols-2"
 	>
-		<h2 class="font-semibold sm:col-span-2">Adicionar pessoa</h2>
+		<h2 class="font-semibold sm:col-span-2">{t('team.add')}</h2>
 		<div>
-			<label class="label" for="dn">Nome</label><input
+			<label class="label" for="dn">{t('team.name')}</label><input
 				class="field"
 				id="dn"
 				name="displayName"
@@ -88,7 +88,7 @@
 			/>
 		</div>
 		<div>
-			<label class="label" for="em">E-mail</label><input
+			<label class="label" for="em">{t('team.email')}</label><input
 				class="field"
 				id="em"
 				name="email"
@@ -97,14 +97,14 @@
 			/>
 		</div>
 		<div>
-			<label class="label" for="ro">Perfil</label>
+			<label class="label" for="ro">{t('team.role')}</label>
 			<select class="field" id="ro" name="role">
 				{#each assignable as r (r)}<option value={r}>{roleLabel[r]}</option>{/each}
 			</select>
 		</div>
 		{#if data.canCreate}
 			<div>
-				<label class="label" for="pw">Senha inicial (mín. 10)</label><input
+				<label class="label" for="pw">{t('team.password')}</label><input
 					class="field"
 					id="pw"
 					name="password"
@@ -115,10 +115,8 @@
 			</div>
 		{/if}
 		<p class="text-sm text-muted sm:col-span-2">
-			{data.canCreate
-				? 'Deixe a senha vazia para vincular uma conta que já existe no Supabase.'
-				: 'Crie a conta em Supabase → Authentication e depois vincule pelo e-mail aqui.'}
+			{data.canCreate ? t('team.linkHint') : t('team.createHint')}
 		</p>
-		<button class="btn-primary sm:col-span-2">Adicionar</button>
+		<button class="btn-primary sm:col-span-2">{t('team.submit')}</button>
 	</form>
 </div>

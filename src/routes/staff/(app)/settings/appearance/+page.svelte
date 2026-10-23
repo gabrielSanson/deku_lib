@@ -5,6 +5,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 	const look = $derived(data.look);
 
 	// Follows the saved colours, and the colour pickers edit it locally until saved.
@@ -15,29 +16,16 @@
 	});
 
 	const colorFields = [
-		{ key: 'primary', label: 'Cor principal', hint: 'Botões, destaques e preços em evidência.' },
-		{ key: 'dark', label: 'Cor escura', hint: 'Topo, rodapé e o painel do carrinho.' },
-		{ key: 'background', label: 'Fundo da página', hint: 'Atrás do cardápio.' }
+		{ key: 'primary', label: t('look.primary'), hint: t('look.primaryHint') },
+		{ key: 'dark', label: t('look.dark'), hint: t('look.darkHint') },
+		{ key: 'background', label: t('look.background'), hint: t('look.backgroundHint') }
 	] as const;
 	const imageFields = [
-		{
-			key: 'logo',
-			label: 'Símbolo',
-			hint: 'No topo e onde falta foto. PNG com fundo transparente.'
-		},
-		{ key: 'wordmark', label: 'Nome em letras', hint: 'Ao lado do símbolo, no topo.' },
-		{
-			key: 'heroLogo',
-			label: 'Imagem do destaque',
-			hint: 'Na frente da foto do topo da página inicial. PNG com fundo transparente.'
-		},
-		{
-			key: 'icon',
-			label: 'Ícone do app',
-			hint: 'Aba do navegador e atalho no celular. Quadrado, 512×512 px.'
-		}
+		{ key: 'logo', label: t('look.logo'), hint: t('look.logoHint') },
+		{ key: 'wordmark', label: t('look.wordmark'), hint: t('look.wordmarkHint') },
+		{ key: 'heroLogo', label: t('look.heroLogo'), hint: t('look.heroLogoHint') },
+		{ key: 'icon', label: t('look.icon'), hint: t('look.iconHint') }
 	] as const;
-	const t = useTexts();
 	let formEl = $state<HTMLFormElement>();
 	const guard = guardUnsaved(
 		() => formEl,
@@ -60,15 +48,17 @@
 	};
 </script>
 
-<svelte:head><title>Aparência · Configurações</title></svelte:head>
+<svelte:head><title>{t('look.tabTitle')}</title></svelte:head>
 
 <div class="space-y-4">
 	<header class="space-y-1">
-		<h1 class="page-title">Aparência do site</h1>
+		<h1 class="page-title">{t('look.title')}</h1>
 		<p class="text-sm text-muted">
-			Cores, logos e ícone que o cliente vê. Os textos ficam em
-			<a class="underline" href="/staff/settings/texts">Textos</a>; produtos, fotos, adicionais e
-			ingredientes ficam em <a class="underline" href="/staff/menu/edit">Editar cardápio</a>.
+			{t('look.introBefore')}
+			<a class="underline" href="/staff/settings/texts">{t('look.textsLink')}</a>{t(
+				'look.introMiddle'
+			)}
+			<a class="underline" href="/staff/menu/edit">{t('look.menuLink')}</a>.
 		</p>
 	</header>
 
@@ -82,10 +72,12 @@
 			<img src={look.images.wordmark} alt="" class="h-6 w-auto" />
 			<span
 				class="ml-auto rounded-full px-4 py-2 text-sm font-bold text-black"
-				style="background:{colors.primary}">Pedir agora</span
+				style="background:{colors.primary}">{t('look.previewCta')}</span
 			>
 		</div>
-		<div class="p-4 text-sm" style="background:{colors.background}">Cardápio</div>
+		<div class="p-4 text-sm" style="background:{colors.background}">
+			{t('look.previewMenu')}
+		</div>
 	</div>
 
 	<form
@@ -95,7 +87,7 @@
 		bind:this={formEl}
 		use:enhance={keepColors}
 	>
-		<h2 class="font-semibold">Cores</h2>
+		<h2 class="font-semibold">{t('look.colors')}</h2>
 		<div class="grid gap-4 sm:grid-cols-3">
 			{#each colorFields as c (c.key)}
 				<div>
@@ -115,14 +107,14 @@
 			{/each}
 		</div>
 		<div class="flex flex-wrap gap-2">
-			<button class="btn-primary">Salvar cores</button>
-			<button class="btn-ghost" formaction="?/resetColors">Voltar às cores padrão</button>
+			<button class="btn-primary">{t('look.saveColors')}</button>
+			<button class="btn-ghost" formaction="?/resetColors">{t('look.resetColors')}</button>
 		</div>
 	</form>
 
 	<section class="space-y-3 card p-4">
-		<h2 class="font-semibold">Logos e ícone</h2>
-		<p class="text-sm text-muted">JPG, PNG ou WebP de até 5 MB.</p>
+		<h2 class="font-semibold">{t('look.images')}</h2>
+		<p class="text-sm text-muted">{t('look.imagesHint')}</p>
 		<ul class="divide-y divide-line">
 			{#each imageFields as f (f.key)}
 				<li class="flex flex-wrap items-center gap-4 py-4">
@@ -132,7 +124,8 @@
 					<div class="min-w-48 flex-1">
 						<p class="font-medium">
 							{f.label}
-							{#if !look.custom[f.key]}<span class="text-xs font-normal text-muted">(padrão)</span
+							{#if !look.custom[f.key]}<span class="text-xs font-normal text-muted"
+									>{t('look.default')}</span
 								>{/if}
 						</p>
 						<p class="text-xs text-muted">{f.hint}</p>
@@ -151,12 +144,12 @@
 							accept="image/png,image/jpeg,image/webp"
 							class="max-w-56 text-sm"
 							required
-							aria-label="Nova imagem: {f.label}"
+							aria-label={t('look.newImage', { name: f.label })}
 						/>
-						<button class="btn-secondary">Enviar</button>
+						<button class="btn-secondary">{t('look.upload')}</button>
 						{#if look.custom[f.key]}
 							<button class="btn-ghost" formaction="?/resetImage" formnovalidate
-								>Usar o padrão</button
+								>{t('look.useDefault')}</button
 							>
 						{/if}
 					</form>

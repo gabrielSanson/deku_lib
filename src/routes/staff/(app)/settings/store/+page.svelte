@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -8,9 +9,10 @@
 	let { data, form } = $props();
 	const s = $derived(data.settings);
 	let pauseReason = $state('');
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Loja · Configurações</title></svelte:head>
+<svelte:head><title>{t('store.tabTitle')}</title></svelte:head>
 
 <div class="space-y-4">
 	<section
@@ -19,10 +21,10 @@
 			: 'border-bad/40 bg-bad-tint'}"
 	>
 		<div>
-			<h1 class="page-title">{s.acceptingOrders ? 'Loja aberta' : 'Loja pausada'}</h1>
+			<h1 class="page-title">{s.acceptingOrders ? t('store.open') : t('store.paused')}</h1>
 			<p class="text-sm text-muted">
-				{s.acceptingOrders ? 'Pedidos online estão sendo aceitos.' : (s.pauseReason ?? '')} · atualizado
-				{formatDateTime(s.updatedAt)}
+				{s.acceptingOrders ? t('store.accepting') : (s.pauseReason ?? '')} ·
+				{t('store.updated', { time: formatDateTime(s.updatedAt) })}
 			</p>
 		</div>
 		<form method="POST" action="?/toggle" use:enhance class="flex gap-2">
@@ -31,29 +33,29 @@
 				<input
 					class="field"
 					name="pauseReason"
-					placeholder="Motivo da pausa"
+					placeholder={t('store.pauseReason')}
 					bind:value={pauseReason}
 				/>
-				<button class="btn-danger whitespace-nowrap">Pausar pedidos</button>
+				<button class="btn-danger whitespace-nowrap">{t('store.pause')}</button>
 			{:else}
-				<button class="btn-primary">Abrir loja</button>
+				<button class="btn-primary">{t('store.openStore')}</button>
 			{/if}
 		</form>
 	</section>
 
 	<SettingsSection
-		title="Operação"
+		title={t('store.operation')}
 		action="?/save"
-		saveLabel="Salvar"
-		saved={form?.ok ? 'Salvo.' : undefined}
+		saveLabel={t('settings.save')}
+		saved={form?.ok ? t('settings.saved') : undefined}
 	>
 		<input type="hidden" name="version" value={s.version} />
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="acceptingOrders" checked={s.acceptingOrders} /> Aceitando
-			pedidos</label
+			><input type="checkbox" class="size-5" name="acceptingOrders" checked={s.acceptingOrders} />
+			{t('store.acceptingField')}</label
 		>
 		<div>
-			<label class="label" for="pauseReason">Mensagem quando pausado</label>
+			<label class="label" for="pauseReason">{t('store.pauseMessage')}</label>
 			<input
 				class="field"
 				id="pauseReason"
@@ -68,30 +70,30 @@
 				class="size-5"
 				name="webOrderingEnabled"
 				checked={s.webOrderingEnabled}
-			/> Pedidos pelo site</label
+			/>
+			{t('store.web')}</label
 		>
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} /> Comer no
-			salão (o cliente escolhe "Comer aqui" no pedido)</label
+			><input type="checkbox" class="size-5" name="dineInEnabled" checked={s.dineInEnabled} />
+			{t('store.dineIn')}</label
 		>
 		{#if s.dineInEnabled}
 			<p class="-mt-2 pl-8 text-sm text-muted">
-				Cole em cada mesa um QR Code com o link <code class="rounded bg-quiet px-1"
-					>{page.url.origin}/?mesa=7</code
-				> (troque o 7 pelo número da mesa). O pedido já chega com a mesa preenchida.
+				{t('store.qrBefore')} <code class="rounded bg-quiet px-1">{page.url.origin}/?mesa=7</code>
+				{t('store.qrAfter')}
 			</p>
 		{/if}
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} /> Para viagem
-			/ retirada no balcão</label
+			><input type="checkbox" class="size-5" name="pickupEnabled" checked={s.pickupEnabled} />
+			{t('store.pickup')}</label
 		>
 		<label class="flex min-h-11 items-center gap-3"
-			><input type="checkbox" class="size-5" name="deliveryEnabled" checked={s.deliveryEnabled} /> Entrega
-			própria</label
+			><input type="checkbox" class="size-5" name="deliveryEnabled" checked={s.deliveryEnabled} />
+			{t('store.delivery')}</label
 		>
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
-				<label class="label" for="prep">Tempo de preparo prometido (min)</label>
+				<label class="label" for="prep">{t('store.prep')}</label>
 				<input
 					class="field"
 					id="prep"
@@ -104,8 +106,7 @@
 				/>
 			</div>
 			<div>
-				<label class="label" for="max">Máximo de pedidos abertos no site (vazio = sem limite)</label
-				>
+				<label class="label" for="max">{t('store.maxOpen')}</label>
 				<input
 					class="field"
 					id="max"
@@ -119,8 +120,8 @@
 		<FormError message={form?.error} />
 	</SettingsSection>
 	<p class="text-sm text-muted">
-		Cardápio, fotos e preços ficam em <a class="underline" href="/staff/menu/edit"
-			>Editar cardápio</a
-		>. Itens esgotados ficam em <a class="underline" href="/staff/menu">Cardápio</a>.
+		{t('store.menuHint')}
+		<a class="underline" href="/staff/menu/edit">{t('store.menuEdit')}</a>. {t('store.soldOutHint')}
+		<a class="underline" href="/staff/menu">{t('store.menu')}</a>.
 	</p>
 </div>

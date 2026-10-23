@@ -3,6 +3,7 @@
 // {braces} are filled in by the app and must stay in the edited text.
 
 import { STAFF_OPS_TEXTS } from './staff-ops';
+import { STAFF_SETTINGS_TEXTS } from './staff-settings';
 
 export interface TextDef {
 	group: TextGroup;
@@ -21,7 +22,8 @@ export const TEXT_GROUPS = {
 	payment: 'Pagamento',
 	order: 'Acompanhar pedido',
 	account: 'Conta do cliente',
-	staff: 'Telas da equipe'
+	staff: 'Telas da equipe',
+	staffSettings: 'Equipe: configurações'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
@@ -2469,9 +2471,9 @@ const CORE_TEXTS = {
 } as const satisfies Record<string, TextDef>;
 
 // Each module holds one area's texts; a key must live in exactly one of them.
-export const TEXT_MODULES = [CORE_TEXTS, STAFF_OPS_TEXTS] as const;
+export const TEXT_MODULES = [CORE_TEXTS, STAFF_OPS_TEXTS, STAFF_SETTINGS_TEXTS] as const;
 
-export const TEXTS = { ...CORE_TEXTS, ...STAFF_OPS_TEXTS };
+export const TEXTS = { ...CORE_TEXTS, ...STAFF_OPS_TEXTS, ...STAFF_SETTINGS_TEXTS };
 
 export type TextKey = keyof typeof TEXTS;
 export type Texts = Record<TextKey, string>;

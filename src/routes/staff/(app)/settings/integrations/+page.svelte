@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
@@ -15,38 +16,35 @@
 		failed: 'text-bad font-semibold',
 		dead: 'text-bad font-semibold'
 	};
+	const t = useTexts();
 </script>
 
-<svelte:head><title>Integrações · Equipe</title></svelte:head>
+<svelte:head><title>{t('integrations.tabTitle')}</title></svelte:head>
 
 <div class="space-y-6">
 	<FormError message={form?.error} />
 	{#if form?.ok}<p class="alert-ok">{form.ok}</p>{/if}
 
 	<section class="space-y-2 card p-4">
-		<h2 class="text-lg font-bold">Pagamento online</h2>
+		<h2 class="text-lg font-bold">{t('integrations.payments')}</h2>
 		{#if data.paymentProvider === 'none'}
 			<p class="text-sm">
-				Nenhum provedor de pagamento (PSP) conectado.
-				{data.shopPix
-					? 'Clientes do site pagam por Pix na chave da loja e a equipe confirma.'
-					: 'Sem a chave Pix da loja, o site não aceita pedidos.'}
-				<a class="underline" href="/staff/setup?passo=pagamentos">Mudar</a>
+				{t('integrations.noPsp')}
+				{data.shopPix ? t('integrations.shopPix') : t('integrations.noPix')}
+				<a class="underline" href="/staff/setup?passo=pagamentos">{t('integrations.change')}</a>
 			</p>
 		{:else if data.paymentProvider === 'mercadopago'}
 			<p class="text-sm">
-				Mercado Pago conectado: Pix com confirmação automática e cartão de crédito ou débito (página
-				do Mercado Pago). O pedido vai para a cozinha assim que o pagamento é aprovado.
+				{t('integrations.mercadopago')}
 			</p>
 			{#if !data.webhookSecretSet}
 				<p class="alert-error" role="alert">
-					Falta a assinatura secreta do webhook (MERCADOPAGO_WEBHOOK_SECRET). Sem ela os avisos de
-					pagamento são recusados e os pedidos só confirmam na verificação periódica.
+					{t('integrations.noWebhookSecret')}
 				</p>
 			{/if}
 		{:else if data.paymentProvider === 'local_stub'}
 			<p class="alert-warn">
-				Simulador local ativo. Nenhum dinheiro real é cobrado. Não é permitido em produção.
+				{t('integrations.stub')}
 			</p>
 		{/if}
 	</section>
@@ -57,7 +55,8 @@
 			<span
 				class="rounded-full px-3 py-1 text-xs font-semibold {data.ifood.enabled
 					? 'bg-ok/15 text-ok'
-					: 'bg-line text-muted'}">{data.ifood.enabled ? 'Ligado' : 'Desligado'}</span
+					: 'bg-line text-muted'}"
+				>{data.ifood.enabled ? t('integrations.on') : t('integrations.off')}</span
 			>
 		</div>
 		{#each data.ifoodAlerts as alert, i (i)}
@@ -65,55 +64,55 @@
 		{/each}
 		{#if !data.ifood.enabled}
 			<p class="text-sm">
-				Desligado. Lance pedidos do iFood pelo Caixa usando "iFood (manual)". A integração foi
-				escrita a partir da documentação pública do iFood e ainda não passou pela homologação.
+				{t('integrations.ifoodOff')}
 			</p>
 		{/if}
 		<p class="text-sm">
-			{#if data.ifood.status.lastPollOkAt}Última consulta ao iFood com sucesso: {formatDateTime(
-					data.ifood.status.lastPollOkAt
-				)}.
+			{#if data.ifood.status.lastPollOkAt}
+				{t('integrations.lastPoll', { time: formatDateTime(data.ifood.status.lastPollOkAt) })}
 			{/if}
 			{#if data.staff.role === 'admin'}<a class="underline" href="/staff/setup?passo=ifood"
-					>Credenciais e teste de conexão</a
+					>{t('integrations.credentials')}</a
 				>{/if}
 		</p>
 		<dl class="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
 			<div>
-				<dt class="text-muted">Último evento</dt>
+				<dt class="text-muted">{t('integrations.lastEvent')}</dt>
 				<dd>{s.last_event ? formatDateTime(s.last_event) : '—'}</dd>
 			</div>
 			<div>
-				<dt class="text-muted">Último via polling</dt>
+				<dt class="text-muted">{t('integrations.lastPollEvent')}</dt>
 				<dd>{s.last_poll_event ? formatDateTime(s.last_poll_event) : '—'}</dd>
 			</div>
 			<div>
-				<dt class="text-muted">Eventos em 24h</dt>
+				<dt class="text-muted">{t('integrations.today')}</dt>
 				<dd>{s.today}</dd>
 			</div>
 			<div>
-				<dt class="text-muted">Aguardando confirmação</dt>
+				<dt class="text-muted">{t('integrations.waiting')}</dt>
 				<dd class={s.waiting ? 'font-semibold text-warn' : ''}>{s.waiting}</dd>
 			</div>
 			<div>
-				<dt class="text-muted">Com falha</dt>
+				<dt class="text-muted">{t('integrations.failed')}</dt>
 				<dd class={s.failed ? 'font-semibold text-bad' : ''}>{s.failed}</dd>
 			</div>
 			<div>
-				<dt class="text-muted">Desistidos</dt>
+				<dt class="text-muted">{t('integrations.dead')}</dt>
 				<dd class={s.dead ? 'font-semibold text-bad' : ''}>{s.dead}</dd>
 			</div>
 		</dl>
 
-		<h3 class="pt-2 font-semibold">Envios para o iFood</h3>
+		<h3 class="pt-2 font-semibold">{t('integrations.outbound')}</h3>
 		{#if data.ifood.outbound.length === 0}
-			<p class="text-sm text-muted">Nenhum envio ainda.</p>
+			<p class="text-sm text-muted">{t('integrations.noOutbound')}</p>
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="text-left text-muted"
 						><tr
-							><th class="py-1">Pedido</th><th>Ação</th><th>Situação</th><th>Tentativas</th><th
+							><th class="py-1">{t('integrations.col.order')}</th><th
+								>{t('integrations.col.action')}</th
+							><th>{t('integrations.col.status')}</th><th>{t('integrations.col.attempts')}</th><th
 							></th></tr
 						></thead
 					>
@@ -134,7 +133,7 @@
 									{#if o.status === 'failed'}
 										<form method="POST" action="?/retry" use:enhance>
 											<input type="hidden" name="id" value={o.id} /><button
-												class="btn-secondary min-h-9 px-3 text-xs">Tentar de novo</button
+												class="btn-secondary min-h-9 px-3 text-xs">{t('integrations.retry')}</button
 											>
 										</form>
 									{/if}
@@ -146,14 +145,18 @@
 			</div>
 		{/if}
 
-		<h3 class="pt-2 font-semibold">Eventos recebidos</h3>
+		<h3 class="pt-2 font-semibold">{t('integrations.events')}</h3>
 		{#if data.ifood.events.length === 0}
-			<p class="text-sm text-muted">Nenhum evento recebido.</p>
+			<p class="text-sm text-muted">{t('integrations.noEvents')}</p>
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="text-left text-muted"
-						><tr><th class="py-1">Quando</th><th>Tipo</th><th>Via</th><th>Situação</th><th></th></tr
+						><tr
+							><th class="py-1">{t('integrations.col.when')}</th><th
+								>{t('integrations.col.type')}</th
+							><th>{t('integrations.col.via')}</th><th>{t('integrations.col.status')}</th><th
+							></th></tr
 						></thead
 					>
 					<tbody>
@@ -171,7 +174,8 @@
 									{#if e.processing_status === 'failed' || e.processing_status === 'dead' || e.processing_status === 'ignored'}
 										<form method="POST" action="?/replay" use:enhance>
 											<input type="hidden" name="id" value={e.id} /><button
-												class="btn-secondary min-h-9 px-3 text-xs">Reprocessar</button
+												class="btn-secondary min-h-9 px-3 text-xs"
+												>{t('integrations.replay')}</button
 											>
 										</form>
 									{/if}
