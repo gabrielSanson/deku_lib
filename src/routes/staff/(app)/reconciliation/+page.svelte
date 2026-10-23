@@ -7,60 +7,65 @@
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import type { PaymentStatus } from '#lib/domain/order-status.ts';
 
+	import { useTexts } from '#lib/texts/context.ts';
+
 	let { data } = $props();
+	const t = useTexts();
+	const methodLabel = (m: string) => METHOD_LABEL_PT[m as keyof typeof METHOD_LABEL_PT] ?? m;
 	const paid = $derived(data.byMethod.filter((m) => m.status === 'paid'));
 	const refunded = $derived(data.byMethod.filter((m) => m.status === 'refunded'));
 	const totalPaid = $derived(paid.reduce((n, m) => n + m.amountCents, 0));
 	const cash = $derived(paid.find((m) => m.method === 'cash')?.amountCents ?? 0);
 </script>
 
-<svelte:head><title>Caixa do dia · Equipe</title></svelte:head>
+<svelte:head><title>{t('recon.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-4 p-4">
 	<div class="flex flex-wrap items-center gap-2">
-		<h1 class="mr-auto page-title">Fechamento do dia</h1>
+		<h1 class="mr-auto page-title">{t('recon.title')}</h1>
 		<input
 			class="field w-44"
 			type="date"
 			value={data.day}
 			onchange={(e) => goto(`?day=${e.currentTarget.value}`)}
-			aria-label="Dia"
+			aria-label={t('recon.day')}
 		/>
 	</div>
 	<p class="text-sm text-muted">
-		Confira o dinheiro na gaveta e os extratos da maquininha/PSP contra estes valores. Pagamentos
-		pendentes ou desconhecidos não entram nos totais.
+		{t('recon.intro')}
 	</p>
 
 	<section class="grid gap-3 sm:grid-cols-3">
-		<AnalyticsMetric label="Total recebido" value={formatBRL(totalPaid)} />
-		<AnalyticsMetric label="Vendas em dinheiro" value={formatBRL(cash)} />
+		<AnalyticsMetric label={t('recon.totalPaid')} value={formatBRL(totalPaid)} />
+		<AnalyticsMetric label={t('recon.cash')} value={formatBRL(cash)} />
 		<AnalyticsMetric
-			label="iFood ({data.ifood.count} pedidos, pago no app)"
+			label={t('recon.ifood', { n: data.ifood.count })}
 			value={formatBRL(data.ifood.amountCents)}
 		/>
 	</section>
 
 	<section class="card p-4">
-		<h2 class="mb-2 font-semibold">Por forma de pagamento</h2>
+		<h2 class="mb-2 font-semibold">{t('recon.byMethod')}</h2>
 		<table class="w-full text-sm">
 			<thead
 				><tr class="text-left text-muted"
-					><th>Forma</th><th>Qtd.</th><th class="text-right">Recebido</th></tr
+					><th>{t('recon.method')}</th><th>{t('recon.count')}</th><th class="text-right"
+						>{t('recon.received')}</th
+					></tr
 				></thead
 			>
 			<tbody>
 				{#each paid as m (m.method)}<tr
-						><td class="py-1"
-							>{METHOD_LABEL_PT[m.method as keyof typeof METHOD_LABEL_PT] ?? m.method}</td
-						><td>{m.count}</td><td class="text-right"><Money cents={m.amountCents} /></td></tr
-					>{:else}<tr><td colspan="3" class="py-4 text-center text-muted">Nenhum pagamento.</td></tr
+						><td class="py-1">{methodLabel(m.method)}</td><td>{m.count}</td><td class="text-right"
+							><Money cents={m.amountCents} /></td
+						></tr
+					>{:else}<tr
+						><td colspan="3" class="py-4 text-center text-muted">{t('recon.noPayments')}</td></tr
 					>{/each}
 				{#each refunded as m (m.method)}<tr class="text-bad"
-						><td class="py-1"
-							>Estornado · {METHOD_LABEL_PT[m.method as keyof typeof METHOD_LABEL_PT] ??
-								m.method}</td
-						><td>{m.count}</td><td class="text-right">−<Money cents={m.amountCents} /></td></tr
+						><td class="py-1">{t('recon.refunded', { method: methodLabel(m.method) })}</td><td
+							>{m.count}</td
+						><td class="text-right">−<Money cents={m.amountCents} /></td></tr
 					>{/each}
 			</tbody>
 		</table>
@@ -68,24 +73,26 @@
 
 	<section class="card p-4">
 		<h2 class="mb-2 font-semibold">
-			Gaveta ({data.sessions.length} abertura{data.sessions.length === 1 ? '' : 's'})
+			{t('recon.drawer', { n: data.sessions.length })}
 		</h2>
 		{#if data.sessions.length === 0}
-			<p class="text-sm text-muted">O caixa não foi aberto neste dia.</p>
+			<p class="text-sm text-muted">{t('recon.drawerNone')}</p>
 		{:else}
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Aberto por</th><th>Fechado</th><th class="text-right">Esperado</th><th
-							class="text-right">Contado</th
-						><th class="text-right">Diferença</th></tr
+						><th>{t('recon.openedBy')}</th><th>{t('recon.closedBy')}</th><th class="text-right"
+							>{t('recon.expected')}</th
+						><th class="text-right">{t('recon.counted')}</th><th class="text-right"
+							>{t('recon.difference')}</th
+						></tr
 					></thead
 				>
 				<tbody class="divide-y divide-line">
 					{#each data.sessions as s (s.id)}
 						<tr>
 							<td class="py-2">{s.openedByName}</td>
-							<td>{s.status === 'open' ? 'Ainda aberto' : (s.closedByName ?? '')}</td>
+							<td>{s.status === 'open' ? t('recon.stillOpen') : (s.closedByName ?? '')}</td>
 							<td class="text-right"
 								>{#if s.expectedCents !== null}<Money cents={s.expectedCents} />{/if}</td
 							>
@@ -103,16 +110,16 @@
 	</section>
 
 	<section class="card p-4">
-		<h2 class="mb-2 font-semibold">Divergências ({data.issues.length})</h2>
+		<h2 class="mb-2 font-semibold">{t('recon.issues', { n: data.issues.length })}</h2>
 		{#if data.issues.length === 0}
-			<p class="alert-ok">Tudo conferido: cada pedido do dia tem pagamento igual ao total.</p>
+			<p class="alert-ok">{t('recon.allGood')}</p>
 		{:else}
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-muted"
-						><th>Pedido</th><th>Status</th><th>Pagamento</th><th class="text-right">Total</th><th
-							class="text-right">Recebido</th
-						></tr
+						><th>{t('recon.order')}</th><th>{t('recon.status')}</th><th>{t('recon.payment')}</th><th
+							class="text-right">{t('recon.total')}</th
+						><th class="text-right">{t('recon.received')}</th></tr
 					></thead
 				>
 				<tbody class="divide-y divide-line">

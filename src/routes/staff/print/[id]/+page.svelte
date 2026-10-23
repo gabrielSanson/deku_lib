@@ -3,19 +3,21 @@
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
+	const t = useTexts();
 	const o = $derived(data.order);
 	const kitchen = $derived(data.kind === 'kitchen');
-	const paidTenders = $derived(o.tenders.filter((t) => t.status === 'paid'));
+	const paidTenders = $derived(o.tenders.filter((x) => x.status === 'paid'));
 	const channel = $derived(
 		o.channel === 'ifood'
 			? 'iFood'
 			: o.sourceMode === 'kiosk'
-				? 'Totem'
+				? t('print.kiosk')
 				: o.channel === 'web'
-					? 'Site'
-					: 'Balcão'
+					? t('orderDetail.channelWeb')
+					: t('orderDetail.channelCounter')
 	);
 	const stamp = (d: Date | string) =>
 		new Date(d).toLocaleString('pt-BR', {
@@ -43,13 +45,13 @@
 </script>
 
 <svelte:head>
-	<title>{kitchen ? 'Comanda' : 'Recibo'} #{o.orderNumber}</title>
+	<title>{t(kitchen ? 'print.kitchenTitle' : 'print.receiptTitle', { n: o.orderNumber })}</title>
 </svelte:head>
 
 <div class="no-print bar">
-	<button onclick={() => window.print()}>Imprimir</button>
+	<button onclick={() => window.print()}>{t('print.print')}</button>
 	<a href={kitchen ? '?tipo=recibo' : '?tipo=cozinha'}
-		>{kitchen ? 'Ver recibo do cliente' : 'Ver comanda da cozinha'}</a
+		>{kitchen ? t('print.toReceipt') : t('print.toKitchen')}</a
 	>
 </div>
 
@@ -59,7 +61,9 @@
 		<p class="center strong">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {channel}</p>
 		{#if o.channelDisplayId}<p class="center">iFood {o.channelDisplayId}</p>{/if}
 		<p class="center">
-			{stamp(o.createdAt)}{o.promisedAt ? ` · prometido ${hour(o.promisedAt)}` : ''}
+			{stamp(o.createdAt)}{o.promisedAt
+				? ` · ${t('print.promised', { time: hour(o.promisedAt) })}`
+				: ''}
 		</p>
 		{#if o.customerLabel}<p class="center strong">{o.customerLabel}</p>{/if}
 		<hr />
@@ -71,15 +75,15 @@
 						{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
 					</p>
 				{/each}
-				{#if item.allergyFlag}<p class="mod strong">*** ALERGIA ***</p>{/if}
-				{#if item.note}<p class="mod">Obs.: {item.note}</p>{/if}
+				{#if item.allergyFlag}<p class="mod strong">{t('print.allergy')}</p>{/if}
+				{#if item.note}<p class="mod">{t('print.itemNote', { note: item.note })}</p>{/if}
 			</div>
 		{/each}
 		{#if o.notes}<hr />
-			<p>Obs. do pedido: {o.notes}</p>{/if}
+			<p>{t('print.orderNote', { note: o.notes })}</p>{/if}
 		{#if o.address}
 			<hr />
-			<p class="strong">Entrega: {o.address.recipient}</p>
+			<p class="strong">{t('print.delivery', { name: o.address.recipient })}</p>
 			<p>
 				{o.address.street}, {o.address.number}{o.address.complement
 					? ` – ${o.address.complement}`
@@ -89,7 +93,7 @@
 			{#if o.address.instructions}<p>{o.address.instructions}</p>{/if}
 		{/if}
 		{#if o.paymentStatus !== 'paid'}<hr />
-			<p class="center strong">*** NÃO PAGO ***</p>{/if}
+			<p class="center strong">{t('print.unpaid')}</p>{/if}
 	{:else}
 		<p class="center strong">{data.shop.name}</p>
 		{#if data.shop.address}<p class="center">
@@ -97,7 +101,7 @@
 			</p>{/if}
 		{#if data.shop.phone}<p class="center">{data.shop.phone}</p>{/if}
 		<hr />
-		<p class="center big">Pedido #{o.orderNumber}</p>
+		<p class="center big">{t('print.order', { n: o.orderNumber })}</p>
 		<p class="center">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {stamp(o.createdAt)}</p>
 		{#if o.customerLabel}<p class="center">{o.customerLabel}</p>{/if}
 		<hr />
@@ -114,34 +118,34 @@
 			</div>
 		{/each}
 		<hr />
-		<p class="row"><span>Subtotal</span><span>{formatBRL(o.subtotalCents)}</span></p>
+		<p class="row"><span>{t('print.subtotal')}</span><span>{formatBRL(o.subtotalCents)}</span></p>
 		{#if o.discountCents}<p class="row">
-				<span>Desconto{o.offerName ? ` (${o.offerName})` : ''}</span><span
+				<span>{t('print.discount')}{o.offerName ? ` (${o.offerName})` : ''}</span><span
 					>−{formatBRL(o.discountCents)}</span
 				>
 			</p>{/if}
 		{#if o.deliveryFeeCents}<p class="row">
-				<span>Taxa de entrega</span><span>{formatBRL(o.deliveryFeeCents)}</span>
+				<span>{t('print.deliveryFee')}</span><span>{formatBRL(o.deliveryFeeCents)}</span>
 			</p>{/if}
-		<p class="row big"><span>Total</span><span>{formatBRL(o.totalCents)}</span></p>
+		<p class="row big"><span>{t('print.total')}</span><span>{formatBRL(o.totalCents)}</span></p>
 		{#if paidTenders.length}
 			<hr />
-			{#each paidTenders as t (t.id)}
+			{#each paidTenders as tender (tender.id)}
 				<p class="row">
-					<span>{METHOD_LABEL_PT[t.method as keyof typeof METHOD_LABEL_PT] ?? t.method}</span><span
-						>{formatBRL(t.amountCents)}</span
-					>
+					<span
+						>{METHOD_LABEL_PT[tender.method as keyof typeof METHOD_LABEL_PT] ?? tender.method}</span
+					><span>{formatBRL(tender.amountCents)}</span>
 				</p>
-				{#if t.changeCents}<p class="row">
-						<span>Troco</span><span>{formatBRL(t.changeCents)}</span>
+				{#if tender.changeCents}<p class="row">
+						<span>{t('print.change')}</span><span>{formatBRL(tender.changeCents)}</span>
 					</p>{/if}
 			{/each}
 		{:else if o.paymentStatus !== 'paid'}
-			<p class="center strong">Pagamento pendente</p>
+			<p class="center strong">{t('print.pending')}</p>
 		{/if}
 		<hr />
-		<p class="center">Obrigado pela preferência!</p>
-		<p class="center small">Não é documento fiscal</p>
+		<p class="center">{t('print.thanks')}</p>
+		<p class="center small">{t('print.notFiscal')}</p>
 	{/if}
 </article>
 

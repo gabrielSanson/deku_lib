@@ -2,13 +2,15 @@
 	import { enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 	let busy = $state(false);
 	let showPassword = $state(false);
 </script>
 
-<svelte:head><title>Entrar · Equipe</title></svelte:head>
+<svelte:head><title>{t('staffLogin.tabTitle')}</title></svelte:head>
 
 <main class="relative isolate flex min-h-dvh flex-col items-center justify-center bg-night p-4">
 	<!-- Same dark kitchen backdrop as the storefront hero, dimmed so the form stays readable. -->
@@ -33,8 +35,8 @@
 		}}
 	>
 		<div>
-			<h1 class="page-title">Acesso da equipe</h1>
-			<p class="mt-1 text-sm text-muted">Entre para acompanhar pedidos, cardápio e vendas.</p>
+			<h1 class="page-title">{t('staffLogin.title')}</h1>
+			<p class="mt-1 text-sm text-muted">{t('staffLogin.subtitle')}</p>
 		</div>
 		{#if !data.configured}
 			<p class="alert-warn">
@@ -43,7 +45,7 @@
 		{/if}
 		<FormError message={form?.error} />
 		<div>
-			<label class="label" for="email">E-mail</label>
+			<label class="label" for="email">{t('staffLogin.email')}</label>
 			<div class="relative">
 				<Icon
 					name="mail"
@@ -55,14 +57,14 @@
 					name="email"
 					type="email"
 					autocomplete="username"
-					placeholder="voce@email.com"
+					placeholder={t('staffLogin.emailPlaceholder')}
 					required
 					value={form?.email ?? ''}
 				/>
 			</div>
 		</div>
 		<div>
-			<label class="label" for="password">Senha</label>
+			<label class="label" for="password">{t('staffLogin.password')}</label>
 			<div class="relative">
 				<Icon
 					name="lock"
@@ -74,13 +76,13 @@
 					name="password"
 					type={showPassword ? 'text' : 'password'}
 					autocomplete="current-password"
-					placeholder="Sua senha"
+					placeholder={t('staffLogin.passwordPlaceholder')}
 					required
 				/>
 				<button
 					type="button"
 					class="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-(--radius-control) text-stone-500 hover:text-ink"
-					aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+					aria-label={showPassword ? t('staffLogin.hide') : t('staffLogin.show')}
 					aria-pressed={showPassword}
 					onclick={() => (showPassword = !showPassword)}
 				>
@@ -89,16 +91,16 @@
 			</div>
 		</div>
 		<button class="relative btn-primary w-full" disabled={busy}>
-			{busy ? 'Entrando…' : 'Entrar'}
+			{busy ? t('staffLogin.busy') : t('staffLogin.submit')}
 			<Icon name="arrow" class="absolute right-4 size-5" />
 		</button>
 		<p class="flex items-center justify-center gap-2 text-xs text-muted">
-			<Icon name="lock" class="size-4" />Acesso restrito à equipe da loja
+			<Icon name="lock" class="size-4" />{t('staffLogin.restricted')}
 		</p>
 	</form>
 	<a
 		href="/"
 		class="mt-6 text-sm font-medium text-stone-300 underline underline-offset-4 hover:text-white"
-		>Voltar ao site</a
+		>{t('staffLogin.back')}</a
 	>
 </main>

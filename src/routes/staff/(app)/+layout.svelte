@@ -6,8 +6,10 @@
 	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
 	import StaffTopbar from '#lib/components/organisms/StaffTopbar.svelte';
 	import { activeHref, navFor } from '#lib/staff/nav.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, children } = $props();
+	const t = useTexts();
 	const groups = $derived(navFor(data.staff.role));
 	const current = $derived(activeHref(groups, page.url.pathname));
 	let drawerOpen = $state(false);
@@ -15,7 +17,11 @@
 </script>
 
 {#snippet brand(mark = true)}
-	<a href="/staff" class="flex shrink-0 items-center gap-2" aria-label="{data.shopName}, início">
+	<a
+		href="/staff"
+		class="flex shrink-0 items-center gap-2"
+		aria-label={t('shell.home', { name: data.shopName })}
+	>
 		{#if mark}<img src={data.branding.images.logo} alt="" class="h-9 w-auto" />{/if}
 		<img src={data.branding.images.wordmark} alt={data.shopName} class="h-6 w-auto" />
 	</a>
@@ -26,12 +32,16 @@
 		<a
 			href="/staff/settings/hours"
 			class="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-warn"
-			>Fora do horário</a
+			>{t('shell.outOfHours')}</a
 		>
 	{:else if data.settings.acceptingOrders}
-		<span class="rounded-full bg-ok-tint px-2 py-0.5 text-xs font-semibold text-ok">Aberto</span>
+		<span class="rounded-full bg-ok-tint px-2 py-0.5 text-xs font-semibold text-ok"
+			>{t('shell.open')}</span
+		>
 	{:else}
-		<span class="rounded-full bg-bad-tint px-2 py-0.5 text-xs font-semibold text-bad">Pausado</span>
+		<span class="rounded-full bg-bad-tint px-2 py-0.5 text-xs font-semibold text-bad"
+			>{t('shell.paused')}</span
+		>
 	{/if}
 {/snippet}
 
@@ -59,7 +69,7 @@
 				>
 					<Icon name="logout" class="size-4.5 shrink-0" />
 					<span class="flex-1 truncate">{data.staff.displayName}</span>
-					<span class="text-xs">Sair</span>
+					<span class="text-xs">{t('shell.logout')}</span>
 				</button>
 			</form>
 		{/snippet}
@@ -85,7 +95,7 @@
 		<div class="fixed inset-0 z-40 lg:hidden">
 			<button
 				class="absolute inset-0 bg-black/50"
-				aria-label="Fechar menu"
+				aria-label={t('shell.closeMenu')}
 				onclick={() => (drawerOpen = false)}
 			></button>
 			<aside
@@ -96,7 +106,7 @@
 					{@render brand()}
 					<button
 						class="btn min-h-10 px-2 text-stone-300 hover:bg-night-2 hover:text-white"
-						aria-label="Fechar menu"
+						aria-label={t('shell.closeMenu')}
 						onclick={() => (drawerOpen = false)}
 					>
 						<Icon name="close" />

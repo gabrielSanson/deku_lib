@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
@@ -14,6 +15,7 @@
 		onchange: (line: CartLine, delta: number) => void;
 		onremove: (line: CartLine) => void;
 	} = $props();
+	const t = useTexts();
 </script>
 
 <ul class="space-y-3">
@@ -25,7 +27,7 @@
 					<span class="leading-tight font-semibold">{line.product.name}</span>
 					<button
 						class="-mt-1 -mr-2 btn-ghost min-h-9 px-2 text-stone-500"
-						aria-label="Remover {line.product.name}"
+						aria-label={t('pos.removeLine', { name: line.product.name })}
 						onclick={() => onremove(line)}
 					>
 						<Icon name="close" class="size-4" />
@@ -40,7 +42,7 @@
 				{/if}
 				{#if line.note || line.allergy}
 					<p class="text-xs {line.allergy ? 'font-semibold text-bad' : 'text-muted'}">
-						{line.allergy ? '⚠ Alergia. ' : ''}{line.note}
+						{line.allergy ? `${t('pos.allergyMark')} ` : ''}{line.note}
 					</p>
 				{/if}
 				<div class="mt-2 flex items-center justify-between gap-2">
@@ -48,13 +50,13 @@
 						<button
 							class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
 							onclick={() => onchange(line, -1)}
-							aria-label="Remover um">−</button
+							aria-label={t('pos.minusOne')}>−</button
 						>
 						<span class="w-7 text-center font-bold tabular-nums">{line.quantity}</span>
 						<button
 							class="grid size-9 place-items-center rounded-full bg-brand-500 font-black text-black"
 							onclick={() => onchange(line, 1)}
-							aria-label="Adicionar um">+</button
+							aria-label={t('pos.plusOne')}>+</button
 						>
 					</div>
 					<span class="text-right">

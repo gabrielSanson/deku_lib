@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { defaultTexts, fill, isTextKey, placeholders, TEXT_GROUPS, TEXTS } from './catalog';
+import {
+	defaultTexts,
+	fill,
+	isTextKey,
+	placeholders,
+	TEXT_GROUPS,
+	TEXT_MODULES,
+	TEXTS
+} from './catalog';
 
 describe('text catalog', () => {
 	it('fills {names} and leaves unknown ones', () => {
@@ -20,6 +28,12 @@ describe('text catalog', () => {
 			expect(def.default.length).toBeLessThanOrEqual(1000);
 		}
 		expect(isTextKey('toString')).toBe(false);
+	});
+
+	it('keeps each key in one module only', () => {
+		const keys = TEXT_MODULES.flatMap((m) => Object.keys(m));
+		expect(new Set(keys).size).toBe(keys.length);
+		expect(Object.keys(TEXTS).length).toBe(keys.length);
 	});
 
 	it('keeps the offline and error copy short and direct', () => {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import type { Snippet } from 'svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 
@@ -10,6 +11,7 @@
 		brand,
 		status
 	}: { menuOpen: boolean; onopen: () => void; brand: Snippet; status: Snippet } = $props();
+	const t = useTexts();
 </script>
 
 <header
@@ -17,7 +19,7 @@
 >
 	<button
 		class="btn min-h-10 px-2 text-stone-300 hover:bg-night-2 hover:text-white"
-		aria-label="Abrir menu"
+		aria-label={t('shell.openMenu')}
 		aria-expanded={menuOpen}
 		aria-controls="staff-drawer"
 		onclick={onopen}

@@ -2,6 +2,8 @@
 // them in Configurações > Textos; only the changed ones are stored. Words in
 // {braces} are filled in by the app and must stay in the edited text.
 
+import { STAFF_OPS_TEXTS } from './staff-ops';
+
 export interface TextDef {
 	group: TextGroup;
 	label: string;
@@ -23,7 +25,7 @@ export const TEXT_GROUPS = {
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
-export const TEXTS = {
+const CORE_TEXTS = {
 	// Customer account
 	'account.tab': { group: 'account', label: 'Aba Conta (celular)', default: 'Conta' },
 	'account.title': { group: 'account', label: 'Entrar: título', default: 'Sua conta, seu pedido.' },
@@ -2465,6 +2467,11 @@ export const TEXTS = {
 		default: 'Esta opção não precisa de endereço.'
 	}
 } as const satisfies Record<string, TextDef>;
+
+// Each module holds one area's texts; a key must live in exactly one of them.
+export const TEXT_MODULES = [CORE_TEXTS, STAFF_OPS_TEXTS] as const;
+
+export const TEXTS = { ...CORE_TEXTS, ...STAFF_OPS_TEXTS };
 
 export type TextKey = keyof typeof TEXTS;
 export type Texts = Record<TextKey, string>;

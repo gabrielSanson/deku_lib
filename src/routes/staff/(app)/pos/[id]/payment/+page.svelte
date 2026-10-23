@@ -2,31 +2,22 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import ConfirmDialog from '#lib/components/molecules/ConfirmDialog.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
+	const t = useTexts();
 
 	type Method = 'cash' | 'external_pix' | 'terminal_card' | 'softpos_nfc';
 	const methods: { id: Method; label: string; hint: string }[] = [
-		{ id: 'cash', label: 'Dinheiro', hint: 'Informe o valor recebido para calcular o troco.' },
-		{
-			id: 'external_pix',
-			label: 'Pix',
-			hint: 'Confira o Pix no app do banco/PSP e informe o ID (E2E) da transação.'
-		},
-		{
-			id: 'terminal_card',
-			label: 'Maquininha',
-			hint: 'Passe o cartão na maquininha e informe o NSU/autorização impresso.'
-		},
-		{
-			id: 'softpos_nfc',
-			label: 'Aproximação (celular)',
-			hint: 'Cobre no app Tap to Pay do seu PSP e informe o código da transação.'
-		}
+		{ id: 'cash', label: t('posPay.cash'), hint: t('posPay.cashHint') },
+		{ id: 'external_pix', label: t('posPay.pix'), hint: t('posPay.pixHint') },
+		{ id: 'terminal_card', label: t('posPay.card'), hint: t('posPay.cardHint') },
+		{ id: 'softpos_nfc', label: t('posPay.tap'), hint: t('posPay.tapHint') }
 	];
 	let method = $state<Method>(
 		page.url.searchParams.get('method') === 'external_pix' ? 'external_pix' : 'cash'
@@ -36,6 +27,8 @@
 	let received = $state('');
 	let reference = $state('');
 	let busy = $state(false);
+	let cancelOpen = $state(false);
+	let cancelForm = $state<HTMLFormElement>();
 	let key = $state(crypto.randomUUID());
 
 	const changePreview = $derived.by(() => {
@@ -47,37 +40,37 @@
 	const paid = $derived(data.order.paymentStatus === 'paid');
 </script>
 
-<svelte:head><title>Pagamento #{data.order.orderNumber}</title></svelte:head>
+<svelte:head><title>{t('posPay.tabTitle', { n: data.order.orderNumber })}</title></svelte:head>
 
 <main class="mx-auto max-w-xl space-y-4 p-4">
 	<div class="flex items-center justify-between">
-		<h1 class="page-title">Pedido #{data.order.orderNumber}</h1>
+		<h1 class="page-title">{t('posPay.title', { n: data.order.orderNumber })}</h1>
 		<PaymentBadge status={data.order.paymentStatus} />
 	</div>
 	<div class="space-y-1 card p-4">
 		<div class="flex justify-between text-lg">
-			<span>Total</span><Money cents={data.order.totalCents} class="font-bold" />
+			<span>{t('posPay.total')}</span><Money cents={data.order.totalCents} class="font-bold" />
 		</div>
 		<div class="flex justify-between text-sm text-muted">
-			<span>Já pago</span><Money cents={data.paidCents} />
+			<span>{t('posPay.paid')}</span><Money cents={data.paidCents} />
 		</div>
 		<div class="flex justify-between text-xl font-bold">
-			<span>Falta</span><Money cents={data.remainingCents} />
+			<span>{t('posPay.remaining')}</span><Money cents={data.remainingCents} />
 		</div>
 	</div>
 
 	{#if form?.ok && form.changeCents}
 		<p class="alert-ok text-lg" role="status">
-			Troco: <strong><Money cents={form.changeCents} /></strong>
+			{t('posPay.change')} <strong><Money cents={form.changeCents} /></strong>
 		</p>
 	{/if}
 
 	{#if paid}
 		<div class="space-y-3">
-			<p class="alert-ok">Pagamento confirmado.</p>
+			<p class="alert-ok">{t('posPay.confirmed')}</p>
 			<button
 				class="btn-primary w-full text-lg"
-				onclick={() => goto(`/staff/pos/${data.order.id}/complete`)}>Continuar</button
+				onclick={() => goto(`/staff/pos/${data.order.id}/complete`)}>{t('posPay.continue')}</button
 			>
 		</div>
 	{:else}
@@ -100,7 +93,7 @@
 		>
 			<input type="hidden" name="method" value={method} />
 			<input type="hidden" name="idempotencyKey" value={key} />
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de pagamento">
+			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('posPay.methods')}>
 				{#each methods as m (m.id)}
 					<button
 						type="button"
@@ -112,7 +105,7 @@
 			</div>
 			<p class="text-sm text-muted">{current.hint}</p>
 			<div>
-				<label class="label" for="amount">Valor a cobrar (R$)</label>
+				<label class="label" for="amount">{t('posPay.amount')}</label>
 				<input
 					id="amount"
 					name="amount"
@@ -124,7 +117,7 @@
 			</div>
 			{#if method === 'cash'}
 				<div>
-					<label class="label" for="received">Valor recebido (R$)</label>
+					<label class="label" for="received">{t('posPay.received')}</label>
 					<input
 						id="received"
 						name="received"
@@ -133,12 +126,13 @@
 						bind:value={received}
 					/>
 					{#if changePreview !== null}<p class="mt-1 text-sm">
-							Troco: <Money cents={changePreview} class="font-semibold" />
+							{t('posPay.change')}
+							<Money cents={changePreview} class="font-semibold" />
 						</p>{/if}
 				</div>
 			{:else}
 				<div>
-					<label class="label" for="reference">Código da transação (NSU / E2E)</label>
+					<label class="label" for="reference">{t('posPay.reference')}</label>
 					<input
 						id="reference"
 						name="reference"
@@ -151,20 +145,26 @@
 			{/if}
 			<FormError message={form?.error} />
 			{#if form?.code === 'cash_closed'}
-				<a class="btn-secondary w-full" href="/staff/caixa">Abrir o caixa</a>
+				<a class="btn-secondary w-full" href="/staff/caixa">{t('posPay.openDrawer')}</a>
 			{/if}
 			<button class="btn-primary w-full text-lg" disabled={busy}
-				>{busy ? 'Registrando…' : 'Confirmar pagamento'}</button
+				>{busy ? t('posPay.busy') : t('posPay.submit')}</button
 			>
 		</form>
 
-		<form method="POST" action="?/cancel" use:enhance class="text-center">
-			<button
-				class="btn-ghost text-sm text-bad"
-				onclick={(e) => !confirm('Cancelar este pedido?') && e.preventDefault()}
-			>
-				Cancelar pedido
+		<form method="POST" action="?/cancel" use:enhance class="text-center" bind:this={cancelForm}>
+			<button type="button" class="btn-ghost text-sm text-bad" onclick={() => (cancelOpen = true)}>
+				{t('posPay.cancel')}
 			</button>
 		</form>
+		<ConfirmDialog
+			bind:open={cancelOpen}
+			title={t('posPay.cancelConfirm')}
+			text={t('posPay.cancelText')}
+			confirmLabel={t('posPay.cancel')}
+			cancelLabel={t('posPay.keep')}
+			danger
+			onconfirm={() => cancelForm?.requestSubmit()}
+		/>
 	{/if}
 </main>

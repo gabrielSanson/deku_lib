@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import type { Snippet } from 'svelte';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import type { NavGroup } from '#lib/staff/nav.ts';
@@ -10,9 +11,10 @@
 		current,
 		footer
 	}: { groups: NavGroup[]; current: string | null; footer?: Snippet } = $props();
+	const t = useTexts();
 </script>
 
-<nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Principal">
+<nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label={t('shell.nav')}>
 	{#each groups as g (g.label)}
 		<div>
 			<p class="px-3 pb-1.5 text-[13px] font-medium text-stone-400">

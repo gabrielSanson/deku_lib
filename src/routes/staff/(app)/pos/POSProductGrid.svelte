@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import ProductImage from '#lib/components/atoms/ProductImage.svelte';
@@ -14,6 +15,7 @@
 		soldOut: Set<string>;
 		onpick: (product: Product) => void;
 	} = $props();
+	const t = useTexts();
 </script>
 
 <div
@@ -33,7 +35,7 @@
 				<span class="mt-auto flex items-center justify-between pt-2">
 					<Money cents={p.priceCents} class="font-black" />
 					{#if out}
-						<span class="text-xs font-semibold text-bad">Esgotado</span>
+						<span class="text-xs font-semibold text-bad">{t('pos.soldOut')}</span>
 					{:else}
 						<span class="grid size-9 place-items-center rounded-full bg-brand-500 text-black">
 							<Icon name="plus" class="size-5" strokeWidth={3} />
@@ -43,6 +45,6 @@
 			</span>
 		</button>
 	{:else}
-		<p class="col-span-full p-6 text-center text-muted">Nenhum produto encontrado.</p>
+		<p class="col-span-full p-6 text-center text-muted">{t('pos.noProducts')}</p>
 	{/each}
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Modifier picker. Enforces min/max per group before the item can be added.
+	import { useTexts } from '#lib/texts/context.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import { REMOVE_GROUP, type Product } from '#lib/domain/catalog.ts';
 	import { lineUnitCents, type CartOption } from './cart.svelte.ts';
@@ -23,6 +24,7 @@
 		onclose: () => void;
 	} = $props();
 
+	const t = useTexts();
 	let quantity = $state(1);
 	let note = $state('');
 	let allergy = $state(false);
@@ -68,6 +70,7 @@
 			.map((i) => ({
 				groupId: REMOVE_GROUP,
 				sku: i.id,
+				// Stored on the order as is; the kitchen ticket and card bold lines that start with "Sem ".
 				name: `Sem ${i.name.toLowerCase()}`,
 				priceCents: 0,
 				quantity: 1
@@ -96,7 +99,7 @@
 				<h2 id="sheet-title" class="text-xl font-bold">{product.name}</h2>
 				<p class="text-sm text-muted">{product.description}</p>
 			</div>
-			<button class="btn-ghost min-h-9" onclick={onclose} aria-label="Fechar">✕</button>
+			<button class="btn-ghost min-h-9" onclick={onclose} aria-label={t('pos.close')}>✕</button>
 		</div>
 
 		{#each product.modifierGroups as g (g.id)}
@@ -106,7 +109,7 @@
 					<span
 						class="text-xs font-normal {count(g.id) < g.minSelections ? 'text-bad' : 'text-muted'}"
 					>
-						{g.minSelections > 0 ? 'Obrigatório · ' : ''}{count(g.id)}/{g.maxSelections}
+						{g.minSelections > 0 ? `${t('pos.required')} ` : ''}{count(g.id)}/{g.maxSelections}
 					</span>
 				</legend>
 				<div class="grid grid-cols-2 gap-2">
@@ -122,7 +125,9 @@
 							aria-pressed={qty > 0}
 							onclick={() => toggle(g.id, o.sku, o.maxQuantity, g.maxSelections)}
 						>
-							<span>{qty > 1 ? `${qty}× ` : ''}{o.name}{out ? ' (esgotado)' : ''}</span>
+							<span
+								>{qty > 1 ? `${qty}× ` : ''}{o.name}{out ? ` ${t('pos.optionSoldOut')}` : ''}</span
+							>
 							{#if o.priceCents}<span class="text-xs">+<Money cents={o.priceCents} /></span>{/if}
 						</button>
 					{/each}
@@ -132,7 +137,7 @@
 
 		{#if removable.length}
 			<fieldset class="mb-4">
-				<legend class="mb-2 font-semibold">Retirar</legend>
+				<legend class="mb-2 font-semibold">{t('pos.removeTitle')}</legend>
 				<div class="grid grid-cols-2 gap-2">
 					{#each removable as i (i.id)}
 						{@const off = removed.includes(i.id)}
@@ -146,23 +151,24 @@
 							aria-pressed={off}
 							onclick={() => toggleRemoved(i.id)}
 						>
-							{off ? 'Sem ' + i.name.toLowerCase() : i.name}{out ? ' (em falta)' : ''}
+							{off ? `Sem ${i.name.toLowerCase()}` : i.name}{out ? ` ${t('pos.missing')}` : ''}
 						</button>
 					{/each}
 				</div>
 			</fieldset>
 		{/if}
 
-		<label class="label" for="note">Observação</label>
+		<label class="label" for="note">{t('pos.lineNote')}</label>
 		<input
 			id="note"
 			class="mb-2 field"
 			maxlength="200"
 			bind:value={note}
-			placeholder="Ex.: cortar ao meio"
+			placeholder={t('pos.lineNotePlaceholder')}
 		/>
 		<label class="mb-4 flex min-h-11 items-center gap-2 text-sm">
-			<input type="checkbox" class="size-5" bind:checked={allergy} /> Alergia / atenção especial
+			<input type="checkbox" class="size-5" bind:checked={allergy} />
+			{t('pos.allergy')}
 		</label>
 
 		<div class="flex items-center gap-3">
@@ -170,14 +176,14 @@
 				<button
 					class="btn-ghost"
 					onclick={() => (quantity = Math.max(1, quantity - 1))}
-					aria-label="Diminuir">−</button
+					aria-label={t('pos.decrease')}>−</button
 				>
 				<span class="w-8 text-center font-semibold tabular-nums" aria-live="polite">{quantity}</span
 				>
 				<button
 					class="btn-ghost"
 					onclick={() => (quantity = Math.min(50, quantity + 1))}
-					aria-label="Aumentar">+</button
+					aria-label={t('pos.increase')}>+</button
 				>
 			</div>
 			<button
@@ -185,7 +191,7 @@
 				disabled={missing.length > 0}
 				onclick={() => onadd({ quantity, options, note: note.trim(), allergy })}
 			>
-				{missing.length ? `Escolha ${missing[0].name}` : 'Adicionar'} · <Money
+				{missing.length ? t('pos.choose', { name: missing[0].name }) : t('pos.add')} · <Money
 					cents={unit * quantity}
 				/>
 			</button>

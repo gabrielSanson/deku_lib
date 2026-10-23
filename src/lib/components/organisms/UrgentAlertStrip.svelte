@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { useTexts } from '#lib/texts/context.ts';
 	// The warnings staff must see before anything else on the dashboard.
 	let {
 		setupPending,
@@ -15,35 +16,36 @@
 		unpaid: number;
 		dead: number;
 	} = $props();
+	const t = useTexts();
 </script>
 
 {#if setupPending}
 	<div class="flex flex-wrap items-center justify-between gap-3 alert-warn">
-		<span><strong>Falta terminar a configuração da loja.</strong> Leva poucos minutos.</span>
-		<a class="btn-primary min-h-9" href="/staff/setup">Continuar configuração</a>
+		<span><strong>{t('alerts.setup')}</strong> {t('alerts.setupHint')}</span>
+		<a class="btn-primary min-h-9" href="/staff/setup">{t('alerts.setupCta')}</a>
 	</div>
 {/if}
 {#each ifoodAlerts as alert, i (i)}
 	<div class="flex flex-wrap items-center justify-between gap-3 alert-error" role="alert">
-		<span><strong>iFood:</strong> {alert}</span>
+		<span><strong>{t('alerts.ifood')}</strong> {alert}</span>
 		{#if isAdmin}
-			<a class="btn-secondary min-h-9" href="/staff/settings/integrations">Ver detalhes</a>
+			<a class="btn-secondary min-h-9" href="/staff/settings/integrations">{t('alerts.details')}</a>
 		{/if}
 	</div>
 {/each}
 {#if ifoodLate > 0}
 	<p class="alert-error" role="alert">
-		<strong>{ifoodLate} pedido(s) do iFood aguardando há mais de 5 min.</strong> Confirme antes de 8 min
-		para o iFood não cancelar.
+		<strong>{t('alerts.ifoodLate', { n: ifoodLate })}</strong>
+		{t('alerts.ifoodLateHint')}
 	</p>
 {/if}
 {#if unpaid > 0}
 	<a href="/staff/reconciliation" class="block alert-warn">
-		{unpaid} pedido(s) das últimas 24 h com pagamento pendente ou desconhecido.
+		{t('alerts.unpaid', { n: unpaid })}
 	</a>
 {/if}
 {#if dead > 0}
 	<p class="alert-error">
-		{dead} evento(s) de integração com falha. Veja a página de integrações.
+		{t('alerts.dead', { n: dead })}
 	</p>
 {/if}

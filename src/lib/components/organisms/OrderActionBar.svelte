@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 	import { requiresReason, type OrderStatus } from '#lib/domain/order-status.ts';
 
 	// The next steps staff may take on an order. Cancelling or refusing asks for a reason first.
@@ -14,20 +15,21 @@
 		error?: string;
 	} = $props();
 
+	const t = useTexts();
 	let reasonFor = $state<OrderStatus | null>(null);
 
 	const actionLabel: Partial<Record<OrderStatus, string>> = {
-		confirmed: 'Confirmar pedido',
-		preparing: 'Iniciar preparo',
-		ready: 'Marcar como pronto',
-		completed: 'Entregue ao cliente',
-		cancelled: 'Cancelar',
-		rejected: 'Recusar'
+		confirmed: t('actions.confirmed'),
+		preparing: t('actions.preparing'),
+		ready: t('actions.ready'),
+		completed: t('actions.completed'),
+		cancelled: t('actions.cancelled'),
+		rejected: t('actions.rejected')
 	};
 </script>
 
 <div class="space-y-2 card p-3">
-	<h2 class="font-semibold">Ações</h2>
+	<h2 class="font-semibold">{t('actions.title')}</h2>
 	<FormError message={error} />
 	{#each next as to (to)}
 		{#if requiresReason(to)}
@@ -44,10 +46,10 @@
 				>
 					<input type="hidden" name="to" value={to} />
 					<input type="hidden" name="version" value={version} />
-					<input class="field" name="reason" placeholder="Motivo (obrigatório)" required />
+					<input class="field" name="reason" placeholder={t('actions.reason')} required />
 					<div class="flex gap-2">
 						<button type="button" class="btn-secondary flex-1" onclick={() => (reasonFor = null)}
-							>Voltar</button
+							>{t('actions.back')}</button
 						>
 						<button class="btn-danger flex-1">{actionLabel[to]}</button>
 					</div>
@@ -65,6 +67,6 @@
 			</form>
 		{/if}
 	{:else}
-		<p class="text-sm text-muted">Nenhuma ação disponível.</p>
+		<p class="text-sm text-muted">{t('actions.none')}</p>
 	{/each}
 </div>

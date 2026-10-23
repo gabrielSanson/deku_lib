@@ -2,15 +2,10 @@
 	import { enhance } from '$app/forms';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import FormError from '#lib/components/molecules/FormError.svelte';
+	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
-
-	const KIND_LABEL = {
-		sale: 'Venda em dinheiro',
-		refund: 'Estorno em dinheiro',
-		sangria: 'Sangria',
-		suprimento: 'Suprimento'
-	} as const;
+	const t = useTexts();
 
 	const time = (d: Date | string) =>
 		new Date(d).toLocaleTimeString('pt-BR', {
@@ -40,44 +35,49 @@
 	};
 </script>
 
-<svelte:head><title>Gaveta · Equipe</title></svelte:head>
+<svelte:head><title>{t('drawer.tabTitle')}</title></svelte:head>
 
 <main class="mx-auto max-w-xl space-y-4 p-4">
-	<h1 class="page-title">Gaveta do caixa</h1>
+	<h1 class="page-title">{t('drawer.title')}</h1>
 
 	{#if data.closed}
 		{@const c = data.closed}
 		<section class="space-y-2 card p-4" aria-labelledby="closed-title">
-			<h2 id="closed-title" class="font-semibold">Caixa fechado às {time(c.closedAt!)}</h2>
-			<div class="flex justify-between"><span>Contado</span><Money cents={c.countedCents!} /></div>
+			<h2 id="closed-title" class="font-semibold">
+				{t('drawer.closedAt', { time: time(c.closedAt!) })}
+			</h2>
 			<div class="flex justify-between">
-				<span>Esperado</span><Money cents={c.expectedCents!} />
+				<span>{t('drawer.counted')}</span><Money cents={c.countedCents!} />
+			</div>
+			<div class="flex justify-between">
+				<span>{t('drawer.expected')}</span><Money cents={c.expectedCents!} />
 			</div>
 			<div
 				class="flex justify-between text-lg font-bold {c.differenceCents! < 0 ? 'text-bad' : ''}"
 			>
 				<span
 					>{c.differenceCents === 0
-						? 'Sem diferença'
+						? t('drawer.noDifference')
 						: c.differenceCents! < 0
-							? 'Falta'
-							: 'Sobra'}</span
+							? t('drawer.short')
+							: t('drawer.over')}</span
 				>
 				<Money cents={Math.abs(c.differenceCents!)} />
 			</div>
-			{#if c.closeNote}<p class="text-sm text-muted">Obs.: {c.closeNote}</p>{/if}
+			{#if c.closeNote}<p class="text-sm text-muted">
+					{t('drawer.closeNote', { note: c.closeNote })}
+				</p>{/if}
 		</section>
 	{/if}
 
 	{#if !data.session}
 		<form method="POST" action="?/open" class="space-y-3 card p-4" use:enhance={submit}>
-			<h2 class="font-semibold">Abrir o caixa</h2>
+			<h2 class="font-semibold">{t('drawer.openTitle')}</h2>
 			<p class="text-sm text-muted">
-				Conte o dinheiro que fica na gaveta para troco. Vendas em dinheiro só podem ser registradas
-				com o caixa aberto.
+				{t('drawer.openText')}
 			</p>
 			<div>
-				<label class="label" for="float">Fundo de troco (R$)</label>
+				<label class="label" for="float">{t('drawer.float')}</label>
 				<input
 					id="float"
 					name="float"
@@ -88,111 +88,116 @@
 				/>
 			</div>
 			<FormError message={form?.error} />
-			<button class="btn-primary w-full text-lg" disabled={busy}>Abrir caixa</button>
+			<button class="btn-primary w-full text-lg" disabled={busy}>{t('drawer.open')}</button>
 		</form>
 	{:else}
 		{@const s = data.session}
 		<section class="space-y-1 card p-4">
-			<p class="alert-ok">Caixa aberto por {s.openedByName} em {dateTime(s.openedAt)}.</p>
+			<p class="alert-ok">
+				{t('drawer.openedBy', { name: s.openedByName, time: dateTime(s.openedAt) })}
+			</p>
 			<div class="flex justify-between pt-2">
-				<span>Fundo de troco</span><Money cents={s.openingFloatCents} />
+				<span>{t('drawer.floatLine')}</span><Money cents={s.openingFloatCents} />
 			</div>
 			{#if data.balance}
 				<div class="flex justify-between text-sm text-muted">
-					<span>Vendas em dinheiro</span><Money cents={data.balance.salesCents} />
+					<span>{t('drawer.sales')}</span><Money cents={data.balance.salesCents} />
 				</div>
 				<div class="flex justify-between text-sm text-muted">
-					<span>Sangrias e estornos</span><Money
+					<span>{t('drawer.out')}</span><Money
 						cents={data.balance.sangriaCents + data.balance.refundsCents}
 					/>
 				</div>
 				<div class="flex justify-between text-sm text-muted">
-					<span>Suprimentos</span><Money cents={data.balance.suprimentoCents} />
+					<span>{t('drawer.in')}</span><Money cents={data.balance.suprimentoCents} />
 				</div>
 				<div class="flex justify-between text-lg font-bold">
-					<span>Esperado na gaveta</span><Money cents={data.balance.expectedCents} />
+					<span>{t('drawer.expectedLine')}</span><Money cents={data.balance.expectedCents} />
 				</div>
 				<p class="text-xs text-muted">
-					Só administradores veem o valor esperado; quem fecha o caixa conta sem saber.
+					{t('drawer.blind')}
 				</p>
 			{/if}
 		</section>
 
 		<form method="POST" action="?/movement" class="space-y-3 card p-4" use:enhance={submit}>
-			<h2 class="font-semibold">Sangria ou suprimento</h2>
+			<h2 class="font-semibold">{t('drawer.moveTitle')}</h2>
 			<input type="hidden" name="kind" value={kind} />
-			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de movimento">
+			<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('drawer.moveKind')}>
 				<button
 					type="button"
 					class="btn {kind === 'sangria' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={kind === 'sangria'}
-					onclick={() => (kind = 'sangria')}>Sangria (retirar)</button
+					onclick={() => (kind = 'sangria')}>{t('drawer.sangria')}</button
 				>
 				<button
 					type="button"
 					class="btn {kind === 'suprimento' ? 'bg-ink text-canvas' : 'btn-secondary'}"
 					aria-pressed={kind === 'suprimento'}
-					onclick={() => (kind = 'suprimento')}>Suprimento (colocar)</button
+					onclick={() => (kind = 'suprimento')}>{t('drawer.suprimento')}</button
 				>
 			</div>
 			<div>
-				<label class="label" for="amount">Valor (R$)</label>
+				<label class="label" for="amount">{t('drawer.amount')}</label>
 				<input id="amount" name="amount" class="field text-lg" inputmode="decimal" required />
 			</div>
 			<div>
-				<label class="label" for="reason">Motivo{kind === 'sangria' ? '' : ' (opcional)'}</label>
+				<label class="label" for="reason"
+					>{kind === 'sangria' ? t('drawer.reason') : t('drawer.reasonOptional')}</label
+				>
 				<input
 					id="reason"
 					name="reason"
 					class="field"
-					placeholder={kind === 'sangria' ? 'Ex.: depósito no cofre' : 'Ex.: mais troco'}
+					placeholder={kind === 'sangria'
+						? t('drawer.sangriaPlaceholder')
+						: t('drawer.suprimentoPlaceholder')}
 					required={kind === 'sangria'}
 				/>
 			</div>
 			{#if form?.recorded}
 				<p class="alert-ok" role="status">
-					{form.recorded === 'sangria' ? 'Sangria registrada.' : 'Suprimento registrado.'}
+					{form.recorded === 'sangria' ? t('drawer.sangriaDone') : t('drawer.suprimentoDone')}
 				</p>
 			{/if}
 			<FormError message={form?.error} />
-			<button class="btn-secondary w-full" disabled={busy}>Registrar</button>
+			<button class="btn-secondary w-full" disabled={busy}>{t('drawer.record')}</button>
 		</form>
 
 		<form method="POST" action="?/close" class="space-y-3 card p-4" use:enhance={submit}>
-			<h2 class="font-semibold">Fechar o caixa</h2>
+			<h2 class="font-semibold">{t('drawer.closeTitle')}</h2>
 			<p class="text-sm text-muted">
-				Conte todo o dinheiro da gaveta, inclusive o fundo de troco, e digite o total. A diferença
-				aparece depois de fechar e não pode ser alterada.
+				{t('drawer.closeText')}
 			</p>
 			<div>
-				<label class="label" for="counted">Dinheiro contado (R$)</label>
+				<label class="label" for="counted">{t('drawer.countedField')}</label>
 				<input id="counted" name="counted" class="field text-lg" inputmode="decimal" required />
 			</div>
 			<div>
-				<label class="label" for="note">Observação (opcional)</label>
+				<label class="label" for="note">{t('drawer.note')}</label>
 				<input id="note" name="note" class="field" />
 			</div>
 			<label class="flex items-center gap-2 text-sm">
 				<input type="checkbox" bind:checked={confirmClose} />
-				Contei o dinheiro e quero fechar o caixa
+				{t('drawer.closeConfirm')}
 			</label>
 			<FormError message={form?.error} />
 			<button class="btn-primary w-full text-lg" disabled={busy || !confirmClose}
-				>Fechar caixa</button
+				>{t('drawer.close')}</button
 			>
 		</form>
 
 		<section class="card p-4">
-			<h2 class="mb-2 font-semibold">Movimentos ({data.movements.length})</h2>
+			<h2 class="mb-2 font-semibold">{t('drawer.movements', { n: data.movements.length })}</h2>
 			{#if data.movements.length === 0}
-				<p class="text-sm text-muted">Nenhum movimento ainda.</p>
+				<p class="text-sm text-muted">{t('drawer.noMovements')}</p>
 			{:else}
 				<ul class="divide-y divide-line text-sm">
 					{#each data.movements as m (m.id)}
 						<li class="flex items-baseline gap-2 py-2">
 							<span class="w-12 text-muted tabular-nums">{time(m.createdAt)}</span>
 							<span class="flex-1">
-								{KIND_LABEL[m.kind]}{#if m.orderNumber}
+								{t(`drawer.kind.${m.kind}`)}{#if m.orderNumber}
 									· #{m.orderNumber}{/if}{#if m.reason}
 									· {m.reason}{/if}
 								{#if m.recordedByName}<span class="text-muted"> · {m.recordedByName}</span>{/if}
