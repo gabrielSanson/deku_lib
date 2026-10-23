@@ -4,7 +4,7 @@
 	import { enhance } from '$app/forms';
 	import Age from '#lib/components/atoms/Age.svelte';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
-	import { pickupCode } from '#lib/domain/pickup.ts';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { formatTime } from '#lib/domain/time.ts';
 	import type { OrderSummary } from '#lib/server/orders/queries.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -51,10 +51,10 @@
 		</p>{/if}
 	<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
 		<!-- Read across the room on the TV: ready codes are at least 64 px. -->
-		<span
-			class="font-black tabular-nums {dark && !waiting ? 'text-7xl text-yellow-300' : 'text-3xl'}"
-			>#{pickupCode(o.orderNumber)}</span
-		>
+		<PickupCode
+			number={o.orderNumber}
+			class={dark && !waiting ? 'text-7xl text-yellow-300' : 'text-3xl'}
+		/>
 		<span class="text-xs font-bold tracking-wider text-brand-700">
 			{o.channel === 'ifood'
 				? `IFOOD ${o.channelDisplayId ?? ''} · `

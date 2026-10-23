@@ -34,7 +34,9 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 	await expect(page.getByText('Pagamento confirmado.')).toBeVisible();
 	await page.getByRole('button', { name: 'Continuar' }).click();
 	await page.waitForURL(/\/complete$/);
-	const orderNumber = (await page.getByTestId('pickup-code').textContent())!.trim();
+	// The full number shows small beside the code; staff call the last 3 digits.
+	const orderNumber = (await page.getByTestId('pickup-code').textContent())!.replace(/\D/g, '');
+	const code = orderNumber.slice(-3);
 
 	const kitchenCtx = await browser.newContext();
 	const kitchen = await kitchenCtx.newPage();
@@ -61,7 +63,7 @@ test('admin sells at the counter and the kitchen completes it', async ({ page, b
 
 	// The attendant calls the code out and taps "Chamar"; the board shows when it was called.
 	await page.waitForLoadState('networkidle'); // wait for hydration before tapping
-	await page.getByRole('button', { name: new RegExp(`Chamar ${orderNumber}`) }).click();
+	await page.getByRole('button', { name: new RegExp(`Chamar ${code}`) }).click();
 	await expect(page.getByText(/Chamado às/)).toBeVisible();
 	await expect(
 		kitchen.locator('article', { hasText: orderNumber }).getByText(/Chamado às/)

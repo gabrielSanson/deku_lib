@@ -198,6 +198,8 @@ export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]>
 }
 
 export interface BoardOrder {
+	/** The full order number, shown small under the code. */
+	number: number;
 	code: string;
 	status: 'preparing' | 'ready';
 	/** Changes when the order turns ready or staff tap "Chamar", so the room screen can chime. */
@@ -219,6 +221,7 @@ export async function listBoardOrders(sql: Db = db()): Promise<BoardOrder[]> {
 		order by coalesce(ready_at, accepted_at, created_at)
 		limit 60`;
 	return rows.map((r) => ({
+		number: r.order_number,
 		code: pickupCode(r.order_number),
 		status: r.status === 'ready' ? 'ready' : 'preparing',
 		alertKey: r.status === 'ready' ? `${r.order_number}:${+(r.called_at ?? r.ready_at ?? 0)}` : null

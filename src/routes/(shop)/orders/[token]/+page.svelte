@@ -5,6 +5,7 @@
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import Timeline, { type Step } from '#lib/components/organisms/Timeline.svelte';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { enhance } from '$app/forms';
@@ -218,13 +219,16 @@
 
 	<div class="space-y-5 rounded-(--radius-card) bg-night p-6 text-white">
 		<div class="flex flex-wrap items-start justify-between gap-3">
-			<!-- The order number is also the code called out at the counter (pickupCode). -->
+			<!-- The code called out at the counter is the page's hero (pickupCode). -->
 			<div>
-				<h2
-					class="font-display text-2xl font-black tracking-tight whitespace-nowrap tabular-nums min-[400px]:text-3xl sm:text-4xl"
-				>
-					{t('order.track.orderNumber', { number: code })}
+				<h2 class="text-sm font-semibold tracking-wider text-stone-300 uppercase">
+					{t('order.track.codeLabel')}
 				</h2>
+				<PickupCode
+					number={o.orderNumber}
+					class="font-display text-7xl leading-none tracking-tight text-brand-500 sm:text-8xl"
+					fullClass="text-xl font-bold text-stone-300"
+				/>
 				<p class="mt-1 text-stone-300">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)}</p>
 			</div>
 			<span class="pill shrink-0 bg-brand-500 px-4 py-1.5 text-sm font-bold text-black"

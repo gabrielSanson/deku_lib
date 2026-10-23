@@ -2,6 +2,7 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 
 	let { data } = $props();
@@ -12,12 +13,15 @@
 
 <main class="mx-auto max-w-md space-y-5 p-6 text-center">
 	<p class="text-sm font-medium text-muted">{t('posDone.sent')}</p>
-	<!-- The order number is the pickup code: read it out, the customer can photograph it. -->
+	<!-- Read the code out; the customer can photograph it. -->
 	<div>
 		<p class="text-2xl font-bold">{t('posDone.code')}</p>
-		<p class="text-8xl font-black tabular-nums" data-testid="pickup-code">
-			{data.order.orderNumber}
-		</p>
+		<PickupCode
+			number={data.order.orderNumber}
+			class="text-8xl"
+			fullClass="text-2xl font-bold text-muted"
+			testid="pickup-code"
+		/>
 	</div>
 	{#if data.order.customerLabel}<p class="text-xl">{data.order.customerLabel}</p>{/if}
 	{#if data.order.tableLabel}<p class="text-muted">

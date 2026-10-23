@@ -439,18 +439,18 @@ describe('room board', () => {
 			actor: cashier
 		});
 		let board = await listBoardOrders();
-		expect(board.find((b) => b.code === String(o.orderNumber))).toMatchObject({
+		expect(board.find((b) => b.number === o.orderNumber)).toMatchObject({
 			status: 'preparing',
 			alertKey: null
 		});
 		await transitionOrder({ orderId: o.id, to: 'preparing', actor: kitchen });
 		await transitionOrder({ orderId: o.id, to: 'ready', actor: kitchen });
 		board = await listBoardOrders();
-		const ready = board.find((b) => b.code === String(o.orderNumber));
+		const ready = board.find((b) => b.number === o.orderNumber);
 		expect(ready?.status).toBe('ready');
 		expect(ready?.alertKey).toBeTruthy();
 		await db()`update orders set fulfillment_type = 'delivery' where id = ${o.id}`;
 		board = await listBoardOrders();
-		expect(board.find((b) => b.code === String(o.orderNumber))).toBeUndefined();
+		expect(board.find((b) => b.number === o.orderNumber)).toBeUndefined();
 	});
 });

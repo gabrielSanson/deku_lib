@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { fulfillmentLabel } from '#lib/domain/fulfillment.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
+	import { pickupCode } from '#lib/domain/pickup.ts';
 	import { METHOD_LABEL_PT } from '#lib/domain/tender-labels.ts';
 	import { formatTime, SHOP_TZ } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -52,7 +53,8 @@
 
 <article class="ticket">
 	{#if kitchen}
-		<p class="center big">#{o.orderNumber}</p>
+		<p class="center big">{pickupCode(o.orderNumber)}</p>
+		<p class="center strong">#{o.orderNumber}</p>
 		<p class="center strong">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {channel}</p>
 		{#if o.channelDisplayId}<p class="center">iFood {o.channelDisplayId}</p>{/if}
 		<p class="center">
@@ -97,6 +99,7 @@
 		{#if data.shop.phone}<p class="center">{data.shop.phone}</p>{/if}
 		<hr />
 		<p class="center big">{t('print.order', { n: o.orderNumber })}</p>
+		<p class="center strong">{t('print.code', { code: pickupCode(o.orderNumber) })}</p>
 		<p class="center">{fulfillmentLabel(o.fulfillmentType, o.tableLabel)} · {stamp(o.createdAt)}</p>
 		{#if o.customerLabel}<p class="center">{o.customerLabel}</p>{/if}
 		<hr />

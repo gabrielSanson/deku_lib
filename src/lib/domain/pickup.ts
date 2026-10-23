@@ -1,14 +1,16 @@
-// The order number is the pickup code (owner decision, 21 Oct 2026): the same
-// code shows on the phone, the till, the kitchen ticket and the TV board.
+// The pickup code comes from the order number (owner decisions, 21 and 23 Oct 2026):
+// staff call the last 3 digits, so screens show those large and the full number small.
+// The same code shows on the phone, the till, the kitchen ticket and the TV board.
 import type { Fulfillment } from './fulfillment';
 import type { OrderStatus } from './order-status';
 
 /**
- * The code staff read out and customers look for. Open question: whether to
- * call only the last 3 digits. Until decided, it is the full order number.
+ * The code staff read out and customers look for: the last 3 digits of the order
+ * number. Two open orders can share it only after 1000 more orders, so the full
+ * number stays visible next to it to tell them apart.
  */
 export function pickupCode(orderNumber: number): string {
-	return String(orderNumber);
+	return String(orderNumber).slice(-3).padStart(3, '0');
 }
 
 /** Staff can call an order out ("Chamar") once it is ready, as often as needed. */

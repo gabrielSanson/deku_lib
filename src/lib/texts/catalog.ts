@@ -816,10 +816,10 @@ const CORE_TEXTS = {
 		label: 'Subtítulo',
 		default: 'Veja em tempo real o status do seu pedido.'
 	},
-	'order.track.orderNumber': {
+	'order.track.codeLabel': {
 		group: 'order',
-		label: 'Número do pedido',
-		default: 'Pedido #{number}'
+		label: 'Rótulo da senha',
+		default: 'Sua senha'
 	},
 	'order.track.waitingPayment': {
 		group: 'order',
@@ -901,12 +901,12 @@ const CORE_TEXTS = {
 	'order.readyPickup': {
 		group: 'order',
 		label: 'Pedido pronto (retirada no balcão)',
-		default: 'Pronto! Retire no balcão com a senha #{number}.'
+		default: 'Pronto! Retire no balcão com a senha {number}.'
 	},
 	'order.readyTabTitle': {
 		group: 'order',
 		label: 'Título da aba quando pronto',
-		default: '✅ Pronto! #{number}'
+		default: '✅ Pronto! Senha {number}'
 	},
 	'order.notify.cta': {
 		group: 'order',
@@ -948,7 +948,7 @@ const CORE_TEXTS = {
 	'push.ready.body': {
 		group: 'order',
 		label: 'Notificação de pronto: texto',
-		default: 'Retire no balcão com a senha #{number}.'
+		default: 'Retire no balcão com a senha {number}.'
 	},
 
 	// Staff screens (kitchen and orders)

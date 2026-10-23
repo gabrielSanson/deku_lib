@@ -554,6 +554,7 @@ export const STAFF_OPS_TEXTS = {
 	},
 	'print.unpaid': { group: 'staff', label: 'Impressão: não pago', default: '*** NÃO PAGO ***' },
 	'print.order': { group: 'staff', label: 'Impressão: pedido', default: 'Pedido #{n}' },
+	'print.code': { group: 'staff', label: 'Impressão: senha', default: 'Senha {code}' },
 	'print.subtotal': { group: 'staff', label: 'Impressão: subtotal', default: 'Subtotal' },
 	'print.discount': { group: 'staff', label: 'Impressão: desconto', default: 'Desconto' },
 	'print.deliveryFee': {

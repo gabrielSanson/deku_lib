@@ -11,6 +11,7 @@
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { mayCall, pickupCode } from '#lib/domain/pickup.ts';
 	import { formatTime } from '#lib/domain/time.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
@@ -156,9 +157,7 @@
 						<li class="card p-4">
 							<a href="/staff/orders/{o.id}" class="block">
 								<div class="flex items-start justify-between gap-2">
-									<span class="font-display text-3xl font-extrabold tabular-nums"
-										>#{o.orderNumber}</span
-									>
+									<PickupCode number={o.orderNumber} class="font-display text-3xl" />
 									<Age
 										since={o.createdAt}
 										warnAfter={o.status === 'new' ? 3 : 15}

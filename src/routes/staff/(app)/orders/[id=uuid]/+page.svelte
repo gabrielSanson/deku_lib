@@ -5,6 +5,7 @@
 	import OrderActionBar from '#lib/components/organisms/OrderActionBar.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
 	import PaymentBadge from '#lib/components/atoms/PaymentBadge.svelte';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import StatusBadge from '#lib/components/atoms/StatusBadge.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import {
@@ -43,7 +44,7 @@
 	<section class="space-y-4">
 		<div class="flex flex-wrap items-center gap-3">
 			<a href="/staff/orders" class="btn-ghost min-h-9">{t('orderDetail.back')}</a>
-			<h1 class="page-title">#{o.orderNumber}</h1>
+			<h1 class="page-title"><PickupCode number={o.orderNumber} /></h1>
 			<StatusBadge status={o.status} />
 			<PaymentBadge status={o.paymentStatus} />
 			<span class="ml-auto flex gap-2">

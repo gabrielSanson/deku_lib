@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
+	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
@@ -13,7 +14,7 @@
 	let audio: AudioContext | null = null;
 	let soundOn = $state(false);
 	let seen: Set<string> | null = null;
-	let flash = $state<string | null>(null);
+	let flash = $state<number | null>(null);
 
 	function chime() {
 		if (!audio) return;
@@ -46,7 +47,7 @@
 		if (seen) {
 			const fresh = ready.find((o) => o.alertKey && !seen!.has(o.alertKey));
 			if (fresh) {
-				flash = fresh.code;
+				flash = fresh.number;
 				chime();
 				setTimeout(() => (flash = null), 12_000);
 			}
@@ -86,8 +87,8 @@
 			{t('board.preparing')}
 		</h1>
 		<ul class="flex flex-wrap content-start gap-x-10 gap-y-4" aria-live="polite">
-			{#each preparing as o (o.code)}
-				<li class="text-6xl font-black text-stone-300 tabular-nums">{o.code}</li>
+			{#each preparing as o (o.number)}
+				<li><PickupCode number={o.number} class="text-6xl text-stone-300" /></li>
 			{/each}
 		</ul>
 	</section>
@@ -100,13 +101,13 @@
 			<p class="text-2xl text-stone-500">{t('board.empty')}</p>
 		{/if}
 		<ul class="flex flex-wrap content-start gap-5" aria-live="assertive">
-			{#each ready as o (o.code)}
+			{#each ready as o (o.number)}
 				<li
-					class="rounded-2xl px-6 py-3 text-8xl font-black tabular-nums {flash === o.code
+					class="rounded-2xl px-6 py-3 {flash === o.number
 						? 'animate-pulse bg-brand-400 text-black'
 						: 'bg-stone-800 text-brand-400'}"
 				>
-					{o.code}
+					<PickupCode number={o.number} class="text-8xl" />
 				</li>
 			{/each}
 		</ul>
