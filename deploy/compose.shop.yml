@@ -24,6 +24,11 @@ x-app: &app
     MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
     # Menu photos are up to 5 MB.
     BODY_SIZE_LIMIT: 6M
+    # Behind Caddy, the client address is the last X-Forwarded-For entry. Without this,
+    # every customer shares Caddy's container IP and one rate-limit bucket.
+    # Behind a Cloudflare Tunnel, set ADDRESS_HEADER=CF-Connecting-IP in deploy/supabase/.env.
+    ADDRESS_HEADER: ${ADDRESS_HEADER:-X-Forwarded-For}
+    XFF_DEPTH: ${XFF_DEPTH:-1}
 
 services:
   # Studio stays reachable from the server itself only (use an SSH tunnel).

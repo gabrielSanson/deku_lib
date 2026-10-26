@@ -66,6 +66,8 @@ The database is the only state that matters.
 
 ## Behind a Cloudflare Tunnel
 
+Set `ADDRESS_HEADER=CF-Connecting-IP` in `deploy/supabase/.env` so rate limits see each customer's address (Caddy alone uses `X-Forwarded-For`, the default).
+
 1. In the Cloudflare dashboard, open Zero Trust → Networks → Tunnels and create a
    tunnel. Copy its token.
 2. Add a public hostname `pedido.example.com` pointing to `http://shop-proxy:80`.
