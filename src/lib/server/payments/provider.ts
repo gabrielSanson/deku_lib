@@ -42,7 +42,8 @@ export interface PaymentProvider {
 	createCheckout(req: CheckoutRequest): Promise<CheckoutResult>;
 	getStatus(providerPaymentId: string): Promise<ProviderPaymentStatus>;
 	/** Must use the raw request body bytes, before any JSON parsing. */
-	verifyWebhook(rawBody: Uint8Array, headers: Headers): Promise<boolean>;
+	/** `url` is the notification URL; some providers sign values from its query string. */
+	verifyWebhook(rawBody: Uint8Array, headers: Headers, url?: URL): Promise<boolean>;
 	/** null for notifications that need no action. */
 	parseWebhook(rawBody: Uint8Array): Promise<ParsedWebhook | null>;
 	refund(providerPaymentId: string, amountCents: number, idempotencyKey: string): Promise<void>;

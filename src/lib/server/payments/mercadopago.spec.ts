@@ -43,6 +43,29 @@ describe('mercado pago', () => {
 		expect(verifyMpSignature(SECRET, '123', signed('123', old))).toBe(false);
 	});
 
+	it('accepts ts in seconds or milliseconds', () => {
+		const now = Date.now();
+		const seconds = Math.floor(now / 1000);
+		expect(verifyMpSignature(SECRET, '123', signed('123', seconds), now)).toBe(true);
+		expect(verifyMpSignature(SECRET, '123', signed('123', now), now)).toBe(true);
+		// Twenty minutes old, in either unit.
+		expect(verifyMpSignature(SECRET, '123', signed('123', seconds - 1200), now)).toBe(false);
+		expect(verifyMpSignature(SECRET, '123', signed('123', now - 1_200_000), now)).toBe(false);
+	});
+
+	it('signs the data.id from the notification URL, lower-cased when alphanumeric', async () => {
+		const p = mercadoPagoProvider({ accessToken: 't', webhookSecret: SECRET });
+		const url = new URL(
+			'https://loja.test/api/v1/payments/webhooks/mercadopago?data.id=ABC123&type=payment'
+		);
+		// Body says something else: the URL wins.
+		const raw = body({ type: 'payment', data: { id: 'zzz' } });
+		expect(await p.verifyWebhook(raw, signed('abc123'), url)).toBe(true);
+		expect(await p.verifyWebhook(raw, signed('zzz'), url)).toBe(false);
+		// Without the query parameter the body's id is used.
+		expect(await p.verifyWebhook(raw, signed('zzz'))).toBe(true);
+	});
+
 	it('refuses webhooks when no secret is configured', async () => {
 		const p = mercadoPagoProvider({ accessToken: 't', fetch: fakeFetch({}).f });
 		expect(await p.verifyWebhook(body({ data: { id: '1' } }), signed('1'))).toBe(false);

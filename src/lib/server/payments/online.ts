@@ -88,11 +88,12 @@ export async function startOnlinePayment(input: {
 export async function receivePaymentWebhook(
 	providerName: string,
 	rawBody: Uint8Array,
-	headers: Headers
+	headers: Headers,
+	url?: URL
 ) {
 	const provider = providerByName(providerName);
 	if (!provider) return { status: 404 };
-	const valid = await provider.verifyWebhook(rawBody, headers);
+	const valid = await provider.verifyWebhook(rawBody, headers, url);
 	if (!valid) {
 		console.warn(
 			JSON.stringify({ msg: 'payment webhook signature rejected', provider: providerName })

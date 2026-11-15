@@ -62,9 +62,12 @@ export function verifyMpSignature(
 	);
 	const ts = parts.ts;
 	const v1 = parts.v1;
-	if (!ts || !v1) return false;
-	// Refuse replays of old notifications (ts is in milliseconds; allow 15 minutes).
-	if (Math.abs(nowMs - Number(ts)) > 15 * 60_000) return false;
+	if (!ts || !/^\d+$/.test(ts) || !v1) return false;
+	// Refuse replays of old notifications (allow 15 minutes). Mercado Pago's docs show ts in
+	// seconds in some places and milliseconds in others: 10 digits or fewer is seconds.
+	// TODO(verify): confirm the unit with one sandbox payment.
+	const tsMs = ts.length <= 10 ? Number(ts) * 1000 : Number(ts);
+	if (Math.abs(nowMs - tsMs) > 15 * 60_000) return false;
 	const requestId = headers.get('x-request-id');
 	let manifest = `id:${/^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId};`;
 	if (requestId) manifest += `request-id:${requestId};`;
@@ -202,14 +205,15 @@ export function mercadoPagoProvider(opts: MercadoPagoOptions): PaymentProvider {
 			return p ? mapMpStatus(p.status) : 'pending';
 		},
 
-		async verifyWebhook(rawBody, headers) {
+		async verifyWebhook(rawBody, headers, url) {
 			if (!opts.webhookSecret) {
 				console.warn(
 					JSON.stringify({ msg: 'MERCADOPAGO_WEBHOOK_SECRET missing; webhook refused' })
 				);
 				return false;
 			}
-			const id = notificationBody(rawBody)?.data?.id;
+			// The signed id is the data.id of the notification URL; the body is the fallback.
+			const id = url?.searchParams.get('data.id') ?? notificationBody(rawBody)?.data?.id;
 			return id != null && verifyMpSignature(opts.webhookSecret, String(id), headers);
 		},
 
