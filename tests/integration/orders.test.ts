@@ -12,7 +12,9 @@ import {
 	listBoardOrders,
 	listKitchenOrders
 } from '#lib/server/orders/queries.ts';
+import { expireUnpaidOrders } from '#lib/server/payments/online.ts';
 import { recordManualTender, refundTender } from '#lib/server/payments/tenders.ts';
+import { handleStaleOrders } from '#lib/server/worker/handlers.ts';
 import { setSoldOut, updateStoreSettings } from '#lib/server/settings/service.ts';
 import { classic, ensureCashOpen, makeStaff } from './helpers.ts';
 
@@ -485,5 +487,110 @@ describe('customer order history', () => {
 		);
 		expect(skipped).toEqual([]);
 		expect(lines.map((l) => l.product.sku)).toEqual(['BRG-CLASSICO', 'ACP-FRITAS']);
+	});
+});
+
+describe('unpaid orders expire', () => {
+	async function webOrder(plan: 'pix_key' | 'counter', sourceMode: 'web' | 'kiosk' = 'web') {
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true, maxOpenOrders: null },
+			manager
+		);
+		return createOrder({
+			channel: 'web',
+			sourceMode,
+			lines: [classic],
+			fulfillmentType: 'pickup',
+			customer: { name: 'Prazo', phoneE164: '+5511955554444' },
+			idempotencyKey: randomUUID(),
+			paymentPlan: plan,
+			actor: { type: 'customer', id: null }
+		});
+	}
+	const ageMinutes = (id: string, minutes: number) =>
+		db()`update orders set created_at = now() - make_interval(mins => ${minutes}) where id = ${id}`;
+	const statusOf = async (id: string) => (await getOrderDetail(id))?.status;
+
+	it('cancels an unpaid Pix-key order after 20 minutes and records why', async () => {
+		const late = await webOrder('pix_key');
+		const fresh = await webOrder('pix_key');
+		await ageMinutes(late.id, 21);
+		await ageMinutes(fresh.id, 10);
+		const result = await handleStaleOrders();
+		expect(result.expired).toBeGreaterThanOrEqual(1);
+		expect(await statusOf(late.id)).toBe('cancelled');
+		expect(await statusOf(fresh.id)).toBe('new');
+		const [h] = await db()<{ reason: string; actor_type: string }[]>`
+			select reason, actor_type from order_status_history
+			where order_id = ${late.id} and to_status = 'cancelled'`;
+		expect(h).toEqual({ reason: 'Pagamento não recebido a tempo', actor_type: 'system' });
+	});
+
+	it('leaves a paid Pix order and a staff POS counter order alone', async () => {
+		const paid = await webOrder('pix_key');
+		await recordManualTender({
+			orderId: paid.id,
+			method: 'external_pix',
+			amountCents: paid.totalCents,
+			providerReference: 'E2E-PAID',
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		const pos = await createOrder({
+			channel: 'counter',
+			sourceMode: 'staff_pos',
+			lines: [classic],
+			fulfillmentType: 'counter',
+			idempotencyKey: randomUUID(),
+			actor: cashier
+		});
+		await ageMinutes(paid.id, 60);
+		await ageMinutes(pos.id, 60);
+		await expireUnpaidOrders();
+		expect(await statusOf(paid.id)).toBe('confirmed');
+		expect(await statusOf(pos.id)).toBe('new');
+	});
+
+	it('cancels an unpaid totem order after its own deadline', async () => {
+		await updateStoreSettings({ unpaidCounterMinutes: 30 }, manager);
+		const totem = await webOrder('counter', 'kiosk');
+		await ageMinutes(totem.id, 20);
+		await expireUnpaidOrders();
+		expect(await statusOf(totem.id)).toBe('new');
+		await ageMinutes(totem.id, 31);
+		await expireUnpaidOrders();
+		expect(await statusOf(totem.id)).toBe('cancelled');
+		await updateStoreSettings({ unpaidCounterMinutes: 15 }, manager);
+	});
+
+	it('does not count late unpaid orders against the busy limit', async () => {
+		await db()`update orders set status = 'cancelled' where status in ('new','confirmed','preparing')`;
+		const late = await webOrder('pix_key');
+		await ageMinutes(late.id, 25);
+		await updateStoreSettings({ maxOpenOrders: 1 }, manager);
+		const next = await createOrder({
+			channel: 'web',
+			sourceMode: 'web',
+			lines: [classic],
+			fulfillmentType: 'pickup',
+			customer: { name: 'Prazo', phoneE164: '+5511955554444' },
+			idempotencyKey: randomUUID(),
+			paymentPlan: 'pix_key',
+			actor: { type: 'customer', id: null }
+		});
+		expect(next.status).toBe('new');
+		await expect(
+			createOrder({
+				channel: 'web',
+				sourceMode: 'web',
+				lines: [classic],
+				fulfillmentType: 'pickup',
+				customer: { name: 'Prazo', phoneE164: '+5511955554444' },
+				idempotencyKey: randomUUID(),
+				paymentPlan: 'pix_key',
+				actor: { type: 'customer', id: null }
+			})
+		).rejects.toMatchObject({ code: 'capacity' });
+		await updateStoreSettings({ maxOpenOrders: null }, manager);
 	});
 });

@@ -685,6 +685,11 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Operação: tempo de preparo',
 		default: 'Tempo de preparo inválido.'
 	},
+	'err.settings.unpaidMinutes': {
+		group: 'staffErrors',
+		label: 'Operação: prazo de pagamento',
+		default: 'O prazo para cancelar pedidos não pagos vai de 5 a 120 minutos.'
+	},
 	'err.settings.capacity': {
 		group: 'staffErrors',
 		label: 'Operação: capacidade',

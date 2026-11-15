@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import QRCode from 'qrcode';
 import { buildPixCode } from '#lib/domain/pix.ts';
+import { orderItems } from '#lib/server/auth/customer.ts';
 import { db } from '#lib/server/db.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import type { PageServerLoad } from './$types';
@@ -20,16 +21,32 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 			tender_status: string | null;
 			provider_payload: { pixCode?: string; redirectUrl?: string } | null;
 			expires_at: Date | null;
+			pay_by: Date;
+			unpaid_cancelled: boolean;
 		}[]
 	>`
 		select o.id, o.order_number, o.total_cents, o.payment_status, o.status, o.payment_plan,
-			t.method, t.status as tender_status, t.provider_payload, t.expires_at
+			t.method, t.status as tender_status, t.provider_payload, t.expires_at,
+			o.created_at + make_interval(mins => s.unpaid_pix_minutes) as pay_by,
+			(o.status = 'cancelled' and o.payment_status <> 'paid'
+				and o.payment_plan in ('pix_key', 'online')) as unpaid_cancelled
 		from orders o
+		join store_runtime_settings s on s.id = 1
 		left join lateral (
 			select * from tenders where order_id = o.id and provider <> 'manual' order by created_at desc limit 1
 		) t on true
 		where o.public_token = ${params.token}`;
 	if (!row) error(404, 'Pedido não encontrado.');
+	// An unpaid order that was cancelled for it stays here, with a way to order the same again.
+	if (row.unpaid_cancelled) {
+		return {
+			expired: true as const,
+			token: params.token,
+			orderNumber: row.order_number,
+			totalCents: row.total_cents,
+			items: (await orderItems([row.id])).get(row.id) ?? []
+		};
+	}
 	if (row.payment_status === 'paid' || row.status !== 'new')
 		redirect(303, `/orders/${params.token}`);
 	// Pix to the shop's own key: a static code with the order number as reference.
@@ -49,7 +66,9 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 		}
 	}
 	return {
+		expired: false as const,
 		shopPix,
+		payBy: shopPix ? row.pay_by : null,
 		token: params.token,
 		orderNumber: row.order_number,
 		totalCents: row.total_cents,

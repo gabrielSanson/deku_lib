@@ -3,7 +3,7 @@
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
 - L1: done (deploy check is a unit test on the compose files (src/lib/server/deploy-config.spec.ts) instead of tests/selfhost/setup-check.mjs, which drives a browser and cannot read container env; login limiters added to staff and customer sign-in)
-- L2: todo
+- L2: done (text keys follow the existing groups: store.unpaidPix/unpaidCounter and payment.deadline/expired/reorder instead of settings.store.* and checkout.payment.*)
 - L3: todo
 - L4: todo
 - L5: todo

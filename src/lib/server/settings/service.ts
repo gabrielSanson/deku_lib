@@ -14,6 +14,10 @@ export interface StoreSettings {
 	webOrderingEnabled: boolean;
 	prepTimeMinutes: number;
 	maxOpenOrders: number | null;
+	/** Minutes before an unpaid Pix-to-shop-key order cancels itself. */
+	unpaidPixMinutes: number;
+	/** Minutes before an unpaid totem "pagar no caixa" order cancels itself. */
+	unpaidCounterMinutes: number;
 	updatedAt: Date;
 	version: number;
 }
@@ -29,6 +33,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 			web_ordering_enabled: boolean;
 			prep_time_minutes: number;
 			max_open_orders: number | null;
+			unpaid_pix_minutes: number;
+			unpaid_counter_minutes: number;
 			updated_at: Date;
 			version: number;
 		}[]
@@ -42,6 +48,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 		webOrderingEnabled: r.web_ordering_enabled,
 		prepTimeMinutes: r.prep_time_minutes,
 		maxOpenOrders: r.max_open_orders,
+		unpaidPixMinutes: r.unpaid_pix_minutes,
+		unpaidCounterMinutes: r.unpaid_counter_minutes,
 		updatedAt: r.updated_at,
 		version: r.version
 	};
@@ -69,7 +77,9 @@ export async function updateStoreSettings(
 				delivery_enabled = ${next.deliveryEnabled},
 				web_ordering_enabled = ${next.webOrderingEnabled},
 				prep_time_minutes = ${next.prepTimeMinutes},
-				max_open_orders = ${next.maxOpenOrders}, updated_by = ${actor.id}, updated_at = now(),
+				max_open_orders = ${next.maxOpenOrders},
+				unpaid_pix_minutes = ${next.unpaidPixMinutes},
+				unpaid_counter_minutes = ${next.unpaidCounterMinutes}, updated_by = ${actor.id}, updated_at = now(),
 				version = version + 1
 			where id = 1`;
 		await audit(tx, actor, 'store.settings_updated', 'store_runtime_settings', '1', {

@@ -788,6 +788,21 @@ const CORE_TEXTS = {
 		label: 'Pagamento não concluído',
 		default: 'O pagamento não foi concluído. Faça o pedido novamente.'
 	},
+	'payment.deadline': {
+		group: 'payment',
+		label: 'Prazo para pagar o Pix',
+		default: 'Pague até {time}'
+	},
+	'payment.expired': {
+		group: 'payment',
+		label: 'Pix não pago a tempo',
+		default: 'O pagamento não chegou a tempo e o pedido foi cancelado.'
+	},
+	'payment.reorder': {
+		group: 'payment',
+		label: 'Botão fazer o pedido de novo',
+		default: 'Fazer o pedido de novo'
+	},
 	'payment.instructions.shop': {
 		group: 'payment',
 		label: 'Instruções Pix (chave da loja)',
@@ -894,6 +909,11 @@ const CORE_TEXTS = {
 		default: 'A tela volta ao cardápio em {seconds} s.'
 	},
 	'header.kiosk.restart': { group: 'header', label: 'Totem: recomeçar', default: 'Recomeçar' },
+	'order.reason.unpaidExpired': {
+		group: 'order',
+		label: 'Motivo: pagamento não chegou',
+		default: 'Pagamento não recebido a tempo'
+	},
 	'order.cancelled': {
 		group: 'order',
 		label: 'Pedido cancelado',

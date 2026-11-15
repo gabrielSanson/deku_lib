@@ -53,7 +53,9 @@ points to **Configuração** until it is finished:
 3. **Retirada e entrega:** turn pickup and own delivery on or off, and add
    delivery areas and fees.
 4. **Equipe:** one account per person: admin, or kitchen for the kitchen TV.
-5. **Pagamentos:** Pix to the shop's key. Every site order is paid when it is placed.
+5. **Pagamentos:** Pix to the shop's key. Every site order is paid when it is placed. A Pix order nobody pays
+   cancels itself after 20 minutes, and an unpaid totem "pagar no caixa" order after 15; change both
+   in Configurações → Tipos de pedido. Orders typed at the POS are never cancelled this way.
 6. **iFood (optional):** paste the Client ID, Client Secret and Merchant ID,
    click "Salvar e testar", read any error explanation, then turn on automatic
    orders. Skip it to key iFood orders in the Caixa as "iFood (manual)".

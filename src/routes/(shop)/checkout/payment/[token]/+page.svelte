@@ -2,6 +2,9 @@
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import Money from '#lib/components/atoms/Money.svelte';
+	import { cart } from '#lib/client/cart.svelte.ts';
+	import { rebuildOrder } from '#lib/domain/reorder.ts';
+	import { formatTime } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
@@ -10,6 +13,7 @@
 	let now = $state(Date.now());
 
 	onMount(() => {
+		if (data.expired) return;
 		const poll = setInterval(() => invalidate('app:payment'), 4000);
 		const tick = setInterval(() => (now = Date.now()), 1000);
 		return () => {
@@ -18,12 +22,24 @@
 		};
 	});
 	const remaining = $derived(
-		data.expiresAt
+		!data.expired && data.expiresAt
 			? Math.max(0, Math.floor((new Date(data.expiresAt).getTime() - now) / 1000))
 			: null
 	);
+	// The order was cancelled unpaid: put what is still on the menu back in the cart.
+	function reorder() {
+		if (!data.expired) return;
+		const { lines } = rebuildOrder(
+			data.items,
+			data.catalog.products,
+			new Set(data.soldOut),
+			new Set(data.missingIngredients)
+		);
+		for (const l of lines) cart.add(l.product, l.quantity, l.options, l.note);
+		if (lines.length) cart.panelOpen = true;
+	}
 	async function copy() {
-		if (!data.pixCode) return;
+		if (data.expired || !data.pixCode) return;
 		await navigator.clipboard.writeText(data.pixCode);
 		copied = true;
 		setTimeout(() => (copied = false), 2500);
@@ -41,7 +57,11 @@
 		</h1>
 	</header>
 
-	{#if data.tenderStatus === 'cancelled' || data.tenderStatus === 'failed' || remaining === 0}
+	{#if data.expired}
+		<p class="alert-error">{t('payment.expired')}</p>
+		<button class="btn-primary w-full" onclick={reorder}>{t('payment.reorder')}</button>
+		<a class="btn-ghost w-full" href="/cardapio">{t('errors.backToMenu')}</a>
+	{:else if data.tenderStatus === 'cancelled' || data.tenderStatus === 'failed' || remaining === 0}
 		<p class="alert-error">{t('payment.failed')}</p>
 		<a class="btn-primary" href="/cardapio">{t('errors.backToMenu')}</a>
 	{:else if data.pixSvg}
@@ -57,6 +77,11 @@
 			<button class="btn-primary w-full" onclick={copy}
 				>{copied ? t('payment.copied') : t('payment.copy')}</button
 			>
+			{#if data.payBy}
+				<p class="mx-auto pill bg-quiet text-muted">
+					{t('payment.deadline', { time: formatTime(data.payBy) })}
+				</p>
+			{/if}
 			{#if remaining !== null}
 				<p class="mx-auto pill bg-quiet text-muted" aria-live="polite">
 					{t('payment.expires', {

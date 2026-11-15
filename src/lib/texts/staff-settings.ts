@@ -66,6 +66,16 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Loja: tempo de preparo',
 		default: 'Tempo de preparo prometido (min)'
 	},
+	'store.unpaidPix': {
+		group: g,
+		label: 'Loja: prazo do Pix não pago',
+		default: 'Cancelar Pix não pago após (min)'
+	},
+	'store.unpaidCounter': {
+		group: g,
+		label: 'Loja: prazo do totem não pago',
+		default: 'Cancelar pedido do totem não pago após (min)'
+	},
 	'store.maxOpen': {
 		group: g,
 		label: 'Loja: máximo de pedidos abertos',

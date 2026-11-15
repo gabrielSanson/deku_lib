@@ -5,7 +5,7 @@ import { db } from '../db';
 import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
 import { sendReadyPush } from '../notifications/push';
-import { expireUnpaidCheckouts, processPaymentEvent } from '../payments/online';
+import { expireUnpaidCheckouts, expireUnpaidOrders, processPaymentEvent } from '../payments/online';
 
 function log(msg: string, extra: Record<string, unknown> = {}) {
 	console.log(JSON.stringify({ at: new Date().toISOString(), msg, ...extra }));
@@ -44,9 +44,9 @@ export async function handlePaymentEvent(data: { paymentEventId: string }) {
 	await processPaymentEvent(data.paymentEventId);
 }
 
-/** Runs every minute: expire unpaid online checkouts and flag orders waiting too long. */
+/** Runs every minute: expire unpaid checkouts and Pix/totem orders, flag orders waiting too long. */
 export async function handleStaleOrders() {
-	const expired = await expireUnpaidCheckouts();
+	const expired = (await expireUnpaidCheckouts()) + (await expireUnpaidOrders());
 	const waiting = await db()<
 		{ id: string; order_number: number; channel: string; minutes: number }[]
 	>`

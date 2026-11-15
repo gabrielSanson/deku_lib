@@ -135,8 +135,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				throw new DomainError('err.order.dineInOff', { code: 'dine_in_off', status: 409 });
 			}
 			if (settings.maxOpenOrders) {
+				// Unpaid Pix/totem orders past their deadline do not count, even if the worker that
+				// cancels them is down.
 				const [{ open }] = await tx<{ open: number }[]>`
-					select count(*)::int as open from orders where status in ('new','confirmed','preparing')`;
+					select count(*)::int as open from orders o, store_runtime_settings s
+					where s.id = 1 and o.status in ('new','confirmed','preparing')
+						and not (o.status = 'new' and o.payment_status <> 'paid' and (
+							(o.payment_plan = 'pix_key'
+								and o.created_at < now() - make_interval(mins => s.unpaid_pix_minutes))
+							or (o.payment_plan = 'counter' and o.source_mode = 'kiosk'
+								and o.created_at < now() - make_interval(mins => s.unpaid_counter_minutes))))`;
 				if (open >= settings.maxOpenOrders) {
 					throw new DomainError('err.order.capacity', { code: 'capacity', status: 409 });
 				}

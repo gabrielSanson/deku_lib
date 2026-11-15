@@ -5,6 +5,7 @@ import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { confirmIfPaid, transitionOrder } from '../orders/service';
+import { getTexts } from '../settings/texts';
 import {
 	paymentProvider,
 	providerByName,
@@ -189,4 +190,36 @@ export async function expireUnpaidCheckouts() {
 		});
 	}
 	return stale.length;
+}
+
+/**
+ * Worker: cancel Pix-to-shop-key orders and totem "pagar no caixa" orders nobody paid in time
+ * (Configurações → Tipos de pedido). Orders typed at the staff POS are never cancelled here:
+ * someone is standing at the counter with them.
+ */
+export async function expireUnpaidOrders(now = new Date()) {
+	const sql = db();
+	return sql.begin(async (tx) => {
+		const stale = await tx<{ id: string }[]>`
+			select o.id from orders o, store_runtime_settings s
+			where s.id = 1 and o.status = 'new' and o.is_test = false
+				and o.payment_status in ('pending', 'failed', 'unknown')
+				and (
+					(o.payment_plan = 'pix_key'
+						and o.created_at < ${now}::timestamptz - make_interval(mins => s.unpaid_pix_minutes))
+					or (o.payment_plan = 'counter' and o.source_mode = 'kiosk'
+						and o.created_at < ${now}::timestamptz - make_interval(mins => s.unpaid_counter_minutes))
+				)
+			order by o.created_at
+			limit 50
+			for update of o skip locked`;
+		if (!stale.length) return 0;
+		const reason = (await getTexts(tx))['order.reason.unpaidExpired'];
+		for (const o of stale) {
+			await tx`update tenders set status = 'cancelled' where order_id = ${o.id} and status = 'pending'`;
+			await refreshPaymentStatus(tx, o.id);
+			await transitionOrder({ orderId: o.id, to: 'cancelled', actor: SYSTEM, reason }, tx);
+		}
+		return stale.length;
+	});
 }

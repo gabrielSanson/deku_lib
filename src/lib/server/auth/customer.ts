@@ -123,7 +123,8 @@ export async function customerOrders(customerId: string, limit = 20): Promise<Cu
 	}));
 }
 
-async function orderItems(orderIds: string[]): Promise<Map<string, PastItem[]>> {
+/** What was in each order, for "Pedir de novo". */
+export async function orderItems(orderIds: string[]): Promise<Map<string, PastItem[]>> {
 	const rows = await db()<
 		{
 			id: string;

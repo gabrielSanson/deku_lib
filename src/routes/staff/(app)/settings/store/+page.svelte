@@ -51,6 +51,26 @@
 				min={1}
 				value={s.maxOpenOrders ?? ''}
 			/>
+			<TextField
+				label={t('store.unpaidPix')}
+				id="unpaidPix"
+				name="unpaidPixMinutes"
+				type="number"
+				min={5}
+				max={120}
+				value={s.unpaidPixMinutes}
+				required
+			/>
+			<TextField
+				label={t('store.unpaidCounter')}
+				id="unpaidCounter"
+				name="unpaidCounterMinutes"
+				type="number"
+				min={5}
+				max={120}
+				value={s.unpaidCounterMinutes}
+				required
+			/>
 		</div>
 		<FormError message={form?.error} />
 	</SettingsSection>

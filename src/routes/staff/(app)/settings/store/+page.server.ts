@@ -21,6 +21,11 @@ export const actions: Actions = {
 			return failText(400, 'err.settings.prepTime');
 		if (max !== null && (!Number.isInteger(max) || max < 1))
 			return failText(400, 'err.settings.capacity');
+		const unpaidPix = Number(formString(d, 'unpaidPixMinutes'));
+		const unpaidCounter = Number(formString(d, 'unpaidCounterMinutes'));
+		const minutesOk = (n: number) => Number.isInteger(n) && n >= 5 && n <= 120;
+		if (!minutesOk(unpaidPix) || !minutesOk(unpaidCounter))
+			return failText(400, 'err.settings.unpaidMinutes');
 		return attempt(async () => {
 			await updateStoreSettings(
 				{
@@ -29,7 +34,9 @@ export const actions: Actions = {
 					deliveryEnabled: d.get('deliveryEnabled') === 'on',
 					webOrderingEnabled: d.get('webOrderingEnabled') === 'on',
 					prepTimeMinutes: prep,
-					maxOpenOrders: max
+					maxOpenOrders: max,
+					unpaidPixMinutes: unpaidPix,
+					unpaidCounterMinutes: unpaidCounter
 				},
 				staffActor(staff),
 				Number(formString(d, 'version'))
