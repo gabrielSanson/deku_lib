@@ -42,6 +42,7 @@ function order(
 	opts: {
 		couponCode?: string;
 		phone?: string;
+		customerId?: string;
 		lines?: object[];
 		discountCents?: number;
 	} = {}
@@ -52,6 +53,7 @@ function order(
 		lines: (opts.lines ?? [classic, { sku: 'ACP-FRITAS', quantity: 1 }]) as never,
 		fulfillmentType: 'counter',
 		customer: opts.phone ? { name: 'Ana', phoneE164: opts.phone } : undefined,
+		customerId: opts.customerId,
 		couponCode: opts.couponCode,
 		discountCents: opts.discountCents,
 		idempotencyKey: randomUUID(),
@@ -175,6 +177,20 @@ describe('limits', () => {
 			(await saved((await order({ couponCode: c, phone })).id)).discount_cents
 		).toBeGreaterThan(0);
 		await expect(order({ couponCode: c, phone })).rejects.toThrow(/primeiro pedido/);
+	});
+
+	it('refuses a first-order code to a signed-in customer with a past order, whatever phone they type', async () => {
+		const c = code();
+		await campaign({ code: c, firstOrderOnly: true });
+		const [me] = await db()<{ id: string }[]>`
+			insert into customers (name, email) values ('Conta', 'conta@exemplo.com') returning id`;
+		await order({ customerId: me.id });
+		const newPhone = `+55118${Math.floor(Math.random() * 1e8)
+			.toString()
+			.padStart(8, '0')}`;
+		await expect(order({ couponCode: c, phone: newPhone, customerId: me.id })).rejects.toThrow(
+			/primeiro pedido/
+		);
 	});
 });
 

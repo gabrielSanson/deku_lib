@@ -70,6 +70,11 @@ export interface CreateOrderInput {
 		email?: string | null;
 		marketingConsent?: boolean;
 	};
+	/**
+	 * The signed-in customer's record. The order is theirs whatever phone they typed; the
+	 * record's name and phone are only filled in where empty.
+	 */
+	customerId?: string | null;
 	address?: AddressInput;
 	deliveryRule?: DeliveryRule | null;
 	notes?: string | null;
@@ -176,13 +181,28 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		const promisedAt = new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
 
 		let customerId: string | null = null;
-		if (input.customer) {
+		if (input.customerId) {
+			const c = input.customer;
+			const phone = c?.phoneE164 ?? null;
+			const [mine] = await tx<{ id: string }[]>`
+				update customers set
+					name = coalesce(name, ${c?.name ?? null}),
+					email = coalesce(email, ${c?.email ?? null}),
+					phone_e164 = coalesce(phone_e164, case when ${phone}::text is not null and not exists (
+						select 1 from customers o where o.phone_e164 = ${phone} and o.deleted_at is null
+					) then ${phone}::text end),
+					marketing_consent_at = coalesce(marketing_consent_at, ${c?.marketingConsent ? now : null}::timestamptz)
+				where id = ${input.customerId} and deleted_at is null
+				returning id`;
+			customerId = mine?.id ?? null;
+		}
+		if (!customerId && input.customer) {
 			const [c] = await tx<{ id: string }[]>`
 				insert into customers (name, phone_e164, email, marketing_consent_at)
 				values (${input.customer.name}, ${input.customer.phoneE164 ?? null}, ${input.customer.email ?? null},
 					${input.customer.marketingConsent ? now : null})
 				on conflict (phone_e164) where phone_e164 is not null and deleted_at is null
-				do update set name = excluded.name,
+				do update set name = coalesce(customers.name, excluded.name),
 					marketing_consent_at = coalesce(excluded.marketing_consent_at, customers.marketing_consent_at)
 				returning id`;
 			customerId = c.id;

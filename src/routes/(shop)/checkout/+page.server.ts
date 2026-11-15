@@ -79,7 +79,7 @@ function parse<T extends z.ZodType>(schema: T, raw: string) {
 
 export const actions: Actions = {
 	/** Server-side price and fee preview; never trusted at placement time. */
-	quote: async ({ request }) => {
+	quote: async ({ request, locals, cookies }) => {
 		const data = await request.formData();
 		const parsed = parse(quoteInput, String(data.get('payload') ?? ''));
 		const texts = await getTexts();
@@ -108,7 +108,10 @@ export const actions: Actions = {
 			}
 			const offer = await findOffer(sql, {
 				cart: evalCart(catalog, cart, deliveryFeeCents),
-				customerId: await customerIdByPhone(sql, normalizeBrPhone(input.phone ?? '')),
+				// Signed in, the account's history counts (first-order offers, per-customer limits).
+				customerId:
+					(isKiosk(cookies) ? null : locals.customer?.id) ??
+					(await customerIdByPhone(sql, normalizeBrPhone(input.phone ?? ''))),
 				couponCode: input.couponCode
 			});
 			const discountCents = Math.min(offer.applied?.discountCents ?? 0, cart.subtotalCents);
@@ -138,7 +141,7 @@ export const actions: Actions = {
 	},
 
 	place: async (event) => {
-		const { request, url, cookies } = event;
+		const { request, url, cookies, locals } = event;
 		const texts = await getTexts();
 		if (!rateLimit(`checkout:${clientKey(event)}`, 10, 10 * 60_000)) {
 			return fail(429, { error: texts['checkout.error.tooMany'] });
@@ -184,6 +187,8 @@ export const actions: Actions = {
 				tableLabel: input.tableLabel || null,
 				fulfillmentProvider: input.fulfillmentType === 'delivery' ? 'own_driver' : 'shop',
 				customerLabel: input.name,
+				// Signed in, the order belongs to the account (not at the shared totem).
+				customerId: kiosk ? null : (locals.customer?.id ?? null),
 				// Without a phone or e-mail there is nobody to link the order to.
 				customer:
 					phone || input.email

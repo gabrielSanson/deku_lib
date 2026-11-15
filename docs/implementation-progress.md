@@ -5,7 +5,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - L1: done (deploy check is a unit test on the compose files (src/lib/server/deploy-config.spec.ts) instead of tests/selfhost/setup-check.mjs, which drives a browser and cannot read container env; login limiters added to staff and customer sign-in)
 - L2: done (text keys follow the existing groups: store.unpaidPix/unpaidCounter and payment.deadline/expired/reorder instead of settings.store.* and checkout.payment.*)
 - L3: done (also merges a guest record when the e-mail is verified after the account was made)
-- L4: todo
+- L4: done (not applied at the shared totem)
 - L5: todo
 - L6: todo
 - F1: todo

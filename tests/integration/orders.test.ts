@@ -594,3 +594,46 @@ describe('unpaid orders expire', () => {
 		await updateStoreSettings({ maxOpenOrders: null }, manager);
 	});
 });
+
+describe('signed-in customers', () => {
+	const webOrder = (over: Partial<Parameters<typeof createOrder>[0]>) =>
+		createOrder({
+			channel: 'web',
+			sourceMode: 'web',
+			lines: [classic],
+			fulfillmentType: 'pickup',
+			idempotencyKey: randomUUID(),
+			paymentPlan: 'pix_key',
+			actor: { type: 'customer', id: null },
+			...over
+		});
+
+	it('keeps every order on the account even when the phone belongs to another record', async () => {
+		await updateStoreSettings(
+			{ acceptingOrders: true, webOrderingEnabled: true, pickupEnabled: true, maxOpenOrders: null },
+			manager
+		);
+		const [other] = await db()<{ id: string }[]>`
+			insert into customers (name, phone_e164) values ('Outro', '+5511944443333') returning id`;
+		const [me] = await db()<{ id: string }[]>`
+			insert into customers (name, contact_phone_e164) values ('Eu', '+5511944443333') returning id`;
+		const order = await webOrder({
+			customerId: me.id,
+			customer: { name: 'Eu mesmo', phoneE164: '+5511944443333' }
+		});
+		const mine = await customerOrders(me.id);
+		expect(mine.map((o) => o.publicToken)).toContain(order.publicToken);
+		expect(await customerOrders(other.id)).toHaveLength(0);
+		const [row] = await db()<{ name: string; phone_e164: string | null }[]>`
+			select name, phone_e164 from customers where id = ${me.id}`;
+		expect(row).toEqual({ name: 'Eu', phone_e164: null });
+	});
+
+	it('does not let a guest typing a known number rename that customer', async () => {
+		const [known] = await db()<{ id: string }[]>`
+			insert into customers (name, phone_e164) values ('Maria', '+5511933332222') returning id`;
+		await webOrder({ customer: { name: 'Fulano', phoneE164: '+5511933332222' } });
+		const [row] = await db()<{ name: string }[]>`select name from customers where id = ${known.id}`;
+		expect(row.name).toBe('Maria');
+	});
+});
