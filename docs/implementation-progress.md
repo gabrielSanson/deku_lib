@@ -12,7 +12,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - F2: done (fiscal_errors alert lives in the L6 watchdog; docs/nota-fiscal.md has the IBS/CBS steps and the SVRS validator link)
 - H1: done (replay window kept at the code's 15 minutes (spec said 'keep the 5-minute window'; the code had 15); ts unit TODO(verify) with one sandbox payment)
 - H2: done (new modifier kind column, backfilled from the old 'Sem ' rule; stored label kept as the order snapshot)
-- H3: todo
+- H3: done (skipped for iFood, which keys on its own order id; older orders without a hash still match)
 - H4: todo
 - S1.1: todo
 - S1.2: todo

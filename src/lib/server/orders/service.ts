@@ -31,6 +31,7 @@ import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { dropPushSubscriptions } from '../notifications/push';
+import { orderRequestHash } from '#lib/domain/request-hash.ts';
 import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
@@ -110,7 +111,20 @@ export interface CreatedOrder {
 
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
 	const sql = db();
-	const existing = await findByIdempotencyKey(sql, input.idempotencyKey);
+	// Channels that price orders themselves (iFood) key on their own order id; their payload
+	// can be re-sent with small changes, so only our own carts are fingerprinted.
+	const requestHash = input.externalPricing
+		? null
+		: orderRequestHash({
+				channel: input.channel,
+				sourceMode: input.sourceMode,
+				lines: input.lines,
+				fulfillmentType: input.fulfillmentType,
+				address: input.address,
+				couponCode: input.couponCode,
+				customer: input.customer
+			});
+	const existing = await findByIdempotencyKey(sql, input.idempotencyKey, requestHash);
 	if (existing) return existing;
 
 	const catalog = input.externalPricing ? null : await getCatalogForPricing();
@@ -245,7 +259,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
 				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label,
-				campaign_id, coupon_id
+				campaign_id, coupon_id, request_hash
 			) values (
 				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -257,13 +271,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
 				${plan},
 				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null},
-				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}
+				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}, ${requestHash}
 			)
 			on conflict (idempotency_key) do nothing
 			returning id, order_number, public_token`;
 		if (inserted.length === 0) {
 			// A concurrent request with the same key committed first.
-			const again = await findByIdempotencyKey(tx, input.idempotencyKey);
+			const again = await findByIdempotencyKey(tx, input.idempotencyKey, requestHash);
 			if (!again) throw new DomainError('err.order.duplicate', { code: 'duplicate', status: 409 });
 			return again;
 		}
@@ -329,7 +343,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 	});
 }
 
-async function findByIdempotencyKey(sql: Db, key: string): Promise<CreatedOrder | null> {
+/**
+ * The order already placed with this key, if any. A key sent again with a different request
+ * (another cart, address or coupon) is refused: the client must make a new key for a new order.
+ * Orders saved before request hashes existed have none and are returned as before.
+ */
+async function findByIdempotencyKey(
+	sql: Db,
+	key: string,
+	requestHash: string | null
+): Promise<CreatedOrder | null> {
 	const [row] = await sql<
 		{
 			id: string;
@@ -337,8 +360,13 @@ async function findByIdempotencyKey(sql: Db, key: string): Promise<CreatedOrder 
 			public_token: string;
 			total_cents: number;
 			status: OrderStatus;
+			request_hash: string | null;
 		}[]
-	>`select id, order_number, public_token, total_cents, status from orders where idempotency_key = ${key}`;
+	>`select id, order_number, public_token, total_cents, status, request_hash
+		from orders where idempotency_key = ${key}`;
+	if (row && requestHash && row.request_hash && row.request_hash !== requestHash) {
+		throw new DomainError('err.order.keyReused', { code: 'key_reused', status: 409 });
+	}
 	return row
 		? {
 				id: row.id,

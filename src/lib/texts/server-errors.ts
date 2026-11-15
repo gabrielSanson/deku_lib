@@ -88,6 +88,11 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Pedido duplicado',
 		default: 'Pedido duplicado.'
 	},
+	'err.order.keyReused': {
+		group: 'errors',
+		label: 'Pedido mudou durante o envio',
+		default: 'O carrinho mudou enquanto o pedido era enviado. Confira e envie de novo.'
+	},
 	'err.order.notFound': {
 		group: 'errors',
 		label: 'Pedido não encontrado',

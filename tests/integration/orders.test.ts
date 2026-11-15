@@ -69,6 +69,25 @@ describe('order creation', () => {
 		expect(n).toBe(1);
 	});
 
+	it('refuses a reused idempotency key when the cart changed', async () => {
+		const key = randomUUID();
+		const first = await counterOrder(key);
+		const same = await counterOrder(key);
+		expect(same.id).toBe(first.id);
+		expect(same.created).toBe(false);
+		await expect(
+			createOrder({
+				channel: 'counter',
+				sourceMode: 'staff_pos',
+				lines: [classic],
+				fulfillmentType: 'counter',
+				idempotencyKey: key,
+				initialStatus: 'confirmed',
+				actor: cashier
+			})
+		).rejects.toMatchObject({ code: 'key_reused', status: 409 });
+	});
+
 	it('enqueues the follow-up job in the same transaction', async () => {
 		const order = await counterOrder();
 		const jobs = await db()<{ n: number }[]>`
@@ -249,11 +268,11 @@ describe('ingredients', () => {
 				initialStatus: 'confirmed',
 				actor: cashier
 			});
-			const rows = await db()<{ option_sku: string | null; option_name: string }[]>`
-				select m.option_sku, m.option_name from order_item_modifiers m
+			const rows = await db()<{ option_sku: string | null; option_name: string; kind: string }[]>`
+				select m.option_sku, m.option_name, m.kind from order_item_modifiers m
 				join order_items i on i.id = m.order_item_id where i.order_id = ${order.id}
 				and m.group_name = 'Retirar'`;
-			expect(rows).toEqual([{ option_sku: null, option_name: 'Sem tomate' }]);
+			expect(rows).toEqual([{ option_sku: null, option_name: 'Sem tomate', kind: 'remove' }]);
 		} finally {
 			await setIngredientAvailable('tomate', true, manager);
 		}
