@@ -28,6 +28,8 @@ export interface PricedModifier {
 	optionName: string;
 	quantity: number;
 	unitPriceCents: number;
+	/** 'remove' for a removed ingredient; everything else is something added. */
+	kind: 'add' | 'remove';
 }
 
 export interface PricedLine {
@@ -131,7 +133,8 @@ export function priceCart(
 					optionSku: option.sku,
 					optionName: option.name,
 					quantity: choice.quantity,
-					unitPriceCents: option.priceCents
+					unitPriceCents: option.priceCents,
+					kind: 'add'
 				});
 			}
 		}
@@ -146,7 +149,8 @@ export function priceCart(
 				optionSku: null,
 				optionName: `Sem ${ingredient.name.toLowerCase()}`,
 				quantity: 1,
-				unitPriceCents: 0
+				unitPriceCents: 0,
+				kind: 'remove'
 			});
 		}
 		for (const ingredient of product.ingredients) {

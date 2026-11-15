@@ -179,7 +179,7 @@ export async function orderItems(orderIds: string[]): Promise<Map<string, PastIt
 		}[]
 	>`select i.id, i.order_id, i.product_sku, i.product_name, i.quantity, i.note,
 			coalesce(json_agg(json_build_object('groupName', m.group_name, 'optionSku', m.option_sku,
-				'optionName', m.option_name, 'quantity', m.quantity) order by m.id)
+				'optionName', m.option_name, 'quantity', m.quantity, 'kind', m.kind) order by m.id)
 				filter (where m.id is not null), '[]') as modifiers
 		from order_items i left join order_item_modifiers m on m.order_item_id = i.id
 		where i.order_id = any(${orderIds}::uuid[])

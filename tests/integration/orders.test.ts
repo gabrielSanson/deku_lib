@@ -476,7 +476,8 @@ describe('customer order history', () => {
 			groupName: 'Ponto da carne',
 			optionSku: 'PONTO-AO',
 			optionName: 'Ao ponto',
-			quantity: 1
+			quantity: 1,
+			kind: 'add'
 		});
 
 		const { lines, skipped } = rebuildOrder(

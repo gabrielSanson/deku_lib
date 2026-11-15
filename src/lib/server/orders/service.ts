@@ -281,8 +281,10 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				returning id`;
 			for (const m of line.modifiers) {
 				await tx`
-					insert into order_item_modifiers (order_item_id, group_name, option_sku, option_name, quantity, unit_price_cents)
-					values (${item.id}, ${m.groupName}, ${m.optionSku}, ${m.optionName}, ${m.quantity}, ${m.unitPriceCents})`;
+					insert into order_item_modifiers (order_item_id, group_name, option_sku, option_name, quantity,
+						unit_price_cents, kind)
+					values (${item.id}, ${m.groupName}, ${m.optionSku}, ${m.optionName}, ${m.quantity},
+						${m.unitPriceCents}, ${m.kind ?? 'add'})`;
 			}
 		}
 

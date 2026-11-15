@@ -137,7 +137,8 @@ export function mapIfoodOrder(
 				optionSku: o.externalCode?.trim() || `IFOOD:${o.id ?? o.name}`,
 				optionName: o.name,
 				quantity: Math.max(1, Math.round(o.quantity)),
-				unitPriceCents: cents(o.unitPrice)
+				unitPriceCents: cents(o.unitPrice),
+				kind: 'add' as const
 			}))
 		};
 	});

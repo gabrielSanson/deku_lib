@@ -93,7 +93,7 @@
 				</p>
 				{#each item.modifiers as m, i (i)}
 					<p
-						class="pl-4 text-base {m.optionName.startsWith('Sem ')
+						class="pl-4 text-base {m.kind === 'remove'
 							? `font-semibold ${dark ? 'text-red-300' : 'text-red-700'}`
 							: dark
 								? 'text-stone-200'

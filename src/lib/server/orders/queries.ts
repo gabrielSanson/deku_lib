@@ -9,6 +9,8 @@ export interface OrderModifierView {
 	optionName: string;
 	quantity: number;
 	unitPriceCents: number;
+	/** 'remove' for a removed ingredient ("Sem cebola"), shown in bold on tickets and cards. */
+	kind: 'add' | 'remove';
 }
 
 export interface OrderItemView {
@@ -105,8 +107,9 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 					option_name: string;
 					quantity: number;
 					unit_price_cents: number;
+					kind: 'add' | 'remove';
 				}[]
-			>`select order_item_id, group_name, option_name, quantity, unit_price_cents
+			>`select order_item_id, group_name, option_name, quantity, unit_price_cents, kind
 				from order_item_modifiers where order_item_id = any(${itemIds}::uuid[])`
 		: [];
 
@@ -152,7 +155,8 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 						groupName: m.group_name,
 						optionName: m.option_name,
 						quantity: m.quantity,
-						unitPriceCents: m.unit_price_cents
+						unitPriceCents: m.unit_price_cents,
+						kind: m.kind
 					}))
 			}))
 	}));

@@ -67,7 +67,7 @@
 			<div class="item">
 				<p class="line strong">{item.quantity}× {item.productName}</p>
 				{#each item.modifiers as m, i (i)}
-					<p class="mod {m.optionName.startsWith('Sem ') ? 'strong' : ''}">
+					<p class="mod {m.kind === 'remove' ? 'strong' : ''}">
 						{m.quantity > 1 ? `${m.quantity}× ` : ''}{m.optionName}
 					</p>
 				{/each}

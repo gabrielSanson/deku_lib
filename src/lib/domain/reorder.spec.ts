@@ -64,4 +64,49 @@ describe('rebuildOrder', () => {
 		]);
 		expect(rebuildOrder([classico], products, none, new Set(['picles'])).lines).toHaveLength(1);
 	});
+
+	it('tells removals from add-ons by kind, not by the "Sem " prefix', () => {
+		const catalog = structuredClone(fixtureCatalog);
+		const product = catalog.products.find((p) => p.sku === 'BRG-CLASSICO')!;
+		const group = product.modifierGroups.find((g) => g.id === 'adicionais')!;
+		group.options.push({
+			...group.options[0],
+			sku: 'ADD-SEMGLUTEN',
+			name: 'Sem glúten',
+			priceCents: 300
+		});
+		const past: PastItem = {
+			...classico,
+			modifiers: [
+				{
+					groupName: 'Ponto da carne',
+					optionSku: 'PONTO-AO',
+					optionName: 'Ao ponto',
+					quantity: 1,
+					kind: 'add'
+				},
+				{
+					groupName: 'Adicionais',
+					optionSku: 'ADD-SEMGLUTEN',
+					optionName: 'Sem glúten',
+					quantity: 1,
+					kind: 'add'
+				},
+				{
+					groupName: 'Retirar',
+					optionSku: null,
+					optionName: 'Sem picles',
+					quantity: 1,
+					kind: 'remove'
+				}
+			]
+		};
+		const { lines, skipped } = rebuildOrder([past], catalog.products, none, none);
+		expect(skipped).toEqual([]);
+		expect(lines[0].options.map((o) => [o.groupId, o.sku])).toEqual([
+			['ponto', 'PONTO-AO'],
+			['adicionais', 'ADD-SEMGLUTEN'],
+			[REMOVE_GROUP, 'picles']
+		]);
+	});
 });

@@ -21,17 +21,44 @@ describe('ingredients', () => {
 				optionSku: null,
 				optionName: 'Sem picles',
 				quantity: 1,
-				unitPriceCents: 0
+				unitPriceCents: 0,
+				kind: 'remove'
 			},
 			{
 				groupName: 'Retirar',
 				optionSku: null,
 				optionName: 'Sem tomate',
 				quantity: 1,
-				unitPriceCents: 0
+				unitPriceCents: 0,
+				kind: 'remove'
 			}
 		]);
 		expect(cart.subtotalCents).toBe(2890);
+	});
+
+	it('keeps an add-on called "Sem glúten" an add-on', () => {
+		const catalog = structuredClone(fixtureCatalog);
+		const product = catalog.products.find((p) => p.sku === 'BRG-CLASSICO')!;
+		const group = product.modifierGroups.find((g) => g.id === 'adicionais')!;
+		group.options.push({
+			...group.options[0],
+			sku: 'ADD-SEMGLUTEN',
+			name: 'Sem glúten',
+			priceCents: 300
+		});
+		const cart = priceCart(
+			catalog,
+			[
+				{
+					sku: 'BRG-CLASSICO',
+					quantity: 1,
+					options: [ponto, { groupId: 'adicionais', sku: 'ADD-SEMGLUTEN' }]
+				}
+			],
+			ctx
+		);
+		const m = cart.lines[0].modifiers.find((x) => x.optionName === 'Sem glúten');
+		expect(m).toMatchObject({ optionSku: 'ADD-SEMGLUTEN', kind: 'add', unitPriceCents: 300 });
 	});
 
 	it('refuses to remove what the product cannot be made without, or does not have', () => {

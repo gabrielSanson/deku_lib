@@ -11,7 +11,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - F1: done (switch ibs_cbs_enabled stays off; Focus totals field names are TODO(verify); base = gross - discount + delivery is TODO(verify); the 2027 row counts as confirmed once the owner saves the rates table (any save after the seed), instead of 'note changed after 1 Dec'; CRT is stored for the readiness check, not sent to Focus)
 - F2: done (fiscal_errors alert lives in the L6 watchdog; docs/nota-fiscal.md has the IBS/CBS steps and the SVRS validator link)
 - H1: done (replay window kept at the code's 15 minutes (spec said 'keep the 5-minute window'; the code had 15); ts unit TODO(verify) with one sandbox payment)
-- H2: todo
+- H2: done (new modifier kind column, backfilled from the old 'Sem ' rule; stored label kept as the order snapshot)
 - H3: todo
 - H4: todo
 - S1.1: todo

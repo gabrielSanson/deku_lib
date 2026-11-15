@@ -10,6 +10,8 @@ export interface PastModifier {
 	optionSku: string | null;
 	optionName: string;
 	quantity: number;
+	/** 'remove' for a removed ingredient. Older rows without it: a null optionSku is a removal. */
+	kind?: 'add' | 'remove';
 }
 
 export interface PastItem {
@@ -58,7 +60,7 @@ export function rebuildOrder(
 function rebuildOptions(item: PastItem, product: Product): ReorderOption[] | null {
 	const options: ReorderOption[] = [];
 	for (const m of item.modifiers) {
-		if (m.optionSku === null) {
+		if (m.kind === 'remove' || (m.kind === undefined && m.optionSku === null)) {
 			const ingredient = product.ingredients.find(
 				(i) => i.removable && `Sem ${i.name.toLowerCase()}` === m.optionName
 			);

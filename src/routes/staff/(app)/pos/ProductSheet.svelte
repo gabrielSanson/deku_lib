@@ -72,7 +72,7 @@
 			.map((i) => ({
 				groupId: REMOVE_GROUP,
 				sku: i.id,
-				// Stored on the order as is; the kitchen ticket and card bold lines that start with "Sem ".
+				// Stored on the order as is; the server marks it kind 'remove' for the ticket.
 				name: `Sem ${i.name.toLowerCase()}`,
 				priceCents: 0,
 				quantity: 1

@@ -33,8 +33,8 @@ owner can change it in Configurações → Textos do site.
   - in a form action, `return failText(400, 'err.amount.required')`, and
     `{ ok: await shopText('ok.categorySaved') }` for a confirmation.
   - Pass `{ text }` only for words that are already final, such as the owner's own pause reason.
-- Known exceptions: the "Sem {name}" line on a ticket (it is stored on the order and the kitchen
-  ticket looks for it) and the iFood setup diagnostics, which are saved with the check result.
+- Known exceptions: the "Sem {name}" label on an order line (it is stored as the order's snapshot;
+  the ticket marks removals by the modifier's `kind`, not by the words) and the iFood setup diagnostics, which are saved with the check result.
 
 ## Components
 
