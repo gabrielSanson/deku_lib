@@ -178,6 +178,11 @@ const CORE_TEXTS = {
 		label: 'Erro: celular em outra conta',
 		default: 'Este celular já está em outra conta.'
 	},
+	'account.error.tooMany': {
+		group: 'account',
+		label: 'Tentativas demais',
+		default: 'Muitas tentativas. Espere alguns minutos e tente de novo.'
+	},
 	'account.error.unavailable': {
 		group: 'account',
 		label: 'Erro: login indisponível',

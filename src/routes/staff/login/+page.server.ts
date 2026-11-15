@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { failText, formString } from '#lib/server/actions.ts';
+import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import { shopName } from '#lib/server/settings/profile.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -13,12 +14,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, url }) => {
+	default: async (event) => {
+		const { request, locals, url } = event;
 		const data = await request.formData();
 		const email = formString(data, 'email');
 		const password = formString(data, 'password');
 		if (!locals.supabase) return failText(503, 'err.login.unavailable', { data: { email } });
 		if (!email || !password) return failText(400, 'err.login.missing', { data: { email } });
+		if (!rateLimit(`staff-login:${clientKey(event)}`, 20, 10 * 60_000))
+			return failText(429, 'err.login.tooMany', { data: { email } });
 		const { error } = await locals.supabase.auth.signInWithPassword({ email, password });
 		if (error) return failText(400, 'err.login.wrong', { data: { email } });
 		redirect(303, safeNext(url.searchParams.get('next')));

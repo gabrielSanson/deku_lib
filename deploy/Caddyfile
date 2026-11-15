@@ -1,5 +1,13 @@
 # One domain serves both the shop and the Supabase API the browser needs
 # (staff login and live order updates). Supabase Studio is not exposed.
+{
+	servers {
+		# Behind a Cloudflare Tunnel, cloudflared reaches Caddy from the private network:
+		# keep the client address it forwards.
+		trusted_proxies static private_ranges
+	}
+}
+
 {$CADDY_SITE} {
 	encode zstd gzip
 

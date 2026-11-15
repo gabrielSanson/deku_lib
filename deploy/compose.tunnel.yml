@@ -1,6 +1,11 @@
 # Cloudflare Tunnel instead of public ports: Cloudflare terminates HTTPS and
 # forwards to Caddy over the private network. Use with deploy/shop.sh -f ../compose.tunnel.yml
 services:
+  # Cloudflare puts the customer's address in CF-Connecting-IP; Caddy passes it on.
+  shop-web:
+    environment:
+      ADDRESS_HEADER: CF-Connecting-IP
+
   shop-proxy:
     ports: !reset []
     environment:

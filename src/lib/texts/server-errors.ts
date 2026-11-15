@@ -356,6 +356,11 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Equipe: falta nome e e-mail',
 		default: 'Informe nome e e-mail.'
 	},
+	'err.login.tooMany': {
+		group: 'staffErrors',
+		label: 'Tentativas de entrar demais',
+		default: 'Muitas tentativas. Espere alguns minutos e tente de novo.'
+	},
 	'err.login.unavailable': {
 		group: 'staffErrors',
 		label: 'Login: sem Supabase',

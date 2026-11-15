@@ -21,7 +21,7 @@ import { isKiosk } from '#lib/server/kiosk.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
 import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
-import { rateLimit } from '#lib/server/rate-limit.ts';
+import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { listDeliveryRules } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
@@ -137,9 +137,10 @@ export const actions: Actions = {
 		});
 	},
 
-	place: async ({ request, getClientAddress, url, cookies }) => {
+	place: async (event) => {
+		const { request, url, cookies } = event;
 		const texts = await getTexts();
-		if (!rateLimit(`checkout:${getClientAddress()}`, 10, 10 * 60_000)) {
+		if (!rateLimit(`checkout:${clientKey(event)}`, 10, 10 * 60_000)) {
 			return fail(429, { error: texts['checkout.error.tooMany'] });
 		}
 		const data = await request.formData();

@@ -24,6 +24,9 @@ x-app: &app
     MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
     # Menu photos are up to 5 MB.
     BODY_SIZE_LIMIT: 6M
+    # The customer's address for rate limits: Caddy appends it to X-Forwarded-For.
+    ADDRESS_HEADER: ${ADDRESS_HEADER:-X-Forwarded-For}
+    XFF_DEPTH: ${XFF_DEPTH:-1}
 
 services:
   # Studio stays reachable from the server itself only (use an SSH tunnel).

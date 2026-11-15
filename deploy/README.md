@@ -76,6 +76,16 @@ The database is the only state that matters.
 Cloudflare then handles HTTPS. Caddy serves plain HTTP inside the machine, and
 no ports need to be opened on the router.
 
+## The customer's address (rate limits)
+
+Checkout, login and the order-ready alerts limit how often one customer can try. The app sits
+behind Caddy, so it must be told which header carries the customer's address, or every customer
+would share one limit. `compose.shop.yml` sets `ADDRESS_HEADER=X-Forwarded-For` and `XFF_DEPTH=1`
+(Caddy adds the address it sees), and `compose.tunnel.yml` switches to `CF-Connecting-IP`, the
+header Cloudflare sets. Change them in `deploy/supabase/.env` only if you put another proxy in
+front. When the setting is wrong the web log says `rate limit sees a private address; set
+ADDRESS_HEADER`.
+
 ## Upgrading Supabase
 
 `deploy/supabase/` is an unmodified copy of Supabase's official self-hosting

@@ -4,7 +4,7 @@ import { getsReadyAlert } from '#lib/domain/pickup.ts';
 import { attempt } from '#lib/server/actions.ts';
 import { pushPublicKey, savePushSubscription } from '#lib/server/notifications/push.ts';
 import { getPublicOrder } from '#lib/server/orders/queries.ts';
-import { rateLimit } from '#lib/server/rate-limit.ts';
+import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, depends, setHeaders }) => {
@@ -28,8 +28,9 @@ const subscription = z.object({
 
 export const actions: Actions = {
 	/** "Avisar quando ficar pronto": save this phone's push subscription on the order. */
-	notify: async ({ params, request, getClientAddress }) => {
-		if (!rateLimit(`push:${getClientAddress()}`, 10, 10 * 60_000)) return fail(429, {});
+	notify: async (event) => {
+		const { params, request } = event;
+		if (!rateLimit(`push:${clientKey(event)}`, 10, 10 * 60_000)) return fail(429, {});
 		const d = await request.formData();
 		const parsed = subscription.safeParse({
 			endpoint: d.get('endpoint'),

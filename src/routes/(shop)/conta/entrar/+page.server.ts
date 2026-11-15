@@ -3,6 +3,7 @@ import { loginInput, safeAccountNext, signupInput, phoneFromInput } from '#lib/d
 import { formString } from '#lib/server/actions.ts';
 import { ensureCustomer } from '#lib/server/auth/customer.ts';
 import { config } from '#lib/server/config.ts';
+import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -18,11 +19,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	login: async ({ request, locals }) => {
+	login: async (event) => {
+		const { request, locals } = event;
 		const texts = await getTexts();
 		const form = await request.formData();
 		const email = formString(form, 'email');
 		const next = safeAccountNext(formString(form, 'next'));
+		if (!rateLimit(`account-login:${clientKey(event)}`, 20, 10 * 60_000))
+			return fail(429, { mode: 'entrar', email, error: texts['account.error.tooMany'] });
 		if (!locals.supabase)
 			return fail(503, { mode: 'entrar', email, error: texts['account.error.unavailable'] });
 		const parsed = loginInput.safeParse({ email, password: formString(form, 'password') });
@@ -35,13 +39,22 @@ export const actions: Actions = {
 		redirect(303, next);
 	},
 
-	signup: async ({ request, locals }) => {
+	signup: async (event) => {
+		const { request, locals } = event;
 		const texts = await getTexts();
 		const form = await request.formData();
 		const name = formString(form, 'name');
 		const phoneInput = formString(form, 'phone');
 		const email = formString(form, 'email');
 		const next = safeAccountNext(formString(form, 'next'));
+		if (!rateLimit(`account-signup:${clientKey(event)}`, 10, 10 * 60_000))
+			return fail(429, {
+				mode: 'criar',
+				name,
+				phone: phoneInput,
+				email,
+				error: texts['account.error.tooMany']
+			});
 		if (!locals.supabase)
 			return fail(503, {
 				mode: 'criar',

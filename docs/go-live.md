@@ -33,6 +33,11 @@ deploy/shop.sh exec shop-web node --import tsx scripts/create-owner.ts voce@emai
 Check that `https://pedido.example.com/health/ready` returns `{"ready":true}`
 and that `deploy/shop.sh logs shop-worker` shows `worker started`.
 
+The checkout limit (10 orders in 10 minutes) counts per customer address. The compose files set
+`ADDRESS_HEADER` and `XFF_DEPTH` for Caddy and for the Cloudflare Tunnel; if
+`deploy/shop.sh logs shop-web` shows `rate limit sees a private address`, see
+[the customer's address](../deploy/README.md#the-customers-address-rate-limits).
+
 New sign-ups are turned off: only the owner creates staff accounts, in
 Configurações → Equipe.
 
