@@ -14,6 +14,7 @@ shop owner can make. Nothing here needs a paid licence or a cloud host.
 | A Pix key in the shop's bank account (optional)            | Web customers pay by Pix               | Staff confirm each Pix by hand in the bank app                             |
 | iFood Merchant API access (optional)                       | Automatic iFood orders                 | Developer portal app + store authorisation; homologation recommended       |
 | A Mercado Pago account (optional)                          | Automatic online Pix/card              | Access token + webhook secret in `.env`, see section 5                     |
+| Somewhere off the machine for backups                      | Nightly copies survive a dead disk     | Backblaze B2 bucket or Google Drive folder via rclone, see deploy/README   |
 
 ## 2. Install
 
@@ -69,7 +70,9 @@ customer sees in Configurações → Textos do site.
 ## 4. Before opening
 
 - Make a Pix test order of R$ 1 and check it lands in the right bank account.
-- Run a backup and a restore drill ([deploy/README.md](../deploy/README.md#backups)).
+- Set up the off-site copy and run `node tests/selfhost/backup-check.mjs`; Configurações → Sistema
+  must show the last copy, the off-site copy and the restore test in green
+  ([deploy/README.md](../deploy/README.md#backups)).
 - Run the [smoke tests](#6-smoke-tests).
 
 ## 4a. Cash drawer and printing

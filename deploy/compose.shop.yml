@@ -78,6 +78,29 @@ services:
       shop-migrate:
         condition: service_completed_successfully
 
+  # Nightly pg_dump into ./backups, copied off the machine with rclone when RCLONE_REMOTE is
+  # set, and a weekly restore test. See deploy/README.md, "Backups".
+  shop-backup:
+    image: deku-shop-backup:latest
+    build:
+      context: ../backup
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGPORT: ${POSTGRES_PORT}
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      RCLONE_REMOTE: ${RCLONE_REMOTE:-}
+      RCLONE_CONFIG: /opt/backup/rclone.conf
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ../../backups:/backups
+      - ../backup:/opt/backup
+    depends_on:
+      shop-migrate:
+        condition: service_completed_successfully
+
   # TLS for the shop and the Supabase API on one domain. Certificates come from
   # Let's Encrypt automatically; ports 80 and 443 must reach this machine.
   # Behind a Cloudflare Tunnel instead, see deploy/README.md.

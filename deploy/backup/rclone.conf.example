@@ -1,0 +1,9 @@
+# Copy to deploy/backup/rclone.conf (git-ignored) or create it with:
+#   deploy/shop.sh run --rm shop-backup rclone config
+# Then set RCLONE_REMOTE in deploy/supabase/.env, e.g. RCLONE_REMOTE=b2:my-shop-backups/db
+#
+# Example for Backblaze B2:
+# [b2]
+# type = b2
+# account = <keyID>
+# key = <applicationKey>

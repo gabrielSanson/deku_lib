@@ -1,0 +1,3 @@
+# São Paulo time (TZ is set on the container). Output goes to the container log.
+30 3 * * * sh /opt/backup/backup.sh > /proc/1/fd/1 2>&1
+0 4 * * 0 sh /opt/backup/restore-test.sh > /proc/1/fd/1 2>&1

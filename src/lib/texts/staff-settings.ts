@@ -812,5 +812,68 @@ export const STAFF_SETTINGS_TEXTS = {
 		group: g,
 		label: 'Página inicial: salvo',
 		default: 'Salvo. O site já mostra a página nova.'
+	},
+	'system.tabTitle': { group: g, label: 'Sistema: título da aba', default: 'Sistema' },
+	'system.title': { group: g, label: 'Sistema: título', default: 'Sistema' },
+	'system.backups': {
+		group: g,
+		label: 'Sistema: cópias de segurança',
+		default: 'Cópias de segurança'
+	},
+	'system.backupsHint': {
+		group: g,
+		label: 'Sistema: explicação das cópias',
+		default:
+			'Toda noite o servidor guarda uma cópia do banco de dados e, se configurado, manda uma cópia para fora da máquina. Uma vez por semana ele testa se a cópia volta inteira.'
+	},
+	'system.lastDump': { group: g, label: 'Sistema: última cópia', default: 'Última cópia' },
+	'system.lastOffsite': {
+		group: g,
+		label: 'Sistema: última cópia fora da máquina',
+		default: 'Última cópia fora da máquina'
+	},
+	'system.lastRestore': {
+		group: g,
+		label: 'Sistema: último teste de restauração',
+		default: 'Último teste de restauração'
+	},
+	'system.never': { group: g, label: 'Sistema: nunca', default: 'Nenhuma ainda' },
+	'system.ok': { group: g, label: 'Sistema: em dia', default: 'Em dia' },
+	'system.late': { group: g, label: 'Sistema: atrasado', default: 'Atrasado' },
+	'system.failed': { group: g, label: 'Sistema: falhou', default: 'Falhou' },
+	'system.size': { group: g, label: 'Sistema: tamanho', default: '{size} MB' },
+	'system.orders': {
+		group: g,
+		label: 'Sistema: pedidos na cópia',
+		default: '{count} pedidos na cópia'
+	},
+	'system.setupTitle': {
+		group: g,
+		label: 'Sistema: como configurar cópia externa',
+		default: 'Como mandar as cópias para fora da máquina'
+	},
+	'system.setup1': {
+		group: g,
+		label: 'Sistema: passo 1',
+		default:
+			'Crie um lugar para guardar as cópias: um bucket no Backblaze B2, uma pasta no Google Drive ou outro serviço aceito pelo rclone.'
+	},
+	'system.setup2': {
+		group: g,
+		label: 'Sistema: passo 2',
+		default:
+			'No servidor, rode deploy/shop.sh run --rm shop-backup rclone config e siga as perguntas. O arquivo fica em deploy/backup/rclone.conf.'
+	},
+	'system.setup3': {
+		group: g,
+		label: 'Sistema: passo 3',
+		default:
+			'Em deploy/supabase/.env, preencha RCLONE_REMOTE (por exemplo b2:minha-loja/banco) e rode deploy/shop.sh up -d.'
+	},
+	'system.setup4': {
+		group: g,
+		label: 'Sistema: passo 4',
+		default:
+			'Na manhã seguinte, esta página deve mostrar a cópia fora da máquina em dia. Guarde também uma cópia do arquivo .env em lugar seguro.'
 	}
 } as const satisfies Record<string, TextDef>;

@@ -33,6 +33,7 @@ export const STAFF_LABEL_TEXTS = {
 	'nav.gestao': { group: g, label: 'Menu da equipe: gestão', default: 'Gestão' },
 	'nav.relatorios': { group: g, label: 'Menu da equipe: relatórios', default: 'Relatórios' },
 	'nav.campanhas': { group: g, label: 'Menu da equipe: campanhas', default: 'Campanhas' },
+	'nav.sistema': { group: g, label: 'Menu da equipe: sistema', default: 'Sistema' },
 	'nav.equipe': { group: g, label: 'Menu da equipe: equipe', default: 'Equipe' },
 	'nav.configuracoes': {
 		group: g,

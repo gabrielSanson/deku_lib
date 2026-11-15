@@ -6,7 +6,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - L2: done (text keys follow the existing groups: store.unpaidPix/unpaidCounter and payment.deadline/expired/reorder instead of settings.store.* and checkout.payment.*)
 - L3: done (also merges a guest record when the e-mail is verified after the account was made)
 - L4: done (not applied at the shared totem)
-- L5: todo
+- L5: done (scripts run against a real Postgres 16 here; tests/selfhost/backup-check.mjs is for a live stack (there is no self-host CI job); the backup image is a 3-line Dockerfile on postgres:16-alpine so rclone is also there for 'rclone config')
 - L6: todo
 - F1: todo
 - F2: todo

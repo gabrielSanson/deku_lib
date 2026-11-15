@@ -48,21 +48,33 @@ The database and Studio are bound to `127.0.0.1` and are never exposed to the in
 
 ## Backups
 
-The database is the only state that matters.
+The database is the only state that matters. The `shop-backup` service looks after it:
 
-- Nightly dump (add to `crontab -e`):
+- Every night at 03:30 (São Paulo) it writes `backups/shop-<date>.dump` with `pg_dump`, copies the
+  new dumps off the machine with [rclone](https://rclone.org) when `RCLONE_REMOTE` is set, and
+  deletes local dumps older than `BACKUP_KEEP_DAYS` (default 14).
+- Every Sunday at 04:00 it restores the newest dump into a scratch database, counts the orders
+  and drops it again.
+- Each run is recorded and shown in **Configurações → Sistema**, which turns red when the last good
+  dump is more than 26 hours old.
 
-  ```sh
-  0 3 * * * cd /path/to/deku_lib && deploy/shop.sh exec -T db pg_dump -U postgres -Fc postgres > backups/shop-$(date +\%F).dump
-  ```
+**Copy off the machine (owner).** A backup that lives on the same disk is not a backup.
 
-- Copy `backups/` and `deploy/supabase/.env` off the machine, to another disk or
-  cloud storage. A backup that lives on the same disk is not a backup.
-- Uploaded menu photos are in `deploy/supabase/volumes/storage/`. Back them up the same way.
-- **Restore:** on a fresh install, run `setup.sh`, then copy the old `.env` over
-  the new one. Run `deploy/shop.sh up -d`, then
-  `deploy/shop.sh exec -T db pg_restore -U postgres -d postgres --clean --if-exists < backups/<file>.dump`.
-  Practise this once before opening.
+1. Create somewhere to keep the copies: a Backblaze B2 bucket, a Google Drive folder, an
+   S3-compatible bucket, or anything else rclone supports.
+2. Run `deploy/shop.sh run --rm shop-backup rclone config` and answer the questions. The answers are
+   saved in `deploy/backup/rclone.conf` (git-ignored; see `rclone.conf.example`).
+3. In `deploy/supabase/.env`, set `RCLONE_REMOTE=<remote>:<bucket or folder>` (for example
+   `b2:minha-loja/banco`) and run `deploy/shop.sh up -d`.
+4. Check it now instead of waiting for the night: `node tests/selfhost/backup-check.mjs` runs one
+   dump and one restore test and checks both were recorded.
+
+Also keep a copy of `deploy/supabase/.env` somewhere safe, and back up the uploaded menu photos in
+`deploy/supabase/volumes/storage/` the same way.
+
+**Restore:** on a fresh install, run `setup.sh`, then copy the old `.env` over the new one. Run
+`deploy/shop.sh up -d`, then
+`deploy/shop.sh exec -T db pg_restore -U postgres -d postgres --clean --if-exists < backups/<file>.dump`.
 
 ## Behind a Cloudflare Tunnel
 
