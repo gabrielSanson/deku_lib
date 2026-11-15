@@ -1,3 +1,4 @@
+import { openAlerts } from '#lib/server/alerts/service.ts';
 import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import { overview, salesByHour, todayLocal } from '#lib/server/analytics/queries.ts';
 import { db } from '#lib/server/db.ts';
@@ -46,5 +47,6 @@ export const load: PageServerLoad = async (event) => {
 		return [] as string[];
 	});
 	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
-	return { counts, urgent, late, ifoodAlerts, sales };
+	const systemAlerts = (await openAlerts()).map((a) => ({ kind: a.kind, detail: a.detail }));
+	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts };
 };

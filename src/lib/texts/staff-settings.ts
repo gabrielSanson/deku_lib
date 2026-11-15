@@ -847,6 +847,92 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Sistema: pedidos na cópia',
 		default: '{count} pedidos na cópia'
 	},
+	'system.alerts': {
+		group: g,
+		label: 'Sistema: alertas',
+		default: 'Alertas'
+	},
+	'system.alertsHint': {
+		group: g,
+		label: 'Sistema: explicação dos alertas',
+		default:
+			'Avisamos quando o worker para, quando o iFood não responde, quando a cópia de segurança atrasa ou quando a loja fica sem pedidos num horário que costuma ter movimento.'
+	},
+	'system.emails': {
+		group: g,
+		label: 'Sistema: e-mails',
+		default: 'E-mails que recebem alertas (separados por vírgula)'
+	},
+	'system.noSmtp': {
+		group: g,
+		label: 'Sistema: sem SMTP',
+		default: 'Para mandar e-mails, preencha SMTP_URL no arquivo .env do servidor.'
+	},
+	'system.push': {
+		group: g,
+		label: 'Sistema: push ligado',
+		default: 'Avisar também nos aparelhos cadastrados'
+	},
+	'system.noOrders': {
+		group: g,
+		label: 'Sistema: alerta sem pedidos',
+		default: 'Avisar quando a loja ficar sem pedidos num horário de movimento'
+	},
+	'system.noOrdersMinutes': {
+		group: g,
+		label: 'Sistema: minutos sem pedidos',
+		default: 'Minutos sem pedidos antes de avisar'
+	},
+	'system.saved': {
+		group: g,
+		label: 'Sistema: salvo',
+		default: 'Alertas salvos.'
+	},
+	'system.device': {
+		group: g,
+		label: 'Sistema: receber neste aparelho',
+		default: 'Receber alertas neste aparelho'
+	},
+	'system.deviceDone': {
+		group: g,
+		label: 'Sistema: aparelho cadastrado',
+		default: 'Este aparelho vai receber os alertas.'
+	},
+	'system.deviceBlocked': {
+		group: g,
+		label: 'Sistema: notificações bloqueadas',
+		default: 'As notificações estão bloqueadas neste navegador.'
+	},
+	'system.deviceUnsupported': {
+		group: g,
+		label: 'Sistema: sem suporte a push',
+		default: 'Este navegador não recebe notificações.'
+	},
+	'system.test': {
+		group: g,
+		label: 'Sistema: enviar teste',
+		default: 'Enviar alerta de teste'
+	},
+	'system.testSent': {
+		group: g,
+		label: 'Sistema: teste enviado',
+		default: 'Teste enviado: {email} e-mails, {push} aparelhos.'
+	},
+	'system.open': {
+		group: g,
+		label: 'Sistema: alertas abertos',
+		default: 'Agora'
+	},
+	'system.noneOpen': {
+		group: g,
+		label: 'Sistema: nenhum alerta',
+		default: 'Nenhum problema agora.'
+	},
+	'system.since': {
+		group: g,
+		label: 'Sistema: desde',
+		default: 'desde {time}'
+	},
 	'system.setupTitle': {
 		group: g,
 		label: 'Sistema: como configurar cópia externa',

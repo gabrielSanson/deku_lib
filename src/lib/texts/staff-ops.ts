@@ -36,6 +36,94 @@ export const STAFF_OPS_TEXTS = {
 	},
 
 	// Dashboard alerts
+	'alert.workerDown.title': {
+		group: 'staff',
+		label: 'Alerta: worker parado (título)',
+		default: 'Worker parado: pedidos não estão sendo processados'
+	},
+	'alert.workerDown.body': {
+		group: 'staff',
+		label: 'Alerta: worker parado (texto)',
+		default:
+			'O processo que leva os pedidos à cozinha parou de responder. No servidor, rode deploy/shop.sh ps e deploy/shop.sh restart shop-worker.'
+	},
+	'alert.noOrders.title': {
+		group: 'staff',
+		label: 'Alerta: sem pedidos (título)',
+		default: 'Nenhum pedido há {minutes} minutos'
+	},
+	'alert.noOrders.body': {
+		group: 'staff',
+		label: 'Alerta: sem pedidos (texto)',
+		default:
+			'Neste horário a loja costuma receber pedidos. Confira se o site abre, se a internet da loja está funcionando e se o iFood está conectado.'
+	},
+	'alert.ifoodPoll.title': {
+		group: 'staff',
+		label: 'Alerta: iFood sem resposta (título)',
+		default: 'iFood sem resposta'
+	},
+	'alert.ifoodPoll.body': {
+		group: 'staff',
+		label: 'Alerta: iFood sem resposta (texto)',
+		default: 'Há mais de 5 minutos não conseguimos buscar pedidos do iFood. {error}'
+	},
+	'alert.backupStale.title': {
+		group: 'staff',
+		label: 'Alerta: cópia atrasada (título)',
+		default: 'Cópia de segurança atrasada'
+	},
+	'alert.backupStale.body': {
+		group: 'staff',
+		label: 'Alerta: cópia atrasada (texto)',
+		default:
+			'A última cópia boa do banco de dados tem mais de 26 horas. Veja Configurações → Sistema.'
+	},
+	'alert.fiscalErrors.title': {
+		group: 'staff',
+		label: 'Alerta: notas com erro (título)',
+		default: 'Notas fiscais com erro'
+	},
+	'alert.fiscalErrors.body': {
+		group: 'staff',
+		label: 'Alerta: notas com erro (texto)',
+		default: '{count} notas falharam na última hora. Veja Configurações → Nota fiscal.'
+	},
+	'alert.disk.title': {
+		group: 'staff',
+		label: 'Alerta: disco (título)',
+		default: 'Pouco espaço no servidor'
+	},
+	'alert.disk.body': {
+		group: 'staff',
+		label: 'Alerta: disco (texto)',
+		default: 'O disco do servidor está quase cheio.'
+	},
+	'alert.test.title': {
+		group: 'staff',
+		label: 'Alerta: teste (título)',
+		default: 'Alerta de teste'
+	},
+	'alert.test.body': {
+		group: 'staff',
+		label: 'Alerta: teste (texto)',
+		default: 'Se você recebeu esta mensagem, os alertas da loja estão funcionando.'
+	},
+	'alert.resolved.title': {
+		group: 'staff',
+		label: 'Alerta: voltou ao normal (título)',
+		default: 'Resolvido: {title}'
+	},
+	'alert.resolved.body': {
+		group: 'staff',
+		label: 'Alerta: voltou ao normal (texto)',
+		default: 'Voltou a funcionar.'
+	},
+	'alerts.system': {
+		group: 'staff',
+		label: 'Alerta do sistema: ver',
+		default: 'Ver sistema'
+	},
 	'alerts.setup': {
 		group: 'staff',
 		label: 'Alerta: configuração pendente',

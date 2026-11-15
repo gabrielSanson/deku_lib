@@ -22,6 +22,9 @@ x-app: &app
     PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-none}
     MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
     MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
+    # Alert e-mails, e.g. smtps://user:app-password@smtp.gmail.com:465
+    SMTP_URL: ${SMTP_URL:-}
+    ALERT_FROM: ${ALERT_FROM:-}
     # Menu photos are up to 5 MB.
     BODY_SIZE_LIMIT: 6M
     # The customer's address for rate limits: Caddy appends it to X-Forwarded-For.
@@ -72,6 +75,17 @@ services:
     <<: *app
     command: ['node', '--import', 'tsx', 'scripts/worker.ts']
     # The image's healthcheck is for the web process; the worker serves no HTTP.
+    healthcheck:
+      disable: true
+    depends_on:
+      shop-migrate:
+        condition: service_completed_successfully
+
+  # Checks the worker, iFood, backups and orders every minute and alerts the owner
+  # (SMTP_URL e-mail and staff Web Push). Separate from the worker so a dead worker is reported.
+  shop-watchdog:
+    <<: *app
+    command: ['node', '--import', 'tsx', 'scripts/watchdog.ts']
     healthcheck:
       disable: true
     depends_on:

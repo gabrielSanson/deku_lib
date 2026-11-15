@@ -34,7 +34,10 @@ const schema = z.object({
 	IFOOD_MERCHANT_ID: z.string().optional(),
 	IFOOD_API_BASE: z.string().url().default('https://merchant-api.ifood.com.br'),
 	// Shows the Google button on the customer login. Enable it in Supabase Auth first.
-	GOOGLE_LOGIN_ENABLED: flag
+	GOOGLE_LOGIN_ENABLED: flag,
+	// Alert e-mails: smtps://user:password@smtp.gmail.com:465 (an app password for Gmail).
+	SMTP_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+	ALERT_FROM: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional())
 });
 
 export type Config = z.infer<typeof schema>;

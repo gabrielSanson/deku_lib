@@ -88,6 +88,22 @@ Also keep a copy of `deploy/supabase/.env` somewhere safe, and back up the uploa
 Cloudflare then handles HTTPS. Caddy serves plain HTTP inside the machine, and
 no ports need to be opened on the router.
 
+## Alerts
+
+The `shop-watchdog` service checks every minute that the worker is alive, that iFood answers
+(when it is on), that last night's backup worked and that orders are arriving at hours that are
+normally busy. When something stops it opens an alert on the staff home and in
+**Configurações → Sistema**, sends an e-mail and a push to the admins' devices, repeats it every
+30 minutes and says when it is fixed.
+
+- **E-mail:** set `SMTP_URL` in `deploy/supabase/.env`, e.g.
+  `SMTP_URL=smtps://loja%40gmail.com:<app password>@smtp.gmail.com:465` (create an app password in
+  the Google account; `@` in the user becomes `%40`). `ALERT_FROM` is optional. Then add the
+  addresses in Configurações → Sistema.
+- **Push:** in Configurações → Sistema, tap "Receber alertas neste aparelho" on each phone that
+  should get them.
+- Use "Enviar alerta de teste" on the same page to check both.
+
 ## The customer's address (rate limits)
 
 Checkout, login and the order-ready alerts limit how often one customer can try. The app sits

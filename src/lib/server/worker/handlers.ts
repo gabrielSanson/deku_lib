@@ -1,6 +1,7 @@
 // Background job handlers. The worker process (scripts/worker.ts) registers
 // these with pg-boss; they are plain functions so tests can call them directly.
 // Every handler is idempotent because pg-boss delivers at least once.
+import { beat } from '../alerts/service';
 import { db } from '../db';
 import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
@@ -63,6 +64,11 @@ export async function handleStaleOrders() {
 	return { expired, waiting: waiting.length };
 }
 
+/** Runs every minute: tells the watchdog the worker is alive. */
+export async function handleHeartbeat() {
+	await beat('worker', { pid: process.pid });
+}
+
 type Handler = (data: never) => Promise<unknown>;
 
 export async function startWorker(extra: Partial<Record<string, Handler>> = {}) {
@@ -73,6 +79,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.paymentEvent]: handlePaymentEvent as Handler,
 		[QUEUES.fiscalIssue]: handleFiscalIssue as Handler,
 		[QUEUES.staleOrders]: handleStaleOrders as Handler,
+		[QUEUES.heartbeat]: handleHeartbeat as Handler,
 		...extra
 	};
 	for (const [name, handler] of Object.entries(handlers)) {
@@ -93,6 +100,8 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		);
 	}
 	await boss.schedule(QUEUES.staleOrders, '* * * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.heartbeat, '* * * * *', {}, { tz: 'America/Sao_Paulo' });
+	await handleHeartbeat();
 	log('worker started', { queues: Object.keys(handlers) });
 	return boss;
 }

@@ -153,6 +153,7 @@
 		ifoodLate={ifoodLate.length}
 		unpaid={data.counts.unpaid}
 		dead={data.counts.dead}
+		systemAlerts={data.systemAlerts}
 	/>
 
 	<header class="flex flex-wrap items-end justify-between gap-3">

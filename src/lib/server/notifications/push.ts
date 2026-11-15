@@ -16,7 +16,10 @@ import { getTexts } from '../settings/texts';
 
 const MAX_PER_ORDER = 5;
 
-async function vapidKeys(sql: Db): Promise<{ publicKey: string; privateKey: string } | null> {
+/** The shop's VAPID key pair (made on first use), or null when APP_SECRET is missing. */
+export async function vapidKeys(
+	sql: Db
+): Promise<{ publicKey: string; privateKey: string } | null> {
 	if (!canStoreSecrets()) return null;
 	type Keys = { publicKey: string; privateKey: string };
 	const read = async (): Promise<Keys | { stale: string } | null> => {

@@ -1,6 +1,7 @@
 // Registers iFood jobs with the worker. Polling runs only while iFood is turned
 // on (in the setup wizard or with IFOOD_ENABLED); the setting is re-read on every
 // tick, so no restart is needed. Each poll's outcome is recorded for the alerts.
+import { beat } from '../../alerts/service';
 import { db } from '../../db';
 import { QUEUES } from '../../jobs';
 import { explainIfoodError } from './check';
@@ -33,6 +34,7 @@ export async function ifoodHandlers() {
 				try {
 					const r = await pollIfoodOnce();
 					await recordIfoodPoll(true);
+					await beat('ifood-poll');
 					if (r.received) console.log(JSON.stringify({ msg: 'ifood poll', ...r }));
 				} catch (err) {
 					const problem = explainIfoodError(err, 'polling');

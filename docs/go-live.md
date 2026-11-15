@@ -70,6 +70,8 @@ customer sees in Configurações → Textos do site.
 ## 4. Before opening
 
 - Make a Pix test order of R$ 1 and check it lands in the right bank account.
+- Set `SMTP_URL`, add the owner's e-mail in Configurações → Sistema, tap "Receber alertas neste
+  aparelho" on the owner's phone and send a test alert ([deploy/README.md](../deploy/README.md#alerts)).
 - Set up the off-site copy and run `node tests/selfhost/backup-check.mjs`; Configurações → Sistema
   must show the last copy, the off-site copy and the restore test in green
   ([deploy/README.md](../deploy/README.md#backups)).

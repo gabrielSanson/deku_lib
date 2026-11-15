@@ -690,6 +690,21 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Operação: prazo de pagamento',
 		default: 'O prazo para cancelar pedidos não pagos vai de 5 a 120 minutos.'
 	},
+	'err.alerts.email': {
+		group: 'staffErrors',
+		label: 'Alertas: e-mail inválido',
+		default: 'Confira os e-mails: {email} não parece um e-mail.'
+	},
+	'err.alerts.minutes': {
+		group: 'staffErrors',
+		label: 'Alertas: minutos',
+		default: 'Os minutos sem pedidos vão de 15 a 240.'
+	},
+	'err.alerts.push': {
+		group: 'staffErrors',
+		label: 'Alertas: aparelho',
+		default: 'Não foi possível cadastrar este aparelho.'
+	},
 	'err.settings.capacity': {
 		group: 'staffErrors',
 		label: 'Operação: capacidade',
