@@ -1,10 +1,11 @@
-// Customer accounts. A Supabase sign-in is linked to one row in `customers`; past
-// guest orders live on that row, so a customer who signs up with the phone they
-// ordered with keeps their history.
+// Customer accounts. A Supabase sign-in is linked to one row in `customers`. Past guest
+// orders join that row only when the sign-in's e-mail is verified and matches the e-mail on
+// the guest record; a phone number never links anything, because anyone can type one.
 import type { User } from '@supabase/supabase-js';
 import type { OrderStatus } from '#lib/domain/order-status.ts';
 import type { PastItem } from '#lib/domain/reorder.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
+import { audit } from '../audit';
 import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
 
@@ -28,10 +29,15 @@ export interface CustomerOrder {
 
 export async function loadCustomer(userId: string): Promise<CustomerSession | null> {
 	const [row] = await db()<
-		{ id: string; name: string | null; phone_e164: string | null; email: string | null }[]
-	>`select id, name, phone_e164, email from customers
+		{ id: string; name: string | null; phone: string | null; email: string | null }[]
+	>`select id, name, coalesce(phone_e164, contact_phone_e164) as phone, email from customers
 		where auth_user_id = ${userId} and deleted_at is null`;
-	return row ? { id: row.id, name: row.name, phone: row.phone_e164, email: row.email } : null;
+	return row ? { id: row.id, name: row.name, phone: row.phone, email: row.email } : null;
+}
+
+/** Supabase sets email_confirmed_at once the link was opened, or when Google vouches for it. */
+function verifiedEmail(user: User): string | null {
+	return user.email && user.email_confirmed_at ? user.email.trim() : null;
 }
 
 /**
@@ -40,39 +46,74 @@ export async function loadCustomer(userId: string): Promise<CustomerSession | nu
  * e-mail was confirmed later.
  */
 export async function ensureCustomer(user: User): Promise<CustomerSession> {
-	const existing = await loadCustomer(user.id);
-	if (existing) return existing;
 	const meta = (user.user_metadata ?? {}) as { name?: string; full_name?: string; phone?: string };
 	const name = (meta.name ?? meta.full_name ?? '').trim() || null;
 	const email = user.email ?? null;
+	const verified = verifiedEmail(user);
 	const phoneE164 = meta.phone ? normalizeBrPhone(meta.phone) : null;
 
 	return db().begin(async (tx) => {
-		if (phoneE164) {
-			const [same] = await tx<{ id: string; auth_user_id: string | null }[]>`
-				select id, auth_user_id from customers
-				where phone_e164 = ${phoneE164} and deleted_at is null for update`;
-			if (same && !same.auth_user_id) {
-				const [row] = await tx<{ id: string; name: string | null; email: string | null }[]>`
-					update customers set auth_user_id = ${user.id},
-						name = coalesce(name, ${name}), email = coalesce(email, ${email})
-					where id = ${same.id}
-					returning id, name, email`;
-				return { id: row.id, name: row.name, phone: phoneE164, email: row.email };
-			}
+		const [mine] = await tx<{ id: string }[]>`
+			select id from customers where auth_user_id = ${user.id} and deleted_at is null for update`;
+		// A guest record with the same verified e-mail. The row lock stops two accounts taking it.
+		const [guest] = verified
+			? await tx<{ id: string }[]>`
+				select id from customers
+				where lower(email) = lower(${verified}) and auth_user_id is null and deleted_at is null
+				order by created_at limit 1
+				for update skip locked`
+			: [];
+
+		if (mine) {
+			// The account existed before the e-mail was verified: bring the guest orders over.
+			if (guest) await mergeGuest(tx, guest.id, mine.id, user.id);
+			return (await loadCustomerTx(tx, mine.id))!;
 		}
-		// The number is already on another account: keep the new one without a phone.
-		const phoneFree = phoneE164 && !(await phoneTaken(tx, phoneE164));
-		const [row] = await tx<{ id: string; name: string | null; email: string | null }[]>`
-			insert into customers (name, phone_e164, email, auth_user_id)
-			values (${name}, ${phoneFree ? phoneE164 : null}, ${email}, ${user.id})
-			returning id, name, email`;
-		return {
-			id: row.id,
-			name: row.name,
-			phone: phoneFree ? phoneE164 : null,
-			email: row.email
-		};
+		if (guest) {
+			await tx`
+				update customers set auth_user_id = ${user.id}, name = coalesce(name, ${name})
+				where id = ${guest.id}`;
+			await audit(tx, { type: 'customer', id: guest.id }, 'customer.linked', 'customer', guest.id, {
+				via: 'email'
+			});
+			return (await loadCustomerTx(tx, guest.id))!;
+		}
+		// A number already on another record stays only as a contact number.
+		const phoneFree = phoneE164 ? !(await phoneTaken(tx, phoneE164)) : false;
+		const [row] = await tx<{ id: string }[]>`
+			insert into customers (name, phone_e164, contact_phone_e164, email, auth_user_id)
+			values (${name}, ${phoneFree ? phoneE164 : null}, ${phoneFree ? null : phoneE164}, ${email},
+				${user.id})
+			returning id`;
+		return (await loadCustomerTx(tx, row.id))!;
+	});
+}
+
+async function loadCustomerTx(tx: Tx, id: string): Promise<CustomerSession | null> {
+	const [row] = await tx<
+		{ id: string; name: string | null; phone: string | null; email: string | null }[]
+	>`select id, name, coalesce(phone_e164, contact_phone_e164) as phone, email from customers
+		where id = ${id}`;
+	return row ?? null;
+}
+
+/** Moves a guest record's orders onto the account with the same verified e-mail. */
+async function mergeGuest(tx: Tx, guestId: string, accountId: string, userId: string) {
+	await tx`update orders set customer_id = ${accountId} where customer_id = ${guestId}`;
+	const [g] = await tx<{ phone_e164: string | null; name: string | null }[]>`
+		update customers set deleted_at = now() where id = ${guestId}
+		returning phone_e164, name`;
+	await tx`
+		update customers set
+			phone_e164 = coalesce(phone_e164, ${g.phone_e164}),
+			contact_phone_e164 = case when phone_e164 is null and ${g.phone_e164}::text is not null
+				then null else contact_phone_e164 end,
+			name = coalesce(name, ${g.name})
+		where id = ${accountId}`;
+	await audit(tx, { type: 'customer', id: accountId }, 'customer.linked', 'customer', accountId, {
+		via: 'email',
+		merged: guestId,
+		authUserId: userId
 	});
 }
 
@@ -93,7 +134,8 @@ export async function updateCustomerProfile(
 		if (row)
 			throw new DomainError('account.error.phoneTaken', { code: 'phone_taken', status: 409 });
 	}
-	await db()`update customers set name = ${input.name}, phone_e164 = ${input.phoneE164}
+	await db()`update customers set name = ${input.name}, phone_e164 = ${input.phoneE164},
+			contact_phone_e164 = null
 		where id = ${customerId}`;
 }
 

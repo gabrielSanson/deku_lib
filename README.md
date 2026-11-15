@@ -126,7 +126,10 @@ pnpm worker                       # second terminal: background jobs
 
 Seeded staff (password `burger123`, or `SEED_PASSWORD`): `admin@burger.local`
 (runs the shop) and `cozinha@burger.local` (kitchen screen only). Customers order without an account; an optional account (`/conta`) keeps their
-details and order history.
+details and order history. Earlier guest orders join an account only when the account's e-mail is
+verified and matches the e-mail on those orders; a phone number never links anything. Keep
+`ENABLE_EMAIL_AUTOCONFIRM=false` on a live server, or e-mails count as verified without anyone
+opening the link.
 
 To try online checkout locally set `PAYMENT_PROVIDER=local_stub`. The payment
 page then shows a "simulate approved payment" button that sends a signed webhook,
