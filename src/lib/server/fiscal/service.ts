@@ -2,13 +2,22 @@
 // the shop's CNPJ, the provider token and the default fiscal codes, then turns it
 // on. A paid order gets a `fiscal-issue` job in the same transaction; the job asks
 // the provider for the note and stores the answer. iFood orders are left out.
-import { nfceLines } from '#lib/domain/nfce.ts';
+import { fiscalYear, nfceLines } from '#lib/domain/nfce.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { decryptSecret, encryptSecret } from '../secrets';
-import { cancelNfce, issueNfce, type FiscalEnvironment, type NfceResult } from './focusnfe';
+import { fill } from '#lib/texts/catalog.ts';
+import { getTexts } from '../settings/texts';
+import {
+	cancelNfce,
+	ibsCbsFor,
+	issueNfce,
+	type FiscalEnvironment,
+	type NfceRequest,
+	type NfceResult
+} from './focusnfe';
 
 export interface FiscalSettings {
 	enabled: boolean;
@@ -19,7 +28,14 @@ export interface FiscalSettings {
 	defaultNcm: string | null;
 	defaultCfop: string;
 	defaultCsosn: string;
+	/** Código de regime tributário: 1 Simples, 2 Simples (excesso), 3 normal, 4 MEI. */
+	crt: Crt;
+	ibsCbsEnabled: boolean;
+	ibsCbsCst: string;
+	ibsCbsClass: string;
 }
+
+export type Crt = '1' | '2' | '3' | '4';
 
 interface SettingsRow {
 	enabled: boolean;
@@ -30,6 +46,10 @@ interface SettingsRow {
 	default_ncm: string | null;
 	default_cfop: string;
 	default_csosn: string;
+	crt: Crt;
+	ibs_cbs_enabled: boolean;
+	ibs_cbs_cst: string;
+	ibs_cbs_class: string;
 }
 
 async function settingsRow(sql: Db = db()) {
@@ -47,7 +67,11 @@ export async function getFiscalSettings(sql: Db = db()): Promise<FiscalSettings>
 		hasToken: !!r.api_token_enc,
 		defaultNcm: r.default_ncm,
 		defaultCfop: r.default_cfop,
-		defaultCsosn: r.default_csosn
+		defaultCsosn: r.default_csosn,
+		crt: r.crt,
+		ibsCbsEnabled: r.ibs_cbs_enabled,
+		ibsCbsCst: r.ibs_cbs_cst,
+		ibsCbsClass: r.ibs_cbs_class
 	};
 }
 
@@ -60,6 +84,11 @@ export async function saveFiscalSettings(
 		defaultNcm: string;
 		defaultCfop: string;
 		defaultCsosn: string;
+		/** Left out: kept as they are. */
+		crt?: Crt;
+		ibsCbsEnabled?: boolean;
+		ibsCbsCst?: string;
+		ibsCbsClass?: string;
 	},
 	actor: Actor
 ) {
@@ -69,6 +98,12 @@ export async function saveFiscalSettings(
 	if (ncm && ncm.length !== 8) throw new DomainError('err.fiscal.ncm');
 	if (!/^\d{4}$/.test(input.defaultCfop)) throw new DomainError('err.fiscal.cfop');
 	if (!/^\d{3}$/.test(input.defaultCsosn)) throw new DomainError('err.fiscal.csosn');
+	if (input.crt !== undefined && !['1', '2', '3', '4'].includes(input.crt))
+		throw new DomainError('err.fiscal.crt');
+	if (input.ibsCbsCst !== undefined && !/^\d{3}$/.test(input.ibsCbsCst))
+		throw new DomainError('err.fiscal.ibsCbsCst');
+	if (input.ibsCbsClass !== undefined && !/^\d{6}$/.test(input.ibsCbsClass))
+		throw new DomainError('err.fiscal.ibsCbsClass');
 	return db().begin(async (tx) => {
 		const current = await settingsRow(tx);
 		const tokenEnc = input.token?.trim()
@@ -80,14 +115,93 @@ export async function saveFiscalSettings(
 			update fiscal_settings set enabled = ${input.enabled}, environment = ${input.environment},
 				cnpj = ${cnpj || null}, api_token_enc = ${tokenEnc}, default_ncm = ${ncm || null},
 				default_cfop = ${input.defaultCfop}, default_csosn = ${input.defaultCsosn},
+				crt = ${input.crt ?? current.crt},
+				ibs_cbs_enabled = ${input.ibsCbsEnabled ?? current.ibs_cbs_enabled},
+				ibs_cbs_cst = ${input.ibsCbsCst ?? current.ibs_cbs_cst},
+				ibs_cbs_class = ${input.ibsCbsClass ?? current.ibs_cbs_class},
 				updated_by = ${actor.id}, updated_at = now()
 			where id = 1`;
 		await audit(tx, actor, 'fiscal.settings_saved', 'fiscal_settings', null, {
 			enabled: input.enabled,
 			environment: input.environment,
-			token_changed: !!input.token?.trim()
+			token_changed: !!input.token?.trim(),
+			crt: input.crt ?? current.crt,
+			ibs_cbs_enabled: input.ibsCbsEnabled ?? current.ibs_cbs_enabled
 		});
 	});
+}
+
+export interface IbsCbsRateRow {
+	year: number;
+	/** Percent strings with 4 decimals, as Postgres numeric returns them. */
+	cbsRate: string;
+	ibsUfRate: string;
+	ibsMunRate: string;
+	note: string | null;
+	updatedAt: Date;
+}
+
+export async function listIbsCbsRates(sql: Db = db()): Promise<IbsCbsRateRow[]> {
+	const rows = await sql<
+		{
+			year: number;
+			cbs_rate: string;
+			ibs_uf_rate: string;
+			ibs_mun_rate: string;
+			note: string | null;
+			updated_at: Date;
+		}[]
+	>`select * from ibs_cbs_rates order by year`;
+	return rows.map((r) => ({
+		year: r.year,
+		cbsRate: r.cbs_rate,
+		ibsUfRate: r.ibs_uf_rate,
+		ibsMunRate: r.ibs_mun_rate,
+		note: r.note,
+		updatedAt: r.updated_at
+	}));
+}
+
+const RATE = /^\d{1,3}([.,]\d{1,4})?$/;
+
+/** Saving the table is the owner confirming those rates with the accountant. */
+export async function saveIbsCbsRates(
+	rows: { year: number; cbsRate: string; ibsUfRate: string; ibsMunRate: string; note: string }[],
+	actor: Actor
+) {
+	for (const r of rows) {
+		if (!Number.isInteger(r.year) || r.year < 2026 || r.year > 2040)
+			throw new DomainError('err.fiscal.rateYear');
+		if (![r.cbsRate, r.ibsUfRate, r.ibsMunRate].every((v) => RATE.test(v.trim())))
+			throw new DomainError('err.fiscal.rate', { vars: { year: String(r.year) } });
+	}
+	const dot = (v: string) => v.trim().replace(',', '.');
+	await db().begin(async (tx) => {
+		for (const r of rows) {
+			await tx`
+				insert into ibs_cbs_rates (year, cbs_rate, ibs_uf_rate, ibs_mun_rate, note, updated_at)
+				values (${r.year}, ${dot(r.cbsRate)}, ${dot(r.ibsUfRate)}, ${dot(r.ibsMunRate)},
+					${r.note.trim() || null}, now())
+				on conflict (year) do update set cbs_rate = excluded.cbs_rate,
+					ibs_uf_rate = excluded.ibs_uf_rate, ibs_mun_rate = excluded.ibs_mun_rate,
+					note = excluded.note, updated_at = now()`;
+		}
+		await audit(tx, actor, 'fiscal.ibs_cbs_rates_saved', 'fiscal_settings', null, { rows });
+	});
+}
+
+/** The 2027 row as the migration seeded it; any later save is the owner's confirmation. */
+const SEEDED_AT = new Date('2026-11-15T00:00:00Z');
+
+/**
+ * From 1 Dec 2026 the coming year's rates must be confirmed (saved) by the owner; until then
+ * the fiscal page warns. TODO(verify): the 2027 CBS rate was still "a ser fixada" on 15 Nov 2026.
+ */
+export function ratesNeedConfirmation(rates: IbsCbsRateRow[], now = new Date()): number | null {
+	if (now < new Date('2026-12-01T03:00:00Z')) return null;
+	const year = fiscalYear(now) + (now.getUTCMonth() === 11 ? 1 : 0);
+	const row = rates.find((r) => r.year === year);
+	return !row || row.updatedAt <= SEEDED_AT ? year : null;
 }
 
 /** Called when an order becomes fully paid, inside that transaction. */
@@ -190,33 +304,68 @@ export async function issueFiscalForOrder(orderId: string, issuer: Issuer = issu
 			quantity: number;
 			line_total_cents: number;
 			ncm: string | null;
+			ibs_cbs_cst: string | null;
+			ibs_cbs_class: string | null;
 		}[]
-	>`select i.product_sku, i.product_name, i.quantity, i.line_total_cents, p.ncm
+	>`select i.product_sku, i.product_name, i.quantity, i.line_total_cents, p.ncm,
+			p.ibs_cbs_cst, p.ibs_cbs_class
 		from order_items i left join menu_products p on p.sku = i.product_sku
 		where i.order_id = ${orderId} order by i.position`;
 	const tenders = await db()<{ method: string; amount_cents: number }[]>`
 		select method, amount_cents from tenders where order_id = ${orderId} and status = 'paid'`;
 
+	const issuedAt = new Date();
+	const request: NfceRequest = {
+		ref: doc.ref,
+		cnpj: s.cnpj,
+		issuedAt,
+		lines: nfceLines(
+			items.map((i) => ({
+				sku: i.product_sku,
+				name: i.product_name,
+				quantity: i.quantity,
+				lineTotalCents: i.line_total_cents,
+				ncm: i.ncm,
+				ibsCbsCst: i.ibs_cbs_cst,
+				ibsCbsClass: i.ibs_cbs_class
+			})),
+			order.discount_cents,
+			order.delivery_fee_cents
+		),
+		defaults: { ncm: s.default_ncm, cfop: s.default_cfop, csosn: s.default_csosn },
+		payments: tenders.map((t) => ({ method: t.method, amountCents: t.amount_cents }))
+	};
+	if (s.ibs_cbs_enabled) {
+		const year = fiscalYear(issuedAt);
+		const [rates] = await db()<{ cbs_rate: string; ibs_uf_rate: string; ibs_mun_rate: string }[]>`
+			select cbs_rate, ibs_uf_rate, ibs_mun_rate from ibs_cbs_rates where year = ${year}`;
+		if (!rates) {
+			// Never issue without the year's rates: record why and let the job fail visibly.
+			const message = fill((await getTexts())['err.fiscal.noRates'], { year: String(year) });
+			await saveResult(doc.id, { status: 'error', message });
+			throw new DomainError('err.fiscal.noRates', {
+				code: 'no_rates',
+				vars: { year: String(year) }
+			});
+		}
+		request.ibsCbs = {
+			enabled: true,
+			cst: s.ibs_cbs_cst,
+			cls: s.ibs_cbs_class,
+			rates: { cbs: rates.cbs_rate, ibsUf: rates.ibs_uf_rate, ibsMun: rates.ibs_mun_rate }
+		};
+		const tax = ibsCbsFor(request)!;
+		await db()`update fiscal_documents set ibs_cbs = ${db().json({
+			year,
+			rates: request.ibsCbs.rates,
+			lines: tax.lines.map((l, i) => ({ sku: request.lines[i].sku, ...l })),
+			totals: tax.totals
+		} as never)} where id = ${doc.id}`;
+	}
+
 	let result: NfceResult;
 	try {
-		result = await issuer(s.environment, decryptSecret(s.api_token_enc), {
-			ref: doc.ref,
-			cnpj: s.cnpj,
-			issuedAt: new Date(),
-			lines: nfceLines(
-				items.map((i) => ({
-					sku: i.product_sku,
-					name: i.product_name,
-					quantity: i.quantity,
-					lineTotalCents: i.line_total_cents,
-					ncm: i.ncm
-				})),
-				order.discount_cents,
-				order.delivery_fee_cents
-			),
-			defaults: { ncm: s.default_ncm, cfop: s.default_cfop, csosn: s.default_csosn },
-			payments: tenders.map((t) => ({ method: t.method, amountCents: t.amount_cents }))
-		});
+		result = await issuer(s.environment, decryptSecret(s.api_token_enc), request);
 	} catch (err) {
 		result = { status: 'error', message: `Sem resposta do provedor: ${String(err)}` };
 	}

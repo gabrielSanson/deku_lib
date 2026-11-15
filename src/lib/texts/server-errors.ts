@@ -552,6 +552,37 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Nota: CNPJ',
 		default: 'O CNPJ tem 14 números.'
 	},
+	'err.fiscal.crt': {
+		group: 'staffErrors',
+		label: 'Nota: regime',
+		default: 'Escolha o regime tributário.'
+	},
+	'err.fiscal.ibsCbsCst': {
+		group: 'staffErrors',
+		label: 'Nota: CST do IBS/CBS',
+		default: 'O CST do IBS/CBS tem 3 números.'
+	},
+	'err.fiscal.ibsCbsClass': {
+		group: 'staffErrors',
+		label: 'Nota: cClassTrib',
+		default: 'O cClassTrib tem 6 números.'
+	},
+	'err.fiscal.rateYear': {
+		group: 'staffErrors',
+		label: 'Nota: ano da alíquota',
+		default: 'O ano das alíquotas vai de 2026 a 2040.'
+	},
+	'err.fiscal.rate': {
+		group: 'staffErrors',
+		label: 'Nota: alíquota inválida',
+		default: 'Confira as alíquotas de {year}: use números como 0,9 ou 0,0500.'
+	},
+	'err.fiscal.noRates': {
+		group: 'staffErrors',
+		label: 'Nota: sem alíquotas do ano',
+		default:
+			'Faltam as alíquotas de IBS e CBS de {year}. Cadastre em Configurações → Nota fiscal e tente de novo.'
+	},
 	'err.fiscal.ncm': { group: 'staffErrors', label: 'Nota: NCM', default: 'O NCM tem 8 números.' },
 	'err.fiscal.cfop': {
 		group: 'staffErrors',

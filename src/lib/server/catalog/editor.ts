@@ -482,3 +482,26 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 	await ('begin' in sql ? sql.begin(run) : run(sql as Tx));
 	invalidateCatalog();
 }
+
+/** NCM and IBS/CBS codes of one product; empty fields fall back to the shop's defaults. */
+export async function saveProductFiscal(
+	sku: string,
+	input: { ncm: string; ibsCbsCst: string; ibsCbsClass: string },
+	actor: Actor
+) {
+	const ncm = input.ncm.replace(/\D/g, '');
+	const cst = input.ibsCbsCst.trim();
+	const cls = input.ibsCbsClass.trim();
+	if (ncm && ncm.length !== 8) throw new DomainError('err.fiscal.ncm');
+	if (cst && !/^\d{3}$/.test(cst)) throw new DomainError('err.fiscal.ibsCbsCst');
+	if (cls && !/^\d{6}$/.test(cls)) throw new DomainError('err.fiscal.ibsCbsClass');
+	await db().begin(async (tx) => {
+		const r = await tx`
+			update menu_products set ncm = ${ncm || null}, ibs_cbs_cst = ${cst || null},
+				ibs_cbs_class = ${cls || null}, updated_at = now()
+			where sku = ${sku}`;
+		if (!r.count)
+			throw new DomainError('err.menu.productNotFound', { code: 'not_found', status: 404 });
+		await audit(tx, actor, 'product.fiscal_saved', 'menu_product', sku, { ncm, cst, cls });
+	});
+}

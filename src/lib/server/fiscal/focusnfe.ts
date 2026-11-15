@@ -1,6 +1,17 @@
 // Focus NFe (focusnfe.com.br) NFC-e API. Written from the provider's public docs
 // and not yet run against it: start in the homologation environment.
-import { cents, nfcePaymentCode, type NfceLine } from '#lib/domain/nfce.ts';
+import {
+	cents,
+	formatRate,
+	ibsCbsLine,
+	ibsCbsTotals,
+	nfcePaymentCode,
+	rateUnits,
+	type IbsCbsLine,
+	type IbsCbsRates,
+	type IbsCbsTotals,
+	type NfceLine
+} from '#lib/domain/nfce.ts';
 
 export interface NfceRequest {
 	ref: string;
@@ -10,6 +21,45 @@ export interface NfceRequest {
 	defaults: { ncm: string; cfop: string; csosn: string };
 	payments: { method: string; amountCents: number }[];
 	customerCpf?: string | null;
+	/** Tax reform fields; absent or disabled sends exactly the pre-reform body. */
+	ibsCbs?: { enabled: boolean; cst: string; cls: string; rates: IbsCbsRates };
+}
+
+/**
+ * Focus NFe field names for IBS/CBS. The item names come from Focus's field reference
+ * (campos.focusnfe.com.br, read 15 Nov 2026); the totals names only from an example in its
+ * reforma tributária guide.
+ * TODO(verify): confirm the totals names in homologação before turning IBS/CBS on.
+ */
+export const FOCUS_IBS_CBS_FIELDS = {
+	item: {
+		cst: 'ibs_cbs_situacao_tributaria',
+		cls: 'ibs_cbs_classificacao_tributaria',
+		base: 'ibs_cbs_base_calculo',
+		ibsUfRate: 'ibs_uf_aliquota',
+		ibsUfValue: 'ibs_uf_valor',
+		ibsMunRate: 'ibs_mun_aliquota',
+		ibsMunValue: 'ibs_mun_valor',
+		ibsValue: 'ibs_valor_total',
+		cbsRate: 'cbs_aliquota',
+		cbsValue: 'cbs_valor'
+	},
+	totals: {
+		base: 'ibs_cbs_base_calculo',
+		ibsUfValue: 'ibs_uf_valor_total',
+		ibsValue: 'ibs_valor_total',
+		cbsValue: 'cbs_valor_total'
+	}
+} as const;
+
+/** The IBS/CBS values of every line and their totals, or null when switched off. */
+export function ibsCbsFor(
+	r: Pick<NfceRequest, 'lines' | 'ibsCbs'>
+): { lines: IbsCbsLine[]; totals: IbsCbsTotals } | null {
+	if (!r.ibsCbs?.enabled) return null;
+	const { cst, cls, rates } = r.ibsCbs;
+	const lines = r.lines.map((l) => ibsCbsLine(l, rates, cst, cls));
+	return { lines, totals: ibsCbsTotals(lines) };
 }
 
 export interface NfceResult {
@@ -30,6 +80,9 @@ const BASE = {
 export type FiscalEnvironment = keyof typeof BASE;
 
 export function nfceBody(r: NfceRequest) {
+	const tax = ibsCbsFor(r);
+	const rate = (v: string) => formatRate(rateUnits(v));
+	const F = FOCUS_IBS_CBS_FIELDS;
 	return {
 		cnpj_emitente: r.cnpj,
 		data_emissao: r.issuedAt.toISOString(),
@@ -56,9 +109,31 @@ export function nfceBody(r: NfceRequest) {
 				...(l.discountCents ? { valor_desconto: cents(l.discountCents) } : {}),
 				...(l.otherCents ? { valor_outras_despesas: cents(l.otherCents) } : {}),
 				icms_origem: '0',
-				icms_situacao_tributaria: r.defaults.csosn
+				icms_situacao_tributaria: r.defaults.csosn,
+				...(tax && r.ibsCbs
+					? {
+							[F.item.cst]: tax.lines[i].cst,
+							[F.item.cls]: tax.lines[i].cls,
+							[F.item.base]: cents(tax.lines[i].baseCents),
+							[F.item.ibsUfRate]: rate(r.ibsCbs.rates.ibsUf),
+							[F.item.ibsUfValue]: cents(tax.lines[i].ibsUfCents),
+							[F.item.ibsMunRate]: rate(r.ibsCbs.rates.ibsMun),
+							[F.item.ibsMunValue]: cents(tax.lines[i].ibsMunCents),
+							[F.item.ibsValue]: cents(tax.lines[i].ibsCents),
+							[F.item.cbsRate]: rate(r.ibsCbs.rates.cbs),
+							[F.item.cbsValue]: cents(tax.lines[i].cbsCents)
+						}
+					: {})
 			};
 		}),
+		...(tax
+			? {
+					[F.totals.base]: cents(tax.totals.baseCents),
+					[F.totals.ibsUfValue]: cents(tax.totals.ibsUfCents),
+					[F.totals.ibsValue]: cents(tax.totals.ibsCents),
+					[F.totals.cbsValue]: cents(tax.totals.cbsCents)
+				}
+			: {}),
 		formas_pagamento: r.payments.map((p) => ({
 			forma_pagamento: nfcePaymentCode(p.method),
 			valor_pagamento: cents(p.amountCents),

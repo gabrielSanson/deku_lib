@@ -2,7 +2,12 @@ import { error, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
-import { deleteProduct, PREP_STATIONS, saveProduct } from '#lib/server/catalog/editor.ts';
+import {
+	deleteProduct,
+	PREP_STATIONS,
+	saveProduct,
+	saveProductFiscal
+} from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -32,6 +37,9 @@ export const load: PageServerLoad = async (event) => {
 						allergens: string[];
 						position: number;
 						active: boolean;
+						ncm: string | null;
+						ibs_cbs_cst: string | null;
+						ibs_cbs_class: string | null;
 					}[]
 				>`select * from menu_products where sku = ${event.params.sku}`,
 		isNew
@@ -69,7 +77,8 @@ export const load: PageServerLoad = async (event) => {
 					active: p.active,
 					imageUrl: menuImageUrl(p.image_path),
 					groupIds: links.map((l) => l.group_id),
-					ingredients: used.map((u) => ({ id: u.ingredient_id, removable: u.removable }))
+					ingredients: used.map((u) => ({ id: u.ingredient_id, removable: u.removable })),
+					fiscal: { ncm: p.ncm, ibsCbsCst: p.ibs_cbs_cst, ibsCbsClass: p.ibs_cbs_class }
 				}
 			: {
 					sku: '',
@@ -84,7 +93,8 @@ export const load: PageServerLoad = async (event) => {
 					active: true,
 					imageUrl: null,
 					groupIds: [] as string[],
-					ingredients: [] as { id: string; removable: boolean }[]
+					ingredients: [] as { id: string; removable: boolean }[],
+					fiscal: { ncm: null, ibsCbsCst: null, ibsCbsClass: null }
 				}
 	};
 };
@@ -133,6 +143,23 @@ export const actions: Actions = {
 		});
 		if (!('sku' in result)) return result;
 		redirect(303, isNew ? `/staff/menu/products/${result.sku}?salvo=1` : `?salvo=1`);
+	},
+	/** The product's own fiscal codes; empty uses the shop's defaults from Nota fiscal. */
+	fiscal: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const d = await event.request.formData();
+		return attempt(async () => {
+			await saveProductFiscal(
+				event.params.sku,
+				{
+					ncm: formString(d, 'ncm'),
+					ibsCbsCst: formString(d, 'ibsCbsCst'),
+					ibsCbsClass: formString(d, 'ibsCbsClass')
+				},
+				staffActor(staff)
+			);
+			return { fiscalOk: true };
+		});
 	},
 	delete: async (event) => {
 		const staff = requireStaff(event, ADMIN);

@@ -6,8 +6,12 @@ import {
 	getFiscalSettings,
 	issueFiscalForOrder,
 	listFiscalDocuments,
-	saveFiscalSettings
+	listIbsCbsRates,
+	ratesNeedConfirmation,
+	saveFiscalSettings,
+	saveIbsCbsRates
 } from '#lib/server/fiscal/service.ts';
+import { fiscalYear } from '#lib/domain/nfce.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
 import { recordManualTender } from '#lib/server/payments/tenders.ts';
@@ -120,5 +124,96 @@ describe('NFC-e', () => {
 		const [{ n }] = await db()<{ n: number }[]>`
 			select count(*)::int as n from pgboss.job where name = 'fiscal-issue' and data->>'orderId' = ${o.id}`;
 		expect(n).toBe(1);
+	});
+
+	it('sends IBS/CBS when switched on and keeps what was sent for the accountant', async () => {
+		const settings = {
+			enabled: true,
+			environment: 'homologacao' as const,
+			cnpj: '12.345.678/0001-90',
+			defaultNcm: '21069090',
+			defaultCfop: '5102',
+			defaultCsosn: '102'
+		};
+		await saveFiscalSettings({ ...settings, ibsCbsEnabled: true, crt: '1' }, admin);
+		expect(await getFiscalSettings()).toMatchObject({
+			ibsCbsEnabled: true,
+			ibsCbsCst: '000',
+			ibsCbsClass: '000001',
+			crt: '1'
+		});
+		const o = await paidOrder();
+		const seen: NfceRequest[] = [];
+		await issueFiscalForOrder(o.id, (async (_e: string, _t: string, r: NfceRequest) => {
+			seen.push(r);
+			return { status: 'authorized', number: '13', series: '1' };
+		}) as never);
+		expect(seen[0].ibsCbs).toMatchObject({ enabled: true, cst: '000', cls: '000001' });
+		const [doc] = await db()<{ ibs_cbs: { year: number; totals: { baseCents: number } } }[]>`
+			select ibs_cbs from fiscal_documents where order_id = ${o.id}`;
+		expect(doc.ibs_cbs.year).toBe(fiscalYear(new Date()));
+		expect(doc.ibs_cbs.totals.baseCents).toBe(o.totalCents);
+
+		// Older settings forms that do not send the new fields keep them.
+		await saveFiscalSettings(settings, admin);
+		expect((await getFiscalSettings()).ibsCbsEnabled).toBe(true);
+	});
+
+	it('refuses to issue without the rates of the year', async () => {
+		const year = fiscalYear(new Date());
+		const saved = await db()`select * from ibs_cbs_rates where year = ${year}`;
+		await db()`delete from ibs_cbs_rates where year = ${year}`;
+		const o = await paidOrder();
+		let called = false;
+		await expect(
+			issueFiscalForOrder(o.id, (async () => {
+				called = true;
+				return { status: 'authorized' };
+			}) as never)
+		).rejects.toMatchObject({ code: 'no_rates' });
+		expect(called).toBe(false);
+		const [doc] = await listFiscalDocuments(o.id);
+		expect(doc.status).toBe('error');
+		expect(doc.errorMessage).toMatch(String(year));
+		await db()`insert into ibs_cbs_rates ${db()(saved[0] as never)}`;
+		await saveFiscalSettings(
+			{
+				enabled: false,
+				environment: 'homologacao',
+				cnpj: '',
+				defaultNcm: '',
+				defaultCfop: '5102',
+				defaultCsosn: '102',
+				ibsCbsEnabled: false
+			},
+			admin
+		);
+	});
+
+	it('asks to confirm the 2027 rates from December 2026 until they are saved', async () => {
+		const rates = await listIbsCbsRates();
+		expect(rates.map((r) => r.year)).toEqual([2026, 2027]);
+		expect(ratesNeedConfirmation(rates, new Date('2026-11-20T12:00:00Z'))).toBeNull();
+		expect(ratesNeedConfirmation(rates, new Date('2026-12-02T12:00:00Z'))).toBe(2027);
+		await saveIbsCbsRates(
+			rates.map((r) => ({
+				year: r.year,
+				cbsRate: r.cbsRate,
+				ibsUfRate: r.ibsUfRate,
+				ibsMunRate: r.ibsMunRate,
+				note: r.note ?? ''
+			})),
+			admin
+		);
+		const after = await listIbsCbsRates();
+		expect(
+			ratesNeedConfirmation(after, new Date(Math.max(Date.now(), Date.parse('2026-12-02'))))
+		).toBeNull();
+		await expect(
+			saveIbsCbsRates(
+				[{ year: 2027, cbsRate: 'x', ibsUfRate: '0', ibsMunRate: '0', note: '' }],
+				admin
+			)
+		).rejects.toMatchObject({ key: 'err.fiscal.rate' });
 	});
 });

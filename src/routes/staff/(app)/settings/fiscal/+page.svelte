@@ -68,5 +68,120 @@
 			{t('fiscal.ncmHint')}
 		</p>
 	</SettingsSection>
+
+	{#if data.confirmYear}
+		<p class="alert-warn" role="alert">{t('fiscal.tax.confirm', { year: data.confirmYear })}</p>
+	{/if}
+
+	<SettingsSection
+		title={t('fiscal.tax.section')}
+		hint={t('fiscal.tax.hint')}
+		action="?/saveTax"
+		saveLabel={t('settings.save')}
+		saved={form && 'taxOk' in form ? t('fiscal.saved') : undefined}
+	>
+		<SelectField label={t('fiscal.tax.crt')} name="crt" value={s.crt}>
+			<option value="1">{t('fiscal.tax.crt1')}</option>
+			<option value="2">{t('fiscal.tax.crt2')}</option>
+			<option value="3">{t('fiscal.tax.crt3')}</option>
+			<option value="4">{t('fiscal.tax.crt4')}</option>
+		</SelectField>
+		<Checkbox label={t('fiscal.tax.enabled')} name="ibsCbsEnabled" checked={s.ibsCbsEnabled} />
+		<div class="grid gap-3 sm:grid-cols-2">
+			<TextField
+				label={t('fiscal.tax.cst')}
+				name="ibsCbsCst"
+				value={s.ibsCbsCst}
+				inputmode="numeric"
+				maxlength={3}
+			/>
+			<TextField
+				label={t('fiscal.tax.class')}
+				name="ibsCbsClass"
+				value={s.ibsCbsClass}
+				inputmode="numeric"
+				maxlength={6}
+			/>
+		</div>
+		<p class="text-xs text-muted">{t('fiscal.tax.accountant')}</p>
+	</SettingsSection>
+
+	<SettingsSection
+		title={t('fiscal.rates.section')}
+		hint={t('fiscal.rates.hint')}
+		action="?/saveRates"
+		saveLabel={t('fiscal.rates.save')}
+		saved={form && 'ratesOk' in form ? t('fiscal.saved') : undefined}
+	>
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[36rem] text-sm">
+				<thead>
+					<tr class="text-left text-muted">
+						<th class="py-1 pr-2 font-medium">{t('fiscal.rates.year')}</th>
+						<th class="py-1 pr-2 font-medium">{t('fiscal.rates.cbs')}</th>
+						<th class="py-1 pr-2 font-medium">{t('fiscal.rates.ibsUf')}</th>
+						<th class="py-1 pr-2 font-medium">{t('fiscal.rates.ibsMun')}</th>
+						<th class="py-1 font-medium">{t('fiscal.rates.note')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each [...data.rates, null] as r, i (r?.year ?? 'new')}
+						<tr>
+							<td class="py-1 pr-2">
+								<TextField
+									label={t('fiscal.rates.year')}
+									hideLabel
+									id="rate-year-{i}"
+									name="year"
+									inputmode="numeric"
+									value={r?.year ?? ''}
+									readonly={r !== null}
+								/>
+							</td>
+							<td class="py-1 pr-2">
+								<TextField
+									label={t('fiscal.rates.cbs')}
+									hideLabel
+									id="rate-cbs-{i}"
+									name="cbsRate"
+									inputmode="decimal"
+									value={r?.cbsRate ?? ''}
+								/>
+							</td>
+							<td class="py-1 pr-2">
+								<TextField
+									label={t('fiscal.rates.ibsUf')}
+									hideLabel
+									id="rate-uf-{i}"
+									name="ibsUfRate"
+									inputmode="decimal"
+									value={r?.ibsUfRate ?? ''}
+								/>
+							</td>
+							<td class="py-1 pr-2">
+								<TextField
+									label={t('fiscal.rates.ibsMun')}
+									hideLabel
+									id="rate-mun-{i}"
+									name="ibsMunRate"
+									inputmode="decimal"
+									value={r?.ibsMunRate ?? ''}
+								/>
+							</td>
+							<td class="py-1">
+								<TextField
+									label={t('fiscal.rates.note')}
+									hideLabel
+									id="rate-note-{i}"
+									name="note"
+									value={r?.note ?? ''}
+								/>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</SettingsSection>
 	<FormError message={form?.error} />
 </div>

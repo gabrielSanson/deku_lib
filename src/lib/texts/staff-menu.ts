@@ -408,6 +408,37 @@ export const STAFF_MENU_TEXTS = {
 		default:
 			'Use o mesmo código como "código externo" no cardápio do iFood. Não pode ser mudado depois.'
 	},
+	'product.fiscal.title': {
+		group: g,
+		label: 'Produto: fiscal',
+		default: 'Fiscal'
+	},
+	'product.fiscal.hint': {
+		group: g,
+		label: 'Produto: fiscal (explicação)',
+		default:
+			'Deixe em branco para usar os padrões de Configurações → Nota fiscal. Confirme os códigos com seu contador.'
+	},
+	'product.fiscal.ncm': {
+		group: g,
+		label: 'Produto: NCM',
+		default: 'NCM'
+	},
+	'product.fiscal.cst': {
+		group: g,
+		label: 'Produto: CST IBS/CBS',
+		default: 'CST IBS/CBS'
+	},
+	'product.fiscal.class': {
+		group: g,
+		label: 'Produto: cClassTrib',
+		default: 'cClassTrib'
+	},
+	'product.fiscal.save': {
+		group: g,
+		label: 'Produto: salvar fiscal',
+		default: 'Salvar dados fiscais'
+	},
 	'product.skuShow': {
 		group: g,
 		label: 'Produto: código',

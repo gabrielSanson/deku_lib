@@ -9,6 +9,9 @@ export interface NfceSourceLine {
 	/** Charged value of the line before the order discount (unit + options, times quantity). */
 	lineTotalCents: number;
 	ncm: string | null;
+	/** The product's own IBS/CBS codes; null uses the shop's defaults. */
+	ibsCbsCst?: string | null;
+	ibsCbsClass?: string | null;
 }
 
 export interface NfceLine {
@@ -19,6 +22,8 @@ export interface NfceLine {
 	discountCents: number;
 	otherCents: number;
 	ncm: string | null;
+	ibsCbsCst?: string | null;
+	ibsCbsClass?: string | null;
 }
 
 /** Spreads `amount` over `weights` in proportion, giving rounding leftovers to the largest. */
@@ -53,7 +58,9 @@ export function nfceLines(
 		grossCents: l.lineTotalCents,
 		discountCents: discounts[i],
 		otherCents: others[i],
-		ncm: l.ncm
+		ncm: l.ncm,
+		...(l.ibsCbsCst ? { ibsCbsCst: l.ibsCbsCst } : {}),
+		...(l.ibsCbsClass ? { ibsCbsClass: l.ibsCbsClass } : {})
 	}));
 }
 
@@ -77,3 +84,103 @@ export function nfcePaymentCode(method: string): string {
 }
 
 export const cents = (n: number) => (n / 100).toFixed(2);
+
+// ---------------------------------------------------------------------------
+// Tax reform: IBS and CBS (NT 2025.002). Rates are percentages with up to four decimals,
+// kept as strings ("0.9000") and turned into integers of 1/10000 percent, so no float ever
+// touches money.
+// ---------------------------------------------------------------------------
+
+export interface IbsCbsRates {
+	/** Percent strings with up to 4 decimals, e.g. "0.9000". */
+	cbs: string;
+	ibsUf: string;
+	ibsMun: string;
+}
+
+export interface IbsCbsLine {
+	cst: string;
+	cls: string;
+	baseCents: number;
+	ibsUfCents: number;
+	ibsMunCents: number;
+	ibsCents: number;
+	cbsCents: number;
+}
+
+export interface IbsCbsTotals {
+	baseCents: number;
+	ibsUfCents: number;
+	ibsMunCents: number;
+	ibsCents: number;
+	cbsCents: number;
+}
+
+/** "0.9" / "0.9000" / "12" → units of 1/10000 percent (9000, 9000, 120000). */
+export function rateUnits(rate: string): number {
+	const m = String(rate)
+		.trim()
+		.match(/^(\d{1,3})(?:[.,](\d{0,4}))?$/);
+	if (!m) throw new Error(`invalid IBS/CBS rate: ${rate}`);
+	return Number(m[1]) * 10_000 + Number((m[2] ?? '').padEnd(4, '0'));
+}
+
+/** Units of 1/10000 percent back to the 4-decimal string Focus expects ("0.9000"). */
+export function formatRate(units: number): string {
+	return `${Math.floor(units / 10_000)}.${String(units % 10_000).padStart(4, '0')}`;
+}
+
+/** base × rate, rounded half to even, in integer arithmetic. */
+export function taxCents(baseCents: number, units: number): number {
+	const n = baseCents * units;
+	const d = 1_000_000; // 100 (percent) × 10000 (rate units)
+	const q = Math.floor(n / d);
+	const r = n - q * d;
+	if (r * 2 > d) return q + 1;
+	if (r * 2 < d) return q;
+	return q % 2 === 0 ? q : q + 1;
+}
+
+/**
+ * The IBS/CBS values of one NFC-e line.
+ * TODO(verify): base = gross − discount + other expenses (delivery fee). Confirm the base
+ * composition with the SVRS validator (https://dfe-portal.svrs.rs.gov.br/Cff/ValidadorRtcNfe);
+ * it lives only here so a correction is one line.
+ */
+export function ibsCbsLine(
+	line: Pick<NfceLine, 'grossCents' | 'discountCents' | 'otherCents' | 'ibsCbsCst' | 'ibsCbsClass'>,
+	rates: IbsCbsRates,
+	cst: string,
+	cls: string
+): IbsCbsLine {
+	const baseCents = line.grossCents - line.discountCents + line.otherCents;
+	const ibsUfCents = taxCents(baseCents, rateUnits(rates.ibsUf));
+	const ibsMunCents = taxCents(baseCents, rateUnits(rates.ibsMun));
+	return {
+		cst: line.ibsCbsCst || cst,
+		cls: line.ibsCbsClass || cls,
+		baseCents,
+		ibsUfCents,
+		ibsMunCents,
+		ibsCents: ibsUfCents + ibsMunCents,
+		cbsCents: taxCents(baseCents, rateUnits(rates.cbs))
+	};
+}
+
+export function ibsCbsTotals(lines: IbsCbsLine[]): IbsCbsTotals {
+	const sum = (k: keyof IbsCbsTotals) => lines.reduce((n, l) => n + l[k], 0);
+	return {
+		baseCents: sum('baseCents'),
+		ibsUfCents: sum('ibsUfCents'),
+		ibsMunCents: sum('ibsMunCents'),
+		ibsCents: sum('ibsCents'),
+		cbsCents: sum('cbsCents')
+	};
+}
+
+/** The calendar year of an issue date in São Paulo, which picks the rate row. */
+export function fiscalYear(at: Date): number {
+	return Number(
+		new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric' }).format(at)
+	);
+}

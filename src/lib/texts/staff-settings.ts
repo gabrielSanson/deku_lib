@@ -347,6 +347,110 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Nota fiscal: colar token',
 		default: 'Cole o token aqui'
 	},
+	'fiscal.tax.section': {
+		group: g,
+		label: 'Nota: reforma tributária',
+		default: 'Reforma tributária (IBS e CBS)'
+	},
+	'fiscal.tax.hint': {
+		group: g,
+		label: 'Nota: reforma (explicação)',
+		default:
+			'A partir de 2027 as notas do Simples Nacional também levam IBS e CBS em cada item. Em 2026 é opcional para o Simples.'
+	},
+	'fiscal.tax.crt': {
+		group: g,
+		label: 'Nota: regime tributário',
+		default: 'Regime tributário (CRT)'
+	},
+	'fiscal.tax.crt1': {
+		group: g,
+		label: 'Nota: Simples Nacional',
+		default: '1 · Simples Nacional'
+	},
+	'fiscal.tax.crt2': {
+		group: g,
+		label: 'Nota: Simples excesso',
+		default: '2 · Simples Nacional, excesso de sublimite'
+	},
+	'fiscal.tax.crt3': {
+		group: g,
+		label: 'Nota: regime normal',
+		default: '3 · Regime normal'
+	},
+	'fiscal.tax.crt4': {
+		group: g,
+		label: 'Nota: MEI',
+		default: '4 · MEI'
+	},
+	'fiscal.tax.enabled': {
+		group: g,
+		label: 'Nota: enviar IBS e CBS',
+		default: 'Enviar IBS e CBS nas notas'
+	},
+	'fiscal.tax.cst': {
+		group: g,
+		label: 'Nota: CST padrão IBS/CBS',
+		default: 'CST do IBS/CBS (padrão)'
+	},
+	'fiscal.tax.class': {
+		group: g,
+		label: 'Nota: cClassTrib padrão',
+		default: 'cClassTrib (padrão)'
+	},
+	'fiscal.tax.accountant': {
+		group: g,
+		label: 'Nota: confirme com o contador',
+		default:
+			'Confirme o regime, o CST e o cClassTrib com seu contador. Produtos podem ter códigos próprios no editor do cardápio.'
+	},
+	'fiscal.tax.confirm': {
+		group: g,
+		label: 'Nota: confirmar alíquotas do ano',
+		default:
+			'Confirme com seu contador as alíquotas de IBS e CBS de {year} e salve a tabela abaixo.'
+	},
+	'fiscal.rates.section': {
+		group: g,
+		label: 'Nota: alíquotas por ano',
+		default: 'Alíquotas por ano'
+	},
+	'fiscal.rates.hint': {
+		group: g,
+		label: 'Nota: alíquotas (explicação)',
+		default:
+			'Em porcentagem, com até 4 casas (0,9 = 0,9%). Para incluir um ano, preencha a última linha.'
+	},
+	'fiscal.rates.year': {
+		group: g,
+		label: 'Nota: ano',
+		default: 'Ano'
+	},
+	'fiscal.rates.cbs': {
+		group: g,
+		label: 'Nota: CBS',
+		default: 'CBS (%)'
+	},
+	'fiscal.rates.ibsUf': {
+		group: g,
+		label: 'Nota: IBS estadual',
+		default: 'IBS estadual (%)'
+	},
+	'fiscal.rates.ibsMun': {
+		group: g,
+		label: 'Nota: IBS municipal',
+		default: 'IBS municipal (%)'
+	},
+	'fiscal.rates.note': {
+		group: g,
+		label: 'Nota: observação',
+		default: 'Observação'
+	},
+	'fiscal.rates.save': {
+		group: g,
+		label: 'Nota: salvar alíquotas',
+		default: 'Salvar alíquotas confirmadas'
+	},
 	'fiscal.ncm': { group: g, label: 'Nota fiscal: NCM', default: 'NCM padrão' },
 	'fiscal.ncmPlaceholder': { group: g, label: 'Nota fiscal: exemplo de NCM', default: '8 números' },
 	'fiscal.cfop': { group: g, label: 'Nota fiscal: CFOP', default: 'CFOP' },

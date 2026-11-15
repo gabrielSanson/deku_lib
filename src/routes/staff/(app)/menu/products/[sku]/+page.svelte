@@ -12,6 +12,7 @@
 	import { formatBRL, parseBRL } from '#lib/domain/money.ts';
 	import { cropTo43 } from '#lib/client/image-crop.ts';
 	import GuardedForm from '#lib/components/organisms/GuardedForm.svelte';
+	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, form } = $props();
@@ -239,6 +240,36 @@
 	</GuardedForm>
 
 	{#if !data.isNew}
+		<SettingsSection
+			title={t('product.fiscal.title')}
+			hint={t('product.fiscal.hint')}
+			action="?/fiscal"
+			saveLabel={t('product.fiscal.save')}
+			saved={form && 'fiscalOk' in form ? t('settings.saved') : undefined}
+		>
+			<div class="grid gap-3 sm:grid-cols-3">
+				<TextField
+					label={t('product.fiscal.ncm')}
+					name="ncm"
+					inputmode="numeric"
+					value={p.fiscal.ncm ?? ''}
+				/>
+				<TextField
+					label={t('product.fiscal.cst')}
+					name="ibsCbsCst"
+					inputmode="numeric"
+					maxlength={3}
+					value={p.fiscal.ibsCbsCst ?? ''}
+				/>
+				<TextField
+					label={t('product.fiscal.class')}
+					name="ibsCbsClass"
+					inputmode="numeric"
+					maxlength={6}
+					value={p.fiscal.ibsCbsClass ?? ''}
+				/>
+			</div>
+		</SettingsSection>
 		<section class="card p-4">
 			{#if confirmDelete}
 				<form method="POST" action="?/delete" use:enhance class="space-y-2">
