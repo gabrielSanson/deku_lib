@@ -13,7 +13,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - H1: done (replay window kept at the code's 15 minutes (spec said 'keep the 5-minute window'; the code had 15); ts unit TODO(verify) with one sandbox payment)
 - H2: done (new modifier kind column, backfilled from the old 'Sem ' rule; stored label kept as the order snapshot)
 - H3: done (skipped for iFood, which keys on its own order id; older orders without a hash still match)
-- H4: todo
+- H4: done (shared OrderKey helper in src/lib/client/order-key.ts, used by the cart, checkout and POS)
 - S1.1: todo
 - S1.2: todo
 - S1.3: todo

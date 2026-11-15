@@ -14,6 +14,7 @@
 	import POSTicketLines from './POSTicketLines.svelte';
 	import ProductSheet from './ProductSheet.svelte';
 	import { lineUnitCents, toPayload, type CartLine } from './cart.svelte.ts';
+	import { OrderKey } from '#lib/client/order-key.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
@@ -44,8 +45,9 @@
 	let ticketOpen = $state(false);
 	let searchEl = $state<HTMLInputElement>();
 	let payEl = $state<HTMLButtonElement>();
-	// One key per cart: a double tap or a retry after a timeout cannot create two orders.
-	let idempotencyKey = $state(crypto.randomUUID());
+	// One key per request: a double tap or a retry after a timeout cannot create two orders,
+	// and any change to the order gets a new key (see OrderKey).
+	const orderKey = new OrderKey();
 
 	const products = $derived(
 		data.catalog.products.filter(
@@ -139,20 +141,21 @@
 		if (line.quantity <= 0) lines = lines.filter((l) => l.key !== line.key);
 	}
 
-	const payload = $derived(
-		JSON.stringify({
-			lines: toPayload(lines),
-			fulfillmentType,
-			ifoodCode: fulfillmentType === 'ifood' ? ifoodCode : undefined,
-			customerLabel: customerLabel || undefined,
-			tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
-			phone: fulfillmentType === 'ifood' ? undefined : phone.trim() || undefined,
-			notes: notes || undefined,
-			discountCents: manualDiscount,
-			couponCode: couponCode || undefined,
-			idempotencyKey
-		})
-	);
+	const request = $derived({
+		lines: toPayload(lines),
+		fulfillmentType,
+		ifoodCode: fulfillmentType === 'ifood' ? ifoodCode : undefined,
+		customerLabel: customerLabel || undefined,
+		tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
+		phone: fulfillmentType === 'ifood' ? undefined : phone.trim() || undefined,
+		notes: notes || undefined,
+		discountCents: manualDiscount,
+		couponCode: couponCode || undefined
+	});
+	const payload = $derived.by(() => {
+		const body = JSON.stringify(request);
+		return JSON.stringify({ ...request, idempotencyKey: orderKey.for(body) });
+	});
 </script>
 
 <svelte:head><title>{t('pos.tabTitle')}</title></svelte:head>
@@ -360,7 +363,7 @@
 					disabled={!lines.length || busy}
 					onclick={() => {
 						lines = [];
-						idempotencyKey = crypto.randomUUID();
+						orderKey.reset();
 					}}
 				>
 					<Icon name="trash" class="size-5" />{t('pos.clear')}

@@ -1,6 +1,7 @@
 // Customer cart, kept in localStorage so it survives reloads and accidental
 // navigation. Prices are only a preview: the server re-prices at checkout.
 import type { Product } from '#lib/domain/catalog.ts';
+import { OrderKey } from './order-key';
 
 export interface StoredOption {
 	groupId: string;
@@ -36,6 +37,8 @@ class Cart {
 	ready = $state(false);
 	/** Whether the slide-in cart panel is showing (small screens, other pages). */
 	panelOpen = $state(false);
+	/** The order's idempotency key: kept across retries, new whenever the request changes. */
+	readonly orderKey = new OrderKey();
 
 	init() {
 		if (this.ready) return;
@@ -92,6 +95,7 @@ class Cart {
 
 	clear() {
 		this.lines = [];
+		this.orderKey.reset();
 		this.save();
 	}
 

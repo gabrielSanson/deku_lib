@@ -63,7 +63,6 @@
 		instructions: ''
 	});
 	let payment = $state<CheckoutPaymentMethod>('pix_key');
-	let idempotencyKey = $state(crypto.randomUUID());
 	let quote = $state<Quote | null>(null);
 	let quoteError = $state<string | null>(null);
 	let quoting = $state(false);
@@ -91,28 +90,31 @@
 		else if (data.onlineMethods.length) payment = data.onlineMethods[0];
 	});
 
-	const payload = $derived(
-		JSON.stringify({
-			lines: cart.payload(),
-			fulfillmentType,
-			tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
-			address:
-				fulfillmentType === 'delivery'
-					? {
-							...addr,
-							complement: addr.complement || undefined,
-							instructions: addr.instructions || undefined
-						}
-					: undefined,
-			name,
-			phone,
-			email,
-			marketingConsent,
-			payment,
-			couponCode: couponCode || undefined,
-			idempotencyKey
-		})
-	);
+	// Everything the order asks for. The key is kept across retries of this exact request and
+	// renewed whenever it changes (see OrderKey).
+	const request = $derived({
+		lines: cart.payload(),
+		fulfillmentType,
+		tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
+		address:
+			fulfillmentType === 'delivery'
+				? {
+						...addr,
+						complement: addr.complement || undefined,
+						instructions: addr.instructions || undefined
+					}
+				: undefined,
+		name,
+		phone,
+		email,
+		marketingConsent,
+		payment,
+		couponCode: couponCode || undefined
+	});
+	const payload = $derived.by(() => {
+		const body = JSON.stringify(request);
+		return JSON.stringify({ ...request, idempotencyKey: cart.orderKey.for(body) });
+	});
 
 	// Re-quote on the server whenever the cart, fulfillment or address changes.
 	let timer: ReturnType<typeof setTimeout> | undefined;
