@@ -9,7 +9,7 @@ One line per item of `docs/implementation-spec.md`. A later run continues from t
 - L5: done (scripts run against a real Postgres 16 here; tests/selfhost/backup-check.mjs is for a live stack (there is no self-host CI job); the backup image is a 3-line Dockerfile on postgres:16-alpine so rclone is also there for 'rclone config')
 - L6: done (new dependency nodemailer 10.2.1 (MIT-0, allowed by 13.4); fiscal_errors (3+ failed notes in an hour) is evaluated here too; the 'disk' kind is in the table but not checked yet (the watchdog container cannot see the host disk))
 - F1: done (switch ibs_cbs_enabled stays off; Focus totals field names are TODO(verify); base = gross - discount + delivery is TODO(verify); the 2027 row counts as confirmed once the owner saves the rates table (any save after the seed), instead of 'note changed after 1 Dec'; CRT is stored for the readiness check, not sent to Focus)
-- F2: todo
+- F2: done (fiscal_errors alert lives in the L6 watchdog; docs/nota-fiscal.md has the IBS/CBS steps and the SVRS validator link)
 - H1: todo
 - H2: todo
 - H3: todo

@@ -5,11 +5,29 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
+	import StatusPill from '#lib/components/atoms/StatusPill.svelte';
+	import { enhance } from '$app/forms';
+	import { formatDateTime } from '#lib/domain/time.ts';
+	import type { TextKey } from '#lib/texts/catalog.ts';
 
 	let { data, form } = $props();
 	const s = $derived(data.settings);
 	let enabled = $derived(data.settings.enabled);
 	const t = useTexts();
+	const READY_LABEL: Record<string, TextKey> = {
+		cnpj: 'fiscal.ready.cnpj',
+		token: 'fiscal.ready.token',
+		environment: 'fiscal.ready.environment',
+		ncm: 'fiscal.ready.ncm',
+		crt: 'fiscal.ready.crt',
+		ibsCbs: 'fiscal.ready.ibsCbs',
+		homologation: 'fiscal.ready.homologation'
+	};
+	const STATE: Record<string, { tone: 'ok' | 'warn' | 'bad'; label: TextKey }> = {
+		ok: { tone: 'ok', label: 'fiscal.ready.ok' },
+		warn: { tone: 'warn', label: 'fiscal.ready.warn' },
+		missing: { tone: 'bad', label: 'fiscal.ready.missing' }
+	};
 </script>
 
 <svelte:head><title>{t('fiscal.tabTitle')}</title></svelte:head>
@@ -23,6 +41,54 @@
 		<p class="alert-error">
 			{t('fiscal.noSecret')}
 		</p>
+	{/if}
+
+	<section class="space-y-3 card p-4" aria-labelledby="ready-title">
+		<h2 id="ready-title" class="font-semibold">{t('fiscal.ready.title')}</h2>
+		<ul class="divide-y divide-line">
+			{#each data.readiness as item (item.key)}
+				<li class="flex items-center justify-between gap-2 py-2 text-sm">
+					<span>{t(READY_LABEL[item.key])}</span>
+					<StatusPill tone={STATE[item.state].tone} label={t(STATE[item.state].label)} />
+				</li>
+			{/each}
+		</ul>
+		{#if s.environment === 'homologacao'}
+			<form method="POST" action="?/test" use:enhance class="flex flex-wrap items-center gap-3">
+				<button class="btn-secondary">{t('fiscal.ready.test')}</button>
+				<span class="text-xs text-muted">{t('fiscal.ready.testHint')}</span>
+			</form>
+		{/if}
+		{#if form && 'test' in form && form.test}
+			<p class={form.test.status === 'authorized' ? 'alert-ok' : 'alert-error'} role="status">
+				{form.test.status === 'authorized'
+					? t('fiscal.ready.testOk')
+					: t('fiscal.ready.testFailed', { message: form.test.message ?? '' })}
+			</p>
+		{/if}
+	</section>
+
+	{#if data.failed.length}
+		<section class="space-y-3 card p-4" aria-labelledby="failed-title">
+			<h2 id="failed-title" class="font-semibold">{t('fiscal.failed.title')}</h2>
+			<ul class="divide-y divide-line">
+				{#each data.failed as note (note.orderId)}
+					<li class="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+						<div>
+							<a class="font-medium underline" href="/staff/orders/{note.orderId}"
+								>{t('fiscal.failed.order', { number: note.orderNumber })}</a
+							>
+							<span class="text-muted">· {formatDateTime(note.at)}</span>
+							{#if note.message}<p class="text-bad">{note.message}</p>{/if}
+						</div>
+						<form method="POST" action="?/retry" use:enhance>
+							<input type="hidden" name="orderId" value={note.orderId} />
+							<button class="btn-ghost min-h-9">{t('fiscal.failed.retry')}</button>
+						</form>
+					</li>
+				{/each}
+			</ul>
+		</section>
 	{/if}
 
 	<SettingsSection

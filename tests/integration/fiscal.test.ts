@@ -5,6 +5,9 @@ import type { NfceRequest, NfceResult } from '#lib/server/fiscal/focusnfe.ts';
 import {
 	getFiscalSettings,
 	issueFiscalForOrder,
+	failedNotes,
+	fiscalReadiness,
+	issueTestNote,
 	listFiscalDocuments,
 	listIbsCbsRates,
 	ratesNeedConfirmation,
@@ -215,5 +218,63 @@ describe('NFC-e', () => {
 				admin
 			)
 		).rejects.toMatchObject({ key: 'err.fiscal.rate' });
+	});
+
+	it('lists what is missing, issues a R$ 1 test note in homologação and lists failed notes', async () => {
+		await saveFiscalSettings(
+			{
+				enabled: false,
+				environment: 'homologacao',
+				cnpj: '12.345.678/0001-90',
+				token: 'test-token',
+				defaultNcm: '21069090',
+				defaultCfop: '5102',
+				defaultCsosn: '102',
+				ibsCbsEnabled: false,
+				crt: '1'
+			},
+			admin
+		);
+		const before = await fiscalReadiness(db(), new Date('2026-11-20T12:00:00Z'));
+		expect(Object.fromEntries(before.map((i) => [i.key, i.state]))).toMatchObject({
+			cnpj: 'ok',
+			token: 'ok',
+			environment: 'warn',
+			ibsCbs: 'warn'
+		});
+		const late = await fiscalReadiness(db(), new Date('2027-02-01T12:00:00Z'));
+		expect(late.find((i) => i.key === 'ibsCbs')?.state).toBe('missing');
+
+		const seen: NfceRequest[] = [];
+		const doc = await issueTestNote(admin, (async (_e: string, _t: string, r: NfceRequest) => {
+			seen.push(r);
+			return { status: 'authorized', number: '1', series: '9' };
+		}) as never);
+		expect(doc?.status).toBe('authorized');
+		expect(seen[0].payments).toEqual([{ method: 'external_pix', amountCents: 100 }]);
+		const [o] = await db()<{ is_test: boolean; total_cents: number }[]>`
+			select o.is_test, o.total_cents from orders o join fiscal_documents d on d.order_id = o.id
+			where d.id = ${doc!.id}`;
+		expect(o).toEqual({ is_test: true, total_cents: 100 });
+		const after = await fiscalReadiness();
+		expect(after.find((i) => i.key === 'homologation')?.state).toBe('ok');
+
+		const bad = await issueTestNote(admin, (async () => ({
+			status: 'rejected',
+			message: 'Rejeição 999'
+		})) as never);
+		expect(bad?.status).toBe('rejected');
+		const failed = await failedNotes();
+		expect(failed.find((f) => f.message === 'Rejeição 999')).toBeTruthy();
+	});
+
+	it('only issues test notes in homologação', async () => {
+		await db()`update fiscal_settings set environment = 'producao'`;
+		await expect(
+			issueTestNote(admin, (async () => ({ status: 'authorized' })) as never)
+		).rejects.toMatchObject({
+			code: 'not_homolog'
+		});
+		await db()`update fiscal_settings set environment = 'homologacao'`;
 	});
 });

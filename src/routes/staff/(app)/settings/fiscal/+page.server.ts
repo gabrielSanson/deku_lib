@@ -1,8 +1,12 @@
 // NFC-e settings: off until the shop's fiscal data and the provider token are in.
-import { attempt, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
+	failedNotes,
+	fiscalReadiness,
 	getFiscalSettings,
+	issueTestNote,
+	retryFiscal,
 	listIbsCbsRates,
 	ratesNeedConfirmation,
 	saveFiscalSettings,
@@ -19,7 +23,9 @@ export const load: PageServerLoad = async (event) => {
 		settings: await getFiscalSettings(),
 		canStoreSecrets: canStoreSecrets(),
 		rates: rates.map((r) => ({ ...r, updatedAt: r.updatedAt.toISOString() })),
-		confirmYear: ratesNeedConfirmation(rates)
+		confirmYear: ratesNeedConfirmation(rates),
+		readiness: await fiscalReadiness(),
+		failed: await failedNotes()
 	};
 };
 
@@ -41,6 +47,23 @@ export const actions: Actions = {
 				staffActor(staff)
 			);
 			return { ok: true };
+		});
+	},
+	/** "Emitir nota de teste": R$ 1,00 in homologação. */
+	test: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		return attempt(async () => {
+			const doc = await issueTestNote(staffActor(staff));
+			return { test: { status: doc?.status ?? 'error', message: doc?.errorMessage ?? null } };
+		});
+	},
+	retry: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const orderId = formString(await event.request.formData(), 'orderId');
+		if (!/^[0-9a-f-]{36}$/.test(orderId)) return failText(400, 'err.order.notFound');
+		return attempt(async () => {
+			await retryFiscal(orderId, staffActor(staff));
+			return { retried: orderId };
 		});
 	},
 	/** Reforma tributária: regime, the IBS/CBS switch and default codes. */

@@ -451,6 +451,96 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Nota: salvar alíquotas',
 		default: 'Salvar alíquotas confirmadas'
 	},
+	'fiscal.ready.title': {
+		group: g,
+		label: 'Nota: o que falta',
+		default: 'Antes de ligar a nota fiscal'
+	},
+	'fiscal.ready.cnpj': {
+		group: g,
+		label: 'Nota: pronto CNPJ',
+		default: 'CNPJ da loja'
+	},
+	'fiscal.ready.token': {
+		group: g,
+		label: 'Nota: pronto token',
+		default: 'Token da Focus NFe'
+	},
+	'fiscal.ready.environment': {
+		group: g,
+		label: 'Nota: pronto ambiente',
+		default: 'Ambiente de produção (comece em homologação)'
+	},
+	'fiscal.ready.ncm': {
+		group: g,
+		label: 'Nota: pronto NCM',
+		default: 'NCM padrão'
+	},
+	'fiscal.ready.crt': {
+		group: g,
+		label: 'Nota: pronto regime',
+		default: 'Regime tributário'
+	},
+	'fiscal.ready.ibsCbs': {
+		group: g,
+		label: 'Nota: pronto IBS/CBS',
+		default: 'IBS e CBS nas notas (obrigatório no Simples a partir de 2027)'
+	},
+	'fiscal.ready.homologation': {
+		group: g,
+		label: 'Nota: pronto teste',
+		default: 'Uma nota de teste autorizada em homologação'
+	},
+	'fiscal.ready.ok': {
+		group: g,
+		label: 'Nota: pronto ok',
+		default: 'Pronto'
+	},
+	'fiscal.ready.warn': {
+		group: g,
+		label: 'Nota: pronto atenção',
+		default: 'Atenção'
+	},
+	'fiscal.ready.missing': {
+		group: g,
+		label: 'Nota: pronto falta',
+		default: 'Falta'
+	},
+	'fiscal.ready.test': {
+		group: g,
+		label: 'Nota: emitir teste',
+		default: 'Emitir nota de teste'
+	},
+	'fiscal.ready.testHint': {
+		group: g,
+		label: 'Nota: teste (explicação)',
+		default: 'Uma nota de R$ 1,00 em homologação, sem valor fiscal e fora dos relatórios.'
+	},
+	'fiscal.ready.testOk': {
+		group: g,
+		label: 'Nota: teste autorizado',
+		default: 'Nota de teste autorizada.'
+	},
+	'fiscal.ready.testFailed': {
+		group: g,
+		label: 'Nota: teste recusado',
+		default: 'A nota de teste não foi autorizada: {message}'
+	},
+	'fiscal.failed.title': {
+		group: g,
+		label: 'Nota: notas com erro',
+		default: 'Notas com erro'
+	},
+	'fiscal.failed.order': {
+		group: g,
+		label: 'Nota: pedido com erro',
+		default: 'Pedido #{number}'
+	},
+	'fiscal.failed.retry': {
+		group: g,
+		label: 'Nota: tentar de novo',
+		default: 'Tentar de novo'
+	},
 	'fiscal.ncm': { group: g, label: 'Nota fiscal: NCM', default: 'NCM padrão' },
 	'fiscal.ncmPlaceholder': { group: g, label: 'Nota fiscal: exemplo de NCM', default: '8 números' },
 	'fiscal.cfop': { group: g, label: 'Nota fiscal: CFOP', default: 'CFOP' },

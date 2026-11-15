@@ -583,6 +583,11 @@ export const SERVER_ERROR_TEXTS = {
 		default:
 			'Faltam as alíquotas de IBS e CBS de {year}. Cadastre em Configurações → Nota fiscal e tente de novo.'
 	},
+	'err.fiscal.testHomologOnly': {
+		group: 'staffErrors',
+		label: 'Nota: teste só em homologação',
+		default: 'A nota de teste só pode ser emitida no ambiente de homologação.'
+	},
 	'err.fiscal.ncm': { group: 'staffErrors', label: 'Nota: NCM', default: 'O NCM tem 8 números.' },
 	'err.fiscal.cfop': {
 		group: 'staffErrors',

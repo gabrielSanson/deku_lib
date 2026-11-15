@@ -65,17 +65,44 @@ qual. Ainda não há tela para isso: mande a lista e o código é gravado no pro
 1. Entre como administrador e abra **Configurações → Nota fiscal**.
 2. Preencha CNPJ, token do Focus NFe, NCM, CFOP e CSOSN.
 3. Escolha o ambiente **Homologação (teste)** e marque **Emitir NFC-e**. Salve.
-4. Faça um pedido de teste e pague. Abra o pedido: a caixa "Nota fiscal" deve mostrar
+4. Toque em **Emitir nota de teste** (uma nota de R$ 1,00 que não aparece nos relatórios), ou faça
+   um pedido de teste e pague. A lista **Antes de ligar a nota fiscal** fica toda verde quando
+   está tudo pronto. Num pedido pago, abra o pedido: a caixa "Nota fiscal" deve mostrar
    **Autorizada** e o botão **Abrir DANFE**. Nota de homologação não vale nada, pode testar à
    vontade.
 5. Quando o contador aprovar, volte em Configurações, troque para **Produção** e salve. A partir daí
    cada pedido pago gera uma nota de verdade.
+
+## Passo 7. Reforma tributária (IBS e CBS)
+
+A partir de **1º de janeiro de 2027** as notas de empresas do Simples Nacional também precisam
+mostrar o IBS e a CBS em cada item. Em 2026 isso é opcional para o Simples (obrigatório para quem
+está fora dele desde agosto de 2026). O sistema já sabe calcular e enviar, mas fica **desligado**
+até o contador confirmar os dados:
+
+1. Em Configurações → Nota fiscal, seção **Reforma tributária (IBS e CBS)**, escolha o **regime
+   tributário (CRT)** e preencha o **CST** e o **cClassTrib** padrão que o contador indicar.
+   Produtos com códigos diferentes recebem os seus no editor do cardápio, seção **Fiscal**.
+2. Confira a tabela **Alíquotas por ano**. Ela vem com as taxas de teste publicadas (2026: CBS
+   0,9%, IBS estadual 0,1%, IBS municipal 0%; 2027: IBS 0,05% estadual + 0,05% municipal). **A
+   CBS de 2027 ainda não tinha sido fixada em novembro de 2026**: confirme com o contador e toque
+   em **Salvar alíquotas confirmadas**. A partir de 1º de dezembro de 2026 a página avisa até que
+   isso seja feito.
+3. Ligue **Enviar IBS e CBS nas notas**, emita uma **nota de teste** em homologação e peça ao
+   contador para validar o XML no validador da SVRS:
+   https://dfe-portal.svrs.rs.gov.br/Cff/ValidadorRtcNfe
+4. Se faltar a linha do ano na tabela, o sistema **não emite** a nota: ela aparece em **Notas com
+   erro** com o motivo, e é só cadastrar as alíquotas e tocar em **Tentar de novo**.
+
+O que cada nota levou de IBS e CBS fica guardado junto com ela, para o contador.
 
 ## No dia a dia
 
 - A nota é pedida sozinha quando o pedido fica pago. Pedidos do iFood ficam de fora (o iFood
   cuida deles).
 - Se o provedor ou a internet cair, o sistema tenta de novo sozinho.
+- A página Configurações → Nota fiscal lista o que falta antes de ligar e as **Notas com erro**
+  dos últimos 30 dias. Se três ou mais notas falharem em uma hora, o dono recebe um alerta.
 - Se a SEFAZ **rejeitar** a nota, o pedido mostra o motivo. Corrija o que ela pediu (quase sempre
   um código errado) e toque em **Emitir nota de novo**.
 - Para **cancelar** uma nota (pedido estornado), abra o pedido e use **Cancelar nota**. A SEFAZ só

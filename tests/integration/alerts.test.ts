@@ -28,6 +28,9 @@ beforeEach(async () => {
 	await db()`delete from alerts`;
 	await db()`delete from system_heartbeats`;
 	await db()`delete from backup_runs`;
+	// Notes other test files rejected must not raise the fiscal alert here.
+	await db()`update fiscal_documents set updated_at = now() - interval '2 hours'
+		where status in ('rejected', 'error')`;
 	await db()`update store_runtime_settings set accepting_orders = true, hours_enabled = false`;
 	await saveAlertSettings({
 		emailTo: [],
@@ -131,5 +134,27 @@ describe('no-orders alert', () => {
 		expect((await evaluateAlerts(busy, notifier)).resolved).toContain('no_orders');
 		await db()`delete from orders where created_at > now() + interval '30 days'`;
 		await db()`update store_runtime_settings set accepting_orders = true`;
+	});
+});
+
+describe('fiscal alert', () => {
+	it('opens when three notes fail within an hour', async () => {
+		const { notifier } = fakeNotifier();
+		await handleHeartbeat();
+		const [o] = await db()<{ id: string }[]>`
+			insert into orders (channel, source_mode, status, payment_status, fulfillment_type,
+				subtotal_cents, total_cents, catalog_version, idempotency_key, payment_plan, is_test)
+			values ('counter', 'staff_pos', 'completed', 'paid', 'counter', 100, 100, 0, ${randomUUID()},
+				'counter', true)
+			returning id`;
+		for (let i = 0; i < 2; i++)
+			await db()`insert into fiscal_documents (order_id, ref, environment, status)
+				values (${o.id}, ${randomUUID()}, 'homologacao', 'rejected')`;
+		expect((await evaluateAlerts(new Date(), notifier)).opened).not.toContain('fiscal_errors');
+		await db()`insert into fiscal_documents (order_id, ref, environment, status)
+			values (${o.id}, ${randomUUID()}, 'homologacao', 'rejected')`;
+		expect((await evaluateAlerts(new Date(), notifier)).opened).toContain('fiscal_errors');
+		await db()`update fiscal_documents set updated_at = now() - interval '2 hours' where order_id = ${o.id}`;
+		expect((await evaluateAlerts(new Date(), notifier)).resolved).toContain('fiscal_errors');
 	});
 });

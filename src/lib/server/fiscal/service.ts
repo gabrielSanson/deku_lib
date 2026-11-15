@@ -267,9 +267,15 @@ type Issuer = typeof issueNfce;
  * (a retry after a network error keeps the same reference, so the provider never
  * issues twice); after a rejection a new document with a new reference is made.
  */
-export async function issueFiscalForOrder(orderId: string, issuer: Issuer = issueNfce) {
+export async function issueFiscalForOrder(
+	orderId: string,
+	issuer: Issuer = issueNfce,
+	opts: { test?: boolean } = {}
+) {
 	const s = await settingsRow();
-	if (!s.enabled || !s.cnpj || !s.api_token_enc || !s.default_ncm) return { skipped: true };
+	// The homologação test note runs before NFC-e is switched on.
+	if ((!s.enabled && !opts.test) || !s.cnpj || !s.api_token_enc || !s.default_ncm)
+		return { skipped: true };
 	const [order] = await db()<
 		{
 			order_number: number;
@@ -409,4 +415,104 @@ export async function cancelFiscal(orderId: string, reason: string, actor: Actor
 		});
 	await saveResult(doc.id, r);
 	await audit(db(), actor, 'fiscal.cancelled', 'order', orderId, { reason });
+}
+
+export type ReadinessState = 'ok' | 'missing' | 'warn';
+export interface ReadinessItem {
+	key: 'cnpj' | 'token' | 'environment' | 'ncm' | 'crt' | 'ibsCbs' | 'homologation';
+	state: ReadinessState;
+}
+
+/** What a shop still has to do before turning NFC-e on, in the order the screen lists it. */
+export async function fiscalReadiness(sql: Db = db(), now = new Date()): Promise<ReadinessItem[]> {
+	const r = await settingsRow(sql);
+	const [h] = await sql<{ ok: boolean }[]>`
+		select exists (select 1 from fiscal_documents
+			where environment = 'homologacao' and status = 'authorized') as ok`;
+	// Simples Nacional (and MEI) may leave IBS/CBS out in 2026; from 2027 it is required.
+	const simples = r.crt === '1' || r.crt === '4';
+	const ibsCbs: ReadinessState = r.ibs_cbs_enabled
+		? 'ok'
+		: simples && fiscalYear(now) < 2027
+			? 'warn'
+			: 'missing';
+	return [
+		{ key: 'cnpj', state: r.cnpj ? 'ok' : 'missing' },
+		{ key: 'token', state: r.api_token_enc ? 'ok' : 'missing' },
+		{ key: 'environment', state: r.environment === 'producao' ? 'ok' : 'warn' },
+		{ key: 'ncm', state: r.default_ncm ? 'ok' : 'missing' },
+		{ key: 'crt', state: 'ok' },
+		{ key: 'ibsCbs', state: ibsCbs },
+		{ key: 'homologation', state: h.ok ? 'ok' : 'missing' }
+	];
+}
+
+/**
+ * "Emitir nota de teste": a R$ 1,00 note in homologação for a synthetic order that is marked
+ * as a test, so it never shows in reports or the drawer.
+ */
+export async function issueTestNote(actor: Actor, issuer: Issuer = issueNfce) {
+	const s = await settingsRow();
+	if (s.environment !== 'homologacao')
+		throw new DomainError('err.fiscal.testHomologOnly', { code: 'not_homolog' });
+	if (!s.cnpj || !s.api_token_enc || !s.default_ncm)
+		throw new DomainError('err.fiscal.incomplete', { code: 'incomplete' });
+	const orderId = await db().begin(async (tx) => {
+		const [o] = await tx<{ id: string }[]>`
+			insert into orders (channel, source_mode, customer_label, status, payment_status, fulfillment_type,
+				subtotal_cents, total_cents, catalog_version, idempotency_key, is_test, payment_plan,
+				completed_at, created_by)
+			values ('counter', 'staff_pos', 'Nota de teste', 'completed', 'paid', 'counter', 100, 100, 0,
+				${`fiscal-test-${crypto.randomUUID()}`}, true, 'counter', now(),
+				${actor.type === 'staff' ? actor.id : null})
+			returning id`;
+		await tx`
+			insert into order_items (order_id, position, product_sku, product_name, quantity,
+				unit_price_cents, line_total_cents)
+			values (${o.id}, 0, 'TESTE-NFCE', 'Item de teste', 1, 100, 100)`;
+		await tx`
+			insert into tenders (order_id, method, provider_reference, amount_cents, status, idempotency_key,
+				confirmed_at)
+			values (${o.id}, 'external_pix', 'TESTE', 100, 'paid', ${`fiscal-test-${o.id}`}, now())`;
+		await audit(tx, actor, 'fiscal.test_note', 'order', o.id, {});
+		return o.id;
+	});
+	await issueFiscalForOrder(orderId, issuer, { test: true }).catch(() => {});
+	const [doc] = await listFiscalDocuments(orderId);
+	return doc ?? null;
+}
+
+export interface FailedNote {
+	orderId: string;
+	orderNumber: number;
+	status: 'rejected' | 'error';
+	message: string | null;
+	at: Date;
+}
+
+/** "Notas com erro": rejected or failed notes of the last 30 days that are still not fixed. */
+export async function failedNotes(sql: Db = db()): Promise<FailedNote[]> {
+	const rows = await sql<
+		{
+			order_id: string;
+			order_number: number;
+			status: 'rejected' | 'error';
+			error_message: string | null;
+			updated_at: Date;
+		}[]
+	>`
+		select d.order_id, o.order_number, d.status, d.error_message, d.updated_at
+		from fiscal_documents d join orders o on o.id = d.order_id
+		where d.status in ('rejected', 'error') and d.updated_at > now() - interval '30 days'
+			and not exists (select 1 from fiscal_documents a
+				where a.order_id = d.order_id and a.status in ('authorized', 'pending'))
+		order by d.updated_at desc
+		limit 50`;
+	return rows.map((r) => ({
+		orderId: r.order_id,
+		orderNumber: r.order_number,
+		status: r.status,
+		message: r.error_message,
+		at: r.updated_at
+	}));
 }
