@@ -9,6 +9,8 @@ export type SecretKind =
 	| 'mercadopago_webhook'
 	| 'ifood'
 	| 'ifood_refresh'
+	| 'opendelivery_99food'
+	| 'opendelivery_keeta'
 	| 'focusnfe_token'
 	| 'whatsapp'
 	| 'psp_pix_cert';

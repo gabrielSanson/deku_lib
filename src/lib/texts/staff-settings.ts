@@ -1322,5 +1322,54 @@ export const STAFF_SETTINGS_TEXTS = {
 		group: g,
 		label: 'Pedido: cancelamento aguardando app',
 		default: 'Cancelamento pedido ao app de entrega. Aguardando a confirmação.'
+	},
+	'od.tabTitle': {
+		group: g,
+		label: 'Open Delivery: título da aba',
+		default: '99Food e Keeta · Configurações'
+	},
+	'od.intro': {
+		group: g,
+		label: 'Open Delivery: introdução',
+		default:
+			'Receba pedidos do 99Food e do Keeta no mesmo quadro dos outros pedidos. Os dados de acesso vêm do portal de cada parceiro.'
+	},
+	'od.unverified': {
+		group: g,
+		label: 'Open Delivery: ainda não testado',
+		default:
+			'Integração ainda não testada com os parceiros. Ligue só depois de um pedido de teste combinado com o parceiro.'
+	},
+	'od.baseUrl': { group: g, label: 'Open Delivery: endereço da API', default: 'Endereço da API' },
+	'od.clientId': { group: g, label: 'Open Delivery: Client ID', default: 'Client ID' },
+	'od.clientSecret': { group: g, label: 'Open Delivery: Client Secret', default: 'Client Secret' },
+	'od.secretKept': {
+		group: g,
+		label: 'Open Delivery: segredo guardado',
+		default: 'Guardado. Deixe em branco para manter.'
+	},
+	'od.merchantId': {
+		group: g,
+		label: 'Open Delivery: ID da loja',
+		default: 'ID da loja no parceiro'
+	},
+	'od.save': { group: g, label: 'Open Delivery: salvar', default: 'Salvar' },
+	'od.test': { group: g, label: 'Open Delivery: testar', default: 'Testar conexão' },
+	'od.turnOn': { group: g, label: 'Open Delivery: ligar', default: 'Ligar pedidos' },
+	'od.turnOff': { group: g, label: 'Open Delivery: desligar', default: 'Desligar pedidos' },
+	'od.webhook': {
+		group: g,
+		label: 'Open Delivery: endereço do webhook',
+		default: 'Endereço para avisos (webhook), informe no portal do parceiro:'
+	},
+	'od.lastCheck': {
+		group: g,
+		label: 'Open Delivery: último teste',
+		default: 'Último teste: {date}'
+	},
+	'od.lastPoll': {
+		group: g,
+		label: 'Open Delivery: última busca',
+		default: 'Última busca de pedidos: {date}'
 	}
 } as const satisfies Record<string, TextDef>;

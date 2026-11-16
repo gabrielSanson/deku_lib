@@ -62,6 +62,11 @@ export const STAFF_LABEL_TEXTS = {
 	},
 	'nav.pagamentos': { group: g, label: 'Menu da equipe: pagamentos', default: 'Pagamentos' },
 	'nav.ifood': { group: g, label: 'Menu da equipe: iFood', default: 'iFood' },
+	'nav.opendelivery': {
+		group: g,
+		label: 'Menu da equipe: 99Food e Keeta',
+		default: '99Food e Keeta'
+	},
 	'nav.notaFiscal': { group: g, label: 'Menu da equipe: nota fiscal', default: 'Nota fiscal' },
 	'nav.aparencia': { group: g, label: 'Menu da equipe: aparência', default: 'Aparência' },
 	'nav.paginaInicial': {

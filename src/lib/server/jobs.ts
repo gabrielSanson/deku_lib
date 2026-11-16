@@ -15,6 +15,8 @@ export const QUEUES = {
 	ifoodSync: 'ifood-sync',
 	ifoodMenuSync: 'ifood-menu-sync',
 	channelAvailability: 'channel-availability',
+	odEvent: 'opendelivery-event',
+	odSync: 'opendelivery-sync',
 	paymentEvent: 'payment-event',
 	fiscalIssue: 'fiscal-issue',
 	heartbeat: 'heartbeat',

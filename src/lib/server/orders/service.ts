@@ -31,6 +31,7 @@ import { currentShopId, db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES, type QueueName } from '../jobs';
 import { ifoodSettings } from '../integrations/ifood/settings';
+import { odSettings } from '../integrations/opendelivery/settings';
 import { dropPushSubscriptions } from '../notifications/push';
 import { orderRequestHash } from '#lib/domain/request-hash.ts';
 import { knownShop } from '../platform/shops';
@@ -410,12 +411,17 @@ export interface TransitionResult {
 
 /** The job queue that mirrors changes to this order's delivery app, if any. */
 function channelSyncQueue(channel: OrderChannel): QueueName | null {
-	return channel === 'ifood' ? QUEUES.ifoodSync : null;
+	if (channel === 'ifood') return QUEUES.ifoodSync;
+	if (channel === 'opendelivery') return QUEUES.odSync;
+	return null;
 }
 
 /** Whether the order's delivery app is connected, so a cancellation must go through it. */
-async function channelIsLive(channel: OrderChannel): Promise<boolean> {
+async function channelIsLive(channel: OrderChannel, partner: string | null): Promise<boolean> {
 	if (channel === 'ifood') return (await ifoodSettings()).enabled;
+	if (channel === 'opendelivery' && (partner === '99food' || partner === 'keeta')) {
+		return (await odSettings(partner)).enabled;
+	}
 	return false;
 }
 
@@ -426,11 +432,12 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 				status: OrderStatus;
 				version: number;
 				channel: OrderChannel;
+				channel_partner: string | null;
 				payment_plan: PaymentPlan;
 				payment_status: PaymentStatus;
 			}[]
 		>`
-			select status, version, channel, payment_plan, payment_status from orders
+			select status, version, channel, channel_partner, payment_plan, payment_status from orders
 			where id = ${input.orderId} for update`;
 		if (!order) throw new DomainError('err.order.notFound', { code: 'not_found', status: 404 });
 
@@ -467,7 +474,7 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			syncQueue &&
 			(input.to === 'cancelled' || input.to === 'rejected') &&
 			input.actor.type !== 'integration' &&
-			(await channelIsLive(order.channel))
+			(await channelIsLive(order.channel, order.channel_partner))
 		) {
 			await t`update orders set cancel_requested_at = now(), cancel_request_reason = ${reason}
 				where id = ${input.orderId}`;

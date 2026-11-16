@@ -5,8 +5,9 @@ import { closeDb } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 import { startWorker } from '#lib/server/worker/handlers.ts';
 import { ifoodHandlers } from '#lib/server/integrations/ifood/worker.ts';
+import { odHandlers } from '#lib/server/integrations/opendelivery/worker.ts';
 
-await startWorker(await ifoodHandlers());
+await startWorker({ ...(await ifoodHandlers()), ...(await odHandlers()) });
 
 let stopping = false;
 async function shutdown(signal: string) {

@@ -546,6 +546,37 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Repasses: extrato importado',
 		default: '{rows} linhas lidas, {matched} ligadas a pedidos.'
 	},
+	'err.od.baseUrl': {
+		group: 'staffErrors',
+		label: 'Open Delivery: endereço inválido',
+		default: 'Informe o endereço da API do parceiro, começando com https://.'
+	},
+	'err.od.missing': {
+		group: 'staffErrors',
+		label: 'Open Delivery: faltam dados',
+		default: 'Preencha Client ID, Client Secret e o ID da loja no parceiro.'
+	},
+	'err.od.testFirst': {
+		group: 'staffErrors',
+		label: 'Open Delivery: teste antes',
+		default: 'Teste a conexão antes de ligar o recebimento de pedidos.'
+	},
+	'ok.odSaved': {
+		group: 'staffErrors',
+		label: 'Open Delivery: salvo',
+		default: 'Dados salvos. Teste a conexão para ligar o recebimento de pedidos.'
+	},
+	'ok.odTested': {
+		group: 'staffErrors',
+		label: 'Open Delivery: conexão ok',
+		default: 'Conexão funcionando.'
+	},
+	'ok.odOn': { group: 'staffErrors', label: 'Open Delivery: ligado', default: 'Pedidos ligados.' },
+	'ok.odOff': {
+		group: 'staffErrors',
+		label: 'Open Delivery: desligado',
+		default: 'Pedidos desligados.'
+	},
 	'err.menu.csvInvalid': {
 		group: 'staffErrors',
 		label: 'Cardápio: planilha com erros',
