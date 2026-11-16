@@ -1,5 +1,6 @@
 // The only place orders are created or change status. Every change runs in a
 // transaction that also writes history/audit rows and enqueues follow-up jobs.
+import { enqueuePrint } from '../printing/queue';
 import { isSlot } from '#lib/domain/hours.ts';
 import type { Channel } from '#lib/domain/catalog.ts';
 import {
@@ -381,13 +382,15 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			{ orderId: order.id },
 			{ singletonKey: `placed:${order.id}` }
 		);
-		if (status === 'confirmed')
+		if (status === 'confirmed') {
 			await enqueue(
 				tx,
 				QUEUES.stockDeduct,
 				{ orderId: order.id },
 				{ singletonKey: `stock:${order.id}` }
 			);
+			await enqueuePrint(tx, order.id, 'kitchen');
+		}
 
 		return {
 			id: order.id,
@@ -578,13 +581,15 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 		}
 		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
 		// Stock: a confirmed order takes its recipe; a cancel gives it back or books waste.
-		if (input.to === 'confirmed')
+		if (input.to === 'confirmed') {
 			await enqueue(
 				t,
 				QUEUES.stockDeduct,
 				{ orderId: input.orderId },
 				{ singletonKey: `stock:${input.orderId}` }
 			);
+			await enqueuePrint(t, input.orderId, 'kitchen');
+		}
 		if (input.to === 'cancelled' || input.to === 'rejected')
 			await enqueue(
 				t,

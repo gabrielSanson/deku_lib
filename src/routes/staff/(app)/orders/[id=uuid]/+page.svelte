@@ -54,6 +54,21 @@
 				>
 			</span>
 		</div>
+		{#if data.print}
+			<form
+				method="POST"
+				action="?/reprint"
+				use:enhance
+				class="flex flex-wrap items-center gap-3 text-sm"
+			>
+				<span class={data.print.status === 'failed' ? 'font-semibold text-red-700' : 'text-muted'}
+					>{t('orderDetail.print.status', {
+						status: t(`orderDetail.print.${data.print.status as 'queued'}`)
+					})}</span
+				>
+				<button class="btn-ghost min-h-9">{t('orderDetail.print.again')}</button>
+			</form>
+		{/if}
 		<p class="text-sm text-muted">
 			{t('orderDetail.meta', {
 				channel:

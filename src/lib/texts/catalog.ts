@@ -2164,13 +2164,46 @@ const CORE_TEXTS = {
 	'kitchen.sound.on': { group: 'staff', label: 'Cozinha: som ligado', default: '🔔 Som ligado' },
 	'kitchen.print.on': {
 		group: 'staff',
-		label: 'Cozinha: impressão automática ligada',
-		default: '🖨 Imprimindo novos'
+		label: 'Cozinha: esta tela imprime',
+		default: '🖨 Esta tela imprime'
 	},
 	'kitchen.print.off': {
 		group: 'staff',
-		label: 'Cozinha: impressão automática desligada',
-		default: '🖨 Impressão desligada'
+		label: 'Cozinha: esta tela não imprime',
+		default: '🖨 Não imprime'
+	},
+	'kitchen.print.pair': {
+		group: 'staff',
+		label: 'Cozinha: botão para esta tela imprimir (só admin)',
+		default: '🖨 Esta tela imprime'
+	},
+	'kitchen.print.unpair': {
+		group: 'staff',
+		label: 'Cozinha: botão para parar de imprimir nesta tela',
+		default: 'Parar de imprimir aqui'
+	},
+	'kitchen.print.failed': {
+		group: 'staff',
+		label: 'Cozinha: aviso de comanda que não imprimiu',
+		default: 'A comanda do pedido {n} não imprimiu. Reimprima pela tela do pedido.'
+	},
+	'orderDetail.print.status': {
+		group: 'staff',
+		label: 'Pedido: situação da comanda',
+		default: 'Comanda: {status}'
+	},
+	'orderDetail.print.queued': { group: 'staff', label: 'Comanda: na fila', default: 'na fila' },
+	'orderDetail.print.claimed': {
+		group: 'staff',
+		label: 'Comanda: imprimindo',
+		default: 'imprimindo'
+	},
+	'orderDetail.print.printed': { group: 'staff', label: 'Comanda: impressa', default: 'impressa' },
+	'orderDetail.print.failed': { group: 'staff', label: 'Comanda: falhou', default: 'não imprimiu' },
+	'orderDetail.print.again': {
+		group: 'staff',
+		label: 'Pedido: botão reimprimir comanda pela fila',
+		default: 'Reimprimir na cozinha'
 	},
 	'kitchen.sound.off': {
 		group: 'staff',

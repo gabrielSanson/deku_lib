@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { enhance } from '$app/forms';
 	import LiveBanner from '#lib/components/organisms/LiveBanner.svelte';
 	import OrderCard from '#lib/components/organisms/OrderCard.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
@@ -11,12 +12,9 @@
 	const t = useTexts();
 
 	let muted = $state(false);
-	// Automatic kitchen tickets: this screen's browser prints each new order once.
-	// Remembered per device; with Chrome's --kiosk-printing flag no dialog appears.
-	const PRINT_KEY = 'deku-auto-print';
-	const PRINTED_KEY = 'deku-printed';
-	let autoPrint = $state(false);
-	let printQueue = Promise.resolve();
+	// Kitchen tickets come from the server queue: a paired screen claims one job at a time,
+	// prints it in a hidden frame and confirms. With Chrome's --kiosk-printing no dialog appears.
+	let printFailed = $state<number | null>(null);
 	let station = $state('all');
 	let known = new Set<string>();
 	let knownReady = new Set<string>();
@@ -48,58 +46,64 @@
 
 	const readyChime = () => chime([1320, 990, 660]);
 
-	function readPrinted(): string[] {
-		try {
-			return JSON.parse(localStorage.getItem(PRINTED_KEY) ?? '[]');
-		} catch {
-			return [];
-		}
+	/** Prints the ticket in a hidden frame; resolves once the print call returned. */
+	function printFrame(orderId: string) {
+		return new Promise<void>((done, fail) => {
+			const frame = document.createElement('iframe');
+			frame.style.cssText = 'position:fixed;width:0;height:0;border:0;right:0;bottom:0';
+			frame.src = `/staff/print/${orderId}?tipo=cozinha&auto`;
+			frame.onerror = () => fail(new Error('frame'));
+			frame.onload = () => {
+				try {
+					frame.contentWindow?.print();
+					done();
+				} catch (e) {
+					fail(e);
+				} finally {
+					setTimeout(() => frame.remove(), 1500);
+				}
+			};
+			document.body.append(frame);
+		});
 	}
 
-	function markPrinted(ids: string[]) {
+	/** One claim → print → ack round; returns whether there may be more jobs waiting. */
+	async function printNext(): Promise<boolean> {
+		const res = await fetch('/api/v1/print/claim', { method: 'POST' });
+		if (!res.ok) return false;
+		const { job } = (await res.json()) as {
+			job: { id: string; orderId: string; attempts: number } | null;
+		};
+		if (!job) return false;
+		let ok = true;
+		let error: string | null = null;
 		try {
-			const all = [...new Set([...readPrinted(), ...ids])].slice(-300);
-			localStorage.setItem(PRINTED_KEY, JSON.stringify(all));
-		} catch {
-			/* storage blocked: tickets may print again after a reload */
+			await printFrame(job.orderId);
+		} catch (e) {
+			ok = false;
+			error = String(e).slice(0, 200);
 		}
+		await fetch('/api/v1/print/ack', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ jobId: job.id, ok, error })
+		});
+		if (!ok && job.attempts >= 3)
+			printFailed = data.orders.find((o) => o.id === job.orderId)?.orderNumber ?? 0;
+		return true;
 	}
 
-	/** Prints the kitchen ticket in a hidden frame, one at a time, never twice on this device. */
-	function printOnce(id: string) {
-		if (readPrinted().includes(id)) return;
-		markPrinted([id]);
-		printQueue = printQueue.then(
-			() =>
-				new Promise<void>((done) => {
-					const frame = document.createElement('iframe');
-					frame.style.cssText = 'position:fixed;width:0;height:0;border:0;right:0;bottom:0';
-					frame.src = `/staff/print/${id}?tipo=cozinha&auto`;
-					frame.onload = () => {
-						try {
-							frame.contentWindow?.print();
-						} finally {
-							setTimeout(() => {
-								frame.remove();
-								done();
-							}, 1500);
-						}
-					};
-					document.body.append(frame);
-				})
-		);
-	}
-
-	function toggleAutoPrint() {
-		autoPrint = !autoPrint;
+	let printing = false;
+	async function drainPrints() {
+		if (printing || !data.station) return;
+		printing = true;
 		try {
-			localStorage.setItem(PRINT_KEY, autoPrint ? '1' : '0');
+			for (let i = 0; i < 20 && (await printNext()); i++);
 		} catch {
-			/* not remembered after a reload */
+			/* offline: the next poll tries again, and the server re-queues unconfirmed jobs */
+		} finally {
+			printing = false;
 		}
-		// Turning it on prints only what arrives from now on, not the whole queue.
-		if (autoPrint)
-			markPrinted(data.orders.filter((o) => o.status === 'confirmed').map((o) => o.id));
 	}
 
 	// Chime once per order that enters the queue, turns ready or is called after the screen loaded.
@@ -107,7 +111,7 @@
 		const ids = data.orders.filter((o) => o.status === 'confirmed').map((o) => o.id);
 		const ready = data.orders.filter((o) => o.status === 'ready');
 		const calls = new Map(ready.map((o) => [o.id, o.calledAt ? +new Date(o.calledAt) : 0]));
-		if (autoPrint) for (const id of ids) printOnce(id);
+		if (data.station) void drainPrints();
 		if (primed) {
 			if (
 				ready.some((o) => !knownReady.has(o.id)) ||
@@ -123,12 +127,9 @@
 	});
 
 	onMount(() => {
-		try {
-			autoPrint = localStorage.getItem(PRINT_KEY) === '1';
-		} catch {
-			/* storage blocked: stays off */
-		}
 		const tick = setInterval(() => (now = Date.now()), 1000);
+		// Polls the print queue even without a board refresh (reprints, retried jobs).
+		const poll = setInterval(() => void drainPrints(), 5000);
 		// Keep the TV or tablet awake; the lock drops when the tab is hidden, so take it again.
 		let lock: WakeLockSentinel | null = null;
 		const awake = async () => {
@@ -143,6 +144,7 @@
 		document.addEventListener('visibilitychange', awake);
 		return () => {
 			clearInterval(tick);
+			clearInterval(poll);
 			document.removeEventListener('visibilitychange', awake);
 			lock?.release().catch(() => {});
 		};
@@ -241,11 +243,22 @@
 				if (!muted) chime();
 			}}>{muted ? t('kitchen.sound.off') : t('kitchen.sound.on')}</button
 		>
-		<button
-			class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
-			aria-pressed={autoPrint}
-			onclick={toggleAutoPrint}>{autoPrint ? t('kitchen.print.on') : t('kitchen.print.off')}</button
-		>
+		{#if data.staff.role === 'admin'}
+			<form method="POST" action={data.station ? '?/unpair' : '?/pair'} use:enhance>
+				<input type="hidden" name="name" value="Cozinha" />
+				<button
+					class="rounded-md px-3 py-2 text-sm font-semibold {data.station
+						? 'bg-brand-500 text-black'
+						: 'bg-stone-800'}"
+					aria-pressed={!!data.station}
+					>{data.station ? t('kitchen.print.unpair') : t('kitchen.print.pair')}</button
+				>
+			</form>
+		{:else}
+			<span class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
+				>{data.station ? t('kitchen.print.on') : t('kitchen.print.off')}</span
+			>
+		{/if}
 		{#if data.staff.role === 'kitchen'}
 			<form method="POST" action="/staff/logout">
 				<button class="rounded-md bg-stone-800 px-3 py-2 text-sm font-semibold"
@@ -255,6 +268,11 @@
 		{/if}
 	</header>
 	{#if form?.error}<p class="bg-red-700 px-4 py-2 font-semibold" role="alert">{form.error}</p>{/if}
+	{#if printFailed != null}
+		<p class="bg-red-700 px-4 py-2 font-semibold" role="alert">
+			{t('kitchen.print.failed', { n: printFailed })}
+		</p>
+	{/if}
 
 	<main class="grid gap-3 p-3 md:grid-cols-3">
 		{#each lanes as lane (lane.key)}

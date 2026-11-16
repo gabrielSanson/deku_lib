@@ -12,6 +12,7 @@ import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { orderProfitDetail } from '#lib/server/analytics/profit.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { refundTender } from '#lib/server/payments/tenders.ts';
+import { printStatus, reprint } from '#lib/server/printing/queue.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -29,10 +30,18 @@ export const load: PageServerLoad = async (event) => {
 					documents: await listFiscalDocuments(order.id)
 				};
 	const profit = ADMIN.includes(staff.role) ? await orderProfitDetail(order.id) : null;
-	return { order, fiscal, profit };
+	const print = (await printStatus(order.id)).find((j) => j.kind === 'kitchen') ?? null;
+	return { order, fiscal, profit, print };
 };
 
 export const actions: Actions = {
+	reprint: async (event) => {
+		const staff = requireStaff(event);
+		return attempt(async () => {
+			await reprint(event.params.id, 'kitchen', staffActor(staff));
+			return { ok: true };
+		});
+	},
 	transition: async (event) => {
 		const staff = requireStaff(event);
 		const data = await event.request.formData();

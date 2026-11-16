@@ -126,7 +126,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S4.3: done (Relatórios → Lucro with per-channel table and the 'teriam rendido a mais no seu site' line (own-site fee = the shop's PSP Pix term, else Pix to key = 0); iFood commission 12%/23% defaults [UNVERIFIED], Open Delivery commission default 0 for the owner to set; payout statement figures override; own delivery cost setting per delivery; orders with a product without ficha are counted apart and their net is shown before food; breakdown on the order page for admins)
 - S4.4: done (Gestão → Despesas (month list, fixed expenses entered daily job on/after their day, once per month) and Relatórios → Resultado do mês with CSV; categories seeded on first use; Simples rate is a setting that starts at 0 with a warning (no rate guessed); food cost is real when the month has a stock count, else from the fichas)
 - S4.5: done (job every 15 min sends once per day 30 min after the last closing (late shifts close next morning), 23:30 without hours; day window 04:00 → summary time; skipped if more than 6 h late; on by default, set in Configurações → Sistema (alerts live there); WhatsApp 'resumo_diario' template [UNVERIFIED] TODO(verify), sent only with WhatsApp on and an owner number)
-- S5.1: todo
+- S5.1: done (print_stations/print_jobs; paired screen claims with SKIP LOCKED, 60 s/3 tries; reprint from order page)
 - S5.2: todo
 - S5.3: todo
 - S5.4: todo

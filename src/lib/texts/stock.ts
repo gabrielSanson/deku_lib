@@ -384,5 +384,10 @@ export const STOCK_TEXTS = {
 		group: 'staffErrors',
 		label: 'Estoque: compra vazia',
 		default: 'Adicione pelo menos um item com quantidade.'
+	},
+	'err.print.roles': {
+		group: 'staffErrors',
+		label: 'Impressão: nenhuma função escolhida',
+		default: 'Escolha o que esta tela imprime.'
 	}
 } as const satisfies Record<string, TextDef>;
