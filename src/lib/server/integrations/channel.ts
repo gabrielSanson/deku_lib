@@ -27,7 +27,11 @@ export interface ChannelEvent {
 
 /** What an event means for us. */
 export type EventMeaning =
-	{ kind: 'placed' } | { kind: 'status'; to: OrderStatus } | { kind: 'ignore' };
+	| { kind: 'placed' }
+	| { kind: 'status'; to: OrderStatus }
+	/** The app refused a cancellation we asked for: the order goes on. */
+	| { kind: 'cancelDenied' }
+	| { kind: 'ignore' };
 
 export interface ProductInfo {
 	sku: string;
@@ -64,6 +68,8 @@ export interface ExternalOrder {
 	notes: string | null;
 	isTest: boolean;
 	unmappedCodes: string[];
+	/** The app's own payload, kept only while the shop is in homologation. */
+	raw?: unknown;
 }
 
 export interface OrderRef {
@@ -122,7 +128,10 @@ export interface ChannelAdapter {
 	): Promise<ExternalOrder>;
 	/** null when the app needs no call for this change. */
 	planStatus(order: OrderRef, to: OrderStatus, reason: string | null): OutboundCall | null;
-	sendStatus(order: OrderRef, call: OutboundCall): Promise<void>;
+	/** Returns the app's answer (stored while in homologation). */
+	sendStatus(order: OrderRef, call: OutboundCall): Promise<unknown>;
+	/** Homologation: keep full payloads of orders and calls for the app's review. */
+	keepPayloads?(): Promise<boolean>;
 	syncMenu?(menu: ChannelMenu): Promise<SyncReport>;
 	setAvailability?(items: { externalId: string; available: boolean }[]): Promise<void>;
 	/** Readable text for an error thrown by this adapter. */
@@ -221,8 +230,8 @@ async function markEvent(
 }
 
 function findOrder(adapter: ChannelAdapter, channelOrderId: string) {
-	return db()<{ id: string; status: OrderStatus }[]>`
-		select id, status from orders where channel = ${adapter.orderChannel}
+	return db()<{ id: string; status: OrderStatus; cancel_request_reason: string | null }[]>`
+		select id, status, cancel_request_reason from orders where channel = ${adapter.orderChannel}
 			and channel_partner is not distinct from ${adapter.partner}
 			and channel_order_id = ${channelOrderId}`;
 }
@@ -253,6 +262,9 @@ export async function processChannelEvent(adapter: ChannelAdapter, channelEventI
 		if (meaning.kind === 'placed') {
 			// The order detail can lag the event by a few seconds; a 404 throws and pg-boss retries with backoff.
 			const mapped = await adapter.getOrder(ev.channel_order_id, await productLookup(adapter));
+			if (mapped.raw !== undefined && (await adapter.keepPayloads?.())) {
+				await sql`update channel_events set detail = ${sql.json(mapped.raw as never)} where id = ${ev.id}`;
+			}
 			const order = await createOrder({
 				channel: adapter.orderChannel,
 				channelPartner: adapter.partner,
@@ -297,13 +309,25 @@ export async function processChannelEvent(adapter: ChannelAdapter, channelEventI
 			return 'ignored';
 		}
 		const [order] = await findOrder(adapter, ev.channel_order_id);
+		if (order && meaning.kind === 'cancelDenied') {
+			await sql`update orders set cancel_requested_at = null where id = ${order.id}`;
+			await audit(sql, INTEGRATION, 'order.cancel_denied', 'order', order.id, {
+				channel: adapter.channel
+			});
+			await markEvent(ev.id, 'processed');
+			return 'processed';
+		}
 		if (!order) {
 			// The "placed" event may still be in flight; retry a few times before giving up.
 			if (ev.attempts < 5) throw new Error('order not created yet');
 			await markEvent(ev.id, 'ignored', 'order unknown');
 			return 'ignored';
 		}
-		await applyStatus(adapter, order.id, order.status, meaning.to, ev.id);
+		if (meaning.kind !== 'status') {
+			await markEvent(ev.id, 'ignored', 'order unknown');
+			return 'ignored';
+		}
+		await applyStatus(adapter, order, meaning.to, ev.id);
 		await markEvent(ev.id, 'processed');
 		return 'processed';
 	} catch (err) {
@@ -315,11 +339,12 @@ export async function processChannelEvent(adapter: ChannelAdapter, channelEventI
 
 async function applyStatus(
 	adapter: ChannelAdapter,
-	orderId: string,
-	current: OrderStatus,
+	order: { id: string; status: OrderStatus; cancel_request_reason: string | null },
 	target: OrderStatus,
 	eventId: string
 ) {
+	const orderId = order.id;
+	const current = order.status;
 	if (current === target) return;
 	if (target === 'cancelled') {
 		if (canTransition(current, 'cancelled')) {
@@ -327,7 +352,7 @@ async function applyStatus(
 				orderId,
 				to: 'cancelled',
 				actor: INTEGRATION,
-				reason: `Cancelado pelo ${adapter.label}`,
+				reason: order.cancel_request_reason ?? `Cancelado pelo ${adapter.label}`,
 				sourceEventId: eventId
 			});
 		}
@@ -383,8 +408,13 @@ export async function syncOrderToChannel(
 		returning id, status`;
 	if (row.status === 'sent' || row.status === 'skipped') return row.status;
 	try {
-		await adapter.sendStatus(ref, call);
-		await sql`update channel_outbound set status = 'sent', sent_at = now(), attempts = attempts + 1, last_error = null where id = ${row.id}`;
+		const answer = await adapter.sendStatus(ref, call);
+		const response =
+			answer !== undefined && (await adapter.keepPayloads?.())
+				? JSON.stringify(answer).slice(0, 20_000)
+				: null;
+		await sql`update channel_outbound set status = 'sent', sent_at = now(), attempts = attempts + 1,
+			last_error = null, response = ${response} where id = ${row.id}`;
 		return 'sent';
 	} catch (err) {
 		await sql`update channel_outbound set status = 'failed', attempts = attempts + 1, last_error = ${String(err)} where id = ${row.id}`;

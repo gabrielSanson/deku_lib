@@ -7,10 +7,15 @@ import { config } from '../../config';
 import { currentShopId, db, DEFAULT_SHOP_ID, type Db } from '../../db';
 import { DomainError } from '../../errors';
 import { decryptSecret, encryptSecret } from '../../secrets';
+import { getShopSecret } from '../../platform/secrets';
 import { perShop } from '../../shop-cache';
 
 export interface IfoodSettings {
-	source: 'app' | 'env' | 'none';
+	/** app: keys typed in Configurações; link: store linked to the platform's iFood app. */
+	source: 'app' | 'link' | 'env' | 'none';
+	authMode: 'own' | 'app';
+	refreshToken: string | null;
+	homologation: boolean;
 	enabled: boolean;
 	clientId: string | null;
 	clientSecret: string | null;
@@ -32,6 +37,12 @@ interface Row {
 	last_poll_error_at: Date | null;
 	last_poll_error: string | null;
 	updated_at: Date;
+	auth_mode: 'own' | 'app';
+	link_user_code: string | null;
+	link_verifier: string | null;
+	link_expires_at: Date | null;
+	linked_at: Date | null;
+	homologation: boolean;
 }
 
 const TTL_MS = 5_000;
@@ -41,7 +52,7 @@ export function invalidateIfoodSettings() {
 	cache.value = undefined;
 }
 
-async function row(sql: Db = db()): Promise<Row> {
+export async function ifoodSettingsRow(sql: Db = db()): Promise<Row> {
 	const [r] = await sql<Row[]>`select * from ifood_settings where shop_id = current_shop_id()`;
 	return r;
 }
@@ -49,9 +60,27 @@ async function row(sql: Db = db()): Promise<Row> {
 export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettings> {
 	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
 	const c = config();
-	const r = await row();
+	const r = await ifoodSettingsRow();
 	let value: IfoodSettings;
-	if (r.client_id && r.client_secret_enc) {
+	const base = { authMode: r.auth_mode, refreshToken: null, homologation: r.homologation };
+	if (r.auth_mode === 'app') {
+		const refreshToken = await getShopSecret('ifood_refresh');
+		const linkedApp =
+			Boolean(c.IFOOD_APP_CLIENT_ID && c.IFOOD_APP_CLIENT_SECRET) || c.IFOOD_APP_STUB;
+		value = {
+			...base,
+			source: 'link',
+			refreshToken,
+			enabled: r.enabled && Boolean(refreshToken) && linkedApp,
+			clientId: c.IFOOD_APP_CLIENT_ID ?? (c.IFOOD_APP_STUB ? 'stub-app' : null),
+			clientSecret: c.IFOOD_APP_CLIENT_SECRET ?? (c.IFOOD_APP_STUB ? 'stub-app-secret' : null),
+			merchantId: r.merchant_id,
+			apiBase: c.IFOOD_API_BASE,
+			problem: linkedApp
+				? null
+				: 'A loja está ligada ao aplicativo iFood da plataforma, mas o servidor não tem IFOOD_APP_CLIENT_ID e IFOOD_APP_CLIENT_SECRET.'
+		};
+	} else if (r.client_id && r.client_secret_enc) {
 		let secret: string | null = null;
 		let problem: string | null = null;
 		try {
@@ -61,6 +90,7 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 				'O Client Secret salvo não pode ser lido (o APP_SECRET do servidor mudou). Digite o Client Secret de novo.';
 		}
 		value = {
+			...base,
 			source: 'app',
 			enabled: r.enabled && !problem,
 			clientId: r.client_id,
@@ -72,6 +102,7 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 	} else if (c.IFOOD_CLIENT_ID && currentShopId() === DEFAULT_SHOP_ID) {
 		// .env credentials only ever belong to a single-shop install's own shop.
 		value = {
+			...base,
 			source: 'env',
 			enabled: c.IFOOD_ENABLED,
 			clientId: c.IFOOD_CLIENT_ID,
@@ -82,6 +113,7 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 		};
 	} else {
 		value = {
+			...base,
 			source: 'none',
 			enabled: c.IFOOD_ENABLED && currentShopId() === DEFAULT_SHOP_ID,
 			clientId: null,
@@ -97,13 +129,19 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 
 /** What the setup and integration screens show. Never includes the secret. */
 export async function ifoodStatus() {
-	const [s, r] = await Promise.all([ifoodSettings({ fresh: true }), row()]);
+	const [s, r] = await Promise.all([ifoodSettings({ fresh: true }), ifoodSettingsRow()]);
 	return {
 		source: s.source,
 		enabled: s.enabled,
 		clientId: s.clientId,
 		merchantId: s.merchantId,
 		hasSecret: Boolean(s.clientSecret),
+		authMode: s.authMode,
+		linked: s.authMode === 'app' && Boolean(s.refreshToken),
+		linkedAt: r.linked_at,
+		linkUserCode: r.link_expires_at && r.link_expires_at > new Date() ? r.link_user_code : null,
+		linkExpiresAt: r.link_expires_at,
+		homologation: s.homologation,
 		problem: s.problem,
 		lastCheckAt: r.last_check_at,
 		lastCheckOk: r.last_check_ok,
@@ -125,14 +163,17 @@ export async function saveIfoodCredentials(
 	if (!clientId) throw new DomainError('err.ifood.clientId');
 	if (!merchantId) throw new DomainError('err.ifood.merchantId');
 	if (!/^[A-Za-z0-9-]{8,64}$/.test(merchantId)) throw new DomainError('err.ifood.merchantIdShape');
-	const current = await row();
+	const current = await ifoodSettingsRow();
 	if (!clientSecret && !current.client_secret_enc) throw new DomainError('err.ifood.clientSecret');
 	const secretEnc = clientSecret ? encryptSecret(clientSecret) : current.client_secret_enc;
 	await db().begin(async (tx) => {
 		const credentialsChanged =
-			clientId !== current.client_id || merchantId !== current.merchant_id || Boolean(clientSecret);
+			clientId !== current.client_id ||
+			merchantId !== current.merchant_id ||
+			Boolean(clientSecret) ||
+			current.auth_mode !== 'own';
 		await tx`
-			update ifood_settings set client_id = ${clientId}, merchant_id = ${merchantId},
+			update ifood_settings set auth_mode = 'own', client_id = ${clientId}, merchant_id = ${merchantId},
 				client_secret_enc = ${secretEnc},
 				enabled = ${credentialsChanged ? false : current.enabled},
 				last_check_at = ${credentialsChanged ? null : current.last_check_at},
@@ -163,10 +204,12 @@ export async function recordIfoodPoll(ok: boolean, error: string | null = null) 
 
 /** Turning automatic iFood orders on needs saved credentials that just passed the test. */
 export async function setIfoodEnabled(enabled: boolean, actor: Actor) {
-	const r = await row();
+	const r = await ifoodSettingsRow();
 	if (enabled) {
-		if (!r.client_id || !r.client_secret_enc || !r.merchant_id)
+		const linked = r.auth_mode === 'app' && (await getShopSecret('ifood_refresh'));
+		if (!linked && (!r.client_id || !r.client_secret_enc || !r.merchant_id))
 			throw new DomainError('err.ifood.saveFirst', { code: 'not_configured' });
+		if (!r.merchant_id) throw new DomainError('err.ifood.saveFirst', { code: 'not_configured' });
 		if (!r.last_check_ok) throw new DomainError('err.ifood.testFirst', { code: 'not_tested' });
 	}
 	await db().begin(async (tx) => {

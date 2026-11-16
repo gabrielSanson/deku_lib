@@ -33,6 +33,11 @@ const schema = z.object({
 	IFOOD_CLIENT_SECRET: z.string().optional(),
 	IFOOD_MERCHANT_ID: z.string().optional(),
 	IFOOD_API_BASE: z.string().url().default('https://merchant-api.ifood.com.br'),
+	/** The platform's own iFood app (distributed app): shops link their store with a code. */
+	IFOOD_APP_CLIENT_ID: z.string().optional(),
+	IFOOD_APP_CLIENT_SECRET: z.string().optional(),
+	/** Local stand-in for iFood's linking calls; refused in production. */
+	IFOOD_APP_STUB: flag,
 	// Shows the Google button on the customer login. Enable it in Supabase Auth first.
 	GOOGLE_LOGIN_ENABLED: flag,
 	// Alert e-mails: smtps://user:password@smtp.gmail.com:465 (an app password for Gmail).
@@ -58,6 +63,9 @@ export function config(): Config {
 	if (!cached) {
 		const parsed = schema.parse(process.env);
 		const production = parsed.NODE_ENV === 'production';
+		if (production && parsed.IFOOD_APP_STUB) {
+			throw new Error('The iFood linking stub cannot run in production');
+		}
 		if (production && parsed.PAYMENT_PROVIDER === 'local_stub') {
 			throw new Error('The local payment stub cannot run in production');
 		}

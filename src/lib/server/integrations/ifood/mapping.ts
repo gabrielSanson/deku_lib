@@ -186,6 +186,11 @@ export function statusForEvent(code: string): OrderStatus | null {
 	}
 }
 
+/** iFood refused a cancellation the shop asked for. TODO(verify) the event codes. */
+export function cancellationDenied(code: string) {
+	return code === 'CARF' || code === 'CANCELLATION_REQUEST_FAILED';
+}
+
 export function isPlaced(code: string) {
 	return code === 'PLC' || code === 'PLACED';
 }

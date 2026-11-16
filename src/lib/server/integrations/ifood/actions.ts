@@ -4,6 +4,7 @@ import { fail, type RequestEvent } from '@sveltejs/kit';
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { checkIfoodConnection } from './check';
+import { finishIfoodLink, setIfoodHomologation, startIfoodLink, unlinkIfood } from './connect';
 import {
 	ifoodSettings,
 	invalidateIfoodSettings,
@@ -13,6 +14,29 @@ import {
 } from './settings';
 
 export const ifoodActions = {
+	ifoodLinkStart: async (event: RequestEvent) => {
+		const staff = requireStaff(event, ADMIN);
+		return attempt(async () => ({ link: await startIfoodLink(staffActor(staff)) }));
+	},
+	ifoodLinkFinish: async (event: RequestEvent) => {
+		const staff = requireStaff(event, ADMIN);
+		const code = formString(await event.request.formData(), 'authorizationCode');
+		return attempt(async () => {
+			await finishIfoodLink(code, staffActor(staff));
+			return { ok: await shopText('ok.ifoodLinked') };
+		});
+	},
+	ifoodUnlink: async (event: RequestEvent) => {
+		const staff = requireStaff(event, ADMIN);
+		await unlinkIfood(staffActor(staff));
+		return { ok: true };
+	},
+	ifoodHomologation: async (event: RequestEvent) => {
+		const staff = requireStaff(event, ADMIN);
+		const on = formString(await event.request.formData(), 'on') === '1';
+		await setIfoodHomologation(on, staffActor(staff));
+		return { ok: true };
+	},
 	ifoodSave: async (event: RequestEvent) => {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
@@ -63,7 +87,8 @@ async function runCheck() {
 		base: s.apiBase,
 		clientId: s.clientId,
 		clientSecret: s.clientSecret,
-		merchantId: s.merchantId
+		merchantId: s.merchantId,
+		refreshToken: s.authMode === 'app' ? s.refreshToken : null
 	});
 	if (result.ok) {
 		await recordIfoodCheck(true, null);

@@ -8,6 +8,7 @@ export type SecretKind =
 	| 'mercadopago_token'
 	| 'mercadopago_webhook'
 	| 'ifood'
+	| 'ifood_refresh'
 	| 'focusnfe_token'
 	| 'whatsapp'
 	| 'psp_pix_cert';

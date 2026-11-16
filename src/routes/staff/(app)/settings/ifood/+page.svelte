@@ -4,6 +4,7 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import IfoodConnect, { type IfoodProblem } from '#lib/components/organisms/IfoodConnect.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
+	import TextField from '#lib/components/molecules/TextField.svelte';
 
 	let { data, form } = $props();
 	const s = $derived(data.ifood.summary);
@@ -18,6 +19,13 @@
 		dead: 'text-bad font-semibold'
 	};
 	const t = useTexts();
+	const link = $derived(
+		form && 'link' in form
+			? (form.link as { userCode: string; verificationUrl: string })
+			: data.connection.linkUserCode
+				? { userCode: data.connection.linkUserCode, verificationUrl: '' }
+				: null
+	);
 	const problem = $derived(
 		form && 'ifoodProblem' in form ? (form.ifoodProblem as IfoodProblem) : null
 	);
@@ -39,12 +47,89 @@
 				>{data.ifood.enabled ? t('integrations.on') : t('integrations.off')}</span
 			>
 		</div>
-		<IfoodConnect
-			ifood={data.connection}
-			{problem}
-			canStoreSecrets={data.canStoreSecrets}
-			webhookUrl={data.webhookUrl}
-		/>
+		{#if data.appAvailable}
+			<div class="space-y-2 rounded-lg border border-line p-3">
+				<h3 class="font-semibold">{t('ifoodLink.title')}</h3>
+				{#if data.connection.linked}
+					<p class="text-sm">
+						{t('ifoodLink.linked', {
+							date: data.connection.linkedAt ? formatDateTime(data.connection.linkedAt) : ''
+						})}
+						{data.connection.merchantId ?? ''}
+					</p>
+					<form method="POST" action="?/ifoodUnlink" use:enhance>
+						<button class="btn-ghost">{t('ifoodLink.unlink')}</button>
+					</form>
+				{:else}
+					<p class="text-sm text-muted">{t('ifoodLink.intro')}</p>
+					{#if link}
+						<p class="text-sm">{t('ifoodLink.code')}</p>
+						<p class="text-2xl font-black tracking-widest">{link.userCode}</p>
+						{#if link.verificationUrl}
+							<a class="underline" href={link.verificationUrl} target="_blank" rel="noopener"
+								>{t('ifoodLink.open')}</a
+							>
+						{/if}
+						<form method="POST" action="?/ifoodLinkFinish" class="flex flex-wrap items-end gap-2">
+							<TextField
+								label={t('ifoodLink.authCode')}
+								name="authorizationCode"
+								required
+								wrapClass="flex-1"
+							/>
+							<button class="btn-primary">{t('ifoodLink.finish')}</button>
+						</form>
+					{:else}
+						<form method="POST" action="?/ifoodLinkStart" use:enhance>
+							<button class="btn-primary">{t('ifoodLink.start')}</button>
+						</form>
+					{/if}
+				{/if}
+				<p class="text-xs text-muted">{t('ifoodLink.portalTip')}</p>
+			</div>
+			<details>
+				<summary class="cursor-pointer text-sm font-semibold">{t('ifoodLink.advanced')}</summary>
+				<div class="pt-3">
+					<IfoodConnect
+						ifood={data.connection}
+						{problem}
+						canStoreSecrets={data.canStoreSecrets}
+						webhookUrl={data.webhookUrl}
+					/>
+				</div>
+			</details>
+		{:else}
+			<IfoodConnect
+				ifood={data.connection}
+				{problem}
+				canStoreSecrets={data.canStoreSecrets}
+				webhookUrl={data.webhookUrl}
+			/>
+		{/if}
+	</section>
+
+	<section class="space-y-3 card p-4">
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<h2 class="text-lg font-bold">{t('ifoodHomolog.title')}</h2>
+			<form method="POST" action="?/ifoodHomologation" use:enhance>
+				<input type="hidden" name="on" value={data.connection.homologation ? '0' : '1'} />
+				<button class="btn-secondary"
+					>{data.connection.homologation ? t('ifoodHomolog.off') : t('ifoodHomolog.on')}</button
+				>
+			</form>
+		</div>
+		<p class="text-sm text-muted">{t('ifoodHomolog.intro')}</p>
+		{#if data.connection.homologation}
+			<ul class="space-y-1 text-sm">
+				{#each data.homologation as c (c.id)}
+					<li class="flex items-center gap-2">
+						<span class={c.doneAt ? 'text-ok' : 'text-muted'}>{c.doneAt ? '✓' : '○'}</span>
+						{t(`ifoodHomolog.case.${c.id}`)}
+						{#if c.doneAt}<span class="text-xs text-muted">{formatDateTime(c.doneAt)}</span>{/if}
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</section>
 
 	<section class="space-y-3 card p-4">

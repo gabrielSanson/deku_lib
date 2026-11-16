@@ -29,7 +29,8 @@ import { evalCart, findOffer, offerMessage, type OfferResult } from '../campaign
 import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalog/service';
 import { currentShopId, db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
-import { enqueue, QUEUES } from '../jobs';
+import { enqueue, QUEUES, type QueueName } from '../jobs';
+import { ifoodSettings } from '../integrations/ifood/settings';
 import { dropPushSubscriptions } from '../notifications/push';
 import { orderRequestHash } from '#lib/domain/request-hash.ts';
 import { knownShop } from '../platform/shops';
@@ -403,6 +404,19 @@ export interface TransitionResult {
 	from: OrderStatus;
 	to: OrderStatus;
 	version: number;
+	/** A delivery app was asked to cancel; the order is cancelled when it confirms. */
+	requested?: boolean;
+}
+
+/** The job queue that mirrors changes to this order's delivery app, if any. */
+function channelSyncQueue(channel: OrderChannel): QueueName | null {
+	return channel === 'ifood' ? QUEUES.ifoodSync : null;
+}
+
+/** Whether the order's delivery app is connected, so a cancellation must go through it. */
+async function channelIsLive(channel: OrderChannel): Promise<boolean> {
+	if (channel === 'ifood') return (await ifoodSettings()).enabled;
+	return false;
 }
 
 export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<TransitionResult> {
@@ -411,7 +425,7 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			{
 				status: OrderStatus;
 				version: number;
-				channel: Channel;
+				channel: OrderChannel;
 				payment_plan: PaymentPlan;
 				payment_status: PaymentStatus;
 			}[]
@@ -447,6 +461,32 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			throw new DomainError('err.order.reason', { code: 'reason_required' });
 		}
 
+		// A delivery app's order is cancelled when the app says so: ask, and wait for its event.
+		const syncQueue = channelSyncQueue(order.channel);
+		if (
+			syncQueue &&
+			(input.to === 'cancelled' || input.to === 'rejected') &&
+			input.actor.type !== 'integration' &&
+			(await channelIsLive(order.channel))
+		) {
+			await t`update orders set cancel_requested_at = now(), cancel_request_reason = ${reason}
+				where id = ${input.orderId}`;
+			await audit(t, input.actor, 'order.cancel_requested', 'order', input.orderId, { reason });
+			await enqueue(
+				t,
+				syncQueue,
+				{ orderId: input.orderId, to: input.to, reason },
+				{ singletonKey: `${order.channel}:${input.orderId}:${input.to}` }
+			);
+			return {
+				changed: false,
+				from: order.status,
+				to: order.status,
+				version: order.version,
+				requested: true
+			};
+		}
+
 		const column = STATUS_TIMESTAMP[input.to];
 		const [updated] = await t<{ version: number }[]>`
 			update orders set
@@ -479,12 +519,12 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 		}
 		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
 		// Changes made here are mirrored to iFood; changes that came from iFood are not echoed back.
-		if (order.channel === 'ifood' && input.actor.type !== 'integration') {
+		if (syncQueue && input.actor.type !== 'integration') {
 			await enqueue(
 				t,
-				QUEUES.ifoodSync,
+				syncQueue,
 				{ orderId: input.orderId, to: input.to, reason },
-				{ singletonKey: `ifood:${input.orderId}:${input.to}` }
+				{ singletonKey: `${order.channel}:${input.orderId}:${input.to}` }
 			);
 		}
 		return { changed: true, from: order.status, to: input.to, version: updated.version };

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { ORDER_STATUSES, type OrderStatus } from '#lib/domain/order-status.ts';
-import { attempt, failText, formString } from '#lib/server/actions.ts';
+import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
 	cancelFiscal,
@@ -38,14 +38,16 @@ export const actions: Actions = {
 		if (!ORDER_STATUSES.includes(to)) return failText(400, 'err.order.badStatus');
 		const version = Number(formString(data, 'version'));
 		return attempt(async () => {
-			await transitionOrder({
+			const r = await transitionOrder({
 				orderId: event.params.id,
 				to,
 				actor: staffActor(staff),
 				reason: formString(data, 'reason') || null,
 				expectedVersion: Number.isFinite(version) && version > 0 ? version : undefined
 			});
-			return { ok: true };
+			return r.requested
+				? { ok: true, notice: await shopText('ok.cancelRequested') }
+				: { ok: true };
 		});
 	},
 	refund: async (event) => {

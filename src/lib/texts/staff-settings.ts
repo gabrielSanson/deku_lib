@@ -1224,5 +1224,103 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Sistema: passo 4',
 		default:
 			'Na manhã seguinte, esta página deve mostrar a cópia fora da máquina em dia. Guarde também uma cópia do arquivo .env em lugar seguro.'
+	},
+	'ifoodLink.title': { group: g, label: 'iFood: conectar (título)', default: 'Conectar com iFood' },
+	'ifoodLink.intro': {
+		group: g,
+		label: 'iFood: conectar (explicação)',
+		default:
+			'Ligue sua loja do iFood a este sistema sem criar chaves de desenvolvedor: peça um código, digite no Portal do Parceiro do iFood e cole aqui o código de autorização que ele mostrar.'
+	},
+	'ifoodLink.start': { group: g, label: 'iFood: pedir código', default: 'Pedir código' },
+	'ifoodLink.code': {
+		group: g,
+		label: 'iFood: código para o portal',
+		default: 'Digite este código no Portal do Parceiro do iFood:'
+	},
+	'ifoodLink.open': {
+		group: g,
+		label: 'iFood: abrir portal',
+		default: 'Abrir o Portal do Parceiro'
+	},
+	'ifoodLink.authCode': {
+		group: g,
+		label: 'iFood: código de autorização',
+		default: 'Código de autorização do iFood'
+	},
+	'ifoodLink.finish': { group: g, label: 'iFood: concluir', default: 'Conectar' },
+	'ifoodLink.linked': {
+		group: g,
+		label: 'iFood: conectada',
+		default: 'Loja conectada ao iFood desde {date}.'
+	},
+	'ifoodLink.unlink': { group: g, label: 'iFood: desconectar', default: 'Desconectar' },
+	'ifoodLink.advanced': {
+		group: g,
+		label: 'iFood: avançado',
+		default: 'Avançado: usar as chaves de desenvolvedor da loja'
+	},
+	'ifoodLink.portalTip': {
+		group: g,
+		label: 'iFood: dica do portal',
+		default:
+			'No Portal do Parceiro do iFood, desligue o aceite automático e a impressão automática: os pedidos passam a ser aceitos e impressos por aqui.'
+	},
+	'ifoodHomolog.title': {
+		group: g,
+		label: 'iFood: homologação (título)',
+		default: 'Roteiro de homologação'
+	},
+	'ifoodHomolog.intro': {
+		group: g,
+		label: 'iFood: homologação (explicação)',
+		default:
+			'Enquanto ligado, o sistema guarda os pedidos e respostas completos do iFood para a revisão deles e marca cada teste quando ele dá certo.'
+	},
+	'ifoodHomolog.on': { group: g, label: 'iFood: ligar homologação', default: 'Ligar homologação' },
+	'ifoodHomolog.off': {
+		group: g,
+		label: 'iFood: desligar homologação',
+		default: 'Desligar homologação'
+	},
+	'ifoodHomolog.case.receive': {
+		group: g,
+		label: 'Homologação: receber',
+		default: 'Receber um pedido'
+	},
+	'ifoodHomolog.case.confirm': {
+		group: g,
+		label: 'Homologação: confirmar',
+		default: 'Confirmar o pedido'
+	},
+	'ifoodHomolog.case.startPreparation': {
+		group: g,
+		label: 'Homologação: preparo',
+		default: 'Iniciar o preparo'
+	},
+	'ifoodHomolog.case.readyToPickup': {
+		group: g,
+		label: 'Homologação: pronto',
+		default: 'Avisar que está pronto para retirada'
+	},
+	'ifoodHomolog.case.dispatch': {
+		group: g,
+		label: 'Homologação: saiu para entrega',
+		default: 'Avisar que saiu para entrega (entregador da loja)'
+	},
+	'ifoodHomolog.case.shopCancel': {
+		group: g,
+		label: 'Homologação: cancelar pela loja',
+		default: 'Cancelar pela loja e receber a confirmação do iFood'
+	},
+	'ifoodHomolog.case.customerCancel': {
+		group: g,
+		label: 'Homologação: cancelado pelo cliente',
+		default: 'Receber um cancelamento feito pelo cliente ou pelo iFood'
+	},
+	'order.cancelRequested': {
+		group: g,
+		label: 'Pedido: cancelamento aguardando app',
+		default: 'Cancelamento pedido ao app de entrega. Aguardando a confirmação.'
 	}
 } as const satisfies Record<string, TextDef>;

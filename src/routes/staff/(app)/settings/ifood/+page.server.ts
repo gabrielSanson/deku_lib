@@ -3,6 +3,8 @@ import { attempt, failText, formString, shopText } from '#lib/server/actions.ts'
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
 import { ifoodStatus } from '#lib/server/integrations/ifood/settings.ts';
+import { ifoodAppAvailable } from '#lib/server/integrations/ifood/auth.ts';
+import { ifoodHomologationProgress } from '#lib/server/integrations/ifood/homologation.ts';
 import { canStoreSecrets } from '#lib/server/secrets.ts';
 import {
 	currentIfoodAlerts,
@@ -20,6 +22,8 @@ export const load: PageServerLoad = async (event) => {
 		currentIfoodAlerts()
 	]);
 	return {
+		appAvailable: ifoodAppAvailable(),
+		homologation: connection.homologation ? await ifoodHomologationProgress() : [],
 		ifood,
 		connection,
 		ifoodAlerts,

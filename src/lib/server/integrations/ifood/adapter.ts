@@ -3,6 +3,7 @@ import type { ChannelAdapter, ChannelEvent } from '../channel';
 import { QUEUES } from '../../jobs';
 import { IFOOD_PATHS, IfoodApiError, ifoodClient, type IfoodClient, type IfoodEvent } from './api';
 import {
+	cancellationDenied,
 	isPlaced,
 	mapIfoodOrder,
 	outboundAction,
@@ -26,13 +27,16 @@ export function ifoodAdapter(client: IfoodClient = ifoodClient()): ChannelAdapte
 		enabled: async () => (await ifoodSettings()).enabled,
 		pollEvents: async () => (await client.poll()).map(toChannelEvent),
 		ackEvents: (ids) => client.acknowledge(ids),
+		keepPayloads: async () => (await ifoodSettings()).homologation,
 		meaning(code) {
 			if (isPlaced(code)) return { kind: 'placed' };
+			if (cancellationDenied(code)) return { kind: 'cancelDenied' };
 			const to = statusForEvent(code);
 			return to ? { kind: 'status', to } : { kind: 'ignore' };
 		},
 		async getOrder(id, lookup) {
-			return mapIfoodOrder((await client.order(id)) as IfoodOrder, lookup);
+			const raw = (await client.order(id)) as IfoodOrder;
+			return { ...mapIfoodOrder(raw, lookup), raw };
 		},
 		planStatus(order, to, reason) {
 			const action = outboundAction(to, {
@@ -49,7 +53,7 @@ export function ifoodAdapter(client: IfoodClient = ifoodClient()): ChannelAdapte
 		async sendStatus(order, call) {
 			const path = IFOOD_PATHS[call.action as keyof typeof IFOOD_PATHS];
 			if (typeof path !== 'function') throw new Error(`unknown iFood action ${call.action}`);
-			await client.action(path(order.channelOrderId), call.body);
+			return client.action(path(order.channelOrderId), call.body);
 		},
 		describeError: (err) =>
 			err instanceof IfoodApiError ? `${err.message} (${err.status})` : String(err)

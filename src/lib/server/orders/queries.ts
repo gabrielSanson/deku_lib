@@ -239,6 +239,8 @@ export interface OrderDetail extends OrderSummary {
 	offerName: string | null;
 	deliveryFeeCents: number;
 	cancelReason: string | null;
+	/** Waiting for the delivery app to confirm a cancellation the shop asked for. */
+	cancelRequestedAt: Date | null;
 	/** The phone's ready alert could not be delivered at least once. */
 	pushFailed: boolean;
 	publicToken: string;
@@ -282,6 +284,7 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 			discount_cents: number;
 			delivery_fee_cents: number;
 			cancel_reason: string | null;
+			cancel_requested_at: Date | null;
 			public_token: string;
 			catalog_version: string | null;
 			offer_name: string | null;
@@ -334,6 +337,7 @@ export async function getOrderDetail(id: string, sql: Db = db()): Promise<OrderD
 		offerName: row.offer_name,
 		deliveryFeeCents: row.delivery_fee_cents,
 		cancelReason: row.cancel_reason,
+		cancelRequestedAt: row.cancel_requested_at,
 		publicToken: row.public_token,
 		catalogVersion: row.catalog_version,
 		address: address ?? null,

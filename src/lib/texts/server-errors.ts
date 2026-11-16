@@ -488,6 +488,32 @@ export const SERVER_ERROR_TEXTS = {
 		default: 'Revise as regras da promoção.'
 	},
 	'err.date.invalid': { group: 'staffErrors', label: 'Data inválida', default: 'Data inválida.' },
+	'err.ifood.noApp': {
+		group: 'staffErrors',
+		label: 'iFood: aplicativo da plataforma ausente',
+		default:
+			'Este servidor não tem o aplicativo iFood da plataforma. Use “Avançado” com as chaves da sua loja.'
+	},
+	'err.ifood.noAuthCode': {
+		group: 'staffErrors',
+		label: 'iFood: falta o código',
+		default: 'Cole o código de autorização que o iFood mostrou.'
+	},
+	'err.ifood.linkExpired': {
+		group: 'staffErrors',
+		label: 'iFood: código vencido',
+		default: 'O código para conectar venceu. Peça um novo e repita.'
+	},
+	'ok.ifoodLinked': {
+		group: 'staffErrors',
+		label: 'iFood: loja conectada',
+		default: 'Loja conectada ao iFood. Confira e ligue o recebimento de pedidos.'
+	},
+	'ok.cancelRequested': {
+		group: 'staffErrors',
+		label: 'Pedido: cancelamento pedido ao app',
+		default: 'Cancelamento pedido. O pedido sai da fila quando o app de entrega confirmar.'
+	},
 	'err.menu.csvInvalid': {
 		group: 'staffErrors',
 		label: 'Cardápio: planilha com erros',

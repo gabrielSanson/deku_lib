@@ -69,6 +69,9 @@
 		</p>
 		{#if o.customerLabel}<p class="text-lg font-semibold">{o.customerLabel}</p>{/if}
 		{#if o.notes}<p class="alert-warn">{o.notes}</p>{/if}
+		{#if o.cancelRequestedAt && o.status !== 'cancelled' && o.status !== 'rejected'}
+			<p class="alert-warn">{t('order.cancelRequested')}</p>
+		{/if}
 		{#if o.cancelReason}<p class="alert-error">
 				{t('orderDetail.reason', { reason: o.cancelReason })}
 			</p>{/if}

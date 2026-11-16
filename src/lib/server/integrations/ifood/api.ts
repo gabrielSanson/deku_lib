@@ -5,10 +5,14 @@
 // exercised against iFood's homologation environment. Keep every iFood URL in
 // IFOOD_PATHS so corrections land in one place.
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { currentShopId } from '../../db';
+import { setShopSecret } from '../../platform/secrets';
+import { appAuth } from './auth';
 import { ifoodSettings } from './settings';
 
 export const IFOOD_PATHS = {
 	token: '/authentication/v1.0/oauth/token',
+	merchants: '/merchant/v1.0/merchants',
 	merchant: (id: string) => `/merchant/v1.0/merchants/${encodeURIComponent(id)}`,
 	polling: '/events/v1.0/events:polling',
 	acknowledgment: '/events/v1.0/events/acknowledgment',
@@ -48,33 +52,57 @@ export interface IfoodCredentials {
 	clientId: string;
 	clientSecret: string;
 	merchantId: string;
+	/** Stores linked to the platform's iFood app sign in with their own refresh token. */
+	refreshToken?: string | null;
 }
 
 export class IfoodNotConfiguredError extends Error {}
 
-let token: { key: string; value: string; expiresAt: number } | undefined;
+// One token per shop and credentials: shops linked to the platform app share its client id.
+const tokens = new Map<string, { value: string; expiresAt: number }>();
 
 export function resetIfoodTokenForTests() {
-	token = undefined;
+	tokens.clear();
 }
 
 /** Credentials saved in the setup wizard, or the IFOOD_* environment variables. */
 export async function currentIfoodCredentials(): Promise<IfoodCredentials> {
 	const s = await ifoodSettings();
-	if (!s.clientId || !s.clientSecret || !s.merchantId) {
+	if (
+		!s.clientId ||
+		!s.clientSecret ||
+		!s.merchantId ||
+		(s.authMode === 'app' && !s.refreshToken)
+	) {
 		throw new IfoodNotConfiguredError('iFood credentials are not configured');
 	}
 	return {
 		base: s.apiBase,
 		clientId: s.clientId,
 		clientSecret: s.clientSecret,
-		merchantId: s.merchantId
+		merchantId: s.merchantId,
+		refreshToken: s.authMode === 'app' ? s.refreshToken : null
 	};
 }
 
+function tokenKey(c: IfoodCredentials) {
+	return `${currentShopId()}|${c.base}|${c.clientId}|${c.refreshToken ? 'link' : c.clientSecret.length}`;
+}
+
 async function accessToken(f: Fetch, c: IfoodCredentials): Promise<string> {
-	const key = `${c.base}|${c.clientId}|${c.clientSecret.length}`;
-	if (token && token.key === key && token.expiresAt > Date.now() + 60_000) return token.value;
+	const key = tokenKey(c);
+	const cached = tokens.get(key);
+	if (cached && cached.expiresAt > Date.now() + 60_000) return cached.value;
+	if (c.refreshToken) {
+		const t = await appAuth().refresh(c.refreshToken);
+		// iFood may hand out a new refresh token; keep the newest one.
+		if (t.refreshToken && t.refreshToken !== c.refreshToken) {
+			await setShopSecret('ifood_refresh', t.refreshToken);
+			c.refreshToken = t.refreshToken;
+		}
+		tokens.set(key, { value: t.accessToken, expiresAt: Date.now() + t.expiresInSeconds * 1000 });
+		return t.accessToken;
+	}
 	const res = await f(c.base + IFOOD_PATHS.token, {
 		method: 'POST',
 		headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -88,8 +116,8 @@ async function accessToken(f: Fetch, c: IfoodCredentials): Promise<string> {
 	const text = await res.text();
 	if (!res.ok) throw new IfoodApiError('iFood token request failed', res.status, text);
 	const body = JSON.parse(text) as { accessToken: string; expiresIn: number };
-	token = { key, value: body.accessToken, expiresAt: Date.now() + body.expiresIn * 1000 };
-	return token.value;
+	tokens.set(key, { value: body.accessToken, expiresAt: Date.now() + body.expiresIn * 1000 });
+	return body.accessToken;
 }
 
 async function call(
@@ -109,7 +137,7 @@ async function call(
 		});
 	let res = await send();
 	if (res.status === 401) {
-		token = undefined;
+		tokens.delete(tokenKey(c));
 		res = await send();
 	}
 	const body = await res.text();
@@ -125,8 +153,14 @@ export function ifoodClient(
 	return {
 		/** Fetches a fresh token: proves the client id and secret are accepted. */
 		async authenticate() {
-			token = undefined;
-			await accessToken(f, await creds());
+			const c = await creds();
+			tokens.delete(tokenKey(c));
+			await accessToken(f, c);
+		},
+		/** Stores this login can see (linked stores pick theirs from here). TODO(verify) path. */
+		async merchants(): Promise<{ id: string; name?: string }[]> {
+			const c = await creds();
+			return JSON.parse((await call(f, c, IFOOD_PATHS.merchants)).body || '[]');
 		},
 		/** Reads the merchant: proves the credentials can see this store. */
 		async merchant(): Promise<unknown> {
@@ -151,8 +185,8 @@ export function ifoodClient(
 		async order(id: string): Promise<unknown> {
 			return JSON.parse((await call(f, await creds(), IFOOD_PATHS.order(id))).body);
 		},
-		async action(path: string, body?: unknown) {
-			await call(f, await creds(), path, {
+		async action(path: string, body?: unknown): Promise<unknown> {
+			return call(f, await creds(), path, {
 				method: 'POST',
 				headers: body ? { 'content-type': 'application/json' } : {},
 				body: body ? JSON.stringify(body) : undefined
