@@ -1,10 +1,12 @@
 import { openAlerts } from '#lib/server/alerts/service.ts';
 import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import { overview, salesByHour, todayLocal } from '#lib/server/analytics/queries.ts';
+import { attempt } from '#lib/server/actions.ts';
+import { markRatingSeen, ratingSummary } from '#lib/server/customers/ratings.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 const shift = (day: string, days: number) =>
 	new Date(new Date(`${day}T00:00:00Z`).getTime() + days * 86400_000).toISOString().slice(0, 10);
@@ -48,5 +50,19 @@ export const load: PageServerLoad = async (event) => {
 	});
 	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
 	const systemAlerts = (await openAlerts()).map((a) => ({ kind: a.kind, detail: a.detail }));
-	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts };
+	const ratings = staff.role === 'kitchen' ? null : await ratingSummary();
+	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts, ratings };
+};
+
+export const actions: Actions = {
+	/** A low rating someone has read. */
+	ratingSeen: async (event) => {
+		const staff = requireStaff(event);
+		const orderId = String((await event.request.formData()).get('orderId') ?? '');
+		if (!/^[0-9a-f-]{36}$/.test(orderId)) return { ok: false };
+		return attempt(async () => {
+			await markRatingSeen(orderId, { type: 'staff', id: staff.id });
+			return { ok: true };
+		});
+	}
 };

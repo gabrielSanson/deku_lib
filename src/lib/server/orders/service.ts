@@ -548,6 +548,15 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			);
 		}
 		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
+		// "Como foi?" an hour later (the job skips delivery-app and test orders).
+		if (input.to === 'completed' && !syncQueue) {
+			await enqueue(
+				t,
+				QUEUES.ratingRequest,
+				{ orderId: input.orderId },
+				{ singletonKey: `rating:${input.orderId}`, startAfter: 60 * 60 }
+			);
+		}
 		// The WhatsApp status message (the job checks whether the customer may get one).
 		const waEvent =
 			input.to === 'ready'

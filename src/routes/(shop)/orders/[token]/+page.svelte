@@ -311,6 +311,10 @@
 		</form>
 	{/if}
 
+	{#if o.status === 'completed' && !data.kiosk}
+		<a class="btn-ghost w-full" href="/avaliar/{page.params.token}">{t('rating.trackLink')}</a>
+	{/if}
+
 	<section class="space-y-1 card p-5 text-sm">
 		<div class="mb-2 flex items-baseline justify-between">
 			<h2 class="font-semibold">{t('order.track.itemsTitle')}</h2>

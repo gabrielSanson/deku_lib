@@ -1,6 +1,7 @@
 // Background job handlers. The worker process (scripts/worker.ts) registers
 // these with pg-boss; they are plain functions so tests can call them directly.
 // Every handler is idempotent because pg-boss delivers at least once.
+import { requestRating } from '../customers/ratings';
 import { beat } from '../alerts/service';
 import { config } from '../config';
 import { db, DEFAULT_SHOP_ID, withShop } from '../db';
@@ -142,6 +143,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.campaignMilestones]: ((d: { orderId: string }) =>
 			processMilestones(d.orderId)) as Handler,
 		[QUEUES.campaignBirthdays]: forEachShop(() => issueBirthdayCoupons()) as Handler,
+		[QUEUES.ratingRequest]: ((d: { orderId: string }) => requestRating(d.orderId)) as Handler,
 		[QUEUES.whatsappSend]: ((d: { outboxId: string }) => sendOutboxMessage(d.outboxId)) as Handler,
 		...extra
 	};

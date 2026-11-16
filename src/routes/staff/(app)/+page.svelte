@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import IconChip from '#lib/components/atoms/IconChip.svelte';
 	import Money from '#lib/components/atoms/Money.svelte';
@@ -220,6 +221,45 @@
 		</div>
 
 		<aside class="space-y-6">
+			{#if data.ratings && data.ratings.count}
+				<section class="space-y-3" aria-labelledby="avaliacao">
+					<h2 id="avaliacao" class="sr-only">{t('dash.tile.rating')}</h2>
+					<StatTile
+						icon="star"
+						label={t('dash.tile.rating')}
+						value={data.ratings.average == null
+							? '—'
+							: data.ratings.average.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}
+						hint={t('dash.tile.ratingHint', { n: data.ratings.count })}
+					/>
+					{#if data.ratings.low.length}
+						<div class="card p-4">
+							<h3 class="mb-2 text-xs font-bold tracking-wide text-muted uppercase">
+								{t('dash.lowRatings')}
+							</h3>
+							<ul class="space-y-2">
+								{#each data.ratings.low as r (r.orderId)}
+									<li class="flex items-start justify-between gap-2 text-sm">
+										<a href="/staff/orders/{r.orderId}" class="min-w-0">
+											<span class="font-semibold"
+												>{t('dash.lowRatings.line', {
+													numero: r.orderNumber,
+													estrelas: r.stars
+												})}</span
+											>
+											{#if r.comment}<span class="block text-muted">{r.comment}</span>{/if}
+										</a>
+										<form method="POST" action="?/ratingSeen" use:enhance>
+											<input type="hidden" name="orderId" value={r.orderId} />
+											<button class="btn-quiet min-h-9 px-3">{t('dash.lowRatings.seen')}</button>
+										</form>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+				</section>
+			{/if}
 			<section class="card p-5" aria-labelledby="agora">
 				<div class="mb-4 flex items-center justify-between gap-2">
 					<h2 id="agora" class="font-semibold">{t('dash.now')}</h2>

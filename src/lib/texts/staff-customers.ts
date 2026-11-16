@@ -315,5 +315,91 @@ export const STAFF_CUSTOMER_TEXTS = {
 		label: 'Solicitações: já respondida',
 		default: 'Esta solicitação já foi respondida.'
 	},
+	'rating.message': {
+		group: 'account',
+		label: 'Avaliação: mensagem ao cliente',
+		default:
+			'Oi {nome}! Como foi o pedido nº {numero} da {loja}? Conte pra gente em um toque: {link}'
+	},
+	'rating.mail.subject': {
+		group: 'account',
+		label: 'Avaliação: assunto do e-mail',
+		default: 'Como foi o seu pedido nº {numero}?'
+	},
+	'rating.title': { group: 'account', label: 'Avaliação: título', default: 'Como foi?' },
+	'rating.intro': {
+		group: 'account',
+		label: 'Avaliação: texto',
+		default: 'Pedido nº {numero}. Sua nota fica só com a gente e ajuda a melhorar.'
+	},
+	'rating.stars': { group: 'account', label: 'Avaliação: nota', default: 'Sua nota' },
+	'rating.star': { group: 'account', label: 'Avaliação: estrela', default: '{n} de 5' },
+	'rating.comment': {
+		group: 'account',
+		label: 'Avaliação: comentário',
+		default: 'Quer contar mais? (opcional)'
+	},
+	'rating.send': { group: 'account', label: 'Avaliação: enviar', default: 'Enviar avaliação' },
+	'rating.thanks': {
+		group: 'account',
+		label: 'Avaliação: obrigado',
+		default: 'Obrigado! Recebemos sua avaliação ({n} de 5).'
+	},
+	'rating.invalid': {
+		group: 'account',
+		label: 'Avaliação: link inválido',
+		default: 'Este pedido ainda não pode ser avaliado.'
+	},
+	'rating.trackLink': {
+		group: 'account',
+		label: 'Avaliação: link no acompanhamento',
+		default: 'Avaliar este pedido'
+	},
+	'rating.low.subject': {
+		group: 'staff',
+		label: 'Avaliação baixa: assunto do aviso',
+		default: 'Avaliação {estrelas}/5 no pedido nº {numero}'
+	},
+	'rating.low.body': {
+		group: 'staff',
+		label: 'Avaliação baixa: texto do aviso',
+		default: 'O pedido nº {numero} recebeu {estrelas} de 5. Comentário: {comentario}'
+	},
+	'dash.tile.rating': {
+		group: 'staff',
+		label: 'Início: cartão de avaliação',
+		default: 'Avaliação'
+	},
+	'dash.tile.ratingHint': {
+		group: 'staff',
+		label: 'Início: avaliações em 30 dias',
+		default: '{n} avaliações em 30 dias'
+	},
+	'dash.lowRatings': {
+		group: 'staff',
+		label: 'Início: avaliações baixas',
+		default: 'Avaliações baixas'
+	},
+	'dash.lowRatings.line': {
+		group: 'staff',
+		label: 'Início: linha de avaliação baixa',
+		default: 'Pedido nº {numero}: {estrelas} de 5'
+	},
+	'dash.lowRatings.seen': { group: 'staff', label: 'Início: marcar como vista', default: 'Visto' },
+	'err.rating.stars': {
+		group: 'errors',
+		label: 'Avaliação: sem nota',
+		default: 'Escolha de 1 a 5 estrelas.'
+	},
+	'err.rating.notRateable': {
+		group: 'errors',
+		label: 'Avaliação: pedido não avaliável',
+		default: 'Este pedido ainda não pode ser avaliado.'
+	},
+	'err.rating.done': {
+		group: 'errors',
+		label: 'Avaliação: já avaliado',
+		default: 'Este pedido já foi avaliado. Obrigado!'
+	},
 	'nav.clientes': { group: 'staffLabels', label: 'Menu da equipe: Clientes', default: 'Clientes' }
 } as const satisfies Record<string, TextDef>;
