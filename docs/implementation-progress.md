@@ -2,6 +2,21 @@
 
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
+## Run of 2026-11-16: stage S4 (profit view), merged to main
+
+All 5 S4 items are done. `pnpm verify` is green (200 unit, 204 database tests) and the 28 browser tests pass.
+Gestão → Estoque (items, purchases, counts, waste, fichas técnicas), fees per payment, Relatórios → Lucro and
+Resultado do mês, Gestão → Despesas and the owner's daily summary. The worked example (R$45 iFood order keeps
+R$38,16; on the site with Efí Pix R$44,46) is reproduced in `tests/integration/profit.test.ts`.
+
+**Defaults to check (owner edits):** card machine 3% (one rate, credit), Mercado Pago and Efí prices, iFood
+payment fee 3.2% and commissions 12% / 23% are [UNVERIFIED]; Open Delivery commission starts at 0; the Simples
+rate starts at 0 (the result page warns until it is set); own delivery cost starts at R$0.
+
+Owner to do: register stock items and fichas técnicas for the products (products without one are left out of
+food cost and flagged); enter the card machine rates; ask the accountant for the Simples rate; set the alert
+e-mail for the daily summary.
+
 ## Run of 2026-11-16: stage S3 (customers and growth), merged to main
 
 All 9 S3 items are done. `pnpm verify` is green (188 unit, 188 database tests) and the 28 browser tests pass.
