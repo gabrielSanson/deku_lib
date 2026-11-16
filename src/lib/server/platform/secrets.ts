@@ -14,7 +14,10 @@ export type SecretKind =
 	| 'focusnfe_token'
 	| 'whatsapp'
 	| 'whatsapp_app_secret'
-	| 'psp_pix_cert';
+	| 'psp_pix_cert'
+	| 'psp_pix_cert_pass'
+	| 'efi_client_secret'
+	| 'efi_webhook';
 
 export async function getShopSecret(
 	kind: SecretKind,

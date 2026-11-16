@@ -5,6 +5,7 @@
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
+	import { formatDateTime } from '#lib/domain/time.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
@@ -14,6 +15,7 @@
 	const providerOptions = $derived([
 		{ value: 'none', label: t('payments.providerNone') },
 		{ value: 'mercadopago', label: 'Mercado Pago' },
+		{ value: 'efi', label: t('payments.providerEfi') },
 		...(data.allowStub ? [{ value: 'local_stub', label: t('payments.providerStub') }] : [])
 	]);
 </script>
@@ -78,6 +80,7 @@
 		title={t('payments.online')}
 		hint={t('payments.onlineHint')}
 		action="?/online"
+		enctype="multipart/form-data"
 		saveLabel={t('payments.onlineSave')}
 		saved={form?.ok === 'online' ? t('payments.onlineSaved') : undefined}
 	>
@@ -99,12 +102,14 @@
 						value="pix"
 						checked={data.methods.includes('pix')}
 					/>
-					<Checkbox
-						label={t('payments.methodCard')}
-						name="methods"
-						value="online_card"
-						checked={data.methods.includes('online_card')}
-					/>
+					{#if provider !== 'efi'}
+						<Checkbox
+							label={t('payments.methodCard')}
+							name="methods"
+							value="online_card"
+							checked={data.methods.includes('online_card')}
+						/>
+					{/if}
 				</fieldset>
 			{/if}
 			{#if provider === 'mercadopago'}
@@ -134,6 +139,67 @@
 				</div>
 				{#if data.paymentProvider === 'mercadopago' && !data.webhookSecretSet}
 					<p class="alert-error" role="alert">{t('integrations.noWebhookSecret')}</p>
+				{/if}
+			{:else if provider === 'efi'}
+				{#if !data.canStoreSecrets}
+					<p class="alert-error" role="alert">{t('err.settings.appSecret')}</p>
+				{/if}
+				<p class="text-sm text-muted">{t('payments.efiHint')}</p>
+				<p class="alert-warn text-sm">{t('payments.efiUnverified')}</p>
+				<div class="grid gap-3 sm:grid-cols-2">
+					<TextField
+						label={t('payments.efiClientId')}
+						name="pspClientId"
+						value={data.psp?.clientId ?? ''}
+						autocomplete="off"
+						required
+					/>
+					<TextField
+						label={t('payments.efiClientSecret')}
+						hint={data.psp?.hasSecret ? t('payments.keySaved') : undefined}
+						name="pspClientSecret"
+						type="password"
+						autocomplete="off"
+						required={!data.psp?.hasSecret}
+					/>
+					<TextField
+						label={t('payments.efiPixKey')}
+						name="pspPixKey"
+						value={data.psp?.pixKey ?? ''}
+						required
+					/>
+					<TextField
+						label={t('payments.efiCertPass')}
+						name="pspCertificatePassword"
+						type="password"
+						autocomplete="off"
+					/>
+				</div>
+				<label class="block text-sm">
+					<span class="font-semibold">{t('payments.efiCert')}</span>
+					{#if data.psp?.hasCert}<span class="text-muted"> · {t('payments.keySaved')}</span>{/if}
+					<input
+						class="mt-1 block w-full text-sm"
+						type="file"
+						name="pspCertificate"
+						accept=".p12,.pfx,application/x-pkcs12"
+						required={!data.psp?.hasCert}
+					/>
+				</label>
+				<Checkbox
+					label={t('payments.efiSandbox')}
+					name="pspSandbox"
+					checked={data.psp?.sandbox ?? false}
+				/>
+				{#if data.paymentProvider === 'efi'}
+					<button class="btn-ghost" formaction="?/pspWebhook" formnovalidate
+						>{t('payments.efiWebhook')}</button
+					>
+					{#if data.psp?.webhookAt}
+						<p class="text-sm text-ok">
+							{t('payments.efiWebhookDone', { date: formatDateTime(data.psp.webhookAt) })}
+						</p>
+					{/if}
 				{/if}
 			{:else if provider === 'local_stub'}
 				<p class="alert-warn">{t('integrations.stub')}</p>

@@ -11,6 +11,7 @@
 		saveLabel,
 		saved,
 		warning,
+		enctype,
 		children
 	}: {
 		title: string;
@@ -19,11 +20,13 @@
 		saveLabel: string;
 		saved?: string;
 		warning?: string | null;
+		/** multipart/form-data when the form uploads a file. */
+		enctype?: 'multipart/form-data';
 		children: Snippet;
 	} = $props();
 </script>
 
-<GuardedForm {action} class="space-y-4 card p-4">
+<GuardedForm {action} {enctype} class="space-y-4 card p-4">
 	<h2 class="font-semibold">{title}</h2>
 	{#if hint}<p class="text-sm text-muted">{hint}</p>{/if}
 	{@render children()}

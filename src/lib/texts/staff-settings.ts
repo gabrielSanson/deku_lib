@@ -222,6 +222,59 @@ export const STAFF_SETTINGS_TEXTS = {
 	},
 	'payments.provider': { group: g, label: 'Pagamentos: provedor', default: 'Provedor' },
 	'payments.providerNone': { group: g, label: 'Pagamentos: nenhum', default: 'Nenhum' },
+	'payments.providerEfi': {
+		group: g,
+		label: 'Pagamentos: Efí',
+		default: 'Efí (Pix automático)'
+	},
+	'payments.efiHint': {
+		group: g,
+		label: 'Pagamentos: Efí, como configurar',
+		default:
+			'No app da Efí: crie uma aplicação com os escopos de Pix (cobranças, webhooks e devoluções), gere o certificado .p12 e cadastre uma chave Pix na conta. O pagamento é confirmado sozinho; a taxa é cobrada pela Efí.'
+	},
+	'payments.efiUnverified': {
+		group: g,
+		label: 'Pagamentos: Efí ainda não testada',
+		default:
+			'Integração ainda não testada com a Efí. Use primeiro o ambiente de homologação e faça um Pix de teste antes de usar com clientes.'
+	},
+	'payments.efiClientId': { group: g, label: 'Pagamentos: Efí Client ID', default: 'Client ID' },
+	'payments.efiClientSecret': {
+		group: g,
+		label: 'Pagamentos: Efí Client Secret',
+		default: 'Client Secret'
+	},
+	'payments.efiPixKey': {
+		group: g,
+		label: 'Pagamentos: Efí chave Pix',
+		default: 'Chave Pix cadastrada na Efí'
+	},
+	'payments.efiCert': {
+		group: g,
+		label: 'Pagamentos: Efí certificado',
+		default: 'Certificado (.p12)'
+	},
+	'payments.efiCertPass': {
+		group: g,
+		label: 'Pagamentos: Efí senha do certificado',
+		default: 'Senha do certificado (se tiver)'
+	},
+	'payments.efiSandbox': {
+		group: g,
+		label: 'Pagamentos: Efí homologação',
+		default: 'Ambiente de homologação (testes, sem dinheiro de verdade)'
+	},
+	'payments.efiWebhook': {
+		group: g,
+		label: 'Pagamentos: Efí registrar aviso',
+		default: 'Registrar aviso de pagamento na Efí'
+	},
+	'payments.efiWebhookDone': {
+		group: g,
+		label: 'Pagamentos: Efí aviso registrado',
+		default: 'Aviso de pagamento registrado em {date}.'
+	},
 	'payments.providerStub': {
 		group: g,
 		label: 'Pagamentos: simulador',

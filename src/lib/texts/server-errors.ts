@@ -103,6 +103,22 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Pagamento online sem forma',
 		default: 'Escolha pelo menos uma forma de pagamento online (Pix ou cartão).'
 	},
+	'err.payments.pspMissing': {
+		group: 'errors',
+		label: 'Pix automático: faltam dados',
+		default:
+			'Preencha Client ID, Client Secret, a chave Pix cadastrada na Efí e envie o certificado (.p12).'
+	},
+	'err.payments.pspPixOnly': {
+		group: 'errors',
+		label: 'Pix automático: só Pix',
+		default: 'A Efí aqui recebe só Pix. Desmarque o cartão.'
+	},
+	'err.payments.webhook': {
+		group: 'errors',
+		label: 'Pix automático: webhook recusado',
+		default: 'A Efí recusou o endereço de aviso: {detail}'
+	},
 	'err.payments.noToken': {
 		group: 'errors',
 		label: 'Falta o token do Mercado Pago',

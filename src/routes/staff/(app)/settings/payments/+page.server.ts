@@ -1,5 +1,6 @@
 // How the site gets paid: the shop's own Pix key, plus the online payment provider (PSP).
-import { attempt, formString } from '#lib/server/actions.ts';
+import { fail } from '@sveltejs/kit';
+import { attempt, formString, shopText } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { config } from '#lib/server/config.ts';
 import { currentShopId } from '#lib/server/db.ts';
@@ -7,6 +8,7 @@ import { hasShopSecret } from '#lib/server/platform/secrets.ts';
 import {
 	paymentProvider,
 	paymentSettings,
+	registerPspWebhook,
 	savePaymentSettings,
 	type OnlineMethod,
 	type ProviderName
@@ -27,7 +29,8 @@ export const load: PageServerLoad = async (event) => {
 		tokenSaved: await hasShopSecret('mercadopago_token'),
 		canStoreSecrets: canStoreSecrets(),
 		allowStub: config().NODE_ENV !== 'production',
-		webhookUrl: `${event.url.origin}/api/v1/payments/webhooks/mercadopago/${currentShopId()}`
+		webhookUrl: `${event.url.origin}/api/v1/payments/webhooks/mercadopago/${currentShopId()}`,
+		psp: s.psp ?? null
 	};
 };
 
@@ -60,17 +63,43 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const provider = String(d.get('provider') ?? 'none') as ProviderName;
 		const methods = d.getAll('methods').map(String) as OnlineMethod[];
+		const cert = d.get('pspCertificate');
+		const certificate =
+			cert instanceof File && cert.size > 0 && cert.size < 64_000
+				? Buffer.from(await cert.arrayBuffer()).toString('base64')
+				: null;
 		return attempt(async () => {
 			await savePaymentSettings(
 				{
-					provider: ['none', 'mercadopago', 'local_stub'].includes(provider) ? provider : 'none',
+					provider: ['none', 'mercadopago', 'local_stub', 'efi'].includes(provider)
+						? provider
+						: 'none',
 					methods,
 					accessToken: formString(d, 'accessToken'),
-					webhookSecret: formString(d, 'webhookSecret')
+					webhookSecret: formString(d, 'webhookSecret'),
+					psp: {
+						clientId: formString(d, 'pspClientId'),
+						clientSecret: formString(d, 'pspClientSecret'),
+						pixKey: formString(d, 'pspPixKey'),
+						sandbox: d.get('pspSandbox') === 'on',
+						certificate,
+						certificatePassword: formString(d, 'pspCertificatePassword')
+					}
 				},
 				staffActor(staff)
 			);
 			return { ok: 'online' as const };
 		});
+	},
+	pspWebhook: async (event) => {
+		requireStaff(event, ADMIN);
+		const url = `${event.url.origin}/api/v1/payments/webhooks/efi/${currentShopId()}`;
+		try {
+			await registerPspWebhook(url);
+			return { ok: 'online' as const };
+		} catch (err) {
+			const detail = String((err as { body?: string }).body || err).slice(0, 300);
+			return fail(400, { error: await shopText('err.payments.webhook', { detail }) });
+		}
 	}
 };
