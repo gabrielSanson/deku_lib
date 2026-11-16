@@ -1,7 +1,7 @@
 import type { Db } from './db';
 
 export interface Actor {
-	type: 'staff' | 'system' | 'customer' | 'integration';
+	type: 'staff' | 'system' | 'customer' | 'integration' | 'platform';
 	id: string | null;
 }
 

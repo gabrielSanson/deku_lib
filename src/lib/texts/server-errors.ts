@@ -113,6 +113,62 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Loja suspensa',
 		default: 'Esta loja não está recebendo pedidos pelo site no momento.'
 	},
+	'err.signup.closed': {
+		group: 'errors',
+		label: 'Cadastro: fechado',
+		default: 'O cadastro de lojas não está aberto neste servidor.'
+	},
+	'err.signup.ownerName': { group: 'errors', label: 'Cadastro: nome', default: 'Digite seu nome.' },
+	'err.signup.email': {
+		group: 'errors',
+		label: 'Cadastro: e-mail',
+		default: 'Digite um e-mail válido.'
+	},
+	'err.signup.shopName': {
+		group: 'errors',
+		label: 'Cadastro: nome da loja',
+		default: 'Digite o nome da loja (2 a 80 letras).'
+	},
+	'err.signup.slugFormat': {
+		group: 'errors',
+		label: 'Cadastro: endereço inválido',
+		default: 'Use de 2 a 40 letras minúsculas, números ou hífen no endereço da loja.'
+	},
+	'err.signup.slugReserved': {
+		group: 'errors',
+		label: 'Cadastro: endereço reservado',
+		default: 'Este endereço é reservado. Escolha outro.'
+	},
+	'err.signup.slugTaken': {
+		group: 'errors',
+		label: 'Cadastro: endereço em uso',
+		default: 'Este endereço já está em uso. Escolha outro.'
+	},
+	'err.signup.businessType': {
+		group: 'errors',
+		label: 'Cadastro: tipo de loja',
+		default: 'Escolha o tipo de loja.'
+	},
+	'err.signup.terms': {
+		group: 'errors',
+		label: 'Cadastro: aceitar termos',
+		default: 'Para criar a loja, aceite os termos, o aviso de privacidade e o DPA.'
+	},
+	'err.signup.emailTaken': {
+		group: 'errors',
+		label: 'Cadastro: e-mail já usado',
+		default: 'Este e-mail já tem conta. Entre com ele em uma das suas lojas ou use outro e-mail.'
+	},
+	'err.signup.tooMany': {
+		group: 'errors',
+		label: 'Cadastro: muitas tentativas',
+		default: 'Muitas tentativas. Espere uma hora e tente de novo.'
+	},
+	'err.signup.failed': {
+		group: 'errors',
+		label: 'Cadastro: falhou',
+		default: 'Não deu para criar a loja agora. Tente de novo em alguns minutos. {detail}'
+	},
 	'err.order.notFound': {
 		group: 'errors',
 		label: 'Pedido não encontrado',

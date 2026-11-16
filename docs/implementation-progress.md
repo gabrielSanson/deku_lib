@@ -45,7 +45,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - H4: done f311c65 (shared OrderKey helper in src/lib/client/order-key.ts, used by the cart, checkout and POS)
 - S1.1: done (shop_id defaults to current_shop_id() so services need no changes; shop work uses a per-shop connection pool (role app_server + app.shop_id) instead of withShop at every call site and an ESLint rule; staff_users stays as one row per person, roles in shop_members; iFood keys stay in ifood_settings (already per shop, encrypted); MP keys in shop_secrets; old photos found at the bucket top level instead of a move script; ibs_cbs_rates got an optional shop_id (shop overrides national rows))
 - S1.2: done (platform landing is /conheca (the platform root redirects there); staff of several shops get /staff/lojas; Caddyfile.multi for on-demand TLS; shop #1 gets loja.<domain> when switching to multi)
-- S1.3: todo
+- S1.3: done (the account is created first (members need its id) and removed if the shop cannot be saved; a half-made shop is closed and frees its address; platform pages (landing, sign-up, legal) use fixed Portuguese text instead of the per-shop text catalog; legal drafts in src/lib/platform/legal marked for a lawyer)
 - S1.4: todo
 - S1.5: todo
 - S1.6: todo
