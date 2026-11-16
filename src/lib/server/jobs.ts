@@ -15,7 +15,9 @@ export const QUEUES = {
 	ifoodSync: 'ifood-sync',
 	paymentEvent: 'payment-event',
 	fiscalIssue: 'fiscal-issue',
-	heartbeat: 'heartbeat'
+	heartbeat: 'heartbeat',
+	billingMonthly: 'billing-monthly',
+	billingDaily: 'billing-daily'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 

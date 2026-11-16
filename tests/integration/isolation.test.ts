@@ -25,7 +25,9 @@ const PLATFORM_TABLES = new Set([
 	'staff_users',
 	'backup_runs',
 	'system_heartbeats',
-	'web_push_keys'
+	'web_push_keys',
+	'plans',
+	'platform_settings'
 ]);
 /** Shop tables only platform code may touch (no policy for the app role on purpose). */
 const PLATFORM_ONLY = new Set(['shop_secrets']);

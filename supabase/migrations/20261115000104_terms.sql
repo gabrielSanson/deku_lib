@@ -17,3 +17,6 @@ create policy terms_acceptances_shop on public.terms_acceptances for select to a
 alter table public.audit_log drop constraint if exists audit_log_actor_type_check;
 alter table public.audit_log add constraint audit_log_actor_type_check
   check (actor_type in ('staff', 'customer', 'system', 'integration', 'platform'));
+
+-- Platform-level entries (the platform's own settings) belong to no shop; shops never see them.
+alter table public.audit_log alter column shop_id drop not null;

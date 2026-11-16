@@ -47,7 +47,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S1.2: done (platform landing is /conheca (the platform root redirects there); staff of several shops get /staff/lojas; Caddyfile.multi for on-demand TLS; shop #1 gets loja.<domain> when switching to multi)
 - S1.3: done (the account is created first (members need its id) and removed if the shop cannot be saved; a half-made shop is closed and frees its address; platform pages (landing, sign-up, legal) use fixed Portuguese text instead of the per-shop text catalog; legal drafts in src/lib/platform/legal marked for a lawyer)
 - S1.4: todo
-- S1.5: todo
+- S1.5: done (manual_pix only (PSP adapter later); shop #1 never pays; first invoice on the 1st after the trial ends; due on the 10th; audit_log.shop_id may be null for platform-level entries)
 - S1.6: todo
 - S1.7: done (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
 - S2.1: todo

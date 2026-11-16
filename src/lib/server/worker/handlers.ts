@@ -6,6 +6,7 @@ import { config } from '../config';
 import { db, DEFAULT_SHOP_ID, withShop } from '../db';
 import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
+import { applyLateStatuses, createMonthlyInvoices } from '../platform/billing';
 import { getShop, openShops, syncTenancy } from '../platform/shops';
 import { sendReadyPush } from '../notifications/push';
 import { expireUnpaidCheckouts, expireUnpaidOrders, processPaymentEvent } from '../payments/online';
@@ -66,6 +67,20 @@ export async function handleStaleOrders() {
 	return { expired, waiting: waiting.length };
 }
 
+/** 1st of the month, 06:00: invoices for hosted shops (multi-shop installs only). */
+export async function handleBillingMonthly() {
+	if (config().TENANCY !== 'multi') return { skipped: true };
+	const r = await createMonthlyInvoices();
+	log('invoices created', r);
+	return r;
+}
+
+/** Every day, 07:00: warn and then suspend shops with late invoices. */
+export async function handleBillingDaily() {
+	if (config().TENANCY !== 'multi') return { skipped: true };
+	return applyLateStatuses();
+}
+
 /** Runs every minute: tells the watchdog the worker is alive. */
 export async function handleHeartbeat() {
 	await beat('worker', { pid: process.pid });
@@ -108,6 +123,8 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.fiscalIssue]: handleFiscalIssue as Handler,
 		[QUEUES.staleOrders]: forEachShop(handleStaleOrders) as Handler,
 		[QUEUES.heartbeat]: handleHeartbeat as Handler,
+		[QUEUES.billingMonthly]: handleBillingMonthly as Handler,
+		[QUEUES.billingDaily]: handleBillingDaily as Handler,
 		...extra
 	};
 	for (const [name, handler] of Object.entries(handlers)) {
@@ -131,6 +148,8 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 	}
 	await boss.schedule(QUEUES.staleOrders, '* * * * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.heartbeat, '* * * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.billingMonthly, '0 6 1 * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.billingDaily, '0 7 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await handleHeartbeat();
 	log('worker started', { queues: Object.keys(handlers) });
 	return boss;

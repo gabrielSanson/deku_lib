@@ -93,7 +93,8 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 			{ href: '/staff/settings/profile', label: 'nav.dadosDaLoja', icon: 'store' },
 			{ href: '/staff/settings/hours', label: 'nav.horariosEPausa', icon: 'clock' },
 			{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
-			{ href: '/staff/settings/system', label: 'nav.sistema', icon: 'settings' }
+			{ href: '/staff/settings/system', label: 'nav.sistema', icon: 'settings' },
+			{ href: '/staff/settings/plano', label: 'nav.plano', icon: 'card' }
 		]
 	},
 	{
