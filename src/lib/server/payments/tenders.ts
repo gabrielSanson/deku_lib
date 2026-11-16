@@ -7,6 +7,7 @@ import { recordCashRefund, recordCashSale } from '../cash/service';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { queueFiscalIssue } from '../fiscal/service';
+import { enqueue, QUEUES } from '../jobs';
 import { confirmIfPaid } from '../orders/service';
 
 export const MANUAL_METHODS = ['cash', 'external_pix', 'terminal_card', 'softpos_nfc'] as const;
@@ -122,7 +123,16 @@ export async function refreshPaymentStatus(tx: Tx | Db, orderId: string): Promis
 	if (next !== o.payment_status) {
 		await tx`update orders set payment_status = ${next} where id = ${orderId}`;
 		// A fully paid order gets its NFC-e when the shop has turned notes on.
-		if (next === 'paid') await queueFiscalIssue(tx, orderId);
+		if (next === 'paid') {
+			await queueFiscalIssue(tx, orderId);
+			// Loyalty stamps and referral rewards count paid orders.
+			await enqueue(
+				tx,
+				QUEUES.campaignMilestones,
+				{ orderId },
+				{ singletonKey: `milestones:${orderId}` }
+			);
+		}
 	}
 	return next;
 }

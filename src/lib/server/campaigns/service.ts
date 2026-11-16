@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
 	benefitTypeOf,
 	computeBenefit,
+	isMilestoneTemplate,
 	isTemplateKey,
 	liveProblem,
 	normalizeCode,
@@ -117,17 +118,31 @@ export async function findOffer(sql: Db, input: OfferInput): Promise<OfferResult
 				expires_at: Date | null;
 				max_uses: number | null;
 				active: boolean;
+				kind: string;
+				friend_ref: string | null;
 		  }
 		| undefined;
 	let couponProblem: OfferProblem | null = null;
 	if (code) {
 		[coupon] = await sql<NonNullable<typeof coupon>[]>`
-			select id, campaign_id, customer_id, expires_at, max_uses, active from coupons where code = ${code}`;
+			select id, campaign_id, customer_id, expires_at, max_uses, active, kind, friend_ref
+			from coupons where code = ${code}`;
 		if (!coupon) couponProblem = 'not_found';
 		else if (!coupon.active) couponProblem = 'inactive';
 		else if (coupon.expires_at && now >= coupon.expires_at) couponProblem = 'expired';
 		else if (coupon.customer_id && coupon.customer_id !== input.customerId)
 			couponProblem = coupon.customer_id && !input.customerId ? 'needs_customer' : 'other_customer';
+		else if (coupon.kind === 'referral_welcome') {
+			// A friend's link is for a first order, and not for the friend who shared it.
+			if (!input.customerId) couponProblem = 'needs_customer';
+			else if (coupon.friend_ref === input.customerId) couponProblem = 'other_customer';
+			else {
+				const [{ n }] = await sql<{ n: number }[]>`
+					select count(*)::int as n from orders where customer_id = ${input.customerId}
+					and order_counts_for_offer(status, payment_status)`;
+				if (n > 0) couponProblem = 'first_order_only';
+			}
+		}
 	}
 	const typedCampaign = coupon && !couponProblem ? coupon.campaign_id : null;
 
@@ -141,7 +156,7 @@ export async function findOffer(sql: Db, input: OfferInput): Promise<OfferResult
 	let couponMinOrderCents: number | undefined;
 	for (const row of rows) {
 		const typed = row.id === typedCampaign;
-		const rule = toRule(row);
+		const rule = { ...toRule(row), couponKind: typed ? coupon!.kind : undefined };
 		const problem = liveProblem(rule, now) ?? (await limitProblem(sql, row, input.customerId));
 		const benefit = problem ? null : computeBenefit(rule, input.cart);
 		if (typed && (problem || !benefit?.ok)) {
@@ -371,6 +386,8 @@ export async function saveCampaign(
 		throw new DomainError(issueKey(parsed.error.issues[0].message), { code: 'validation' });
 	const v = parsed.data;
 	const key = v.templateKey as TemplateKey;
+	// Loyalty, referral and birthday are set up in Campanhas → Fidelidade, not here.
+	if (isMilestoneTemplate(key)) throw new DomainError('err.campaign.rules', { code: 'validation' });
 	const params = TEMPLATES[key].params.parse(v.params);
 	const benefitType = benefitTypeOf(key, params);
 	return db().begin(async (tx) => {

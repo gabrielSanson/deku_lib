@@ -10,6 +10,7 @@ import { applyLateStatuses, createMonthlyInvoices } from '../platform/billing';
 import { getShop, openShops, syncTenancy } from '../platform/shops';
 import { sendReadyPush } from '../notifications/push';
 import { sendOutboxMessage } from '../messaging/outbox';
+import { issueBirthdayCoupons, processMilestones } from '../campaigns/milestones';
 import {
 	notifyOrderEvent,
 	processWhatsappInbound,
@@ -37,6 +38,8 @@ export async function handleOrderPlaced(data: { orderId: string }) {
 		status: o.status
 	});
 	await notifyOrderEvent(data.orderId, 'placed');
+	// An order placed already paid (a full discount) earns its stamp here.
+	await processMilestones(data.orderId);
 }
 
 /** The kitchen marked the order ready, or staff tapped "Chamar": tell the customer's phone. */
@@ -136,6 +139,9 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 			processWhatsappInbound(d.channelEventId)) as Handler,
 		[QUEUES.whatsappNotify]: ((d: { orderId: string; event: OrderMessageEvent }) =>
 			notifyOrderEvent(d.orderId, d.event)) as Handler,
+		[QUEUES.campaignMilestones]: ((d: { orderId: string }) =>
+			processMilestones(d.orderId)) as Handler,
+		[QUEUES.campaignBirthdays]: forEachShop(() => issueBirthdayCoupons()) as Handler,
 		[QUEUES.whatsappSend]: ((d: { outboxId: string }) => sendOutboxMessage(d.outboxId)) as Handler,
 		...extra
 	};
@@ -162,6 +168,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 	await boss.schedule(QUEUES.heartbeat, '* * * * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.billingMonthly, '0 6 1 * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.billingDaily, '0 7 * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.campaignBirthdays, '0 8 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await handleHeartbeat();
 	log('worker started', { queues: Object.keys(handlers) });
 	return boss;

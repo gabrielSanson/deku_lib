@@ -64,10 +64,39 @@ export const buyXGetYParams = z.object({
 	maxRewardsPerOrder: z.number().int().min(1).max(20).default(1)
 });
 
+const benefit = codeDiscountParams.shape.benefit;
+export type CouponBenefit = z.infer<typeof benefit>;
+const couponDays = z.number().int().min(1).max(365).default(30);
+
+/** Every N counted orders, the customer gets a coupon. */
+export const loyaltyParams = z.object({
+	every: z.number().int().min(2).max(50),
+	benefit,
+	couponDays
+});
+/** A friend's first order gets `benefit` with the customer's link; the customer then gets `reward`. */
+export const referralParams = z.object({ benefit, reward: benefit, couponDays });
+/** A coupon valid for the customer's birthday week. */
+export const birthdayParams = z.object({ benefit });
+
 export const TEMPLATES = {
 	code_discount: { label: 'Desconto no pedido', params: codeDiscountParams },
-	buy_x_get_y: { label: 'Leve X, ganhe Y', params: buyXGetYParams }
+	buy_x_get_y: { label: 'Leve X, ganhe Y', params: buyXGetYParams },
+	loyalty_stamps: { label: 'Cartão fidelidade', params: loyaltyParams },
+	referral: { label: 'Indique um amigo', params: referralParams },
+	birthday: { label: 'Aniversário', params: birthdayParams }
 } as const;
+
+/** Campaigns that reach customers only through coupons issued to them, never a shared code. */
+export const MILESTONE_TEMPLATES = ['loyalty_stamps', 'referral', 'birthday'] as const;
+export type MilestoneTemplate = (typeof MILESTONE_TEMPLATES)[number];
+export const isMilestoneTemplate = (k: string): k is MilestoneTemplate =>
+	(MILESTONE_TEMPLATES as readonly string[]).includes(k);
+
+/** Stamps on the card towards the next coupon. */
+export function stampProgress(counted: number, every: number) {
+	return { stamps: counted % every, every, earned: Math.floor(counted / every) };
+}
 export type TemplateKey = keyof typeof TEMPLATES;
 export const isTemplateKey = (k: string): k is TemplateKey => k in TEMPLATES;
 
@@ -76,7 +105,8 @@ export type BuyXGetYParams = z.infer<typeof buyXGetYParams>;
 
 export function benefitTypeOf(key: TemplateKey, params: unknown): BenefitType {
 	if (key === 'buy_x_get_y') return 'free_items';
-	return codeDiscountParams.parse(params).benefit.type;
+	if (key === 'code_discount') return codeDiscountParams.parse(params).benefit.type;
+	return TEMPLATES[key].params.parse(params).benefit.type;
 }
 
 /** Why an offer does not apply. The checkout turns these into the shop's own words. */
@@ -106,6 +136,8 @@ export interface CampaignRule {
 	timeWindows: TimeWindow[];
 	params: unknown;
 	minOrderCents: number;
+	/** The kind of the typed coupon (a referral reward uses the referral's reward). */
+	couponKind?: string;
 }
 
 export interface EvalLine {
@@ -153,8 +185,8 @@ export function inWindows(windows: TimeWindow[], now: Date): boolean {
 /** What the campaign gives this cart, ignoring limits kept in the database. */
 export function computeBenefit(c: CampaignRule, cart: EvalCart): Benefit {
 	if (cart.subtotalCents < c.minOrderCents) return { ok: false, problem: 'min_order' };
-	if (c.templateKey === 'code_discount') {
-		const { benefit } = codeDiscountParams.parse(c.params);
+	if (c.templateKey === 'code_discount' || isMilestoneTemplate(c.templateKey)) {
+		const benefit = benefitOf(c);
 		let discount: number;
 		if (benefit.type === 'percent') {
 			discount = Math.floor((cart.subtotalCents * benefit.percent) / 100);
@@ -169,6 +201,23 @@ export function computeBenefit(c: CampaignRule, cart: EvalCart): Benefit {
 	}
 	if (c.templateKey === 'buy_x_get_y') return buyXGetY(buyXGetYParams.parse(c.params), cart);
 	return { ok: false, problem: 'inactive' };
+}
+
+function benefitOf(c: CampaignRule): CouponBenefit {
+	if (c.templateKey === 'referral') {
+		const p = referralParams.parse(c.params);
+		return c.couponKind === 'referral_reward' ? p.reward : p.benefit;
+	}
+	if (c.templateKey === 'loyalty_stamps') return loyaltyParams.parse(c.params).benefit;
+	if (c.templateKey === 'birthday') return birthdayParams.parse(c.params).benefit;
+	return codeDiscountParams.parse(c.params).benefit;
+}
+
+/** The benefit in a few words ("10% off", "R$ 5,00 off", "free delivery"), for messages. */
+export function describeBenefit(b: CouponBenefit, formatMoney: (cents: number) => string): string {
+	if (b.type === 'percent') return `${b.percent}% de desconto`;
+	if (b.type === 'fixed') return `${formatMoney(b.amountCents)} de desconto`;
+	return 'entrega grátis';
 }
 
 function inScope(line: EvalLine, scope: { type: string; ids: string[] }) {

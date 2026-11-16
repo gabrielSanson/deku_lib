@@ -10,6 +10,7 @@
 
 	let { data, form } = $props();
 	const t = useTexts();
+	let copied = $state(false);
 
 	// Puts what is still on today's menu back in the cart and opens it; anything gone or
 	// sold out is named instead of being added.
@@ -59,6 +60,7 @@
 				maxlength={25}
 				value={data.customer.phone ?? ''}
 			/>
+			<TextField label={t('loyalty.birthday')} name="birthday" type="date" value={data.birthday} />
 			<div class="flex flex-wrap items-center justify-between gap-3 sm:col-span-2">
 				<p class="flex items-center gap-2 text-sm text-muted">
 					<Icon name="mail" class="size-4" />{data.customer.email ?? ''}
@@ -73,6 +75,57 @@
 			{#if form?.error}<p class="alert-error sm:col-span-2" role="alert">{form.error}</p>{/if}
 		</form>
 	</section>
+
+	{#if data.rewards.stamps || data.referralLink || data.rewards.coupons.length}
+		<section class="grid gap-4 sm:grid-cols-2">
+			{#if data.rewards.stamps}
+				{@const s = data.rewards.stamps}
+				<div class="space-y-2 card p-5">
+					<h2 class="font-semibold">{t('loyalty.card')}</h2>
+					<div class="flex flex-wrap gap-1" aria-hidden="true">
+						{#each Array.from({ length: s.every }, (_, i) => i) as i (i)}
+							<span
+								class="border-brand size-6 rounded-full border-2 {i < s.stamps ? 'bg-brand' : ''}"
+							></span>
+						{/each}
+					</div>
+					<p class="text-sm">{t('loyalty.cardLine', s)}</p>
+				</div>
+			{/if}
+			{#if data.referralLink}
+				<div class="space-y-2 card p-5">
+					<h2 class="font-semibold">{t('loyalty.refer')}</h2>
+					<p class="text-sm text-muted">{t('loyalty.referLine')}</p>
+					<code class="block rounded border border-line p-2 text-xs break-all"
+						>{data.referralLink}</code
+					>
+					<button
+						type="button"
+						class="btn-ghost"
+						onclick={async () => {
+							await navigator.clipboard?.writeText(data.referralLink ?? '');
+							copied = true;
+						}}>{copied ? t('loyalty.copied') : t('loyalty.copy')}</button
+					>
+				</div>
+			{/if}
+			{#if data.rewards.coupons.length}
+				<div class="space-y-2 card p-5 sm:col-span-2">
+					<h2 class="font-semibold">{t('loyalty.coupons')}</h2>
+					<ul class="space-y-1 text-sm">
+						{#each data.rewards.coupons as c (c.code)}
+							<li class="flex flex-wrap justify-between gap-2">
+								<code class="font-bold">{c.code}</code>
+								{#if c.expiresAt}<span class="text-muted"
+										>{t('loyalty.until', { date: formatDateTime(c.expiresAt) })}</span
+									>{/if}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</section>
+	{/if}
 
 	<section class="space-y-3">
 		<h2 class="section-label">{t('account.mine.orders')}</h2>

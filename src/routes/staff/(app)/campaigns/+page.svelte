@@ -10,7 +10,12 @@
 	import RowMenu from '#lib/components/molecules/RowMenu.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
 	import StatTile from '#lib/components/molecules/StatTile.svelte';
-	import { TEMPLATES, isTemplateKey, type CampaignStatus } from '#lib/domain/campaigns.ts';
+	import {
+		TEMPLATES,
+		isMilestoneTemplate,
+		isTemplateKey,
+		type CampaignStatus
+	} from '#lib/domain/campaigns.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
 	import { formatDateTime } from '#lib/domain/time.ts';
 	import { useTexts } from '#lib/texts/context.ts';
@@ -59,7 +64,10 @@
 				{t('campaigns.subtitle')}
 			</p>
 		</div>
-		<a class="btn-primary" href="/staff/campaigns/new">{t('campaigns.new')}</a>
+		<div class="flex flex-wrap gap-2">
+			<a class="btn-ghost" href="/staff/campaigns/fidelidade">{t('loyalty.link')}</a>
+			<a class="btn-primary" href="/staff/campaigns/new">{t('campaigns.new')}</a>
+		</div>
 	</div>
 	<FormError message={form?.error} />
 
@@ -144,7 +152,9 @@
 								<div class="min-w-0">
 									<a
 										class="font-semibold underline-offset-2 hover:underline"
-										href="/staff/campaigns/{c.id}">{c.name}</a
+										href={isMilestoneTemplate(c.templateKey)
+											? '/staff/campaigns/fidelidade'
+											: `/staff/campaigns/${c.id}`}>{c.name}</a
 									>
 									{#if c.tagline}<p class="truncate text-xs text-muted">{c.tagline}</p>{/if}
 								</div>

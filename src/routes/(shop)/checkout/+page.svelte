@@ -52,7 +52,7 @@
 	let email = $state(untrack(() => data.prefill.email));
 	let marketingConsent = $state(false);
 	let whatsappUpdates = $state(false);
-	let couponCode = $state('');
+	let couponCode = $state(untrack(() => data.refCode));
 	let addr = $state({
 		cep: '',
 		street: '',

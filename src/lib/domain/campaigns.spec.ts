@@ -5,6 +5,7 @@ import {
 	liveProblem,
 	normalizeCode,
 	pickBest,
+	stampProgress,
 	type CampaignRule,
 	type EvalCart
 } from './campaigns';
@@ -182,5 +183,46 @@ describe('picking the offer', () => {
 
 	it('normalizes codes', () => {
 		expect(normalizeCode('  sexta 15 ')).toBe('SEXTA15');
+	});
+});
+
+describe('loyalty, referral and birthday coupons', () => {
+	const cart = { subtotalCents: 5000, deliveryFeeCents: 700, lines: [] };
+	const rule = (templateKey: string, params: unknown, couponKind?: string) => ({
+		id: 'c',
+		templateKey,
+		status: 'active' as const,
+		startsAt: null,
+		endsAt: null,
+		timeWindows: [],
+		params,
+		minOrderCents: 0,
+		couponKind
+	});
+
+	it('uses the loyalty benefit', () => {
+		const r = computeBenefit(
+			rule('loyalty_stamps', { every: 10, benefit: { type: 'fixed', amountCents: 1500 } }),
+			cart
+		);
+		expect(r).toMatchObject({ ok: true, discountCents: 1500 });
+	});
+
+	it('gives the friend the welcome benefit and the referrer the reward', () => {
+		const params = {
+			benefit: { type: 'percent', percent: 10, maxDiscountCents: null },
+			reward: { type: 'free_delivery' }
+		};
+		expect(computeBenefit(rule('referral', params, 'referral_welcome'), cart)).toMatchObject({
+			discountCents: 500
+		});
+		expect(computeBenefit(rule('referral', params, 'referral_reward'), cart)).toMatchObject({
+			discountCents: 700
+		});
+	});
+
+	it('counts stamps towards the next coupon', () => {
+		expect(stampProgress(0, 10)).toEqual({ stamps: 0, every: 10, earned: 0 });
+		expect(stampProgress(13, 10)).toEqual({ stamps: 3, every: 10, earned: 1 });
 	});
 });

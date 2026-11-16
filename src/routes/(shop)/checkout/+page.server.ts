@@ -39,6 +39,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 	return {
 		onlineMethods: provider?.methods ?? [],
 		whatsapp: await whatsappEnabled(),
+		refCode: cookies.get('ref_code') ?? '',
 		prefill: {
 			name: c?.name ?? '',
 			phone: c?.phone ?? (waPhone ? waPhone.replace(/^\+55/, '') : ''),

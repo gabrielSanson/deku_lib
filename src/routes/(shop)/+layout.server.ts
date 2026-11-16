@@ -15,6 +15,15 @@ export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies, url 
 	const wa = url.searchParams.get('wa');
 	if (wa && /^[0-9a-f]{24}$/.test(wa))
 		cookies.set('wa_link', wa, { path: '/', maxAge: 86_400, httpOnly: true, sameSite: 'lax' });
+	// A friend's referral link: its code is filled in at checkout.
+	const ref = url.searchParams.get('ref');
+	if (ref && /^[A-Z0-9_-]{3,24}$/i.test(ref))
+		cookies.set('ref_code', ref.toUpperCase(), {
+			path: '/',
+			maxAge: 30 * 86_400,
+			httpOnly: true,
+			sameSite: 'lax'
+		});
 	const [catalog, settings, soldOut, missing, profile, schedule, pages] = await Promise.all([
 		getCatalog(),
 		getStoreSettings(),
