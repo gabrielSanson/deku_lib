@@ -115,6 +115,6 @@ export const actions: Actions = {
 		});
 		if (error || !data.url)
 			return fail(502, { mode: 'entrar', error: texts['account.error.unavailable'] });
-		redirect(303, data.url);
+		redirect(303, data.url, { external: true });
 	}
 };

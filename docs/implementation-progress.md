@@ -2,6 +2,20 @@
 
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
+## Run of 2026-11-16: stage S1 (hosted multi-shop), merged to main
+
+All 7 S1 items are done. `pnpm verify` is green (159 unit, 131 database tests), the 28 browser tests pass
+(single-shop mode), and multi-shop mode was tried by hand against a local Supabase: sign-up, a new shop's
+site and every staff screen, CSV import, the console and the read-only view all work; the platform pages
+404 on shop hosts.
+
+Fixed on the way: redirects to another host (sign-up, "Ver como a loja", Google sign-in, card checkout)
+now pass `external: true`, which this SvelteKit refuses without (Google sign-in and card checkout were
+broken before S1 too).
+
+Owner to do: platform Pix key and price in /plataforma/configuracoes; DNS wildcard; lawyer review of the
+legal drafts; `scripts/create-platform-admin.ts` for the first admin.
+
 ## Run of 2026-11-15: phases L, F and H (stopped before S1, as asked)
 
 All 12 items are done on branch `claude/project-thread-8hxhtq` (not yet merged to main). `pnpm verify` is green
@@ -43,13 +57,13 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - H2: done 1b1403a (new modifier kind column, backfilled from the old 'Sem ' rule; stored label kept as the order snapshot)
 - H3: done a383edc (skipped for iFood, which keys on its own order id; older orders without a hash still match)
 - H4: done f311c65 (shared OrderKey helper in src/lib/client/order-key.ts, used by the cart, checkout and POS)
-- S1.1: done (shop_id defaults to current_shop_id() so services need no changes; shop work uses a per-shop connection pool (role app_server + app.shop_id) instead of withShop at every call site and an ESLint rule; staff_users stays as one row per person, roles in shop_members; iFood keys stay in ifood_settings (already per shop, encrypted); MP keys in shop_secrets; old photos found at the bucket top level instead of a move script; ibs_cbs_rates got an optional shop_id (shop overrides national rows))
-- S1.2: done (platform landing is /conheca (the platform root redirects there); staff of several shops get /staff/lojas; Caddyfile.multi for on-demand TLS; shop #1 gets loja.<domain> when switching to multi)
-- S1.3: done (the account is created first (members need its id) and removed if the shop cannot be saved; a half-made shop is closed and frees its address; platform pages (landing, sign-up, legal) use fixed Portuguese text instead of the per-shop text catalog; legal drafts in src/lib/platform/legal marked for a lawyer)
-- S1.4: done (view link is a signed 30-minute token, not a bare shop id cookie; console text is fixed Portuguese)
-- S1.5: done (manual_pix only (PSP adapter later); shop #1 never pays; first invoice on the 1st after the trial ends; due on the 10th; audit_log.shop_id may be null for platform-level entries)
-- S1.6: done (accepts ; or , CSV; re-importing updates products with the same name; also linked from the setup wizard's menu step)
-- S1.7: done (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
+- S1.1: done 5235384, 22f3573 (on a real Supabase app_server may not read the auth schema, so team e-mails come through the platform connection and tests revoke that access too; shop_id defaults to current_shop_id() so services need no changes; shop work uses a per-shop connection pool (role app_server + app.shop_id) instead of withShop at every call site and an ESLint rule; staff_users stays as one row per person, roles in shop_members; iFood keys stay in ifood_settings (already per shop, encrypted); MP keys in shop_secrets; old photos found at the bucket top level instead of a move script; ibs_cbs_rates got an optional shop_id (shop overrides national rows))
+- S1.2: done 3053bf1 (platform landing is /conheca (the platform root redirects there); staff of several shops get /staff/lojas; Caddyfile.multi for on-demand TLS; shop #1 gets loja.<domain> when switching to multi)
+- S1.3: done b6f0750 (the account is created first (members need its id) and removed if the shop cannot be saved; a half-made shop is closed and frees its address; platform pages (landing, sign-up, legal) use fixed Portuguese text instead of the per-shop text catalog; legal drafts in src/lib/platform/legal marked for a lawyer)
+- S1.4: done 5b06aaf (view link is a signed 30-minute token, not a bare shop id cookie; console text is fixed Portuguese)
+- S1.5: done 3aa1f67 (manual_pix only (PSP adapter later); shop #1 never pays; first invoice on the 1st after the trial ends; due on the 10th; audit_log.shop_id may be null for platform-level entries)
+- S1.6: done 3e82e99 (accepts ; or , CSV; re-importing updates products with the same name; also linked from the setup wizard's menu step)
+- S1.7: done 4a4d2ce (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
 - S2.1: todo
 - S2.2: todo
 - S2.3: todo

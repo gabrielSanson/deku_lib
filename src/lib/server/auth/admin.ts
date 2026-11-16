@@ -4,7 +4,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
-import { currentShopId, db } from '../db';
+import { currentShopId, db, platformDb } from '../db';
 import { DomainError } from '../errors';
 import { supabaseServerUrl } from '../config';
 import { upsertMember, type StaffSession } from './staff';
@@ -17,8 +17,10 @@ export interface StaffRow {
 	email: string | null;
 }
 
+// auth.users is outside what a shop's database role may read, so e-mails come through the
+// platform connection, filtered to this shop by hand.
 export async function listStaff(): Promise<StaffRow[]> {
-	const rows = await db()<
+	const rows = await platformDb()<
 		{ id: string; display_name: string; role: StaffRole; active: boolean; email: string | null }[]
 	>`
 		select m.user_id as id, m.display_name, m.role, m.active, u.email
@@ -118,11 +120,11 @@ export async function linkExistingUser(
 ) {
 	if (!canManage(actor))
 		throw new DomainError('err.staff.cannotCreate', { code: 'forbidden', status: 403 });
+	const [u] = await platformDb()<
+		{ id: string }[]
+	>`select id from auth.users where lower(email) = lower(${email})`;
+	if (!u) throw new DomainError('err.staff.noAuthUser', { code: 'not_found', status: 404 });
 	await db().begin(async (tx) => {
-		const [u] = await tx<
-			{ id: string }[]
-		>`select id from auth.users where lower(email) = lower(${email})`;
-		if (!u) throw new DomainError('err.staff.noAuthUser', { code: 'not_found', status: 404 });
 		await upsertMember(tx, u.id, displayName, role);
 		await audit(tx, { type: 'staff', id: actor.id }, 'staff.linked', 'staff_user', u.id, {
 			email,

@@ -51,6 +51,8 @@ export const actions: Actions = {
 			throw err;
 		}
 		const next = encodeURIComponent('/staff/setup');
-		redirect(303, `${event.url.protocol}//${created.host}/staff/login?next=${next}&novo=1`);
+		redirect(303, `${event.url.protocol}//${created.host}/staff/login?next=${next}&novo=1`, {
+			external: true
+		});
 	}
 };

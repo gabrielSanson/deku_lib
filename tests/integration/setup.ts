@@ -21,6 +21,14 @@ export default async function setup() {
 	await sql.unsafe(`create database "${name}"`);
 	await sql.end();
 	await migrate(url);
+	// On a real Supabase the shop role cannot read the auth schema (the grant in the RLS migration
+	// is refused there); take it away here too so tests catch shop code that reads auth.users.
+	{
+		const admin = postgres(url, { max: 1, onnotice: () => {} });
+		await admin`revoke all on all tables in schema auth from app_server`;
+		await admin`revoke usage on schema auth from app_server`;
+		await admin.end();
+	}
 	// The tests order from the sample menu.
 	process.env.DATABASE_URL = url;
 	resetConfigForTests();

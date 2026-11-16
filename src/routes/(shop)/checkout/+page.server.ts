@@ -226,7 +226,7 @@ export const actions: Actions = {
 			})
 		);
 		if (!('tenderId' in payment)) return payment;
-		if (payment.redirectUrl) redirect(303, payment.redirectUrl);
+		if (payment.redirectUrl) redirect(303, payment.redirectUrl, { external: true });
 		redirect(303, `/checkout/payment/${result.publicToken}`);
 	}
 };

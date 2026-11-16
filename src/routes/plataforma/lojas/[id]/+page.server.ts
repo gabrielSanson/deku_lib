@@ -51,6 +51,8 @@ export const actions: Actions = {
 			detail?.domains[0]?.host;
 		if (!host) error(404, 'A loja não tem endereço.');
 		const t = viewToken(event.params.id, admin.id);
-		redirect(303, `${event.url.protocol}//${host}/staff/ver-como?t=${encodeURIComponent(t)}`);
+		redirect(303, `${event.url.protocol}//${host}/staff/ver-como?t=${encodeURIComponent(t)}`, {
+			external: true
+		});
 	}
 };
