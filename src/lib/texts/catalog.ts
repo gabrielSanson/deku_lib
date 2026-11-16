@@ -1805,6 +1805,11 @@ const CORE_TEXTS = {
 		label: 'Relatórios: canal iFood',
 		default: 'iFood'
 	},
+	'analytics.channel.opendelivery': {
+		group: 'staff',
+		label: 'Relatórios: canal Open Delivery',
+		default: '99Food / Keeta'
+	},
 	'analytics.fulfil.counter': {
 		group: 'staff',
 		label: 'Relatórios: forma balcão',

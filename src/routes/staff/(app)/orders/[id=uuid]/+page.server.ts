@@ -9,6 +9,7 @@ import {
 	retryFiscal
 } from '#lib/server/fiscal/service.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
+import { orderProfitDetail } from '#lib/server/analytics/profit.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { refundTender } from '#lib/server/payments/tenders.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -27,7 +28,8 @@ export const load: PageServerLoad = async (event) => {
 					enabled: (await getFiscalSettings()).enabled,
 					documents: await listFiscalDocuments(order.id)
 				};
-	return { order, fiscal };
+	const profit = ADMIN.includes(staff.role) ? await orderProfitDetail(order.id) : null;
+	return { order, fiscal, profit };
 };
 
 export const actions: Actions = {

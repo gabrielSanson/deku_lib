@@ -108,7 +108,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S3.9: done (link is the admin's own address + /cardapio; QR PNG 1024 px; Google 'Links de pedidos' and Instagram 'Pedir comida' steps are editable texts, menu names TODO(verify); no API calls)
 - S4.1: done (Gestão → Estoque (itens, compras, contagem, perdas, fichas técnicas); ficha editor is a page linked from the product editor, add-on fichas too; quantities are whole g/ml/un; stock moves only for shops that set up recipes; removed ingredients now stored on order_item_modifiers.ingredient_id; low stock on the staff home)
 - S4.2: done (defaults in domain/payment-fees.ts, shop rows override (Configurações → Pagamentos → Taxas); card machine is one rate (300 bps credit default, the owner sets debit-heavy rates); MP and Efí prices and the iFood payment fee [UNVERIFIED] TODO(verify); provider-reported fee (MP fee_details) left as a TODO(verify) hook; daily backfill job)
-- S4.3: todo
+- S4.3: done (Relatórios → Lucro with per-channel table and the 'teriam rendido a mais no seu site' line (own-site fee = the shop's PSP Pix term, else Pix to key = 0); iFood commission 12%/23% defaults [UNVERIFIED], Open Delivery commission default 0 for the owner to set; payout statement figures override; own delivery cost setting per delivery; orders with a product without ficha are counted apart and their net is shown before food; breakdown on the order page for admins)
 - S4.4: todo
 - S4.5: todo
 - S5.1: todo

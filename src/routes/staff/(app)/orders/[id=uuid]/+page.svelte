@@ -232,6 +232,37 @@
 				>
 			{/if}
 		</div>
+		{#if data.profit}
+			{@const p = data.profit}
+			<section class="space-y-1 card p-4 text-sm tabular-nums" aria-labelledby="lucro">
+				<h2 id="lucro" class="mb-2 font-semibold">{t('profit.title')}</h2>
+				<div class="flex justify-between">
+					<span>{t('profit.gross')}</span><span>{formatBRL(p.totalCents)}</span>
+				</div>
+				{#if p.commissionCents}<div class="flex justify-between">
+						<span>{t('profit.commissions')}</span><span>−{formatBRL(p.commissionCents)}</span>
+					</div>{/if}
+				<div class="flex justify-between">
+					<span>{t('profit.fees')}</span><span>−{formatBRL(p.feesCents)}</span>
+				</div>
+				{#if p.deliveryCostCents}<div class="flex justify-between">
+						<span>{t('profit.delivery')}</span><span>−{formatBRL(p.deliveryCostCents)}</span>
+					</div>{/if}
+				<div class="flex justify-between">
+					<span>{t('profit.food')}</span><span
+						>{p.foodCostCents == null
+							? t('stock.recipes.missing')
+							: `−${formatBRL(p.foodCostCents)}`}</span
+					>
+				</div>
+				<div class="flex justify-between border-t border-line pt-1 font-bold">
+					<span>{p.netCents == null ? t('profit.beforeFood') : t('profit.net')}</span><span
+						>{formatBRL(p.netCents ?? p.beforeFoodCents)}</span
+					>
+				</div>
+				{#if p.fromStatement}<p class="text-xs text-muted">{t('profit.fromStatement')}</p>{/if}
+			</section>
+		{/if}
 		{#if data.fiscal && (data.fiscal.enabled || note)}
 			<div class="space-y-2 card p-3 text-sm">
 				<h2 class="font-semibold">{t('orderDetail.fiscal')}</h2>

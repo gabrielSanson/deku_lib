@@ -137,6 +137,75 @@ export const STOCK_TEXTS = {
 		label: 'Taxas: pago no iFood',
 		default: 'Pago no app do iFood'
 	},
+	'profit.title': { group: s, label: 'Lucro: título', default: 'Lucro' },
+	'profit.intro': {
+		group: s,
+		label: 'Lucro: texto',
+		default:
+			'Quanto sobra de cada canal depois das comissões, taxas de pagamento, entrega e custo da comida. Despesas fixas ficam no Resultado do mês.'
+	},
+	'profit.ifoodExtra': {
+		group: s,
+		label: 'Lucro: iFood no site',
+		default: 'Estes {n} pedidos do iFood teriam rendido {value} a mais no seu site.'
+	},
+	'profit.withoutRecipe': {
+		group: s,
+		label: 'Lucro: sem ficha',
+		default: '{n} pedidos têm produto sem ficha técnica: o custo da comida deles não entrou.'
+	},
+	'profit.asterisk': {
+		group: s,
+		label: 'Lucro: asterisco',
+		default: '* Sem o custo da comida dos pedidos com produto sem ficha técnica.'
+	},
+	'profit.channel': { group: s, label: 'Lucro: canal', default: 'Canal' },
+	'profit.total': { group: s, label: 'Lucro: total', default: 'Total' },
+	'profit.orders': { group: s, label: 'Lucro: pedidos', default: 'Pedidos' },
+	'profit.gross': { group: s, label: 'Lucro: bruto', default: 'Bruto' },
+	'profit.discounts': { group: s, label: 'Lucro: descontos', default: 'Descontos' },
+	'profit.commissions': { group: s, label: 'Lucro: comissões', default: 'Comissões' },
+	'profit.fees': { group: s, label: 'Lucro: taxas', default: 'Taxas de pagamento' },
+	'profit.delivery': { group: s, label: 'Lucro: entrega', default: 'Entrega' },
+	'profit.food': { group: s, label: 'Lucro: comida', default: 'Comida' },
+	'profit.net': { group: s, label: 'Lucro: líquido', default: 'Sobra' },
+	'profit.perOrder': { group: s, label: 'Lucro: por pedido', default: 'Por pedido' },
+	'profit.beforeFood': { group: s, label: 'Lucro: antes da comida', default: 'Antes da comida' },
+	'profit.fromStatement': {
+		group: s,
+		label: 'Lucro: do extrato',
+		default: 'Comissão e taxa do extrato do app.'
+	},
+	'profit.settings': {
+		group: s,
+		label: 'Lucro: configurações',
+		default: 'Comissões e custo da entrega'
+	},
+	'profit.ifoodCommission': {
+		group: s,
+		label: 'Lucro: comissão iFood loja entrega',
+		default: 'Comissão iFood, loja entrega (%)'
+	},
+	'profit.ifoodDeliveryCommission': {
+		group: s,
+		label: 'Lucro: comissão iFood entrega iFood',
+		default: 'Comissão iFood, iFood entrega (%)'
+	},
+	'profit.odCommission': {
+		group: s,
+		label: 'Lucro: comissão Open Delivery',
+		default: 'Comissão 99Food / Keeta (%)'
+	},
+	'profit.deliveryCost': {
+		group: s,
+		label: 'Lucro: custo por entrega',
+		default: 'Custo por entrega própria (R$)'
+	},
+	'err.profit.settings': {
+		group: 'staffErrors',
+		label: 'Lucro: configuração inválida',
+		default: 'Confira os percentuais (até 50%) e o custo da entrega.'
+	},
 	'err.fees.invalid': {
 		group: 'staffErrors',
 		label: 'Taxas: valor inválido',

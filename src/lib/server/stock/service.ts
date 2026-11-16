@@ -167,14 +167,73 @@ async function costs(tx: Db): Promise<Map<string, number>> {
  * cost. Null when any line has no recipe ("sem ficha técnica"), never zero.
  */
 export async function orderFoodCost(orderId: string, sql: Db = db()): Promise<number | null> {
-	const [booked] = await sql<{ n: number; micro: number }[]>`
-		select count(*)::int as n,
-			coalesce(sum(-qty_base * unit_cost_micro) filter (where kind = 'sale'), 0)::float8 as micro
-		from stock_movements where source = 'order' and source_id = ${orderId} and kind = 'sale'`;
-	const { usage, missing } = await orderUsage(sql, orderId);
-	if (missing > 0) return null;
-	if (booked.n > 0) return Math.round(booked.micro / 1_000_000);
-	return recipeCostCents(usage, await costs(sql));
+	return (await foodCosts([orderId], sql)).get(orderId) ?? null;
+}
+
+/** Food cost of many orders at once (the profit report). */
+export async function foodCosts(orderIds: string[], sql: Db = db()) {
+	const out = new Map<string, number | null>();
+	if (orderIds.length === 0) return out;
+	const [recipes, cost] = await Promise.all([loadRecipes(sql), costs(sql)]);
+	const booked = new Map(
+		(
+			await sql<{ id: string; micro: number }[]>`
+				select source_id as id, sum(-qty_base * unit_cost_micro)::float8 as micro
+				from stock_movements where source = 'order' and kind = 'sale' and source_id = any(${orderIds})
+				group by source_id`
+		).map((r) => [r.id, r.micro])
+	);
+	const items = await sql<
+		{ id: string; order_id: string; product_sku: string; quantity: number }[]
+	>`
+		select id, order_id, product_sku, quantity from order_items where order_id = any(${orderIds}::uuid[])`;
+	const mods = await sql<
+		{
+			order_item_id: string;
+			option_sku: string | null;
+			quantity: number;
+			kind: string;
+			ingredient_id: string | null;
+		}[]
+	>`select m.order_item_id, m.option_sku, m.quantity, m.kind, m.ingredient_id
+		from order_item_modifiers m join order_items i on i.id = m.order_item_id
+		where i.order_id = any(${orderIds}::uuid[])`;
+	const modsByItem = new Map<string, (typeof mods)[number][]>();
+	for (const m of mods)
+		modsByItem.set(m.order_item_id, [...(modsByItem.get(m.order_item_id) ?? []), m]);
+	const usageByOrder = new Map<string, Map<string, number> | null>();
+	for (const i of items) {
+		const current = usageByOrder.get(i.order_id);
+		if (current === null) continue;
+		const own = modsByItem.get(i.id) ?? [];
+		const u = expandRecipe(
+			{
+				productSku: i.product_sku,
+				quantity: i.quantity,
+				options: own
+					.filter((m) => m.kind === 'add' && m.option_sku)
+					.map((m) => ({ sku: m.option_sku!, quantity: m.quantity })),
+				removed: own
+					.filter((m) => m.kind === 'remove' && m.ingredient_id)
+					.map((m) => m.ingredient_id!)
+			},
+			recipes
+		);
+		if (!u) {
+			usageByOrder.set(i.order_id, null);
+			continue;
+		}
+		const acc = current ?? new Map<string, number>();
+		for (const [id, q] of u) acc.set(id, (acc.get(id) ?? 0) + q);
+		usageByOrder.set(i.order_id, acc);
+	}
+	for (const id of orderIds) {
+		const usage = usageByOrder.get(id);
+		if (!usage) out.set(id, null);
+		else if (booked.has(id)) out.set(id, Math.round(booked.get(id)! / 1_000_000));
+		else out.set(id, recipeCostCents(usage, cost));
+	}
+	return out;
 }
 
 async function move(
