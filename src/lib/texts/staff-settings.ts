@@ -716,6 +716,26 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Nota: teste recusado',
 		default: 'A nota de teste não foi autorizada: {message}'
 	},
+	'fiscal.contingency': {
+		group: g,
+		label: 'Nota fiscal: notas em contingência',
+		default:
+			'{n} nota(s) emitida(s) em contingência, aguardando a SEFAZ. O sistema confere sozinho a cada 15 minutos.'
+	},
+	'fiscal.export.title': { group: g, label: 'Nota fiscal: exportar mês', default: 'Exportar mês' },
+	'fiscal.export.intro': {
+		group: g,
+		label: 'Nota fiscal: explicação da exportação',
+		default:
+			'Baixe um arquivo .zip com os XMLs das notas autorizadas e canceladas do mês e um resumo em planilha. Com o e-mail do contador, ele recebe o link no dia 1º.'
+	},
+	'fiscal.export.month': { group: g, label: 'Nota fiscal: mês da exportação', default: 'Mês' },
+	'fiscal.export.download': { group: g, label: 'Nota fiscal: baixar', default: 'Baixar .zip' },
+	'fiscal.export.accountant': {
+		group: g,
+		label: 'Nota fiscal: e-mail do contador',
+		default: 'E-mail do contador'
+	},
 	'fiscal.failed.title': {
 		group: g,
 		label: 'Nota: notas com erro',

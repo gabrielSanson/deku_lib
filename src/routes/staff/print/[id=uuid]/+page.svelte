@@ -142,6 +142,9 @@
 		{/if}
 		<hr />
 		<p class="center">{t('print.thanks')}</p>
+		{#if data.fiscalContingency}
+			<p class="center strong">{t('print.contingency')}</p>
+		{/if}
 		<p class="center small">{t('print.notFiscal')}</p>
 	{/if}
 </article>

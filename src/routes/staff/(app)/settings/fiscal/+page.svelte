@@ -68,6 +68,35 @@
 		{/if}
 	</section>
 
+	{#if data.contingency}
+		<p class="alert-warn" role="status">{t('fiscal.contingency', { n: data.contingency })}</p>
+	{/if}
+
+	<section class="space-y-3 card p-4" aria-labelledby="export-title">
+		<h2 id="export-title" class="font-semibold">{t('fiscal.export.title')}</h2>
+		<p class="text-sm text-muted">{t('fiscal.export.intro')}</p>
+		<form
+			method="GET"
+			action="/staff/settings/fiscal/export"
+			class="flex flex-wrap items-end gap-2"
+		>
+			<TextField label={t('fiscal.export.month')} name="mes" type="month" value={data.lastMonth} />
+			<button class="btn-secondary">{t('fiscal.export.download')}</button>
+		</form>
+		<form method="POST" action="?/accountant" use:enhance class="flex flex-wrap items-end gap-2">
+			<TextField
+				label={t('fiscal.export.accountant')}
+				name="email"
+				type="email"
+				value={data.accountantEmail ?? ''}
+			/>
+			<button class="btn-secondary">{t('settings.save')}</button>
+			{#if form && 'accountantOk' in form}<span class="text-sm text-ok" role="status"
+					>✓ {t('fiscal.saved')}</span
+				>{/if}
+		</form>
+	</section>
+
 	{#if data.failed.length}
 		<section class="space-y-3 card p-4" aria-labelledby="failed-title">
 			<h2 id="failed-title" class="font-semibold">{t('fiscal.failed.title')}</h2>

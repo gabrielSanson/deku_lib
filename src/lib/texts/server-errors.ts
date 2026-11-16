@@ -1108,5 +1108,10 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'Entrega: endereço não encontrado',
 		default: 'Não encontramos o endereço da loja. Confira o Perfil ou cole as coordenadas.'
+	},
+	'err.fiscal.accountant': {
+		group: 'staffErrors',
+		label: 'Nota fiscal: e-mail do contador',
+		default: 'Confira o e-mail do contador.'
 	}
 } satisfies Record<string, TextDef>;

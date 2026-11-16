@@ -32,7 +32,9 @@ export const QUEUES = {
 	stockReverse: 'stock-reverse',
 	tenderFees: 'tender-fees',
 	expensesRecurring: 'expenses-recurring',
-	dailySummary: 'daily-summary'
+	dailySummary: 'daily-summary',
+	fiscalContingency: 'fiscal-contingency',
+	fiscalMonthly: 'fiscal-monthly'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 

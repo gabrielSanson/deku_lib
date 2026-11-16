@@ -130,7 +130,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S5.2: done (estimateMinutes (prep + open orders × per-order + trip); promised_at, menu wait banner, checkout note; settings per_order 2 / delivery 20)
 - S5.3: done (couriers/delivery_runs/deliveries; Operação → Entregas, route list, /entregador/<token> Saiu/Entregue; 'saiu para entrega' sent when the run leaves; settle books an 'Entregadores' expense and drops the per-delivery estimate for those orders)
 - S5.4: done (radius_km rules + store_profile lat/lng; Nominatim geocode cached in geocode_cache (1 req/s), ViaCEP autofill at checkout; falls back to bairro/CEP rules; external services TODO(verify))
-- S5.5: todo
+- S5.5: done (status 'contingency' from Focus offline flags (TODO(verify) field names), followed every 15 min; receipt notice; Exportar mês zip (XMLs cached + CSV) via node:zlib writer; accountant e-mail with signed 45-day link on the 1st)
 - S5.6: todo
 - S5.7: todo
 - S5.8: todo

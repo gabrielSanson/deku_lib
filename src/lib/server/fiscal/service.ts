@@ -12,6 +12,7 @@ import { fill } from '#lib/texts/catalog.ts';
 import { getTexts } from '../settings/texts';
 import {
 	cancelNfce,
+	consultNfce,
 	ibsCbsFor,
 	issueNfce,
 	type FiscalEnvironment,
@@ -226,7 +227,7 @@ export async function queueFiscalIssue(tx: Tx | Db, orderId: string) {
 
 export interface FiscalDocument {
 	id: string;
-	status: 'pending' | 'authorized' | 'rejected' | 'error' | 'cancelled';
+	status: 'pending' | 'authorized' | 'contingency' | 'rejected' | 'error' | 'cancelled';
 	environment: string;
 	number: string | null;
 	series: string | null;
@@ -300,8 +301,8 @@ export async function issueFiscalForOrder(
 
 	let [doc] = await db()<{ id: string; ref: string; status: string; attempts: number }[]>`
 		select id, ref, status, attempts from fiscal_documents
-		where order_id = ${orderId} and status in ('pending', 'authorized', 'error')`;
-	if (doc?.status === 'authorized') return { skipped: true };
+		where order_id = ${orderId} and status in ('pending', 'authorized', 'contingency', 'error')`;
+	if (doc?.status === 'authorized' || doc?.status === 'contingency') return { skipped: true };
 	if (!doc) {
 		const [{ n }] = await db()<{ n: number }[]>`
 			select count(*)::int as n from fiscal_documents where order_id = ${orderId}`;
@@ -400,7 +401,7 @@ async function saveResult(id: string, r: NfceResult) {
 			danfe_url = coalesce(${r.danfeUrl ?? null}, danfe_url), xml_url = coalesce(${r.xmlUrl ?? null}, xml_url),
 			qr_url = coalesce(${r.qrUrl ?? null}, qr_url), error_message = ${r.message ?? null},
 			attempts = attempts + 1, updated_at = now(),
-			issued_at = case when ${r.status} = 'authorized' then coalesce(issued_at, now()) else issued_at end,
+			issued_at = case when ${r.status} in ('authorized', 'contingency') then coalesce(issued_at, now()) else issued_at end,
 			cancelled_at = case when ${r.status} = 'cancelled' then now() else cancelled_at end
 		where id = ${id}`;
 }
@@ -411,6 +412,44 @@ export async function retryFiscal(orderId: string, actor: Actor) {
 		await queueFiscalIssue(tx, orderId);
 		await audit(tx, actor, 'fiscal.retry', 'order', orderId, {});
 	});
+}
+
+/**
+ * Every 15 minutes: asks the provider about notes issued in contingency until SEFAZ authorizes
+ * them (or rejects them, which then shows under "Notas com erro").
+ */
+export async function followContingency(consult: typeof consultNfce = consultNfce) {
+	const s = await settingsRow();
+	if (!s?.api_token_enc) return 0;
+	const docs = await db()<{ id: string; ref: string }[]>`
+		select id, ref from fiscal_documents where status = 'contingency' order by created_at limit 50`;
+	let settled = 0;
+	for (const d of docs) {
+		const r = await consult(s.environment, decryptSecret(s.api_token_enc), d.ref).catch(
+			(e): NfceResult => ({ status: 'error', message: String(e) })
+		);
+		// Still waiting, or the provider is down: keep it as contingency and ask again later.
+		if (r.status === 'contingency' || r.status === 'pending' || r.status === 'error') continue;
+		await saveResult(d.id, r);
+		settled++;
+	}
+	return settled;
+}
+
+export async function saveAccountantEmail(email: string, actor: Actor) {
+	const clean = email.trim().toLowerCase();
+	if (clean && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean))
+		throw new DomainError('err.fiscal.accountant');
+	await db().begin(async (tx) => {
+		await tx`update fiscal_settings set accountant_email = ${clean || null} where shop_id = current_shop_id()`;
+		await audit(tx, actor, 'fiscal.accountant_saved', 'fiscal_settings', null, {});
+	});
+}
+
+export async function accountantEmail(sql: Db = db()) {
+	const [r] = await sql<{ accountant_email: string | null }[]>`
+		select accountant_email from fiscal_settings where shop_id = current_shop_id()`;
+	return r?.accountant_email ?? null;
 }
 
 export async function cancelFiscal(orderId: string, reason: string, actor: Actor) {
@@ -517,7 +556,7 @@ export async function failedNotes(sql: Db = db()): Promise<FailedNote[]> {
 		from fiscal_documents d join orders o on o.id = d.order_id
 		where d.status in ('rejected', 'error') and d.updated_at > now() - interval '30 days'
 			and not exists (select 1 from fiscal_documents a
-				where a.order_id = d.order_id and a.status in ('authorized', 'pending'))
+				where a.order_id = d.order_id and a.status in ('authorized', 'contingency', 'pending'))
 		order by d.updated_at desc
 		limit 50`;
 	return rows.map((r) => ({

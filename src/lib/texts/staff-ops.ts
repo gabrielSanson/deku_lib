@@ -827,6 +827,16 @@ export const STAFF_OPS_TEXTS = {
 		label: 'Pedido: nota enviando',
 		default: 'Enviando…'
 	},
+	'print.contingency': {
+		group: 'staff',
+		label: 'Recibo: nota em contingência',
+		default: 'NFC-e emitida em contingência – pendente de autorização'
+	},
+	'orderDetail.fiscal.contingency': {
+		group: 'staff',
+		label: 'Pedido: nota em contingência',
+		default: 'Em contingência (aguardando a SEFAZ)'
+	},
 	'orderDetail.fiscal.authorized': {
 		group: 'staff',
 		label: 'Pedido: nota autorizada',

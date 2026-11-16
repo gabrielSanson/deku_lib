@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { nfceLines } from '#lib/domain/nfce.ts';
-import { nfceBody, type NfceRequest } from './focusnfe';
+import { consultNfce, nfceBody, type NfceRequest } from './focusnfe';
 
 // The acceptance example: R$ 45,00 of food, R$ 5,00 delivery, R$ 4,50 discount: R$ 45,50 to pay.
 const base: NfceRequest = {
@@ -66,5 +66,38 @@ describe('Focus NFe body', () => {
 		expect(total).toBe(4550);
 		expect(body.items[0].cbs_aliquota).toBe('0.9000');
 		expect(body).toMatchSnapshot();
+	});
+});
+
+describe('consultNfce', () => {
+	const answer = (body: Record<string, unknown>, status = 200) =>
+		(async () => ({ status, json: async () => body })) as unknown as typeof fetch;
+
+	it('treats an offline-contingency note as contingency until it is transmitted', async () => {
+		const pending = await consultNfce(
+			'producao',
+			't',
+			'pedido-1-1',
+			answer({ status: 'autorizado', contingencia_offline: true, numero: 7 })
+		);
+		expect(pending).toMatchObject({ status: 'contingency', number: '7' });
+		const done = await consultNfce(
+			'producao',
+			't',
+			'pedido-1-1',
+			answer({
+				status: 'autorizado',
+				contingencia_offline: true,
+				contingencia_offline_efetivada: true
+			})
+		);
+		expect(done.status).toBe('authorized');
+		expect((await consultNfce('producao', 't', 'x', answer({ status: 'autorizado' }))).status).toBe(
+			'authorized'
+		);
+	});
+
+	it('reports the provider being down as an error', async () => {
+		expect((await consultNfce('producao', 't', 'x', answer({}, 503))).status).toBe('error');
 	});
 });

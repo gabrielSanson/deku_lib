@@ -6,10 +6,11 @@ import { deductStock, reverseStock } from '../stock/service';
 import { backfillTenderFees } from '../payments/fees';
 import { enterRecurringExpenses } from '../expenses/service';
 import { dailySummaryTick } from '../alerts/daily-summary';
+import { sendMonthlyExport } from '../fiscal/export';
 import { beat } from '../alerts/service';
 import { config } from '../config';
 import { db, DEFAULT_SHOP_ID, withShop } from '../db';
-import { issueFiscalForOrder } from '../fiscal/service';
+import { followContingency, issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
 import { applyLateStatuses, createMonthlyInvoices } from '../platform/billing';
 import { getShop, openShops, syncTenancy } from '../platform/shops';
@@ -149,6 +150,8 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.campaignBirthdays]: forEachShop(() => issueBirthdayCoupons()) as Handler,
 		[QUEUES.dailySummary]: forEachShop(() => dailySummaryTick()) as Handler,
 		[QUEUES.expensesRecurring]: forEachShop(() => enterRecurringExpenses()) as Handler,
+		[QUEUES.fiscalContingency]: forEachShop(() => followContingency()) as Handler,
+		[QUEUES.fiscalMonthly]: forEachShop(() => sendMonthlyExport()) as Handler,
 		[QUEUES.tenderFees]: forEachShop(() => backfillTenderFees()) as Handler,
 		[QUEUES.stockDeduct]: ((d: { orderId: string }) => deductStock(d.orderId)) as Handler,
 		[QUEUES.stockReverse]: ((d: { orderId: string }) => reverseStock(d.orderId)) as Handler,
@@ -183,6 +186,8 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 	await boss.schedule(QUEUES.tenderFees, '30 4 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.expensesRecurring, '0 6 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.dailySummary, '*/15 * * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.fiscalContingency, '*/15 * * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.fiscalMonthly, '0 8 1 * *', {}, { tz: 'America/Sao_Paulo' });
 	await handleHeartbeat();
 	log('worker started', { queues: Object.keys(handlers) });
 	return boss;

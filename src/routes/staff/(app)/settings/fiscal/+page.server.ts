@@ -2,8 +2,10 @@
 import { attempt, failText, formString } from '#lib/server/actions.ts';
 import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import {
+	accountantEmail,
 	failedNotes,
 	fiscalReadiness,
+	saveAccountantEmail,
 	getFiscalSettings,
 	issueTestNote,
 	retryFiscal,
@@ -14,6 +16,8 @@ import {
 	type Crt
 } from '#lib/server/fiscal/service.ts';
 import { canStoreSecrets } from '#lib/server/secrets.ts';
+import { db } from '#lib/server/db.ts';
+import { monthOf } from '#lib/server/expenses/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -25,11 +29,26 @@ export const load: PageServerLoad = async (event) => {
 		rates: rates.map((r) => ({ ...r, updatedAt: r.updatedAt.toISOString() })),
 		confirmYear: ratesNeedConfirmation(rates),
 		readiness: await fiscalReadiness(),
-		failed: await failedNotes()
+		failed: await failedNotes(),
+		accountantEmail: await accountantEmail(),
+		contingency: (
+			await db()<
+				{ n: number }[]
+			>`select count(*)::int as n from fiscal_documents where status = 'contingency'`
+		)[0].n,
+		lastMonth: monthOf(new Date(Date.now() - 20 * 86_400_000))
 	};
 };
 
 export const actions: Actions = {
+	accountant: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const email = formString(await event.request.formData(), 'email');
+		return attempt(async () => {
+			await saveAccountantEmail(email, staffActor(staff));
+			return { accountantOk: true };
+		});
+	},
 	save: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();

@@ -63,7 +63,7 @@ export function ibsCbsFor(
 }
 
 export interface NfceResult {
-	status: 'authorized' | 'rejected' | 'pending' | 'error' | 'cancelled';
+	status: 'authorized' | 'contingency' | 'rejected' | 'pending' | 'error' | 'cancelled';
 	number?: string | null;
 	series?: string | null;
 	accessKey?: string | null;
@@ -160,8 +160,15 @@ function toResult(env: FiscalEnvironment, json: Record<string, unknown>): NfceRe
 					: s.startsWith('erro') || s === 'denegado'
 						? 'rejected'
 						: 'error';
+	// Offline contingency (tpEmis 9): Focus signs the note and transmits it once SEFAZ is back.
+	// [UNVERIFIED] TODO(verify): field names `contingencia_offline` / `contingencia_offline_efetivada`
+	// against Focus NFe's NFC-e docs in homologação.
+	const contingency =
+		status === 'authorized' &&
+		json.contingencia_offline === true &&
+		json.contingencia_offline_efetivada !== true;
 	return {
-		status,
+		status: contingency ? 'contingency' : status,
 		number: json.numero != null ? String(json.numero) : null,
 		series: json.serie != null ? String(json.serie) : null,
 		accessKey: typeof json.chave_nfe === 'string' ? json.chave_nfe.replace(/^NFe/, '') : null,
@@ -199,6 +206,38 @@ export async function issueNfce(
 		return { ...r2, status: r2.status === 'error' ? 'rejected' : r2.status };
 	}
 	return toResult(env, json);
+}
+
+/** The note's current state at the provider (used to follow contingency notes). */
+export async function consultNfce(
+	env: FiscalEnvironment,
+	token: string,
+	ref: string,
+	fetchFn: typeof fetch = fetch
+): Promise<NfceResult> {
+	const res = await fetchFn(`${BASE[env]}/v2/nfce/${encodeURIComponent(ref)}`, {
+		headers: { authorization: auth(token) }
+	});
+	if (res.status >= 500 || res.status === 401 || res.status === 403)
+		return { status: 'error', message: `Focus NFe indisponível (${res.status}).` };
+	return toResult(env, (await res.json().catch(() => ({}))) as Record<string, unknown>);
+}
+
+/** Downloads a note's XML (cached by the export). */
+export async function downloadXml(
+	token: string,
+	url: string,
+	fetchFn: typeof fetch = fetch
+): Promise<string | null> {
+	try {
+		const res = await fetchFn(url, {
+			headers: { authorization: auth(token) },
+			signal: AbortSignal.timeout(15_000)
+		});
+		return res.ok ? await res.text() : null;
+	} catch {
+		return null;
+	}
 }
 
 export async function cancelNfce(
