@@ -4,10 +4,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
-import { db } from '../db';
+import { currentShopId, db } from '../db';
 import { DomainError } from '../errors';
 import { supabaseServerUrl } from '../config';
-import type { StaffSession } from './staff';
+import { upsertMember, type StaffSession } from './staff';
 
 export interface StaffRow {
 	id: string;
@@ -21,9 +21,10 @@ export async function listStaff(): Promise<StaffRow[]> {
 	const rows = await db()<
 		{ id: string; display_name: string; role: StaffRole; active: boolean; email: string | null }[]
 	>`
-		select s.id, s.display_name, s.role, s.active, u.email
-		from staff_users s left join auth.users u on u.id = s.id
-		order by s.active desc, s.role, s.display_name`;
+		select m.user_id as id, m.display_name, m.role, m.active, u.email
+		from shop_members m left join auth.users u on u.id = m.user_id
+		where m.shop_id = ${currentShopId()}
+		order by m.active desc, m.role, m.display_name`;
 	return rows.map((r) => ({
 		id: r.id,
 		displayName: r.display_name,
@@ -46,7 +47,7 @@ export async function updateStaff(
 	await db().begin(async (tx) => {
 		const [target] = await tx<
 			{ role: StaffRole }[]
-		>`select role from staff_users where id = ${id} for update`;
+		>`select role from shop_members where shop_id = ${currentShopId()} and user_id = ${id} for update`;
 		if (!target) throw new DomainError('err.staff.notFound', { code: 'not_found', status: 404 });
 		if (!canManage(actor)) {
 			throw new DomainError('err.staff.cannotEdit', { code: 'forbidden', status: 403 });
@@ -60,15 +61,18 @@ export async function updateStaff(
 		) {
 			const [{ n }] = await tx<
 				{ n: number }[]
-			>`select count(*)::int n from staff_users where role = 'admin' and active`;
+			>`select count(*)::int n from shop_members where shop_id = ${currentShopId()} and role = 'admin' and active`;
 			if (n <= 1) throw new DomainError('err.staff.lastOwner', { code: 'last_owner' });
 		}
 		await tx`
-			update staff_users set
+			update shop_members set
 				role = coalesce(${patch.role ?? null}, role),
 				active = coalesce(${patch.active ?? null}, active),
 				display_name = coalesce(${patch.displayName ?? null}, display_name)
-			where id = ${id}`;
+			where shop_id = ${currentShopId()} and user_id = ${id}`;
+		if (patch.displayName) {
+			await tx`update staff_users set display_name = ${patch.displayName} where id = ${id}`;
+		}
 		const a: Actor = { type: 'staff', id: actor.id };
 		await audit(tx, a, 'staff.updated', 'staff_user', id, patch);
 	});
@@ -97,7 +101,7 @@ export async function createStaffAccount(
 	if (error || !data.user)
 		throw new DomainError('err.staff.createFailed', { vars: { detail: error?.message ?? '' } });
 	await db().begin(async (tx) => {
-		await tx`insert into staff_users (id, display_name, role) values (${data.user.id}, ${input.displayName}, ${input.role})`;
+		await upsertMember(tx, data.user.id, input.displayName, input.role);
 		await audit(tx, { type: 'staff', id: actor.id }, 'staff.created', 'staff_user', data.user.id, {
 			email: input.email,
 			role: input.role
@@ -119,9 +123,7 @@ export async function linkExistingUser(
 			{ id: string }[]
 		>`select id from auth.users where lower(email) = lower(${email})`;
 		if (!u) throw new DomainError('err.staff.noAuthUser', { code: 'not_found', status: 404 });
-		await tx`
-			insert into staff_users (id, display_name, role) values (${u.id}, ${displayName}, ${role})
-			on conflict (id) do update set role = excluded.role, display_name = excluded.display_name, active = true`;
+		await upsertMember(tx, u.id, displayName, role);
 		await audit(tx, { type: 'staff', id: actor.id }, 'staff.linked', 'staff_user', u.id, {
 			email,
 			role

@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 			(o.status = 'cancelled' and o.payment_status <> 'paid'
 				and o.payment_plan in ('pix_key', 'online')) as unpaid_cancelled
 		from orders o
-		join store_runtime_settings s on s.id = 1
+		join store_runtime_settings s on s.shop_id = o.shop_id
 		left join lateral (
 			select * from tenders where order_id = o.id and provider <> 'manual' order by created_at desc limit 1
 		) t on true

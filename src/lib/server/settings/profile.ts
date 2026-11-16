@@ -5,6 +5,7 @@ import { config } from '../config';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
 import { preset } from '../presets';
+import { perShop } from '../shop-cache';
 
 export interface StoreProfile {
 	displayName: string;
@@ -21,13 +22,13 @@ export interface StoreProfile {
 }
 
 const TTL_MS = 10_000;
-let cache: { value: StoreProfile; at: number } | undefined;
+const cache = perShop<{ value: StoreProfile; at: number }>();
 
 export async function getStoreProfile(
 	sql: Db = db(),
 	{ fresh = false } = {}
 ): Promise<StoreProfile> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
 	const [r] = await sql<
 		{
 			display_name: string | null;
@@ -40,7 +41,7 @@ export async function getStoreProfile(
 			pix_merchant_city: string | null;
 			setup_completed_at: Date | null;
 		}[]
-	>`select * from store_profile where id = 1`;
+	>`select * from store_profile where shop_id = current_shop_id()`;
 	const value: StoreProfile = {
 		displayName: r.display_name ?? config().SHOP_NAME ?? preset().shopName,
 		phone: r.phone,
@@ -54,7 +55,7 @@ export async function getStoreProfile(
 		},
 		setupCompletedAt: r.setup_completed_at
 	};
-	cache = { value, at: Date.now() };
+	cache.value = { value, at: Date.now() };
 	return value;
 }
 
@@ -71,10 +72,10 @@ export async function saveStoreInfo(
 	await db().begin(async (tx) => {
 		await tx`update store_profile set display_name = ${displayName}, phone = ${input.phone.trim() || null},
 			address_line = ${input.addressLine.trim() || null}, city = ${input.city.trim() || null},
-			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.profile_updated', 'store_profile', '1', { displayName });
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 export async function savePixSettings(
@@ -96,20 +97,20 @@ export async function savePixSettings(
 	await db().begin(async (tx) => {
 		await tx`update store_profile set pix_enabled = ${input.enabled}, pix_key = ${key},
 			pix_merchant_name = ${merchantName}, pix_merchant_city = ${merchantCity},
-			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.pix_updated', 'store_profile', '1', {
 			enabled: input.enabled,
 			keyType: key ? normalizePixKey(key)?.type : null
 		});
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 export async function completeSetup(actor: Actor) {
 	await db().begin(async (tx) => {
 		await tx`update store_profile set setup_completed_at = coalesce(setup_completed_at, now()),
-			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.setup_completed', 'store_profile', '1');
 	});
-	cache = undefined;
+	cache.value = undefined;
 }

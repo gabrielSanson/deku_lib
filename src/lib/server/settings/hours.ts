@@ -4,16 +4,17 @@ import { z } from 'zod';
 import { isOpenAt, isTime, type Schedule } from '#lib/domain/hours.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
+import { perShop } from '../shop-cache';
 
 const TTL_MS = 10_000;
-let cache: { value: Schedule; at: number } | undefined;
+const cache = perShop<{ value: Schedule; at: number }>();
 
 export async function getSchedule(sql: Db = db(), { fresh = false } = {}): Promise<Schedule> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
 	const [[settings], days, closures] = await Promise.all([
 		sql<
 			{ hours_enabled: boolean }[]
-		>`select hours_enabled from store_runtime_settings where id = 1`,
+		>`select hours_enabled from store_runtime_settings where shop_id = current_shop_id()`,
 		sql<{ weekday: number; opens: string; closes: string }[]>`
 			select weekday, to_char(opens, 'HH24:MI') as opens, to_char(closes, 'HH24:MI') as closes
 			from store_hours order by weekday, opens`,
@@ -26,7 +27,7 @@ export async function getSchedule(sql: Db = db(), { fresh = false } = {}): Promi
 		days,
 		closedDates: closures.map((c) => c.day)
 	};
-	cache = { value, at: Date.now() };
+	cache.value = { value, at: Date.now() };
 	return value;
 }
 
@@ -55,7 +56,7 @@ export async function saveSchedule(input: z.input<typeof scheduleInput>, actor: 
 	const s = scheduleInput.parse(input);
 	await db().begin(async (tx) => {
 		await tx`update store_runtime_settings set hours_enabled = ${s.enabled}, updated_by = ${actor.id},
-			updated_at = now(), version = version + 1 where id = 1`;
+			updated_at = now(), version = version + 1 where shop_id = current_shop_id()`;
 		await tx`delete from store_hours`;
 		for (const d of s.days) {
 			await tx`insert into store_hours (weekday, opens, closes) values (${d.weekday}, ${d.opens}, ${d.closes})`;
@@ -63,11 +64,11 @@ export async function saveSchedule(input: z.input<typeof scheduleInput>, actor: 
 		await tx`delete from store_closures`;
 		for (const c of s.closures) {
 			await tx`insert into store_closures (day, reason) values (${c.day}, ${c.reason || null})
-				on conflict (day) do nothing`;
+				on conflict (shop_id, day) do nothing`;
 		}
 		await audit(tx, actor, 'store.hours_updated', 'store_hours', '1', s);
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 export async function listClosures(sql: Db = db()) {

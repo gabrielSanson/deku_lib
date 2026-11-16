@@ -8,6 +8,7 @@ import { DomainError } from '../errors';
 import type { IconName } from '#lib/components/atoms/Icon.svelte';
 import { preset, type PresetIcons } from '../presets';
 import { DEFAULT_HOME, parseHome, type HomeLayout } from './home';
+import { perShop } from '../shop-cache';
 
 export const COLOR_KEYS = ['primary', 'dark', 'background'] as const;
 export type ColorKey = (typeof COLOR_KEYS)[number];
@@ -81,11 +82,13 @@ const COLUMNS: Record<ColorKey | ImageKey, string> = {
 const HEX = /^#[0-9a-f]{6}$/;
 
 const TTL_MS = 10_000;
-let cache: { value: Branding; at: number } | undefined;
+const cache = perShop<{ value: Branding; at: number }>();
 
 export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promise<Branding> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
-	const [r] = await sql<Record<string, string | null>[]>`select * from store_branding where id = 1`;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
+	const [r] = await sql<
+		Record<string, string | null>[]
+	>`select * from store_branding where shop_id = current_shop_id()`;
 	const layout: unknown = (r as Record<string, unknown> | undefined)?.home_layout;
 	const colors = Object.fromEntries(
 		COLOR_KEYS.map((k) => [k, r?.[COLUMNS[k]] ?? null])
@@ -117,7 +120,7 @@ export async function getBranding(sql: Db = db(), { fresh = false } = {}): Promi
 		home: parseHome(layout),
 		productIcon: p.productIcon
 	};
-	cache = { value, at: Date.now() };
+	cache.value = { value, at: Date.now() };
 	return value;
 }
 
@@ -143,10 +146,10 @@ export async function saveColors(input: Record<ColorKey, string | null>, actor: 
 	}
 	await db().begin(async (tx) => {
 		await tx`update store_branding set color_primary = ${next.primary}, color_dark = ${next.dark},
-			color_background = ${next.background}, updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			color_background = ${next.background}, updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.colors_updated', 'store_branding', '1', next);
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 /** `path` is an uploaded image's Storage path; null goes back to the built-in image. */
@@ -155,19 +158,19 @@ export async function setBrandImage(key: ImageKey, path: string | null, actor: A
 	if (path !== null && !menuImageUrl(path)) throw new DomainError('err.image.invalid');
 	await db().begin(async (tx) => {
 		await tx`update store_branding set ${tx({ [COLUMNS[key]]: path })},
-			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.image_updated', 'store_branding', '1', { image: key, path });
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 export async function saveHome(layout: HomeLayout, actor: Actor) {
 	await db().begin(async (tx) => {
 		await tx`update store_branding set home_layout = ${tx.json(layout as never)},
-			updated_by = ${actor.id}, updated_at = now() where id = 1`;
+			updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.home_updated', 'store_branding', '1', { ...layout });
 	});
-	cache = undefined;
+	cache.value = undefined;
 }
 
 /**

@@ -15,10 +15,11 @@ import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
 import { preset } from '../presets';
+import { perShop } from '../shop-cache';
 
 const TTL_MS = 10_000;
 const MAX_LENGTH = 1000;
-let cache: { value: Texts; at: number } | undefined;
+const cache = perShop<{ value: Texts; at: number }>();
 
 /** The texts before any edit: the catalog defaults with the preset's wording. */
 export function shopDefaultTexts(): Texts {
@@ -36,9 +37,9 @@ async function overrides(sql: Db): Promise<Map<TextKey, string>> {
 }
 
 export async function getTexts(sql: Db = db(), { fresh = false } = {}): Promise<Texts> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
 	const value = { ...shopDefaultTexts(), ...Object.fromEntries(await overrides(sql)) } as Texts;
-	cache = { value, at: Date.now() };
+	cache.value = { value, at: Date.now() };
 	return value;
 }
 
@@ -106,7 +107,7 @@ export async function saveTexts(input: Record<string, string>, actor: Actor) {
 		if (!changed.length && !cleared.length) return;
 		for (const [key, value] of changed) {
 			await tx`insert into ui_texts (key, value, updated_by) values (${key}, ${value}, ${actor.id})
-				on conflict (key) do update set value = excluded.value, updated_by = excluded.updated_by,
+				on conflict (shop_id, key) do update set value = excluded.value, updated_by = excluded.updated_by,
 					updated_at = now()`;
 		}
 		if (cleared.length) await tx`delete from ui_texts where key in ${tx(cleared)}`;
@@ -115,5 +116,5 @@ export async function saveTexts(input: Record<string, string>, actor: Actor) {
 			reset: cleared
 		});
 	});
-	cache = undefined;
+	cache.value = undefined;
 }

@@ -1,6 +1,6 @@
 import { error, redirect, type RequestEvent } from '@sveltejs/kit';
 import type { StaffRole } from '#lib/domain/order-status.ts';
-import { db } from '../db';
+import { currentShopId, db, type Db } from '../db';
 
 export interface StaffSession {
 	id: string;
@@ -14,8 +14,24 @@ export async function loadStaff(
 	email: string | null
 ): Promise<StaffSession | null> {
 	const [row] = await db()<{ id: string; display_name: string; role: StaffRole }[]>`
-		select id, display_name, role from staff_users where id = ${userId} and active`;
+		select user_id as id, display_name, role from shop_members
+		where shop_id = ${currentShopId()} and user_id = ${userId} and active`;
 	return row ? { id: row.id, displayName: row.display_name, role: row.role, email } : null;
+}
+
+/**
+ * Makes a person a member of the current shop with this role (or updates them). staff_users keeps
+ * one row per person for names in history; the role per shop lives in shop_members.
+ */
+export async function upsertMember(tx: Db, userId: string, displayName: string, role: StaffRole) {
+	await tx`
+		insert into shop_members (shop_id, user_id, display_name, role)
+		values (${currentShopId()}, ${userId}, ${displayName}, ${role})
+		on conflict (shop_id, user_id) do update set role = excluded.role,
+			display_name = excluded.display_name, active = true`;
+	await tx`
+		insert into staff_users (id, display_name, role) values (${userId}, ${displayName}, ${role})
+		on conflict (id) do update set display_name = excluded.display_name, active = true`;
 }
 
 /** Use in load functions and actions; enforces the role on the server. */

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { User } from '@supabase/supabase-js';
 import { afterAll, describe, expect, it } from 'vitest';
 import { customerOrders, ensureCustomer } from '#lib/server/auth/customer.ts';
-import { closeDb, db } from '#lib/server/db.ts';
+import { closeDb, db, platformDb } from '#lib/server/db.ts';
 import { stopBoss } from '#lib/server/jobs.ts';
 
 afterAll(async () => {
@@ -11,7 +11,7 @@ afterAll(async () => {
 });
 
 async function authUser(email: string, opts: { verified: boolean; phone?: string; name?: string }) {
-	const [u] = await db()<{ id: string }[]>`
+	const [u] = await platformDb()<{ id: string }[]>`
 		insert into auth.users (email) values (${`${randomUUID()}@auth.local`}) returning id`;
 	return {
 		id: u.id,

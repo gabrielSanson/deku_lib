@@ -4,16 +4,19 @@
 import type { Catalog, Channel, ModifierGroup, ProductIngredient } from '#lib/domain/catalog.ts';
 import { db, type Db } from '../db';
 import { menuImageUrl } from './images';
+import { perShop } from '../shop-cache';
 
 const TTL_MS = 10_000;
-let cache: { catalog: Catalog; at: number } | undefined;
+const cache = perShop<{ catalog: Catalog; at: number }>();
 
 export class CatalogUnavailableError extends Error {}
 
 /** Reads the active menu from the database. */
 export async function loadCatalog(sql: Db = db(), { includeInactive = false } = {}) {
 	const [[rev], categories, products, groups, options, links, ingredients] = await Promise.all([
-		sql<{ revision: string }[]>`select revision::text from menu_revision where id = 1`,
+		sql<
+			{ revision: string }[]
+		>`select revision::text from menu_revision where shop_id = current_shop_id()`,
 		sql<
 			{ id: string; name: string; position: number; active: boolean; image_path: string | null }[]
 		>`
@@ -131,14 +134,14 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 
 /** Published catalog, cached briefly. Serves the last good copy if the database blips. */
 export async function getCatalog({ fresh = false } = {}): Promise<Catalog> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.catalog;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.catalog;
 	try {
 		const catalog = await loadCatalog();
-		cache = { catalog, at: Date.now() };
+		cache.value = { catalog, at: Date.now() };
 		return catalog;
 	} catch (err) {
 		console.error(JSON.stringify({ msg: 'catalog load failed', err: String(err) }));
-		if (cache && !fresh) return cache.catalog;
+		if (cache.value && !fresh) return cache.value.catalog;
 		throw new CatalogUnavailableError('Cardápio indisponível no momento.');
 	}
 }
@@ -149,7 +152,7 @@ export async function getCatalogForPricing(): Promise<Catalog> {
 }
 
 export function invalidateCatalog() {
-	cache = undefined;
+	cache.value = undefined;
 }
 
 export async function soldOutSkus(sql: Db, channel: Channel): Promise<Set<string>> {

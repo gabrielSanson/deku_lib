@@ -39,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
 				(select count(*)::int from menu_products where active) as products,
 				(select count(*)::int from menu_categories) as categories,
 				(select count(*)::int from delivery_rules where enabled) as zones,
-				(select count(*)::int from staff_users where active) as staff`
+				(select count(*)::int from shop_members where active and shop_id = current_shop_id()) as staff`
 	]);
 	const c = config();
 	return {

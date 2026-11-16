@@ -7,6 +7,7 @@ import { config } from '../../config';
 import { db, type Db } from '../../db';
 import { DomainError } from '../../errors';
 import { decryptSecret, encryptSecret } from '../../secrets';
+import { perShop } from '../../shop-cache';
 
 export interface IfoodSettings {
 	source: 'app' | 'env' | 'none';
@@ -34,19 +35,19 @@ interface Row {
 }
 
 const TTL_MS = 5_000;
-let cache: { value: IfoodSettings; at: number } | undefined;
+const cache = perShop<{ value: IfoodSettings; at: number }>();
 
 export function invalidateIfoodSettings() {
-	cache = undefined;
+	cache.value = undefined;
 }
 
 async function row(sql: Db = db()): Promise<Row> {
-	const [r] = await sql<Row[]>`select * from ifood_settings where id = 1`;
+	const [r] = await sql<Row[]>`select * from ifood_settings where shop_id = current_shop_id()`;
 	return r;
 }
 
 export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettings> {
-	if (!fresh && cache && Date.now() - cache.at < TTL_MS) return cache.value;
+	if (!fresh && cache.value && Date.now() - cache.value.at < TTL_MS) return cache.value.value;
 	const c = config();
 	const r = await row();
 	let value: IfoodSettings;
@@ -89,7 +90,7 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 			problem: null
 		};
 	}
-	cache = { value, at: Date.now() };
+	cache.value = { value, at: Date.now() };
 	return value;
 }
 
@@ -137,7 +138,7 @@ export async function saveIfoodCredentials(
 				last_check_ok = ${credentialsChanged ? null : current.last_check_ok},
 				last_check_error = ${credentialsChanged ? null : current.last_check_error},
 				updated_by = ${actor.id}, updated_at = now()
-			where id = 1`;
+			where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'ifood.credentials_saved', 'ifood_settings', '1', {
 			clientId,
 			merchantId,
@@ -149,13 +150,14 @@ export async function saveIfoodCredentials(
 
 export async function recordIfoodCheck(ok: boolean, error: string | null) {
 	await db()`update ifood_settings set last_check_at = now(), last_check_ok = ${ok},
-		last_check_error = ${error} where id = 1`;
+		last_check_error = ${error} where shop_id = current_shop_id()`;
 }
 
 export async function recordIfoodPoll(ok: boolean, error: string | null = null) {
-	if (ok) await db()`update ifood_settings set last_poll_ok_at = now() where id = 1`;
+	if (ok)
+		await db()`update ifood_settings set last_poll_ok_at = now() where shop_id = current_shop_id()`;
 	else
-		await db()`update ifood_settings set last_poll_error_at = now(), last_poll_error = ${error} where id = 1`;
+		await db()`update ifood_settings set last_poll_error_at = now(), last_poll_error = ${error} where shop_id = current_shop_id()`;
 }
 
 /** Turning automatic iFood orders on needs saved credentials that just passed the test. */
@@ -167,7 +169,7 @@ export async function setIfoodEnabled(enabled: boolean, actor: Actor) {
 		if (!r.last_check_ok) throw new DomainError('err.ifood.testFirst', { code: 'not_tested' });
 	}
 	await db().begin(async (tx) => {
-		await tx`update ifood_settings set enabled = ${enabled}, updated_by = ${actor.id}, updated_at = now() where id = 1`;
+		await tx`update ifood_settings set enabled = ${enabled}, updated_by = ${actor.id}, updated_at = now() where shop_id = current_shop_id()`;
 		await audit(tx, actor, enabled ? 'ifood.enabled' : 'ifood.disabled', 'ifood_settings', '1');
 	});
 	invalidateIfoodSettings();

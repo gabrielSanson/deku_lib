@@ -38,6 +38,12 @@ try {
 	await sql`
 		insert into staff_users (id, display_name, role) values (${id}, ${name}, 'admin')
 		on conflict (id) do update set display_name = excluded.display_name, role = 'admin', active = true`;
+	// The default shop (single-shop installs); hosted shops get their owner at sign-up.
+	await sql`
+		insert into shop_members (shop_id, user_id, display_name, role)
+		values ('00000000-0000-4000-8000-000000000001', ${id}, ${name}, 'admin')
+		on conflict (shop_id, user_id) do update set display_name = excluded.display_name,
+			role = 'admin', active = true`;
 	console.log(`Owner ready: ${email}. Sign in at /staff/login to run the setup wizard.`);
 } finally {
 	await sql.end();

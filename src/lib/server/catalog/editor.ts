@@ -31,7 +31,7 @@ async function changed(
 	objectId: string,
 	summary = {}
 ) {
-	await tx`update menu_revision set revision = revision + 1, updated_at = now() where id = 1`;
+	await tx`update menu_revision set revision = revision + 1, updated_at = now() where shop_id = current_shop_id()`;
 	await audit(tx, actor, action, type, objectId, summary);
 }
 
@@ -68,7 +68,7 @@ export async function saveCategory(input: z.input<typeof categoryInput>, actor: 
 			} else {
 				const r = await tx`insert into menu_categories (id, name, position, active, image_path)
 					values (${catId}, ${c.name}, ${c.position}, ${c.active}, ${c.imagePath ?? null})
-					on conflict (id) do nothing`;
+					on conflict (shop_id, id) do nothing`;
 				if (!r.count) throw new DomainError('err.menu.categoryTaken', { code: 'duplicate' });
 			}
 			await changed(
@@ -248,7 +248,7 @@ export async function saveGroup(input: z.input<typeof groupInput>, actor: Actor)
 			} else {
 				const r =
 					await tx`insert into menu_modifier_groups (id, name, min_selections, max_selections)
-					values (${groupId}, ${g.name}, ${g.minSelections}, ${g.maxSelections}) on conflict (id) do nothing`;
+					values (${groupId}, ${g.name}, ${g.minSelections}, ${g.maxSelections}) on conflict (shop_id, id) do nothing`;
 				if (!r.count) throw new DomainError('err.menu.groupTaken', { code: 'duplicate' });
 			}
 			const prefix = skuFrom(g.name).split('-')[0]?.slice(0, 6) || 'OPC';
@@ -270,7 +270,7 @@ export async function saveGroup(input: z.input<typeof groupInput>, actor: Actor)
 						(sku, group_id, name, price_cents, max_quantity, position, active, image_path)
 					values (${optionSku}, ${groupId}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i},
 						${o.active}, ${o.imagePath ?? null})
-					on conflict (sku) do update set name = excluded.name, price_cents = excluded.price_cents,
+					on conflict (shop_id, sku) do update set name = excluded.name, price_cents = excluded.price_cents,
 						max_quantity = excluded.max_quantity, position = excluded.position, active = excluded.active,
 						image_path = ${o.imagePath === undefined ? tx`menu_modifier_options.image_path` : o.imagePath},
 						updated_at = now()`;
@@ -329,7 +329,7 @@ export async function saveIngredient(input: z.input<typeof ingredientInput>, act
 						(id, name, allergens, position, image_path, updated_by)
 					values (${ingredientId}, ${g.name}, ${g.allergens}, ${g.position}, ${g.imagePath ?? null},
 						${actor.id})
-					on conflict (id) do nothing`;
+					on conflict (shop_id, id) do nothing`;
 				if (!r.count) throw new DomainError('err.menu.ingredientTaken', { code: 'duplicate' });
 			}
 			await changed(
@@ -405,7 +405,7 @@ export async function listIngredients(sql: Db = db()): Promise<IngredientRow[]> 
 		from menu_ingredients i
 		left join menu_product_ingredients pi on pi.ingredient_id = i.id
 		left join menu_products p on p.sku = pi.product_sku
-		group by i.id order by i.position, i.name`;
+		group by i.shop_id, i.id order by i.position, i.name`;
 	return rows.map((r) => ({
 		id: r.id,
 		name: r.name,
@@ -432,18 +432,18 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 	const run = async (tx: Tx) => {
 		for (const c of catalog.categories) {
 			await tx`insert into menu_categories (id, name, position) values (${c.id}, ${c.name}, ${c.position})
-				on conflict (id) do update set name = excluded.name, position = excluded.position`;
+				on conflict (shop_id, id) do update set name = excluded.name, position = excluded.position`;
 		}
 		const groups = new Map(catalog.products.flatMap((p) => p.modifierGroups).map((g) => [g.id, g]));
 		for (const g of groups.values()) {
 			await tx`insert into menu_modifier_groups (id, name, min_selections, max_selections)
 				values (${g.id}, ${g.name}, ${g.minSelections}, ${g.maxSelections})
-				on conflict (id) do update set name = excluded.name, min_selections = excluded.min_selections,
+				on conflict (shop_id, id) do update set name = excluded.name, min_selections = excluded.min_selections,
 					max_selections = excluded.max_selections`;
 			for (const [i, o] of g.options.entries()) {
 				await tx`insert into menu_modifier_options (sku, group_id, name, price_cents, max_quantity, position)
 					values (${o.sku}, ${g.id}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i})
-					on conflict (sku) do update set group_id = excluded.group_id, name = excluded.name,
+					on conflict (shop_id, sku) do update set group_id = excluded.group_id, name = excluded.name,
 						price_cents = excluded.price_cents, max_quantity = excluded.max_quantity, position = excluded.position`;
 			}
 		}
@@ -453,7 +453,7 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 		for (const [i, ing] of [...ingredients.values()].entries()) {
 			await tx`insert into menu_ingredients (id, name, allergens, position)
 				values (${ing.id}, ${ing.name}, ${[] as string[]}, ${i})
-				on conflict (id) do update set name = excluded.name, allergens = excluded.allergens,
+				on conflict (shop_id, id) do update set name = excluded.name, allergens = excluded.allergens,
 					position = excluded.position`;
 		}
 		for (const [i, p] of catalog.products.entries()) {
@@ -461,7 +461,7 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 					channels, allergens, position)
 				values (${p.sku}, ${p.slug}, ${p.name}, ${p.description}, ${p.categoryId}, ${p.priceCents},
 					${p.prepStation}, ${p.channels}, ${p.allergens}, ${i})
-				on conflict (sku) do update set slug = excluded.slug, name = excluded.name,
+				on conflict (shop_id, sku) do update set slug = excluded.slug, name = excluded.name,
 					description = excluded.description, category_id = excluded.category_id,
 					price_cents = excluded.price_cents, prep_station = excluded.prep_station,
 					channels = excluded.channels, allergens = excluded.allergens, position = excluded.position`;

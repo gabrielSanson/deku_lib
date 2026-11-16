@@ -37,7 +37,17 @@ const schema = z.object({
 	GOOGLE_LOGIN_ENABLED: flag,
 	// Alert e-mails: smtps://user:password@smtp.gmail.com:465 (an app password for Gmail).
 	SMTP_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
-	ALERT_FROM: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional())
+	ALERT_FROM: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+	// single (default): one shop, everything works as before. multi: many shops on one install,
+	// each found by its host name (PLATFORM_DOMAIN gives every shop <slug>.<domain>).
+	TENANCY: z.enum(['single', 'multi']).default('single'),
+	PLATFORM_DOMAIN: z.preprocess(
+		(v) => (v === '' ? undefined : v),
+		z
+			.string()
+			.regex(/^[a-z0-9.-]+$/)
+			.optional()
+	)
 });
 
 export type Config = z.infer<typeof schema>;
@@ -56,6 +66,9 @@ export function config(): Config {
 		}
 		if (production && parsed.APP_SECRET?.startsWith('local-development-only')) {
 			throw new Error('APP_SECRET is the development placeholder; generate a real one');
+		}
+		if (parsed.TENANCY === 'multi' && !parsed.PLATFORM_DOMAIN) {
+			throw new Error('TENANCY=multi needs PLATFORM_DOMAIN (for example dekulib.com.br)');
 		}
 		cached = parsed;
 	}

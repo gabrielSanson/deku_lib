@@ -158,7 +158,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				// cancels them is down.
 				const [{ open }] = await tx<{ open: number }[]>`
 					select count(*)::int as open from orders o, store_runtime_settings s
-					where s.id = 1 and o.status in ('new','confirmed','preparing')
+					where s.shop_id = o.shop_id and o.status in ('new','confirmed','preparing')
 						and not (o.status = 'new' and o.payment_status <> 'paid' and (
 							(o.payment_plan = 'pix_key'
 								and o.created_at < now() - make_interval(mins => s.unpaid_pix_minutes))
@@ -215,7 +215,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				insert into customers (name, phone_e164, email, marketing_consent_at)
 				values (${input.customer.name}, ${input.customer.phoneE164 ?? null}, ${input.customer.email ?? null},
 					${input.customer.marketingConsent ? now : null})
-				on conflict (phone_e164) where phone_e164 is not null and deleted_at is null
+				on conflict (shop_id, phone_e164) where phone_e164 is not null and deleted_at is null
 				do update set name = coalesce(customers.name, excluded.name),
 					marketing_consent_at = coalesce(excluded.marketing_consent_at, customers.marketing_consent_at)
 				returning id`;
@@ -273,7 +273,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null},
 				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}, ${requestHash}
 			)
-			on conflict (idempotency_key) do nothing
+			on conflict (shop_id, idempotency_key) do nothing
 			returning id, order_number, public_token`;
 		if (inserted.length === 0) {
 			// A concurrent request with the same key committed first.

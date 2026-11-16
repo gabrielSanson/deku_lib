@@ -49,6 +49,11 @@ try {
 		await sql`
 			insert into staff_users (id, display_name, role) values (${id}, ${s.name}, ${s.role})
 			on conflict (id) do update set display_name = excluded.display_name, role = excluded.role, active = true`;
+		await sql`
+			insert into shop_members (shop_id, user_id, display_name, role)
+			values (current_shop_id(), ${id}, ${s.name}, ${s.role})
+			on conflict (shop_id, user_id) do update set display_name = excluded.display_name,
+				role = excluded.role, active = true`;
 		console.log(`staff ${s.email} (${s.role})`);
 	}
 	await sql`
@@ -56,10 +61,10 @@ try {
 			('Centro', 'cep_prefix', '01000', 590, 2500, 10),
 			('Bela Vista', 'neighborhood', 'Bela Vista', 790, 3000, 20),
 			('Consolação', 'neighborhood', 'Consolação', 890, 3000, 20)
-		on conflict (match_kind, match_value) do nothing`;
+		on conflict (shop_id, match_kind, match_value) do nothing`;
 	await sql`
 		update store_runtime_settings set accepting_orders = true, pause_reason = null, web_ordering_enabled = true,
-			delivery_enabled = true, pickup_enabled = true where id = 1`;
+			delivery_enabled = true, pickup_enabled = true where shop_id = current_shop_id()`;
 	if (await menuIsEmpty(sql)) {
 		await importCatalog(preset().catalog, SYSTEM);
 		console.log(`sample menu: ${preset().catalog.products.length} products`);

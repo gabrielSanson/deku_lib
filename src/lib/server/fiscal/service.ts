@@ -53,7 +53,9 @@ interface SettingsRow {
 }
 
 async function settingsRow(sql: Db = db()) {
-	const [r] = await sql<SettingsRow[]>`select * from fiscal_settings where id = 1`;
+	const [r] = await sql<
+		SettingsRow[]
+	>`select * from fiscal_settings where shop_id = current_shop_id()`;
 	return r;
 }
 
@@ -120,7 +122,7 @@ export async function saveFiscalSettings(
 				ibs_cbs_cst = ${input.ibsCbsCst ?? current.ibs_cbs_cst},
 				ibs_cbs_class = ${input.ibsCbsClass ?? current.ibs_cbs_class},
 				updated_by = ${actor.id}, updated_at = now()
-			where id = 1`;
+			where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'fiscal.settings_saved', 'fiscal_settings', null, {
 			enabled: input.enabled,
 			environment: input.environment,
@@ -151,7 +153,10 @@ export async function listIbsCbsRates(sql: Db = db()): Promise<IbsCbsRateRow[]> 
 			note: string | null;
 			updated_at: Date;
 		}[]
-	>`select * from ibs_cbs_rates order by year`;
+	>`
+		select distinct on (year) * from ibs_cbs_rates
+		where shop_id is null or shop_id = current_shop_id()
+		order by year, shop_id nulls last`;
 	return rows.map((r) => ({
 		year: r.year,
 		cbsRate: r.cbs_rate,
@@ -164,7 +169,10 @@ export async function listIbsCbsRates(sql: Db = db()): Promise<IbsCbsRateRow[]> 
 
 const RATE = /^\d{1,3}([.,]\d{1,4})?$/;
 
-/** Saving the table is the owner confirming those rates with the accountant. */
+/**
+ * Saving the table is the owner confirming those rates with the accountant. The shop's saved rows
+ * override the national rows shipped with the app (shop_id null) for that shop only.
+ */
 export async function saveIbsCbsRates(
 	rows: { year: number; cbsRate: string; ibsUfRate: string; ibsMunRate: string; note: string }[],
 	actor: Actor
@@ -179,10 +187,10 @@ export async function saveIbsCbsRates(
 	await db().begin(async (tx) => {
 		for (const r of rows) {
 			await tx`
-				insert into ibs_cbs_rates (year, cbs_rate, ibs_uf_rate, ibs_mun_rate, note, updated_at)
-				values (${r.year}, ${dot(r.cbsRate)}, ${dot(r.ibsUfRate)}, ${dot(r.ibsMunRate)},
-					${r.note.trim() || null}, now())
-				on conflict (year) do update set cbs_rate = excluded.cbs_rate,
+				insert into ibs_cbs_rates (shop_id, year, cbs_rate, ibs_uf_rate, ibs_mun_rate, note, updated_at)
+				values (current_shop_id(), ${r.year}, ${dot(r.cbsRate)}, ${dot(r.ibsUfRate)},
+					${dot(r.ibsMunRate)}, ${r.note.trim() || null}, now())
+				on conflict (year, shop_id) do update set cbs_rate = excluded.cbs_rate,
 					ibs_uf_rate = excluded.ibs_uf_rate, ibs_mun_rate = excluded.ibs_mun_rate,
 					note = excluded.note, updated_at = now()`;
 		}
@@ -206,7 +214,9 @@ export function ratesNeedConfirmation(rates: IbsCbsRateRow[], now = new Date()):
 
 /** Called when an order becomes fully paid, inside that transaction. */
 export async function queueFiscalIssue(tx: Tx | Db, orderId: string) {
-	const [s] = await tx<{ enabled: boolean }[]>`select enabled from fiscal_settings where id = 1`;
+	const [s] = await tx<
+		{ enabled: boolean }[]
+	>`select enabled from fiscal_settings where shop_id = current_shop_id()`;
 	if (!s?.enabled) return;
 	const [o] = await tx<{ channel: string; is_test: boolean }[]>`
 		select channel, is_test from orders where id = ${orderId}`;
@@ -344,7 +354,9 @@ export async function issueFiscalForOrder(
 	if (s.ibs_cbs_enabled) {
 		const year = fiscalYear(issuedAt);
 		const [rates] = await db()<{ cbs_rate: string; ibs_uf_rate: string; ibs_mun_rate: string }[]>`
-			select cbs_rate, ibs_uf_rate, ibs_mun_rate from ibs_cbs_rates where year = ${year}`;
+			select cbs_rate, ibs_uf_rate, ibs_mun_rate from ibs_cbs_rates
+			where year = ${year} and (shop_id is null or shop_id = current_shop_id())
+			order by shop_id nulls last limit 1`;
 		if (!rates) {
 			// Never issue without the year's rates: record why and let the job fail visibly.
 			const message = fill((await getTexts())['err.fiscal.noRates'], { year: String(year) });

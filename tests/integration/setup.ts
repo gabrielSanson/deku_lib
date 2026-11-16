@@ -4,8 +4,10 @@ import { SYSTEM } from '#lib/server/audit.ts';
 import { importCatalog } from '#lib/server/catalog/editor.ts';
 import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { resetConfigForTests } from '#lib/server/config.ts';
-import { closeDb } from '#lib/server/db.ts';
+import { closeDb, platformDb, withShop } from '#lib/server/db.ts';
 import { migrate } from '../../scripts/migrate';
+
+export const OTHER_SHOP_ID = '00000000-0000-4000-8000-0000000000b2';
 
 export default async function setup() {
 	const url = process.env.TEST_DATABASE_URL;
@@ -23,5 +25,18 @@ export default async function setup() {
 	process.env.DATABASE_URL = url;
 	resetConfigForTests();
 	await importCatalog(fixtureCatalog, SYSTEM);
+	// A second shop with the same menu at other prices: tests act as the default shop and must
+	// never see it (row-level security, migration 20261115000103).
+	await platformDb()`insert into shops (id, slug, name, status) values (${OTHER_SHOP_ID}, 'outra', 'Outra loja', 'active')`;
+	await platformDb()`select init_shop_rows(${OTHER_SHOP_ID})`;
+	await withShop(OTHER_SHOP_ID, () =>
+		importCatalog(
+			{
+				...fixtureCatalog,
+				products: fixtureCatalog.products.map((p) => ({ ...p, priceCents: p.priceCents + 111 }))
+			},
+			SYSTEM
+		)
+	);
 	await closeDb();
 }

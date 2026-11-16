@@ -47,7 +47,7 @@ export async function getAlertSettings(sql: Db = db()): Promise<AlertSettings> {
 			no_orders_enabled: boolean;
 			no_orders_minutes: number;
 		}[]
-	>`select * from alert_settings where id = 1`;
+	>`select * from alert_settings where shop_id = current_shop_id()`;
 	return {
 		emailTo: r.email_to,
 		pushEnabled: r.push_enabled,
@@ -61,7 +61,7 @@ export async function saveAlertSettings(input: AlertSettings, sql: Db = db()) {
 		update alert_settings set email_to = ${input.emailTo}, push_enabled = ${input.pushEnabled},
 			no_orders_enabled = ${input.noOrdersEnabled}, no_orders_minutes = ${input.noOrdersMinutes},
 			updated_at = now()
-		where id = 1`;
+		where shop_id = current_shop_id()`;
 }
 
 /** What is wrong right now, by kind, with the details the message needs. */
@@ -171,7 +171,7 @@ export async function evaluateAlerts(
 			const inserted = await sql`
 				insert into alerts (kind, opened_at, last_notified_at, detail)
 				values (${kind}, ${now}, ${now}, ${sql.json(problem as never)})
-				on conflict (kind) where resolved_at is null do nothing
+				on conflict (shop_id, kind) where resolved_at is null do nothing
 				returning id`;
 			if (inserted.length) {
 				result.opened.push(kind);

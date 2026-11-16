@@ -4,12 +4,25 @@ import { randomUUID } from 'node:crypto';
 import { loadCustomer } from '#lib/server/auth/customer.ts';
 import { loadStaff } from '#lib/server/auth/staff.ts';
 import { config, supabaseServerUrl } from '#lib/server/config.ts';
+import { DEFAULT_SHOP_ID, withShop } from '#lib/server/db.ts';
+import { resolveShop, syncTenancy } from '#lib/server/platform/shops.ts';
 import { isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
 // Assets and health checks never need the sign-in state.
+const NO_SHOP = '00000000-0000-0000-0000-000000000000';
 const NO_SESSION = /^\/(api|media|health|offline)(\/|$)|\.webmanifest$/;
 
 export const handle: Handle = async ({ event, resolve }) => {
+	await syncTenancy();
+	event.locals.shop = await resolveShop(event.url.host);
+	// Every database call while handling this request is limited to its shop.
+	// The platform's own pages (no shop) see no shop's rows at all.
+	const shopId =
+		event.locals.shop?.id ?? (config().TENANCY === 'multi' ? NO_SHOP : DEFAULT_SHOP_ID);
+	return withShop(shopId, async () => handleForShop({ event, resolve }));
+};
+
+const handleForShop: Handle = async ({ event, resolve }) => {
 	event.locals.requestId = event.request.headers.get('x-request-id') ?? randomUUID();
 	event.locals.staff = null;
 	event.locals.supabase = null;

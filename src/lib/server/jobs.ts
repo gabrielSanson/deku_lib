@@ -4,7 +4,7 @@
 // pg-boss delivers at least once: every handler must be idempotent.
 import { PgBoss } from 'pg-boss';
 import { config } from './config';
-import type { Db } from './db';
+import { currentShopId, platformDb, type Db } from './db';
 
 export const QUEUES = {
 	orderPlaced: 'order-placed',
@@ -30,6 +30,15 @@ export async function getBoss(): Promise<PgBoss> {
 			console.error(JSON.stringify({ msg: 'pg-boss error', err: String(err) }))
 		);
 		await instance.start();
+		// Shop work (role app_server) queues jobs inside its own transaction.
+		await platformDb().unsafe(`do $$ begin
+			if exists (select 1 from pg_roles where rolname = 'app_server') then
+				grant usage on schema pgboss to app_server;
+				grant select, insert, update, delete on all tables in schema pgboss to app_server;
+				grant usage, select on all sequences in schema pgboss to app_server;
+			end if;
+		exception when insufficient_privilege then null;
+		end $$`);
 		for (const name of Object.values(QUEUES)) {
 			await instance.createQueue(name, { retryLimit: 8, retryBackoff: true, retryDelay: 5 });
 		}
@@ -45,7 +54,7 @@ export async function stopBoss() {
 	starting = undefined;
 }
 
-/** Enqueue a job inside the caller's transaction. */
+/** Enqueue a job inside the caller's transaction. The job runs for the shop that queued it. */
 export async function enqueue(
 	tx: Db,
 	name: QueueName,
@@ -53,12 +62,16 @@ export async function enqueue(
 	options: { singletonKey?: string; startAfter?: number } = {}
 ) {
 	const instance = await getBoss();
-	await instance.send(name, data, {
-		...options,
-		db: {
-			executeSql: async (text: string, values?: unknown[]) => ({
-				rows: await tx.unsafe(text, (values ?? []) as never[])
-			})
+	await instance.send(
+		name,
+		{ shopId: currentShopId(), ...data },
+		{
+			...options,
+			db: {
+				executeSql: async (text: string, values?: unknown[]) => ({
+					rows: await tx.unsafe(text, (values ?? []) as never[])
+				})
+			}
 		}
-	});
+	);
 }

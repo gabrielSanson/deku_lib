@@ -2,15 +2,15 @@
 // on (in the setup wizard or with IFOOD_ENABLED); the setting is re-read on every
 // tick, so no restart is needed. Each poll's outcome is recorded for the alerts.
 import { beat } from '../../alerts/service';
-import { db } from '../../db';
+import { db, withShop } from '../../db';
+import { activeShopIds } from '../../worker/handlers';
 import { QUEUES } from '../../jobs';
 import { explainIfoodError } from './check';
 import { pollIfoodOnce, processIfoodEvent, syncOrderToIfood } from './service';
 import { ifoodSettings, recordIfoodPoll } from './settings';
 
 const POLL_MS = 30_000;
-// Only one worker instance polls at a time.
-const POLL_LOCK = 724_001;
+// Only one worker instance polls a shop at a time (lock per shop).
 
 export async function ifoodHandlers() {
 	const handlers = {
@@ -23,13 +23,22 @@ export async function ifoodHandlers() {
 		if (running) return;
 		running = true;
 		try {
+			for (const shopId of await activeShopIds()) {
+				await withShop(shopId, () => pollShop(shopId));
+			}
+		} finally {
+			running = false;
+		}
+	};
+	const pollShop = async (shopId: string) => {
+		try {
 			if (!(await ifoodSettings()).enabled) return;
 			const sql = db();
 			const reserved = await sql.reserve();
 			try {
 				const [{ locked }] = await reserved<
 					{ locked: boolean }[]
-				>`select pg_try_advisory_lock(${POLL_LOCK}) as locked`;
+				>`select pg_try_advisory_lock(hashtext(${'ifood:' + shopId})) as locked`;
 				if (!locked) return;
 				try {
 					const r = await pollIfoodOnce();
@@ -41,15 +50,13 @@ export async function ifoodHandlers() {
 					await recordIfoodPoll(false, `${problem.title} ${problem.action}`).catch(() => {});
 					throw err;
 				} finally {
-					await reserved`select pg_advisory_unlock(${POLL_LOCK})`;
+					await reserved`select pg_advisory_unlock(hashtext(${'ifood:' + shopId}))`;
 				}
 			} finally {
 				reserved.release();
 			}
 		} catch (err) {
-			console.error(JSON.stringify({ msg: 'ifood poll failed', err: String(err) }));
-		} finally {
-			running = false;
+			console.error(JSON.stringify({ msg: 'ifood poll failed', shopId, err: String(err) }));
 		}
 	};
 	setInterval(tick, POLL_MS).unref();

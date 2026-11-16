@@ -5,7 +5,10 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import postgres from 'postgres';
 
-export async function migrate(databaseUrl: string, { shim = true } = {}) {
+export async function migrate(
+	databaseUrl: string,
+	{ shim = true, until }: { shim?: boolean; until?: string } = {}
+) {
 	const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} });
 	try {
 		if (shim) await sql.unsafe(await readFile('db/plain-postgres-shim.sql', 'utf8'));
@@ -17,6 +20,8 @@ export async function migrate(databaseUrl: string, { shim = true } = {}) {
 			(await sql<{ name: string }[]>`select name from public.local_migrations`).map((r) => r.name)
 		);
 		for (const file of files) {
+			// Tests stop before a migration to check the upgrade from older data.
+			if (until && file >= until) break;
 			if (applied.has(file)) continue;
 			const text = await readFile(join(dir, file), 'utf8');
 			await sql.begin(async (tx) => {

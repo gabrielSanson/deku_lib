@@ -63,7 +63,7 @@ export const defaultNotifier: Notifier = {
 	async send(message) {
 		const sql = db();
 		const [settings] = await sql<{ email_to: string[]; push_enabled: boolean }[]>`
-			select email_to, push_enabled from alert_settings where id = 1`;
+			select email_to, push_enabled from alert_settings where shop_id = current_shop_id()`;
 		const { title, body } = await alertText(message, sql);
 		let email = 0;
 		let push = 0;
@@ -85,8 +85,8 @@ export const defaultNotifier: Notifier = {
 			const subs = keys
 				? await sql<{ id: string; endpoint: string; p256dh: string; auth: string }[]>`
 					select s.id, s.endpoint, s.p256dh, s.auth from staff_push_subscriptions s
-					join staff_users u on u.id = s.staff_id
-					where u.role = 'admin' and u.active`
+					join shop_members m on m.user_id = s.staff_id and m.shop_id = s.shop_id
+					where s.shop_id = current_shop_id() and m.role = 'admin' and m.active`
 				: [];
 			const payload = JSON.stringify({ title, body, url: '/staff', tag: `alert-${message.kind}` });
 			for (const s of subs) {

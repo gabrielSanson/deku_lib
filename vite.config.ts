@@ -73,6 +73,7 @@ export default defineConfig(({ mode }) => {
 						environment: 'node',
 						include: ['tests/integration/**/*.test.ts'],
 						globalSetup: ['tests/integration/setup.ts'],
+						setupFiles: ['tests/integration/scope.ts'],
 						env: {
 							DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
 							APP_SECRET: 'integration-tests-only-app-secret-0123456789'

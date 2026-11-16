@@ -38,7 +38,7 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 			updated_at: Date;
 			version: number;
 		}[]
-	>`select * from store_runtime_settings where id = 1`;
+	>`select * from store_runtime_settings where shop_id = current_shop_id()`;
 	return {
 		acceptingOrders: r.accepting_orders,
 		pauseReason: r.pause_reason,
@@ -81,7 +81,7 @@ export async function updateStoreSettings(
 				unpaid_pix_minutes = ${next.unpaidPixMinutes},
 				unpaid_counter_minutes = ${next.unpaidCounterMinutes}, updated_by = ${actor.id}, updated_at = now(),
 				version = version + 1
-			where id = 1`;
+			where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.settings_updated', 'store_runtime_settings', '1', {
 			before: { ...current, updatedAt: undefined },
 			after: { ...next, updatedAt: undefined }
@@ -159,7 +159,7 @@ export async function setSoldOut(sku: string, soldOut: boolean, actor: Actor, re
 			await tx`
 				insert into product_availability_overrides (sku, channel, sold_out, reason, updated_by)
 				values (${sku}, 'all', true, ${reason ?? null}, ${actor.id})
-				on conflict (sku, channel) do update set sold_out = true, reason = excluded.reason,
+				on conflict (shop_id, sku, channel) do update set sold_out = true, reason = excluded.reason,
 					updated_by = excluded.updated_by, updated_at = now()`;
 		} else {
 			await tx`delete from product_availability_overrides where sku = ${sku} and channel = 'all'`;

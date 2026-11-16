@@ -2,9 +2,11 @@
 // these with pg-boss; they are plain functions so tests can call them directly.
 // Every handler is idempotent because pg-boss delivers at least once.
 import { beat } from '../alerts/service';
-import { db } from '../db';
+import { config } from '../config';
+import { db, DEFAULT_SHOP_ID, platformDb, withShop } from '../db';
 import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
+import { syncTenancy } from '../platform/shops';
 import { sendReadyPush } from '../notifications/push';
 import { expireUnpaidCheckouts, expireUnpaidOrders, processPaymentEvent } from '../payments/online';
 
@@ -71,14 +73,39 @@ export async function handleHeartbeat() {
 
 type Handler = (data: never) => Promise<unknown>;
 
+/** The shops background work runs for: every open shop in multi-shop mode, else the default one. */
+export async function activeShopIds(): Promise<string[]> {
+	if (config().TENANCY !== 'multi') return [DEFAULT_SHOP_ID];
+	const rows = await platformDb()<{ id: string }[]>`
+		select id from shops where status in ('trial', 'active', 'past_due') order by created_at`;
+	return rows.map((r) => r.id);
+}
+
+/** A scheduled job that runs once per shop; one shop failing does not stop the others. */
+function forEachShop(fn: () => Promise<unknown>) {
+	return async () => {
+		let failed: unknown;
+		for (const shopId of await activeShopIds()) {
+			try {
+				await withShop(shopId, () => fn());
+			} catch (err) {
+				log('scheduled job failed for a shop', { shopId, err: String(err) });
+				failed ??= err;
+			}
+		}
+		if (failed) throw failed;
+	};
+}
+
 export async function startWorker(extra: Partial<Record<string, Handler>> = {}) {
+	await syncTenancy();
 	const boss = await getBoss();
 	const handlers: Record<string, Handler> = {
 		[QUEUES.orderPlaced]: handleOrderPlaced as Handler,
 		[QUEUES.orderReady]: handleOrderReady as Handler,
 		[QUEUES.paymentEvent]: handlePaymentEvent as Handler,
 		[QUEUES.fiscalIssue]: handleFiscalIssue as Handler,
-		[QUEUES.staleOrders]: handleStaleOrders as Handler,
+		[QUEUES.staleOrders]: forEachShop(handleStaleOrders) as Handler,
 		[QUEUES.heartbeat]: handleHeartbeat as Handler,
 		...extra
 	};
@@ -90,7 +117,9 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 			async (jobs) => {
 				for (const job of jobs) {
 					try {
-						await handler(job.data as never);
+						// Jobs carry the shop that queued them; older jobs belong to the default shop.
+						const shopId = typeof job.data?.shopId === 'string' ? job.data.shopId : DEFAULT_SHOP_ID;
+						await withShop(shopId, () => handler(job.data as never));
 					} catch (err) {
 						log('job failed', { queue: name, jobId: job.id, err: String(err) });
 						throw err;

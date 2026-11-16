@@ -78,7 +78,7 @@ export async function startOnlinePayment(input: {
 			provider_payload, expires_at)
 		values (${input.orderId}, ${input.method}, ${provider.name}, ${checkout.providerPaymentId}, ${order.total_cents},
 			'pending', ${input.idempotencyKey}, ${sql.json(payload)}, ${checkout.expiresAt})
-		on conflict (idempotency_key) do update set idempotency_key = excluded.idempotency_key
+		on conflict (shop_id, idempotency_key) do update set idempotency_key = excluded.idempotency_key
 		returning id`;
 	await refreshPaymentStatus(sql, input.orderId);
 	return { tenderId: tender.id, ...payload, expiresAt: checkout.expiresAt };
@@ -203,7 +203,7 @@ export async function expireUnpaidOrders(now = new Date()) {
 	return sql.begin(async (tx) => {
 		const stale = await tx<{ id: string }[]>`
 			select o.id from orders o, store_runtime_settings s
-			where s.id = 1 and o.status = 'new' and o.is_test = false
+			where s.shop_id = o.shop_id and o.status = 'new' and o.is_test = false
 				and o.payment_status in ('pending', 'failed', 'unknown')
 				and (
 					(o.payment_plan = 'pix_key'

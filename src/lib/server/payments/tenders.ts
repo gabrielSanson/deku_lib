@@ -61,7 +61,7 @@ export async function recordManualTender(input: ManualTenderInput) {
 			values (${input.orderId}, ${input.method}, 'manual', ${input.providerReference?.trim() || null},
 				${input.amountCents}, ${input.method === 'cash' ? (input.cashReceivedCents ?? input.amountCents) : null},
 				${change}, 'paid', ${input.idempotencyKey}, ${input.actor.id}, now())
-			on conflict (idempotency_key) do nothing
+			on conflict (shop_id, idempotency_key) do nothing
 			returning id`;
 		if (inserted.length === 0) return { duplicate: true, changeCents: change };
 		// Cash kept from the sale goes into the open drawer; without one the sale is refused.

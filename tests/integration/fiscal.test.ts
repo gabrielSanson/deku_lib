@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { closeDb, db } from '#lib/server/db.ts';
+import { closeDb, db, platformDb } from '#lib/server/db.ts';
 import type { NfceRequest, NfceResult } from '#lib/server/fiscal/focusnfe.ts';
 import {
 	getFiscalSettings,
@@ -164,8 +164,9 @@ describe('NFC-e', () => {
 
 	it('refuses to issue without the rates of the year', async () => {
 		const year = fiscalYear(new Date());
-		const saved = await db()`select * from ibs_cbs_rates where year = ${year}`;
-		await db()`delete from ibs_cbs_rates where year = ${year}`;
+		// The national row ships with the app (platform side); the shop has not saved its own.
+		const saved = await platformDb()`select * from ibs_cbs_rates where year = ${year}`;
+		await platformDb()`delete from ibs_cbs_rates where year = ${year}`;
 		const o = await paidOrder();
 		let called = false;
 		await expect(
@@ -178,7 +179,8 @@ describe('NFC-e', () => {
 		const [doc] = await listFiscalDocuments(o.id);
 		expect(doc.status).toBe('error');
 		expect(doc.errorMessage).toMatch(String(year));
-		await db()`insert into ibs_cbs_rates ${db()(saved[0] as never)}`;
+		for (const row of saved)
+			await platformDb()`insert into ibs_cbs_rates ${platformDb()(row as never)}`;
 		await saveFiscalSettings(
 			{
 				enabled: false,

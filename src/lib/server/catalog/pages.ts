@@ -122,7 +122,7 @@ export async function savePage(
 		await tx`
 			insert into content_pages (slug, title, blocks, published)
 			values (${input.slug}, ${title}, ${tx.json(blocks)}, ${input.published})
-			on conflict (slug) do update set title = excluded.title, blocks = excluded.blocks,
+			on conflict (shop_id, slug) do update set title = excluded.title, blocks = excluded.blocks,
 				published = excluded.published, updated_at = now()`;
 		await audit(tx, actor, 'page.saved', 'content_page', input.slug, { title });
 	});

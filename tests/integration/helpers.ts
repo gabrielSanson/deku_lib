@@ -1,13 +1,16 @@
 import { randomUUID } from 'node:crypto';
-import { db } from '#lib/server/db.ts';
+import { DEFAULT_SHOP_ID, db, platformDb } from '#lib/server/db.ts';
 import type { StaffRole } from '#lib/domain/order-status.ts';
 
 export async function makeStaff(role: StaffRole, name = `${role} ${randomUUID().slice(0, 4)}`) {
-	const sql = db();
+	// Sign-in accounts are created by Supabase (platform side), then joined to the shop.
+	const sql = platformDb();
 	const [u] = await sql<
 		{ id: string }[]
 	>`insert into auth.users (email) values (${`${randomUUID()}@test.local`}) returning id`;
 	await sql`insert into staff_users (id, display_name, role) values (${u.id}, ${name}, ${role})`;
+	await sql`insert into shop_members (shop_id, user_id, display_name, role)
+		values (${DEFAULT_SHOP_ID}, ${u.id}, ${name}, ${role})`;
 	return { type: 'staff' as const, id: u.id, role };
 }
 
