@@ -65,6 +65,7 @@
 			</p>
 		</div>
 		<div class="flex flex-wrap gap-2">
+			<a class="btn-ghost" href="/staff/campaigns/mensagens">{t('marketing.link')}</a>
 			<a class="btn-ghost" href="/staff/campaigns/fidelidade">{t('loyalty.link')}</a>
 			<a class="btn-primary" href="/staff/campaigns/new">{t('campaigns.new')}</a>
 		</div>

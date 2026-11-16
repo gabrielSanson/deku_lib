@@ -75,5 +75,121 @@ export const STAFF_CUSTOMER_TEXTS = {
 		default: 'Primeiro pedido'
 	},
 	'customers.ordersTitle': { group: g, label: 'Clientes: pedidos do cliente', default: 'Pedidos' },
+	'marketing.tabTitle': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: título da aba',
+		default: 'Mensagens · Campanhas'
+	},
+	'marketing.title': { group: 'staffCampaigns', label: 'Mensagens: título', default: 'Mensagens' },
+	'marketing.intro': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: introdução',
+		default:
+			'Mande uma oferta só para quem aceitou receber. Contatos do iFood e de outros apps nunca entram. Toda mensagem leva um link para a pessoa sair da lista com um toque.'
+	},
+	'marketing.channel': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: canal',
+		default: 'Enviar por'
+	},
+	'marketing.email': { group: 'staffCampaigns', label: 'Mensagens: e-mail', default: 'E-mail' },
+	'marketing.whatsapp': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: WhatsApp',
+		default: 'WhatsApp (modelo de marketing)'
+	},
+	'marketing.template': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: nome do modelo',
+		default: 'Nome do modelo aprovado na Meta (variáveis: nome, link para sair)'
+	},
+	'marketing.subject': { group: 'staffCampaigns', label: 'Mensagens: assunto', default: 'Assunto' },
+	'marketing.body': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: texto',
+		default: 'Texto ({nome} vira o primeiro nome do cliente)'
+	},
+	'marketing.audience': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: para quem',
+		default: 'Para quem'
+	},
+	'marketing.count': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: quantos',
+		default: '{count} contatos aceitam receber por este canal.'
+	},
+	'marketing.cost': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: custo estimado',
+		default: 'Custo estimado no WhatsApp: {cost} ({price} por mensagem).'
+	},
+	'marketing.price': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: preço por mensagem',
+		default: 'Preço por mensagem de marketing no WhatsApp (R$)'
+	},
+	'marketing.preview': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: contar',
+		default: 'Contar contatos'
+	},
+	'marketing.confirm': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: confirmar',
+		default: 'Confirmo o envio para estes contatos'
+	},
+	'marketing.send': { group: 'staffCampaigns', label: 'Mensagens: enviar', default: 'Enviar' },
+	'marketing.sentOk': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: enviado',
+		default: 'Envio começou para {count} contatos.'
+	},
+	'marketing.history': { group: 'staffCampaigns', label: 'Mensagens: envios', default: 'Envios' },
+	'marketing.historyLine': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: linha do envio',
+		default: '{count} contatos · {sent} enviadas · {failed} com erro'
+	},
+	'marketing.link': {
+		group: 'staffCampaigns',
+		label: 'Mensagens: link na lista',
+		default: 'Mensagens'
+	},
+	'marketing.optOutLine': {
+		group: 'account',
+		label: 'Mensagem: link para sair',
+		default: 'Não quer mais receber ofertas? Toque aqui: {link}'
+	},
+	'marketing.optedOut': {
+		group: 'account',
+		label: 'Sair da lista: feito',
+		default: 'Pronto. Você não vai mais receber ofertas desta loja.'
+	},
+	'marketing.optOutBad': {
+		group: 'account',
+		label: 'Sair da lista: link inválido',
+		default: 'Este link não é válido.'
+	},
+	'err.marketing.noWhatsapp': {
+		group: 'staffErrors',
+		label: 'Mensagens: WhatsApp desligado',
+		default: 'Ligue o WhatsApp em Configurações → WhatsApp antes de enviar por lá.'
+	},
+	'err.marketing.template': {
+		group: 'staffErrors',
+		label: 'Mensagens: modelo inválido',
+		default: 'Informe o nome do modelo como está na Meta (letras minúsculas, números e _).'
+	},
+	'err.marketing.text': {
+		group: 'staffErrors',
+		label: 'Mensagens: falta texto',
+		default: 'Escreva o assunto e o texto do e-mail.'
+	},
+	'err.marketing.nobody': {
+		group: 'staffErrors',
+		label: 'Mensagens: ninguém',
+		default: 'Nenhum contato desta lista aceita receber por este canal.'
+	},
 	'nav.clientes': { group: 'staffLabels', label: 'Menu da equipe: Clientes', default: 'Clientes' }
 } as const satisfies Record<string, TextDef>;

@@ -15,16 +15,25 @@ export interface QueuedMessage {
 	template: string;
 	vars: Record<string, string>;
 	orderId?: string | null;
+	sendId?: string | null;
+	/** Seconds to wait before sending (spreads a marketing send out). */
+	startAfter?: number;
 }
 
 /** Queues a message; a status message already queued for the order is not queued again. */
 export async function queueMessage(tx: Db, m: QueuedMessage): Promise<string | null> {
 	const [row] = await tx<{ id: string }[]>`
-		insert into message_outbox (channel, to_address, template, vars, order_id)
-		values (${m.channel}, ${m.to}, ${m.template}, ${tx.json(m.vars)}, ${m.orderId ?? null})
+		insert into message_outbox (channel, to_address, template, vars, order_id, send_id)
+		values (${m.channel}, ${m.to}, ${m.template}, ${tx.json(m.vars)}, ${m.orderId ?? null},
+			${m.sendId ?? null})
 		on conflict do nothing returning id`;
 	if (!row) return null;
-	await enqueue(tx, QUEUES.whatsappSend, { outboxId: row.id }, { singletonKey: `msg:${row.id}` });
+	await enqueue(
+		tx,
+		QUEUES.whatsappSend,
+		{ outboxId: row.id },
+		{ singletonKey: `msg:${row.id}`, ...(m.startAfter ? { startAfter: m.startAfter } : {}) }
+	);
 	return row.id;
 }
 
