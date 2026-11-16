@@ -2,6 +2,21 @@
 
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
+## Run of 2026-11-16: stage S3 (customers and growth), merged to main
+
+All 9 S3 items are done. `pnpm verify` is green (188 unit, 188 database tests) and the 28 browser tests pass.
+WhatsApp bot and order updates, Efí Pix, the customer list, loyalty (stamps, referral, birthday), marketing
+messages with one-tap opt-out, "Meus dados" requests, ratings after the order, scheduled orders and the
+Divulgar page with a QR code.
+
+**Off or unverified (switches stay off):** WhatsApp Cloud API calls, templates and webhook shape (WhatsApp turns
+on only after a test message); Efí URLs, token and webhook registration (one sandbox charge needed); the WhatsApp
+marketing price (R$ 0,35 default); the ANPD answer deadline (30 days default); the Google and Instagram menu
+names on Divulgar. Scheduled orders are off until the owner turns them on in Tipos de pedido.
+
+Owner to do: connect the WhatsApp Business number and get the four status templates approved; open an Efí
+account and upload the Pix certificate; set the alert e-mail so low ratings reach someone.
+
 ## Run of 2026-11-16: stage S2 (delivery apps), merged to main
 
 All 5 S2 items are done. `pnpm verify` is green (166 unit, 153 database tests) and the 28 browser tests pass.
