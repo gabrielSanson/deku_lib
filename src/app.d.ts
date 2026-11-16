@@ -22,6 +22,8 @@ declare global {
 			authUserId: string | null;
 			/** Set on /plataforma pages for platform admins. */
 			platformAdmin: PlatformAdmin | null;
+			/** A platform admin viewing this shop's staff screens read-only (their user id). */
+			platformView: string | null;
 		}
 	}
 }

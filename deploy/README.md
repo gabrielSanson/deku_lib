@@ -129,6 +129,10 @@ none of this: `TENANCY` stays `single` and everything works as before.
 4. Payment and iFood webhooks name the shop: `/api/v1/payments/webhooks/mercadopago/<shop id>` and
    `/api/v1/integrations/ifood/webhook/<shop id>` (Configurações → Pagamentos shows the exact URL).
    The old URLs without a shop keep working for shop #1.
+5. Platform admin: `./shop.sh exec shop-web node --import tsx scripts/create-platform-admin.ts <email> [password]`,
+   then sign in at `https://<platform domain>/plataforma`. The console lists every shop and can suspend,
+   reactivate, extend a trial, mark an invoice paid and open a shop's staff screens read-only for 30
+   minutes ("Ver como a loja"; every page seen is recorded in the shop's audit log).
 
 Postgres keeps shops apart: the app reaches a shop's rows as role `app_server` with the shop set,
 and row-level security hides every other shop's rows.

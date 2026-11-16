@@ -118,6 +118,12 @@
 	{/if}
 
 	<div class="min-w-0 flex-1">
+		{#if data.platformView}
+			<p class="m-3 alert-warn" role="status">
+				Visualização da plataforma: somente leitura.
+				<a class="underline" href="/staff/ver-como/sair">Sair da visualização</a>
+			</p>
+		{/if}
 		{#if data.shopStatus === 'suspended'}
 			<p class="m-3 alert-error" role="alert">
 				{t('shop.suspendedStaff')}

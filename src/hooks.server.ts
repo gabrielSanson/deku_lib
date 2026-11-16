@@ -8,6 +8,9 @@ import { config, supabaseServerUrl } from '#lib/server/config.ts';
 import { DEFAULT_SHOP_ID, withShop } from '#lib/server/db.ts';
 import { resolveShop, syncTenancy } from '#lib/server/platform/shops.ts';
 import { loadPlatformAdmin } from '#lib/server/platform/admins.ts';
+import { PLATFORM_VIEW_COOKIE, readViewToken } from '#lib/server/platform/console.ts';
+import { audit } from '#lib/server/audit.ts';
+import { db } from '#lib/server/db.ts';
 import { isPlatformPath, isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
 // Assets and health checks never need the sign-in state.
@@ -51,6 +54,7 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 	event.locals.customer = null;
 	event.locals.authUserId = null;
 	event.locals.platformAdmin = null;
+	event.locals.platformView = null;
 
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	const path = event.url.pathname;
@@ -93,6 +97,28 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 			} else {
 				event.locals.customer = await loadCustomer(claims.sub);
 			}
+		}
+	}
+
+	// "Ver como a loja": a platform admin looking at this shop's staff screens, read-only.
+	const viewCookie =
+		isStaff && !event.locals.staff ? event.cookies.get(PLATFORM_VIEW_COOKIE) : undefined;
+	if (viewCookie && event.locals.shop) {
+		const adminId = readViewToken(viewCookie, event.locals.shop.id);
+		if (adminId) {
+			event.locals.platformView = adminId;
+			event.locals.staff = {
+				id: adminId,
+				displayName: 'Plataforma (somente leitura)',
+				role: 'admin',
+				email: null
+			};
+			if (event.request.method !== 'GET' && event.request.method !== 'HEAD') {
+				error(403, 'Visualização da plataforma: somente leitura.');
+			}
+			await audit(db(), { type: 'platform', id: adminId }, 'platform.view', 'page', null, {
+				path
+			});
 		}
 	}
 

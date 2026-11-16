@@ -15,6 +15,7 @@ export const load: LayoutServerLoad = async (event) => {
 	const profile = await getStoreProfile();
 	return {
 		staff,
+		platformView: Boolean(event.locals.platformView),
 		shopStatus: event.locals.shop?.status ?? 'active',
 		shopName: profile.displayName,
 		setupDone: Boolean(profile.setupCompletedAt),
