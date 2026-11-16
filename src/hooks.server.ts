@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { error, redirect } from '@sveltejs/kit';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { randomUUID } from 'node:crypto';
 import { loadCustomer } from '#lib/server/auth/customer.ts';
@@ -6,15 +7,36 @@ import { loadStaff } from '#lib/server/auth/staff.ts';
 import { config, supabaseServerUrl } from '#lib/server/config.ts';
 import { DEFAULT_SHOP_ID, withShop } from '#lib/server/db.ts';
 import { resolveShop, syncTenancy } from '#lib/server/platform/shops.ts';
-import { isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
+import { loadPlatformAdmin } from '#lib/server/platform/admins.ts';
+import { isPlatformPath, isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
 // Assets and health checks never need the sign-in state.
 const NO_SHOP = '00000000-0000-0000-0000-000000000000';
 const NO_SESSION = /^\/(api|media|health|offline)(\/|$)|\.webmanifest$/;
+// The platform's own pages, on the platform domain (multi-shop installs).
+const PLATFORM_PAGES =
+	/^\/(conheca|criar-loja|termos|privacidade-plataforma|dpa|plataforma|staff\/lojas|api\/v1\/tls-ask|health)(\/|$)/;
+// A suspended shop can still sign in, look around and pay its invoice.
+const SUSPENDED_ALLOWED = /^\/staff\/(login|logout|lojas|settings\/plano)(\/|$)/;
 
 export const handle: Handle = async ({ event, resolve }) => {
 	await syncTenancy();
 	event.locals.shop = await resolveShop(event.url.host);
+	const path = event.url.pathname;
+	if (!event.locals.shop && config().TENANCY === 'multi') {
+		// The platform's own domain: its landing page, sign-up, legal pages and console only.
+		if (path === '/') redirect(307, '/conheca');
+		if (!PLATFORM_PAGES.test(path) && !/\.(css|js|png|svg|ico|webmanifest|woff2?)$/.test(path)) {
+			error(404, 'Página não encontrada.');
+		}
+	}
+	if (
+		event.locals.shop?.status === 'suspended' &&
+		event.request.method !== 'GET' &&
+		!SUSPENDED_ALLOWED.test(path)
+	) {
+		error(403, 'Esta loja está suspensa. Regularize o plano em Configurações → Plano e cobrança.');
+	}
 	// Every database call while handling this request is limited to its shop.
 	// The platform's own pages (no shop) see no shop's rows at all.
 	const shopId =
@@ -27,6 +49,8 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 	event.locals.staff = null;
 	event.locals.supabase = null;
 	event.locals.customer = null;
+	event.locals.authUserId = null;
+	event.locals.platformAdmin = null;
 
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	const path = event.url.pathname;
@@ -55,7 +79,13 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 		const { data } = await supabase.auth.getClaims();
 		const claims = data?.claims;
 		if (claims?.sub) {
-			if (isStaff) {
+			event.locals.authUserId = claims.sub;
+			if (isPlatformPath(path)) {
+				event.locals.platformAdmin = await loadPlatformAdmin(
+					claims.sub,
+					(claims.email as string | undefined) ?? null
+				);
+			} else if (isStaff) {
 				event.locals.staff = await loadStaff(
 					claims.sub,
 					(claims.email as string | undefined) ?? null

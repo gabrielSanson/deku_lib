@@ -41,6 +41,8 @@ export function requireStaff(
 ): StaffSession {
 	const staff = event.locals.staff;
 	if (!staff) {
+		// Signed in, but not part of this shop's team: show the shops they do work at.
+		if (event.locals.authUserId) redirect(303, '/staff/lojas');
 		redirect(303, `/staff/login?next=${encodeURIComponent(event.url.pathname + event.url.search)}`);
 	}
 	if (roles && !roles.includes(staff.role)) error(403, 'Seu perfil não tem acesso a esta área.');

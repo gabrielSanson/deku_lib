@@ -7,6 +7,7 @@ import { db } from '#lib/server/db.ts';
 import { getSchedule } from '#lib/server/settings/hours.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings } from '#lib/server/settings/service.ts';
+import { getTexts } from '#lib/server/settings/texts.ts';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies }) => {
@@ -20,6 +21,8 @@ export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies }) =>
 		listPages().catch(() => [])
 	]);
 	const now = new Date();
+	// A suspended shop (unpaid plan) shows as closed with a short notice.
+	const suspended = locals.shop?.status === 'suspended';
 	const inHours = isOpenAt(schedule, now);
 	const next = inHours ? null : nextOpening(schedule, now);
 	// Products that cannot be made without a missing ingredient show as sold out.
@@ -35,8 +38,12 @@ export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies }) =>
 		/** Footer links: every published page from Páginas do site, by its title. */
 		pages: pages.filter((p) => p.published).map((p) => ({ slug: p.slug, title: p.title })),
 		store: {
-			open: settings.acceptingOrders && settings.webOrderingEnabled && inHours,
-			pauseReason: settings.acceptingOrders ? null : settings.pauseReason,
+			open: !suspended && settings.acceptingOrders && settings.webOrderingEnabled && inHours,
+			pauseReason: suspended
+				? (await getTexts())['shop.suspended']
+				: settings.acceptingOrders
+					? null
+					: settings.pauseReason,
 			/** Set when the shop is outside its opening hours: "hoje às 18:00". */
 			outOfHours: inHours ? null : next ? describeOpening(next, now) : '',
 			dineIn: settings.dineInEnabled,

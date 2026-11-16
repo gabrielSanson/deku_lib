@@ -5,12 +5,20 @@
 // the server uses a private gateway URL.
 export const STAFF_PREFIXES = ['/staff', '/kitchen'];
 const STAFF_COOKIE = 'sb-shop-auth';
+const PLATFORM_COOKIE = 'sb-platform-auth';
+/** The platform console signs in on its own, apart from any shop's staff. */
+export const PLATFORM_PREFIX = '/plataforma';
 const CUSTOMER_COOKIE = 'sb-customer-auth';
 
 export function isStaffPath(path: string) {
 	return STAFF_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
 }
 
+export function isPlatformPath(path: string) {
+	return path === PLATFORM_PREFIX || path.startsWith(PLATFORM_PREFIX + '/');
+}
+
 export function sessionCookieName(path: string) {
+	if (isPlatformPath(path)) return PLATFORM_COOKIE;
 	return isStaffPath(path) ? STAFF_COOKIE : CUSTOMER_COOKIE;
 }

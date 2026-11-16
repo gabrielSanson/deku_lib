@@ -118,6 +118,16 @@
 	{/if}
 
 	<div class="min-w-0 flex-1">
+		{#if data.shopStatus === 'suspended'}
+			<p class="m-3 alert-error" role="alert">
+				{t('shop.suspendedStaff')}
+				<a class="underline" href="/staff/settings/plano">{t('nav.plano')}</a>
+			</p>
+		{:else if data.shopStatus === 'past_due'}
+			<p class="m-3 alert-warn" role="status">
+				{t('shop.pastDue')} <a class="underline" href="/staff/settings/plano">{t('nav.plano')}</a>
+			</p>
+		{/if}
 		{@render children()}
 	</div>
 </div>

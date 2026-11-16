@@ -30,6 +30,9 @@ x-app: &app
     # The customer's address for rate limits: Caddy appends it to X-Forwarded-For.
     ADDRESS_HEADER: ${ADDRESS_HEADER:-X-Forwarded-For}
     XFF_DEPTH: ${XFF_DEPTH:-1}
+    # Many shops on one install (see deploy/README.md, "Várias lojas"): multi + the platform domain.
+    TENANCY: ${TENANCY:-single}
+    PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:-}
 
 services:
   # Studio stays reachable from the server itself only (use an SSH tunnel).
@@ -128,7 +131,8 @@ services:
     environment:
       CADDY_SITE: ${SHOP_DOMAIN}
     volumes:
-      - ../Caddyfile:/etc/caddy/Caddyfile:ro
+      # Multi-shop installs use ../Caddyfile.multi (CADDYFILE in .env).
+      - ${CADDYFILE:-../Caddyfile}:/etc/caddy/Caddyfile:ro
       - shop_caddy_data:/data
       - shop_caddy_config:/config
     depends_on:

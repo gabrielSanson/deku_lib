@@ -114,6 +114,25 @@ header Cloudflare sets. Change them in `deploy/supabase/.env` only if you put an
 front. When the setting is wrong the web log says `rate limit sees a private address; set
 ADDRESS_HEADER`.
 
+## Várias lojas (hosted platform)
+
+One install can serve many shops, each at its own address. A private single-shop install needs
+none of this: `TENANCY` stays `single` and everything works as before.
+
+1. DNS **[owner]**: point the platform domain (for example `dekulib.com.br`) and a wildcard record
+   `*.dekulib.com.br` at the server. A shop that wants its own domain adds a CNAME to
+   `<slug>.dekulib.com.br`.
+2. `.env`: `TENANCY=multi`, `PLATFORM_DOMAIN=dekulib.com.br`, `SHOP_DOMAIN=dekulib.com.br` and
+   `CADDYFILE=../Caddyfile.multi`. Caddy then gets a certificate for each shop host on its first
+   visit, after asking the app (`/api/v1/tls-ask`) that the host belongs to a shop.
+3. `./shop.sh up`. The existing shop becomes shop #1 (`loja.<domain>`); its data is untouched.
+4. Payment and iFood webhooks name the shop: `/api/v1/payments/webhooks/mercadopago/<shop id>` and
+   `/api/v1/integrations/ifood/webhook/<shop id>` (Configurações → Pagamentos shows the exact URL).
+   The old URLs without a shop keep working for shop #1.
+
+Postgres keeps shops apart: the app reaches a shop's rows as role `app_server` with the shop set,
+and row-level security hides every other shop's rows.
+
 ## Upgrading Supabase
 
 `deploy/supabase/` is an unmodified copy of Supabase's official self-hosting

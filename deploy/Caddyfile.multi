@@ -1,0 +1,32 @@
+# Multi-shop install (TENANCY=multi): every shop host gets its own certificate on first visit.
+# Caddy asks the app first (/api/v1/tls-ask), so only hosts that belong to a shop get one.
+# DNS: point the platform domain and a wildcard record (*.your-domain) at this server; a shop's
+# own domain needs a CNAME to <slug>.your-domain.
+{
+	servers {
+		trusted_proxies static private_ranges
+	}
+	on_demand_tls {
+		ask http://shop-web:3000/api/v1/tls-ask
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+
+	@supabase path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/*
+	handle @supabase {
+		reverse_proxy api-gw:8000
+	}
+
+	handle {
+		reverse_proxy shop-web:3000 {
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	header -server
+}

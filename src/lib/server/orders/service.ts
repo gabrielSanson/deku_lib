@@ -27,11 +27,12 @@ import {
 import { audit, type Actor } from '../audit';
 import { evalCart, findOffer, offerMessage, type OfferResult } from '../campaigns/service';
 import { getCatalogForPricing, missingIngredients, soldOutSkus } from '../catalog/service';
-import { db, type Db, type Tx } from '../db';
+import { currentShopId, db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { enqueue, QUEUES } from '../jobs';
 import { dropPushSubscriptions } from '../notifications/push';
 import { orderRequestHash } from '#lib/domain/request-hash.ts';
+import { knownShop } from '../platform/shops';
 import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
@@ -131,6 +132,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 	return sql.begin(async (tx) => {
 		const settings = await getStoreSettings(tx);
 		if (input.channel === 'web') {
+			if (knownShop(currentShopId())?.status === 'suspended') {
+				throw new DomainError('err.order.shopSuspended', { code: 'suspended', status: 409 });
+			}
 			if (!settings.acceptingOrders || !settings.webOrderingEnabled) {
 				throw new DomainError(
 					settings.pauseReason ? 'err.order.pausedReason' : 'err.order.paused',

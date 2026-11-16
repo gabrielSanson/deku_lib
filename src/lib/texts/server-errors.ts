@@ -108,6 +108,11 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Falta o token do Mercado Pago',
 		default: 'Cole o Access Token de produção do Mercado Pago.'
 	},
+	'err.order.shopSuspended': {
+		group: 'errors',
+		label: 'Loja suspensa',
+		default: 'Esta loja não está recebendo pedidos pelo site no momento.'
+	},
 	'err.order.notFound': {
 		group: 'errors',
 		label: 'Pedido não encontrado',

@@ -108,6 +108,16 @@ let tenancySynced = false;
 /** Writes TENANCY into platform_config so the database's fallback shop matches the app. */
 export async function syncTenancy() {
 	if (tenancySynced) return;
-	await platformDb()`update platform_config set tenancy = ${config().TENANCY} where id = 1`;
+	const c = config();
+	await platformDb()`update platform_config set tenancy = ${c.TENANCY} where id = 1`;
+	if (c.TENANCY === 'multi' && c.PLATFORM_DOMAIN) {
+		// Shop #1 (the install's original shop) gets its address on the platform.
+		await platformDb()`
+			insert into shop_domains (host, shop_id, kind)
+			select s.slug || '.' || ${c.PLATFORM_DOMAIN}, s.id, 'platform' from shops s
+			where s.id = ${DEFAULT_SHOP_ID}
+				and not exists (select 1 from shop_domains d where d.shop_id = s.id)
+			on conflict do nothing`;
+	}
 	tenancySynced = true;
 }
