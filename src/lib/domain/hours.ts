@@ -101,3 +101,51 @@ export function describeOpening(next: { date: string; opens: string }, now: Date
 				: WEEKDAYS_PT[weekdayOf(next.date)].toLowerCase();
 	return `${when} às ${next.opens}`;
 }
+
+export const SLOT_MINUTES = 15;
+
+/**
+ * Times a customer can schedule an order for: every 15 minutes inside opening hours, from now
+ * plus the prep time to the end of the next opening day (today's remaining hours count as the
+ * current day). With the schedule switched off, the rest of today and tomorrow.
+ */
+export function slots(schedule: Schedule, now: Date, prepMinutes: number): Date[] {
+	const step = SLOT_MINUTES * 60_000;
+	const first = Math.ceil((now.getTime() + prepMinutes * 60_000) / step) * step;
+	// The opening day running now (a late shift past midnight belongs to the day it began).
+	const current = isOpenAt(schedule, now) ? openingDayOf(schedule, now) : local(now).date;
+	let next: string | null = null;
+	const out: Date[] = [];
+	// At most eight days ahead, so a closed week ends the search.
+	for (let t = first; t < now.getTime() + 8 * 86400_000; t += step) {
+		const at = new Date(t);
+		if (!isOpenAt(schedule, at)) continue;
+		const day = openingDayOf(schedule, at);
+		if (day !== current) {
+			next ??= day;
+			if (day !== next) break;
+		}
+		out.push(at);
+	}
+	return out;
+}
+
+function openingDayOf(schedule: Schedule, at: Date): string {
+	const { date, weekday, minute } = local(at);
+	if (!schedule.enabled) return date;
+	const yesterday = shiftDate(date, -1);
+	const fromYesterday =
+		!schedule.closedDates.includes(yesterday) &&
+		schedule.days.some(
+			(d) => d.weekday === weekdayOf(yesterday) && crossesMidnight(d) && minute < minutes(d.closes)
+		);
+	const startsToday = schedule.days.some(
+		(d) => d.weekday === weekday && minute >= minutes(d.opens)
+	);
+	return fromYesterday && !startsToday ? yesterday : date;
+}
+
+/** Whether a time the customer picked is one of the offered slots. */
+export function isSlot(schedule: Schedule, now: Date, prepMinutes: number, at: Date): boolean {
+	return slots(schedule, now, prepMinutes).some((s) => s.getTime() === at.getTime());
+}

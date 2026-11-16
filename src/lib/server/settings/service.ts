@@ -19,6 +19,10 @@ export interface StoreSettings {
 	unpaidPixMinutes: number;
 	/** Minutes before an unpaid totem "pagar no caixa" order cancels itself. */
 	unpaidCounterMinutes: number;
+	/** Customers may pick a later time at checkout. */
+	schedulingEnabled: boolean;
+	/** Orders accepted per 15-minute slot; null = no limit. */
+	maxOrdersPerSlot: number | null;
 	updatedAt: Date;
 	version: number;
 }
@@ -36,6 +40,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 			max_open_orders: number | null;
 			unpaid_pix_minutes: number;
 			unpaid_counter_minutes: number;
+			scheduling_enabled: boolean;
+			max_orders_per_slot: number | null;
 			updated_at: Date;
 			version: number;
 		}[]
@@ -51,6 +57,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 		maxOpenOrders: r.max_open_orders,
 		unpaidPixMinutes: r.unpaid_pix_minutes,
 		unpaidCounterMinutes: r.unpaid_counter_minutes,
+		schedulingEnabled: r.scheduling_enabled,
+		maxOrdersPerSlot: r.max_orders_per_slot,
 		updatedAt: r.updated_at,
 		version: r.version
 	};
@@ -80,7 +88,9 @@ export async function updateStoreSettings(
 				prep_time_minutes = ${next.prepTimeMinutes},
 				max_open_orders = ${next.maxOpenOrders},
 				unpaid_pix_minutes = ${next.unpaidPixMinutes},
-				unpaid_counter_minutes = ${next.unpaidCounterMinutes}, updated_by = ${actor.id}, updated_at = now(),
+				unpaid_counter_minutes = ${next.unpaidCounterMinutes},
+				scheduling_enabled = ${next.schedulingEnabled},
+				max_orders_per_slot = ${next.maxOrdersPerSlot}, updated_by = ${actor.id}, updated_at = now(),
 				version = version + 1
 			where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.settings_updated', 'store_runtime_settings', '1', {

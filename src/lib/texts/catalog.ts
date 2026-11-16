@@ -289,6 +289,11 @@ const CORE_TEXTS = {
 		label: 'Botão do carrinho (leitor de tela)',
 		default: 'Carrinho, {count} {items}'
 	},
+	'header.closedSchedule': {
+		group: 'header',
+		label: 'Aviso fora do horário com agendamento',
+		default: 'Estamos fechados agora. Abrimos {when}; você já pode agendar seu pedido.'
+	},
 	'header.closedUntil': {
 		group: 'header',
 		label: 'Aviso fora do horário',
@@ -552,6 +557,20 @@ const CORE_TEXTS = {
 		group: 'checkout',
 		label: 'Mesa (comer no local)',
 		default: 'Número da mesa (opcional)'
+	},
+	'checkout.when': { group: 'checkout', label: 'Quando: título', default: 'Para quando?' },
+	'checkout.whenNow': { group: 'checkout', label: 'Quando: agora', default: 'Agora' },
+	'checkout.whenLater': { group: 'checkout', label: 'Quando: agendar', default: 'Agendar' },
+	'checkout.slot': { group: 'checkout', label: 'Quando: horário', default: 'Horário' },
+	'checkout.slotNote': {
+		group: 'checkout',
+		label: 'Quando: aviso de pagamento',
+		default: 'O pagamento é feito agora; preparamos seu pedido para o horário escolhido.'
+	},
+	'checkout.scheduledFor': {
+		group: 'checkout',
+		label: 'Quando: agendado para',
+		default: 'Agendado para {when}'
 	},
 	'checkout.pickup': { group: 'checkout', label: 'Retirada / para viagem', default: 'Para viagem' },
 	'checkout.delivery': { group: 'checkout', label: 'Entrega', default: 'Entrega' },
@@ -1331,6 +1350,21 @@ const CORE_TEXTS = {
 		group: 'staff',
 		label: 'Pedidos: dica da coluna em preparo',
 		default: 'Pedidos em produção na cozinha'
+	},
+	'orders.lane.scheduled': {
+		group: 'staff',
+		label: 'Pedidos: coluna agendados',
+		default: 'Agendados'
+	},
+	'orders.lane.scheduledHint': {
+		group: 'staff',
+		label: 'Pedidos: dica da coluna agendados',
+		default: 'Pagos, para mais tarde. A cozinha vê no horário.'
+	},
+	'orders.scheduledFor': {
+		group: 'staff',
+		label: 'Pedidos: horário agendado',
+		default: 'Para {time}'
 	},
 	'orders.lane.ready': {
 		group: 'staff',

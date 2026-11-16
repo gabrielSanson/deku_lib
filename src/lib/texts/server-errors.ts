@@ -68,6 +68,21 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Comer no local desligado',
 		default: 'Pedidos para comer no local estão desligados.'
 	},
+	'err.order.scheduleOff': {
+		group: 'errors',
+		label: 'Agendamento desligado',
+		default: 'Esta loja não aceita pedidos agendados no momento.'
+	},
+	'err.order.slot': {
+		group: 'errors',
+		label: 'Horário agendado inválido',
+		default: 'Esse horário não está mais disponível. Escolha outro.'
+	},
+	'err.order.slotFull': {
+		group: 'errors',
+		label: 'Horário agendado lotado',
+		default: 'Esse horário já está lotado. Escolha outro.'
+	},
 	'err.order.capacity': {
 		group: 'errors',
 		label: 'Cozinha lotada',

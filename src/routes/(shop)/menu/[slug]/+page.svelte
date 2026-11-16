@@ -212,10 +212,16 @@
 						aria-label={t('product.more')}>+</button
 					>
 				</div>
-				<button class="btn-primary flex-1 text-lg" disabled={out || !data.store.open} onclick={add}>
-					{out ? t('product.soldOut') : !data.store.open ? t('product.closed') : t('product.add')} · <Money
-						cents={unit * quantity}
-					/>
+				<button
+					class="btn-primary flex-1 text-lg"
+					disabled={out || !data.store.canOrder}
+					onclick={add}
+				>
+					{out
+						? t('product.soldOut')
+						: !data.store.canOrder
+							? t('product.closed')
+							: t('product.add')} · <Money cents={unit * quantity} />
 				</button>
 			</div>
 		</div>

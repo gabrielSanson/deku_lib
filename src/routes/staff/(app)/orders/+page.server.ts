@@ -53,7 +53,15 @@ export const load: PageServerLoad = async (event) => {
 	};
 	// Customers who asked the WhatsApp bot for a person; staff answer from the shop's phone.
 	const whatsappWaiting = await waitingConversations().catch(() => []);
-	return { orders, status, channel: channel ?? '', q, tabCounts, whatsappWaiting };
+	return {
+		orders,
+		status,
+		channel: channel ?? '',
+		q,
+		tabCounts,
+		whatsappWaiting,
+		loadedAt: new Date()
+	};
 };
 
 export const actions: Actions = {

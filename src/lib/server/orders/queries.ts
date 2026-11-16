@@ -51,6 +51,8 @@ export interface OrderSummary {
 	kitchenSeenAt: Date | null;
 	/** Last time staff tapped "Chamar". */
 	calledAt: Date | null;
+	/** An order for later; the kitchen sees it from this time minus the prep time. */
+	scheduledFor: Date | null;
 	version: number;
 	items: OrderItemView[];
 }
@@ -76,6 +78,7 @@ interface OrderRow {
 	ready_at: Date | null;
 	kitchen_seen_at: Date | null;
 	called_at: Date | null;
+	scheduled_for: Date | null;
 	version: number;
 }
 
@@ -134,6 +137,7 @@ async function withItems(sql: Db, rows: OrderRow[]): Promise<OrderSummary[]> {
 		readyAt: r.ready_at,
 		kitchenSeenAt: r.kitchen_seen_at,
 		calledAt: r.called_at,
+		scheduledFor: r.scheduled_for,
 		version: r.version,
 		items: items
 			.filter((i) => i.order_id === r.id)
@@ -177,7 +181,7 @@ export async function listOrders(
 	const rows = await sql<OrderRow[]>`
 		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
-			kitchen_seen_at, called_at, version
+			kitchen_seen_at, called_at, scheduled_for, version
 		from orders
 		where (${statuses}::text[] is null or status = any(${statuses}::text[]))
 			and (${filter.channel ?? null}::text is null or channel = ${filter.channel ?? null})
@@ -192,11 +196,14 @@ export async function listKitchenOrders(sql: Db = db()): Promise<OrderSummary[]>
 	const rows = await sql<OrderRow[]>`
 		select id, order_number, channel, source_mode, customer_label, channel_display_id, status, payment_status, payment_plan, fulfillment_type, table_label,
 			fulfillment_provider, total_cents, notes, created_at, promised_at, accepted_at, ready_at,
-			kitchen_seen_at, called_at, version
-		from orders
-		where status in ('confirmed', 'preparing', 'ready')
-			or (status = 'completed' and completed_at > now() - interval '10 minutes')
-		order by coalesce(accepted_at, created_at)
+			kitchen_seen_at, called_at, scheduled_for, version
+		from orders o
+		where (status in ('confirmed', 'preparing', 'ready')
+			or (status = 'completed' and completed_at > now() - interval '10 minutes'))
+			-- An order for later appears when it is time to start it.
+			and (scheduled_for is null or scheduled_for - make_interval(mins => (
+				select prep_time_minutes from store_runtime_settings s where s.shop_id = o.shop_id)) <= now())
+		order by coalesce(scheduled_for, accepted_at, created_at)
 		limit 200`;
 	return withItems(sql, rows);
 }
@@ -379,6 +386,7 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 		createdAt: d.createdAt,
 		acceptedAt: d.acceptedAt,
 		promisedAt: d.promisedAt,
+		scheduledFor: d.scheduledFor,
 		readyAt: d.readyAt,
 		calledAt: d.calledAt,
 		tableLabel: d.tableLabel,

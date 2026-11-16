@@ -76,6 +76,22 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Loja: prazo do totem não pago',
 		default: 'Cancelar pedido do totem não pago após (min)'
 	},
+	'store.scheduling': {
+		group: g,
+		label: 'Loja: pedidos agendados',
+		default: 'Aceitar pedidos agendados no site'
+	},
+	'store.schedulingHint': {
+		group: g,
+		label: 'Loja: ajuda dos agendados',
+		default:
+			'O cliente escolhe um horário (de 15 em 15 min, dentro do horário de funcionamento) e paga na hora. A cozinha só vê o pedido no horário menos o tempo de preparo.'
+	},
+	'store.maxPerSlot': {
+		group: g,
+		label: 'Loja: máximo por horário',
+		default: 'Máximo de pedidos agendados por horário (vazio = sem limite)'
+	},
 	'store.maxOpen': {
 		group: g,
 		label: 'Loja: máximo de pedidos abertos',

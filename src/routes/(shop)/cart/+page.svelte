@@ -52,7 +52,7 @@
 			<span>{t('cart.subtotal')}</span><Money cents={cart.subtotalCents} />
 		</div>
 		<p class="text-sm text-muted">{t('cart.nextStepNote')}</p>
-		{#if data.store.open}
+		{#if data.store.canOrder}
 			<a href="/checkout" class="btn-primary w-full text-lg">{t('cart.continue')}</a>
 		{:else}
 			<button type="button" class="btn-primary w-full text-lg" disabled>{t('cart.continue')}</button

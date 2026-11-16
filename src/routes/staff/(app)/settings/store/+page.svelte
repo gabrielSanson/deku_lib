@@ -72,6 +72,24 @@
 				required
 			/>
 		</div>
+		<Checkbox
+			label={t('store.scheduling')}
+			name="schedulingEnabled"
+			checked={s.schedulingEnabled}
+		/>
+		<p class="-mt-2 pl-8 text-sm text-muted">{t('store.schedulingHint')}</p>
+		{#if s.schedulingEnabled}
+			<div class="grid gap-4 sm:grid-cols-2">
+				<TextField
+					label={t('store.maxPerSlot')}
+					id="perSlot"
+					name="maxOrdersPerSlot"
+					type="number"
+					min={1}
+					value={s.maxOrdersPerSlot ?? ''}
+				/>
+			</div>
+		{/if}
 		<FormError message={form?.error} />
 	</SettingsSection>
 	<p class="text-sm text-muted">

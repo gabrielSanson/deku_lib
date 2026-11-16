@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeOpening, isOpenAt, nextOpening, type Schedule } from './hours';
+import { describeOpening, isOpenAt, isSlot, nextOpening, slots, type Schedule } from './hours';
 
 // São Paulo is UTC-3 all year.
 const at = (local: string) => new Date(`${local}:00-03:00`);
@@ -46,5 +46,58 @@ describe('opening hours', () => {
 		expect(describeOpening(nextOpening(schedule, now)!, now)).toBe('hoje às 18:00');
 		const late = at('2026-10-20T23:30');
 		expect(describeOpening(nextOpening(schedule, late)!, late)).toBe('sexta às 18:00');
+	});
+});
+
+describe('scheduling slots', () => {
+	const hhmm = (d: Date) =>
+		new Intl.DateTimeFormat('pt-BR', {
+			timeZone: 'America/Sao_Paulo',
+			weekday: 'short',
+			hour: '2-digit',
+			minute: '2-digit'
+		}).format(d);
+
+	it('offers every 15 min from now plus prep to the end of the next opening day', () => {
+		// Tuesday 12:07, 20 min prep: first slot 12:30; today until 22:45, then Friday 18:00–01:45.
+		const s = slots(schedule, at('2026-10-20T12:07'), 20);
+		expect(s[0]).toEqual(at('2026-10-20T12:30'));
+		expect(s).toContainEqual(at('2026-10-20T14:45'));
+		expect(s).not.toContainEqual(at('2026-10-20T15:00'));
+		expect(s).toContainEqual(at('2026-10-20T18:00'));
+		expect(s).toContainEqual(at('2026-10-20T22:45'));
+		expect(s).not.toContainEqual(at('2026-10-20T23:00'));
+		expect(s).toContainEqual(at('2026-10-23T18:00'));
+		expect(hhmm(s[s.length - 1])).toContain('01:45');
+		expect(s.every((d) => d.getTime() % (15 * 60_000) === 0)).toBe(true);
+	});
+
+	it('while closed, starts at the next opening and stops after the day after', () => {
+		const s = slots(schedule, at('2026-10-20T23:30'), 20);
+		expect(s[0]).toEqual(at('2026-10-23T18:00'));
+		expect(s[s.length - 1]).toEqual(at('2026-10-24T01:45'));
+	});
+
+	it('late shift past midnight counts as the day it began', () => {
+		const s = slots(schedule, at('2026-10-24T00:10'), 15);
+		expect(s[0]).toEqual(at('2026-10-24T00:30'));
+		// Friday's shift, then the next opening day (Tuesday).
+		expect(s).toContainEqual(at('2026-10-27T11:00'));
+		expect(s[s.length - 1]).toEqual(at('2026-10-27T22:45'));
+	});
+
+	it('skips closed dates and checks a picked slot', () => {
+		const closed = { ...schedule, closedDates: ['2026-10-23'] };
+		const s = slots(closed, at('2026-10-20T23:30'), 20);
+		expect(s[0]).toEqual(at('2026-10-27T11:00'));
+		expect(isSlot(schedule, at('2026-10-20T12:07'), 20, at('2026-10-20T12:30'))).toBe(true);
+		expect(isSlot(schedule, at('2026-10-20T12:07'), 20, at('2026-10-20T12:20'))).toBe(false);
+		expect(isSlot(schedule, at('2026-10-20T12:07'), 20, at('2026-10-20T16:00'))).toBe(false);
+	});
+
+	it('with the schedule off, offers the rest of today and tomorrow', () => {
+		const s = slots({ enabled: false, days: [], closedDates: [] }, at('2026-10-20T22:00'), 30);
+		expect(s[0]).toEqual(at('2026-10-20T22:30'));
+		expect(s[s.length - 1]).toEqual(at('2026-10-21T23:45'));
 	});
 });

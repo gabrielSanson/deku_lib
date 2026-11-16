@@ -175,7 +175,7 @@
 									out={soldOut.has(p.sku)}
 									needsChoice={p.modifierGroups.length > 0 ||
 										p.ingredients.some((i) => i.removable && missingIngredients.has(i.id))}
-									open={data.store.open}
+									open={data.store.canOrder}
 									added={justAdded === p.sku}
 									{logo}
 									onadd={() => quickAdd(p)}

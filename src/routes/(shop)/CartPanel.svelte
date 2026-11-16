@@ -16,7 +16,7 @@
 		/** The shop's small logo, shown where a photo is missing. */
 		logo: string;
 		store: {
-			open: boolean;
+			canOrder: boolean;
 			delivery: boolean;
 			pixKey: boolean;
 		};
@@ -134,7 +134,7 @@
 	{/if}
 
 	<div class="space-y-4 px-6 pt-5 pb-6">
-		{#if store.open && cart.count}
+		{#if store.canOrder && cart.count}
 			<a
 				href="/checkout"
 				class="btn-primary min-h-13 w-full rounded-full text-lg"
@@ -145,7 +145,7 @@
 			</a>
 		{:else}
 			<button type="button" class="btn-primary min-h-13 w-full rounded-full text-lg" disabled>
-				{store.open ? t('cart.checkout') : t('cart.closedNow')}
+				{store.canOrder ? t('cart.checkout') : t('cart.closedNow')}
 				<Icon name="arrow" />
 			</button>
 		{/if}

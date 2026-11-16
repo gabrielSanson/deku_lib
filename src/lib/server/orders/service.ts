@@ -1,5 +1,6 @@
 // The only place orders are created or change status. Every change runs in a
 // transaction that also writes history/audit rows and enqueues follow-up jobs.
+import { isSlot } from '#lib/domain/hours.ts';
 import type { Channel } from '#lib/domain/catalog.ts';
 import {
 	canTransition,
@@ -36,7 +37,7 @@ import { dropPushSubscriptions } from '../notifications/push';
 import { orderRequestHash } from '#lib/domain/request-hash.ts';
 import { OWN_SOURCES, sourceForChannel } from '#lib/domain/consent.ts';
 import { knownShop } from '../platform/shops';
-import { inHoursNow } from '../settings/hours';
+import { getSchedule, inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
 
@@ -108,6 +109,8 @@ export interface CreateOrderInput {
 	 */
 	externalPricing?: { cart: PricedCart; deliveryFeeCents: number; discountCents: number };
 	channelDisplayId?: string | null;
+	/** A web order for later: one of the 15-minute slots from domain/hours slots(). */
+	scheduledFor?: Date | null;
 	actor: OrderActor;
 }
 
@@ -155,7 +158,22 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 					}
 				);
 			}
-			if (!(await inHoursNow(tx))) {
+			if (input.scheduledFor) {
+				// A scheduled order may be placed while the shop is closed; the slot must be open.
+				if (!settings.schedulingEnabled)
+					throw new DomainError('err.order.scheduleOff', { code: 'schedule_off', status: 409 });
+				if (
+					!isSlot(await getSchedule(tx), new Date(), settings.prepTimeMinutes, input.scheduledFor)
+				)
+					throw new DomainError('err.order.slot', { code: 'bad_slot', status: 409 });
+				if (settings.maxOrdersPerSlot) {
+					const [{ n }] = await tx<{ n: number }[]>`
+						select count(*)::int as n from orders where scheduled_for = ${input.scheduledFor}
+						and status not in ('cancelled', 'rejected')`;
+					if (n >= settings.maxOrdersPerSlot)
+						throw new DomainError('err.order.slotFull', { code: 'slot_full', status: 409 });
+				}
+			} else if (!(await inHoursNow(tx))) {
 				throw new DomainError('err.order.closedHours', { code: 'closed_hours', status: 409 });
 			}
 			if (input.fulfillmentType === 'delivery' && !settings.deliveryEnabled) {
@@ -167,12 +185,15 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			if (input.fulfillmentType === 'dine_in' && !settings.dineInEnabled) {
 				throw new DomainError('err.order.dineInOff', { code: 'dine_in_off', status: 409 });
 			}
-			if (settings.maxOpenOrders) {
+			if (settings.maxOpenOrders && !input.scheduledFor) {
 				// Unpaid Pix/totem orders past their deadline do not count, even if the worker that
 				// cancels them is down.
 				const [{ open }] = await tx<{ open: number }[]>`
 					select count(*)::int as open from orders o, store_runtime_settings s
 					where s.shop_id = o.shop_id and o.status in ('new','confirmed','preparing')
+						-- Orders for later count only once the kitchen sees them.
+						and (o.scheduled_for is null
+							or o.scheduled_for - make_interval(mins => s.prep_time_minutes) <= now())
 						and not (o.status = 'new' and o.payment_status <> 'paid' and (
 							(o.payment_plan = 'pix_key'
 								and o.created_at < now() - make_interval(mins => s.unpaid_pix_minutes))
@@ -206,7 +227,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			}
 		}
 		const now = new Date();
-		const promisedAt = new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
+		const scheduledFor = input.channel === 'web' ? (input.scheduledFor ?? null) : null;
+		const promisedAt = scheduledFor ?? new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
 
 		let customerId: string | null = null;
 		if (input.customerId) {
@@ -281,7 +303,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
 				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label,
-				campaign_id, coupon_id, request_hash
+				campaign_id, coupon_id, request_hash, scheduled_for
 			) values (
 				${input.channel}, ${input.channelPartner ?? null}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
@@ -293,7 +315,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 				${promisedAt}, ${status === 'confirmed' ? now : null}, ${staffId},
 				${plan},
 				${input.channelDisplayId ?? null}, ${input.fulfillmentType === 'dine_in' ? input.tableLabel || null : null},
-				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}, ${requestHash}
+				${applied?.campaignId ?? null}, ${applied?.couponId ?? null}, ${requestHash}, ${scheduledFor}
 			)
 			on conflict (shop_id, idempotency_key) do nothing
 			returning id, order_number, public_token`;

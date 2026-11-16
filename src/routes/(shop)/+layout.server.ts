@@ -52,6 +52,13 @@ export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies, url 
 		pages: pages.filter((p) => p.published).map((p) => ({ slug: p.slug, title: p.title })),
 		store: {
 			open: !suspended && settings.acceptingOrders && settings.webOrderingEnabled && inHours,
+			/** Orders can be placed: open now, or closed for the night with orders for later on. */
+			canOrder:
+				!suspended &&
+				settings.acceptingOrders &&
+				settings.webOrderingEnabled &&
+				(inHours || (settings.schedulingEnabled && !isKiosk(cookies) && !!next)),
+			scheduling: settings.schedulingEnabled && !isKiosk(cookies),
 			pauseReason: suspended
 				? (await getTexts())['shop.suspended']
 				: settings.acceptingOrders

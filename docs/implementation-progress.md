@@ -89,7 +89,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S3.5: done (page at Campanhas → Mensagens; audience = the S3.3 filters, own sources only, mayMarket; e-mail or an approved WhatsApp marketing template (variables nome and the opt-out link are TODO(verify)); per-message WhatsApp price is a setting (default R$ 0,35, [UNVERIFIED] current Meta price); 10 messages a second through message_outbox; the one-tap /sair/<token> link opts out on open (a mail scanner opening it would also opt the person out; accepted for one-tap); every send is in marketing_sends and audit_log)
 - S3.6: done (due days setting default 30 TODO(verify) ANPD deadline; public form confirmed by e-mailed code, 5 tries; deletion anonymises and keeps orders as 'Cliente removido')
 - S3.7: done (WhatsApp only inside the 24 h window, else e-mail, always a link on the tracking page; one rating per order, private; 3 stars or less e-mails the alert recipients and stays on the staff home until marked seen; average of 30 days on the staff home (not shown to kitchen))
-- S3.8: todo
+- S3.8: done (off by default (Configurações → Tipos de pedido); slots every 15 min from now + prep to the end of the next opening day; while closed with scheduling on, the site takes orders for later only (dine-in off); kitchen hides the order until scheduled_for − prep; 'Agendados' lane on the board; max orders per slot setting; scheduled orders do not count against the open-order cap until due)
 - S3.9: todo
 - S4.1: todo
 - S4.2: todo

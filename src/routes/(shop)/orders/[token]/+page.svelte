@@ -9,7 +9,7 @@
 	import Timeline, { type Step } from '#lib/components/organisms/Timeline.svelte';
 	import { enhance } from '$app/forms';
 	import { getsReadyAlert, pickupCode } from '#lib/domain/pickup.ts';
-	import { formatTime } from '#lib/domain/time.ts';
+	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
 	import { rememberOrder } from '#lib/client/last-order.ts';
 	import { useLabels, useTexts } from '#lib/texts/context.ts';
 
@@ -216,6 +216,9 @@
 		<p class="mt-1 text-muted">{t('order.track.subtitle')}</p>
 	</div>
 	{#if isNew && !data.kiosk}<p class="alert-ok">{t('order.sent')}</p>{/if}
+	{#if o.scheduledFor && open}<p class="card p-4 font-semibold">
+			{t('checkout.scheduledFor', { when: formatDateTime(o.scheduledFor) })}
+		</p>{/if}
 
 	<div class="space-y-5 rounded-(--radius-card) bg-night p-6 text-white">
 		<div class="flex flex-wrap items-start justify-between gap-3">

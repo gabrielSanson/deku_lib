@@ -14,7 +14,7 @@
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import PickupCode from '#lib/components/atoms/PickupCode.svelte';
 	import { mayCall, pickupCode } from '#lib/domain/pickup.ts';
-	import { formatTime } from '#lib/domain/time.ts';
+	import { formatDateTime, formatTime } from '#lib/domain/time.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import type { TextKey } from '#lib/texts/catalog.ts';
 	import { useLabels, useTexts } from '#lib/texts/context.ts';
@@ -70,13 +70,30 @@
 	}
 
 	// Board lanes, as in the mockup: novos, em preparo, prontos. Only for the active view.
+	// Orders for later wait in their own lane (shown when there are any) until their time.
+	const isLater = (o: { status: string; scheduledFor: Date | null }) =>
+		['new', 'confirmed'].includes(o.status) &&
+		!!o.scheduledFor &&
+		new Date(o.scheduledFor).getTime() > data.loadedAt.getTime();
+	const scheduled = $derived(data.orders.filter(isLater));
 	const lanes = $derived([
+		...(scheduled.length
+			? [
+					{
+						key: 'scheduled',
+						title: t('orders.lane.scheduled'),
+						hint: t('orders.lane.scheduledHint'),
+						icon: 'calendar' as IconName,
+						orders: scheduled
+					}
+				]
+			: []),
 		{
 			key: 'new',
 			title: t('orders.lane.new'),
 			hint: t('orders.lane.newHint'),
 			icon: 'bag' as IconName,
-			orders: data.orders.filter((o: { status: string }) => ['new', 'confirmed'].includes(o.status))
+			orders: data.orders.filter((o) => ['new', 'confirmed'].includes(o.status) && !isLater(o))
 		},
 		{
 			key: 'preparing',
@@ -94,6 +111,7 @@
 		}
 	]);
 	const laneTone: Record<string, string> = {
+		scheduled: 'bg-quiet',
 		new: 'bg-bad-tint',
 		preparing: 'bg-brand-tint',
 		ready: 'bg-ok-tint'
@@ -162,7 +180,7 @@
 	{/if}
 
 	{#if data.status === 'active'}
-		<div class="grid gap-4 lg:grid-cols-3">
+		<div class="grid gap-4 {lanes.length > 3 ? 'lg:grid-cols-2 xl:grid-cols-4' : 'lg:grid-cols-3'}">
 			{#each lanes as lane (lane.key)}
 				<OrderLane
 					id={lane.key}
@@ -185,6 +203,9 @@
 								</div>
 								<!-- Meta chips: channel, fulfilment and customer, one line each. -->
 								<ul class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+									{#if o.scheduledFor}<li class="chip">
+											{t('orders.scheduledFor', { time: formatDateTime(o.scheduledFor) })}
+										</li>{/if}
 									<li class="chip">{channelLabel[o.channel]}</li>
 									<li class="chip">{label.fulfillment(o.fulfillmentType, o.tableLabel)}</li>
 									{#if o.customerLabel}<li class="chip">{o.customerLabel}</li>{/if}

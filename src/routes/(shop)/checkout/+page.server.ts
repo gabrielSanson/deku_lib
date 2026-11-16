@@ -1,6 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
+import { slots } from '#lib/domain/hours.ts';
 import { formatBRL } from '#lib/domain/money.ts';
+import { SHOP_TZ } from '#lib/domain/time.ts';
 import { WEB_PAYMENT_METHODS, webPaymentPlan } from '#lib/domain/payment-rules.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
@@ -25,10 +27,30 @@ import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
-import { listDeliveryRules } from '#lib/server/settings/service.ts';
+import { getSchedule } from '#lib/server/settings/hours.ts';
+import { getStoreSettings, listDeliveryRules } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
+
+const slotLabel = new Intl.DateTimeFormat('pt-BR', {
+	timeZone: SHOP_TZ,
+	weekday: 'short',
+	day: '2-digit',
+	month: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit'
+});
+
+/** The 15-minute slots a customer may schedule for (empty when scheduling is off). */
+async function scheduleSlots(kiosk: boolean) {
+	const settings = await getStoreSettings();
+	if (!settings.schedulingEnabled || kiosk) return [];
+	return slots(await getSchedule(), new Date(), settings.prepTimeMinutes).map((d) => ({
+		value: d.toISOString(),
+		label: slotLabel.format(d)
+	}));
+}
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
 	const provider = await paymentProvider();
@@ -40,6 +62,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		onlineMethods: provider?.methods ?? [],
 		whatsapp: await whatsappEnabled(),
 		refCode: cookies.get('ref_code') ?? '',
+		slots: await scheduleSlots(isKiosk(cookies)),
 		prefill: {
 			name: c?.name ?? '',
 			phone: c?.phone ?? (waPhone ? waPhone.replace(/^\+55/, '') : ''),
@@ -72,6 +95,8 @@ const checkout = z.object({
 	whatsappUpdates: z.boolean().default(false),
 	payment: z.enum([...WEB_PAYMENT_METHODS, 'counter']),
 	couponCode: z.string().trim().max(30).optional(),
+	/** An order for later: one of the offered slots, as an ISO time. */
+	scheduledFor: z.string().datetime().optional(),
 	idempotencyKey: z.string().uuid()
 });
 
@@ -170,6 +195,8 @@ export const actions: Actions = {
 			return fail(400, { error: texts['checkout.error.review'] });
 		if (input.payment === 'counter' && !kiosk)
 			return fail(400, { error: texts['checkout.error.review'] });
+		if (input.scheduledFor && (kiosk || input.fulfillmentType === 'dine_in'))
+			return fail(400, { error: texts['checkout.error.review'] });
 		if (input.fulfillmentType === 'delivery' && !input.address)
 			return fail(400, { error: texts['checkout.error.address'] });
 
@@ -218,6 +245,7 @@ export const actions: Actions = {
 				couponCode: input.couponCode || null,
 				idempotencyKey: input.idempotencyKey,
 				paymentPlan: webPaymentPlan(input.payment),
+				scheduledFor: input.scheduledFor ? new Date(input.scheduledFor) : null,
 				actor: { type: 'customer', id: null }
 			})
 		);

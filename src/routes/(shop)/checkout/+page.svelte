@@ -1,5 +1,6 @@
 <script lang="ts">
 	import TextField from '#lib/components/molecules/TextField.svelte';
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import CouponField from '#lib/components/molecules/CouponField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import EmptyState from '#lib/components/molecules/EmptyState.svelte';
@@ -52,6 +53,11 @@
 	let email = $state(untrack(() => data.prefill.email));
 	let marketingConsent = $state(false);
 	let whatsappUpdates = $state(false);
+	// "Para quando?": now, or one of the shop's 15-minute slots (forced while the shop is closed).
+	let when = $state<'now' | 'later'>(untrack(() => (data.store.open ? 'now' : 'later')));
+	let scheduledFor = $state('');
+	const canSchedule = $derived(data.slots.length > 0 && fulfillmentType !== 'dine_in');
+	const later = $derived(canSchedule && (when === 'later' || !data.store.open));
 	let couponCode = $state(untrack(() => data.refCode));
 	let addr = $state({
 		cep: '',
@@ -77,7 +83,10 @@
 		} catch {
 			/* no storage: nothing to prefill */
 		}
-		if (data.store.dineIn && table) {
+		if (!data.store.open) {
+			// Closed: only an order for later, which is never eaten in.
+			fulfillmentType = data.store.pickup ? 'pickup' : 'delivery';
+		} else if (data.store.dineIn && table) {
 			fulfillmentType = 'dine_in';
 			tableLabel = table;
 		} else if (data.kiosk && data.store.dineIn) {
@@ -111,7 +120,8 @@
 		marketingConsent,
 		whatsappUpdates,
 		payment,
-		couponCode: couponCode || undefined
+		couponCode: couponCode || undefined,
+		scheduledFor: later && scheduledFor ? scheduledFor : undefined
 	});
 	const payload = $derived.by(() => {
 		const body = JSON.stringify(request);
@@ -173,7 +183,7 @@
 	);
 	const canPlace = $derived(
 		cart.lines.length > 0 &&
-			data.store.open &&
+			(later ? !!scheduledFor : data.store.open) &&
 			quote !== null &&
 			!quote.deliveryError &&
 			!(couponCode && quote.couponBlocks) &&
@@ -314,7 +324,13 @@
 						class="grid gap-2 {data.store.dineIn && !data.kiosk ? 'grid-cols-3' : 'grid-cols-2'}"
 						choices={[
 							...(data.store.dineIn
-								? [{ value: 'dine_in' as const, label: t('checkout.dineIn') }]
+								? [
+										{
+											value: 'dine_in' as const,
+											label: t('checkout.dineIn'),
+											disabled: !data.store.open
+										}
+									]
 								: []),
 							{
 								value: 'pickup' as const,
@@ -342,10 +358,36 @@
 							bind:value={tableLabel}
 						/>
 					{/if}
+					{#if canSchedule}
+						<p class="pt-2 font-semibold">{t('checkout.when')}</p>
+						{#if data.store.open}
+							<ChoiceButtons
+								label={t('checkout.when')}
+								class="grid grid-cols-2 gap-2"
+								choices={[
+									{ value: 'now' as const, label: t('checkout.whenNow') },
+									{ value: 'later' as const, label: t('checkout.whenLater') }
+								]}
+								bind:value={when}
+							/>
+						{/if}
+						{#if later}
+							<SelectField
+								label={t('checkout.slot')}
+								name="slot"
+								bind:value={scheduledFor}
+								options={[{ value: '', label: '—' }, ...data.slots]}
+							/>
+						{/if}
+					{/if}
 					<p class="text-sm text-muted">
-						{t(fulfillmentType === 'delivery' ? 'checkout.etaDelivery' : 'checkout.eta', {
-							minutes: data.store.prepTimeMinutes
-						})}
+						{#if later}
+							{t('checkout.slotNote')}
+						{:else}
+							{t(fulfillmentType === 'delivery' ? 'checkout.etaDelivery' : 'checkout.eta', {
+								minutes: data.store.prepTimeMinutes
+							})}
+						{/if}
 					</p>
 				</fieldset>
 			{:else if step === 'address'}

@@ -21,6 +21,10 @@ export const actions: Actions = {
 			return failText(400, 'err.settings.prepTime');
 		if (max !== null && (!Number.isInteger(max) || max < 1))
 			return failText(400, 'err.settings.capacity');
+		const slotRaw = formString(d, 'maxOrdersPerSlot');
+		const perSlot = slotRaw ? Number(slotRaw) : null;
+		if (perSlot !== null && (!Number.isInteger(perSlot) || perSlot < 1))
+			return failText(400, 'err.settings.capacity');
 		const unpaidPix = Number(formString(d, 'unpaidPixMinutes'));
 		const unpaidCounter = Number(formString(d, 'unpaidCounterMinutes'));
 		const minutesOk = (n: number) => Number.isInteger(n) && n >= 5 && n <= 120;
@@ -36,7 +40,9 @@ export const actions: Actions = {
 					prepTimeMinutes: prep,
 					maxOpenOrders: max,
 					unpaidPixMinutes: unpaidPix,
-					unpaidCounterMinutes: unpaidCounter
+					unpaidCounterMinutes: unpaidCounter,
+					schedulingEnabled: d.get('schedulingEnabled') === 'on',
+					maxOrdersPerSlot: perSlot
 				},
 				staffActor(staff),
 				Number(formString(d, 'version'))
