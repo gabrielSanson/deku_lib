@@ -832,6 +832,27 @@ export const STAFF_OPS_TEXTS = {
 		label: 'Recibo: nota em contingência',
 		default: 'NFC-e emitida em contingência – pendente de autorização'
 	},
+	'orderDetail.cancelRefund': {
+		group: 'staff',
+		label: 'Pedido: botão cancelar e devolver',
+		default: 'Cancelar e devolver o dinheiro'
+	},
+	'orderDetail.cancelRefund.explain': {
+		group: 'staff',
+		label: 'Pedido: explicação de cancelar e devolver',
+		default:
+			'Devolve todos os pagamentos (online pelo provedor, dinheiro pela gaveta aberta), cancela o pedido se ainda não foi entregue e cancela a nota fiscal quando ainda é possível.'
+	},
+	'orderDetail.cancelRefund.confirm': {
+		group: 'staff',
+		label: 'Pedido: confirmar cancelar e devolver',
+		default: 'Cancelar e devolver'
+	},
+	'orderDetail.cancelRefund.fiscal': {
+		group: 'staff',
+		label: 'Pedido: nota não cancelada',
+		default: 'O dinheiro foi devolvido, mas a nota fiscal não foi cancelada: {reason}'
+	},
 	'orderDetail.fiscal.contingency': {
 		group: 'staff',
 		label: 'Pedido: nota em contingência',

@@ -1113,5 +1113,22 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'Nota fiscal: e-mail do contador',
 		default: 'Confira o e-mail do contador.'
+	},
+	'ok.cancelRefund': {
+		group: 'staffErrors',
+		label: 'Pedido: cancelado e devolvido',
+		default: 'Pronto: {value} devolvido.'
+	},
+	'err.refund.provider': {
+		group: 'staffErrors',
+		label: 'Devolução: provedor não configurado',
+		default:
+			'O pagamento foi feito por {provider}, que não está mais configurado. Devolva pelo painel do provedor.'
+	},
+	'err.refund.noReference': {
+		group: 'staffErrors',
+		label: 'Devolução: pagamento sem referência',
+		default:
+			'Esse pagamento online não tem a referência do provedor. Devolva pelo painel do provedor.'
 	}
 } satisfies Record<string, TextDef>;

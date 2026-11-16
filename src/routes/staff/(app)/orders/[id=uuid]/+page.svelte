@@ -30,6 +30,7 @@
 	const manager = $derived(data.staff.role === 'admin');
 	let refunding = $state<string | null>(null);
 	let cancellingNote = $state(false);
+	let cancellingRefund = $state(false);
 	const note = $derived(data.fiscal?.documents[0]);
 </script>
 
@@ -179,6 +180,49 @@
 
 	<aside class="space-y-4">
 		<OrderActionBar {next} version={o.version} error={form?.error} />
+		{#if form && 'notice' in form && form.notice}
+			<p class="alert-ok text-sm" role="status">{form.notice}</p>
+		{/if}
+		{#if form && 'fiscalProblem' in form && form.fiscalProblem}
+			<p class="alert-warn text-sm" role="alert">
+				{t('orderDetail.cancelRefund.fiscal', { reason: form.fiscalProblem })}
+			</p>
+		{/if}
+		{#if manager && o.tenders.some((x) => x.status === 'paid')}
+			<div class="space-y-2 card p-3 text-sm">
+				{#if cancellingRefund}
+					<form
+						method="POST"
+						action="?/cancelRefund"
+						use:enhance={() =>
+							async ({ update }) => {
+								await update();
+								cancellingRefund = false;
+							}}
+						class="space-y-2"
+					>
+						<p>{t('orderDetail.cancelRefund.explain')}</p>
+						<TextField
+							label={t('orderDetail.fiscalReason')}
+							id="cancel-refund-reason"
+							name="reason"
+							minlength={15}
+							required
+						/>
+						<div class="flex gap-2">
+							<button type="button" class="btn-secondary" onclick={() => (cancellingRefund = false)}
+								>{t('delivery.cancel')}</button
+							>
+							<button class="btn-danger flex-1">{t('orderDetail.cancelRefund.confirm')}</button>
+						</div>
+					</form>
+				{:else}
+					<button class="btn-ghost w-full text-bad" onclick={() => (cancellingRefund = true)}
+						>{t('orderDetail.cancelRefund')}</button
+					>
+				{/if}
+			</div>
+		{/if}
 
 		<div class="space-y-2 card p-3">
 			<h2 class="font-semibold">{t('orderDetail.payments')}</h2>

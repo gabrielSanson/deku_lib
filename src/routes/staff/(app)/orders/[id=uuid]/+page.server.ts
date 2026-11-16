@@ -13,6 +13,8 @@ import { orderProfitDetail } from '#lib/server/analytics/profit.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { refundTender } from '#lib/server/payments/tenders.ts';
 import { printStatus, reprint } from '#lib/server/printing/queue.ts';
+import { cancelAndRefund } from '#lib/server/payments/refunds.ts';
+import { formatBRL } from '#lib/domain/money.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -71,6 +73,22 @@ export const actions: Actions = {
 				staffActor(staff)
 			);
 			return { ok: true };
+		});
+	},
+	cancelRefund: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const data = await event.request.formData();
+		return attempt(async () => {
+			const r = await cancelAndRefund(
+				event.params.id,
+				formString(data, 'reason'),
+				staffActor(staff)
+			);
+			return {
+				ok: true,
+				notice: await shopText('ok.cancelRefund', { value: formatBRL(r.refundedCents) }),
+				fiscalProblem: r.fiscalProblem
+			};
 		});
 	},
 	fiscalRetry: async (event) => {
