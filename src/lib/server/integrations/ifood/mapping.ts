@@ -1,8 +1,9 @@
 // Pure translation between iFood order payloads and our order model.
 // Shapes follow iFood's Order API v1.0 as documented (UNVERIFIED until homologation).
 // Money arrives in reais as decimals and is converted to integer centavos here.
-import type { PricedCart, PricedLine } from '#lib/domain/pricing.ts';
-import type { OrderStatus, PaymentStatus } from '#lib/domain/order-status.ts';
+import type { PricedLine } from '#lib/domain/pricing.ts';
+import type { OrderStatus } from '#lib/domain/order-status.ts';
+import type { ExternalOrder, ProductInfo } from '../channel';
 
 export interface IfoodOrderOption {
 	id?: string;
@@ -65,41 +66,7 @@ export interface IfoodOrder {
 
 export const cents = (reais: number | undefined | null) => Math.round((reais ?? 0) * 100);
 
-export interface ProductInfo {
-	sku: string;
-	categoryName: string | null;
-	prepStation: string;
-}
-
-export interface MappedIfoodOrder {
-	channelOrderId: string;
-	displayId: string | null;
-	cart: PricedCart;
-	deliveryFeeCents: number;
-	discountCents: number;
-	channelTotalCents: number;
-	fulfillmentType: 'pickup' | 'delivery';
-	fulfillmentProvider: 'ifood_courier' | 'own_driver' | 'shop';
-	customer: { name: string } | undefined;
-	customerLabel: string;
-	address:
-		| {
-				recipient: string;
-				cep: string;
-				street: string;
-				number: string;
-				complement: string | null;
-				neighborhood: string;
-				city: string;
-				state: string;
-				instructions: string | null;
-		  }
-		| undefined;
-	paymentStatus: PaymentStatus;
-	notes: string | null;
-	isTest: boolean;
-	unmappedCodes: string[];
-}
+export type { ExternalOrder as MappedIfoodOrder, ProductInfo } from '../channel';
 
 /**
  * @param lookup resolves an iFood externalCode to our product. By convention the
@@ -108,7 +75,7 @@ export interface MappedIfoodOrder {
 export function mapIfoodOrder(
 	order: IfoodOrder,
 	lookup: (code: string) => ProductInfo | null
-): MappedIfoodOrder {
+): ExternalOrder {
 	const unmapped: string[] = [];
 	const lines: PricedLine[] = order.items.map((item, index) => {
 		const code = item.externalCode?.trim() || '';

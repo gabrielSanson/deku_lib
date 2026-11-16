@@ -64,7 +64,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S1.5: done 3aa1f67 (manual_pix only (PSP adapter later); shop #1 never pays; first invoice on the 1st after the trial ends; due on the 10th; audit_log.shop_id may be null for platform-level entries)
 - S1.6: done 3e82e99 (accepts ; or , CSV; re-importing updates products with the same name; also linked from the setup wizard's menu step)
 - S1.7: done 4a4d2ce (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
-- S2.1: todo
+- S2.1: done (the shop comes from the request scope instead of a ShopRef argument; pushStatus is split into planStatus (recorded once in channel_outbound) and sendStatus; channel_events/outbound name the adapter (opendelivery_99food), orders use channel opendelivery + channel_partner)
 - S2.2: todo
 - S2.3: todo
 - S2.4: todo

@@ -37,9 +37,12 @@ import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
 
-export type SourceMode = 'staff_pos' | 'web' | 'kiosk' | 'ifood_api' | 'ifood_manual';
+export type SourceMode =
+	'staff_pos' | 'web' | 'kiosk' | 'ifood_api' | 'ifood_manual' | 'opendelivery_api';
 export type FulfillmentType = 'counter' | 'pickup' | 'delivery' | 'dine_in';
-export type FulfillmentProvider = 'shop' | 'own_driver' | 'ifood_courier';
+export type FulfillmentProvider = 'shop' | 'own_driver' | 'ifood_courier' | 'partner_courier';
+/** Where an order came from; Open Delivery orders also name their partner app. */
+export type OrderChannel = Channel | 'opendelivery';
 
 export interface OrderActor extends Actor {
 	role?: StaffRole;
@@ -58,7 +61,9 @@ export interface AddressInput {
 }
 
 export interface CreateOrderInput {
-	channel: Channel;
+	channel: OrderChannel;
+	/** Open Delivery partner app ('99food', 'keeta'). */
+	channelPartner?: string | null;
 	sourceMode: SourceMode;
 	lines: CartLineInput[];
 	fulfillmentType: FulfillmentType;
@@ -178,8 +183,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		const cart =
 			external?.cart ??
 			priceCart(catalog!, input.lines, {
-				channel: input.channel,
-				soldOut: await soldOutSkus(tx, input.channel),
+				channel: input.channel as Channel,
+				soldOut: await soldOutSkus(tx, input.channel as Channel),
 				missingIngredients: await missingIngredients(tx)
 			});
 		const deliveryFee = external
@@ -259,13 +264,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		const staffId = input.actor.type === 'staff' ? input.actor.id : null;
 		const inserted = await tx<{ id: string; order_number: number; public_token: string }[]>`
 			insert into orders (
-				channel, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
+				channel, channel_partner, source_mode, channel_order_id, customer_id, customer_label, status, payment_status,
 				fulfillment_type, fulfillment_provider, subtotal_cents, discount_cents, delivery_fee_cents,
 				total_cents, delivery_rule_snapshot, notes, catalog_version, idempotency_key, is_test,
 				promised_at, accepted_at, created_by, payment_plan, channel_display_id, table_label,
 				campaign_id, coupon_id, request_hash
 			) values (
-				${input.channel}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
+				${input.channel}, ${input.channelPartner ?? null}, ${input.sourceMode}, ${input.channelOrderId ?? null}, ${customerId},
 				${input.customerLabel ?? input.customer?.name ?? null}, ${status},
 				${paymentStatus},
 				${input.fulfillmentType}, ${input.fulfillmentProvider ?? 'shop'}, ${cart.subtotalCents},
