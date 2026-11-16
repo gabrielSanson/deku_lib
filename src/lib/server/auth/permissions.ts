@@ -169,13 +169,14 @@ export async function setPin(memberId: string, pin: string, actor: StaffSession)
 	});
 }
 
-/** The active member with this permission whose PIN this is, or null. */
-export async function memberByPin(pin: string, permission: Permission, sql: Db = db()) {
+/** The active member (with this permission, when given) whose PIN this is, or null. */
+export async function memberByPin(pin: string, permission: Permission | null, sql: Db = db()) {
 	if (!/^\d{4,6}$/.test(pin)) return null;
 	const rows = await sql<{ user_id: string; display_name: string; pin_hash: string }[]>`
 		select m.user_id, m.display_name, m.pin_hash from shop_members m
 		where m.shop_id = ${currentShopId()} and m.active and m.pin_hash is not null
-			and (exists (select 1 from role_permissions p where p.role_id = m.role_id and p.permission = ${permission})
+			and (${permission}::text is null
+				or exists (select 1 from role_permissions p where p.role_id = m.role_id and p.permission = ${permission})
 				or (m.role_id is null and m.role = 'admin'))`;
 	for (const r of rows)
 		if (await pinMatches(pin, r.pin_hash)) return { id: r.user_id, name: r.display_name };

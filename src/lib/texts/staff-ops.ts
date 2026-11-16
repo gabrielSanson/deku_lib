@@ -3,6 +3,74 @@
 import type { TextDef } from './catalog';
 
 export const STAFF_OPS_TEXTS = {
+	// Equipe → Escala and Ponto (S5.8)
+	'shift.title': { group: 'staff', label: 'Escala: título', default: 'Escala da equipe' },
+	'shift.intro': {
+		group: 'staff',
+		label: 'Escala: explicação',
+		default:
+			'Monte os turnos da semana e publique. Depois, cada pessoa marca entrada e saída na tela Ponto com o PIN.'
+	},
+	'shift.prev': { group: 'staff', label: 'Escala: semana anterior', default: '← Semana anterior' },
+	'shift.next': { group: 'staff', label: 'Escala: próxima semana', default: 'Próxima semana →' },
+	'shift.week': { group: 'staff', label: 'Escala: semana de', default: 'Semana de {day}' },
+	'shift.member': { group: 'staff', label: 'Escala: pessoa', default: 'Pessoa' },
+	'shift.day': { group: 'staff', label: 'Escala: dia', default: 'Dia' },
+	'shift.start': { group: 'staff', label: 'Escala: entrada', default: 'Entrada' },
+	'shift.end': { group: 'staff', label: 'Escala: saída', default: 'Saída' },
+	'shift.add': { group: 'staff', label: 'Escala: adicionar', default: 'Adicionar turno' },
+	'shift.delete': { group: 'staff', label: 'Escala: excluir', default: 'Excluir' },
+	'shift.empty': {
+		group: 'staff',
+		label: 'Escala: sem turnos',
+		default: 'Nenhum turno nesta semana.'
+	},
+	'shift.draft': { group: 'staff', label: 'Escala: rascunho', default: 'rascunho' },
+	'shift.publish': { group: 'staff', label: 'Escala: publicar', default: 'Publicar semana' },
+	'shift.published': { group: 'staff', label: 'Escala: publicada', default: 'Semana publicada.' },
+	'shift.hoursTitle': { group: 'staff', label: 'Escala: horas', default: 'Horas da semana' },
+	'shift.hoursEmpty': {
+		group: 'staff',
+		label: 'Escala: sem horas',
+		default: 'Ninguém escalado nem com ponto nesta semana.'
+	},
+	'shift.scheduled': { group: 'staff', label: 'Escala: horas escaladas', default: 'Escalado' },
+	'shift.worked': { group: 'staff', label: 'Escala: horas trabalhadas', default: 'Trabalhado' },
+	'shift.missingOut': {
+		group: 'staff',
+		label: 'Escala: saída esquecida',
+		default: 'Entrada em {at} sem saída'
+	},
+	'shift.closeAt': { group: 'staff', label: 'Escala: corrigir saída', default: 'Saída às' },
+	'shift.close': { group: 'staff', label: 'Escala: salvar saída', default: 'Corrigir' },
+	'shift.disclaimer': {
+		group: 'staff',
+		label: 'Escala: aviso do ponto',
+		default:
+			'Este ponto é um controle interno. Não é um registro eletrônico de ponto certificado (REP/Portaria 671); para isso use um sistema homologado.'
+	},
+	'ponto.title': { group: 'staff', label: 'Ponto: título', default: 'Ponto' },
+	'ponto.intro': {
+		group: 'staff',
+		label: 'Ponto: explicação',
+		default: 'Digite seu PIN para marcar entrada. Digite de novo na saída.'
+	},
+	'ponto.pin': { group: 'staff', label: 'Ponto: PIN', default: 'Seu PIN' },
+	'ponto.submit': { group: 'staff', label: 'Ponto: marcar', default: 'Marcar ponto' },
+	'ponto.in': {
+		group: 'staff',
+		label: 'Ponto: entrada marcada',
+		default: 'Entrada marcada, {name}. Bom trabalho!'
+	},
+	'ponto.out': {
+		group: 'staff',
+		label: 'Ponto: saída marcada',
+		default: 'Saída marcada, {name}. Até a próxima!'
+	},
+	'ponto.now': { group: 'staff', label: 'Ponto: quem está', default: 'Na loja agora' },
+	'ponto.nobody': { group: 'staff', label: 'Ponto: ninguém', default: 'Ninguém marcou entrada.' },
+	'ponto.since': { group: 'staff', label: 'Ponto: desde', default: 'desde {time}' },
+	'ponto.today': { group: 'staff', label: 'Ponto: escala de hoje', default: 'Escala de hoje' },
 	// Operação → Entregas and the courier link (S5.3)
 	'dispatch.title': { group: 'staff', label: 'Entregas: título', default: 'Entregas' },
 	'dispatch.intro': {

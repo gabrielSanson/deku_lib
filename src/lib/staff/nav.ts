@@ -37,6 +37,7 @@ export const NAV: NavGroup[] = [
 			{ href: '/staff/orders', label: 'nav.pedidos', icon: 'list' },
 			{ href: '/kitchen', label: 'nav.cozinha', icon: 'chef' },
 			{ href: '/staff/entregas', label: 'nav.entregas', icon: 'bag', permission: 'pos.sell' },
+			{ href: '/staff/ponto', label: 'nav.ponto', icon: 'clock' },
 			{
 				href: '/staff/reconciliation',
 				label: 'nav.caixaDoDia',
@@ -146,6 +147,12 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 				href: '/staff/settings/staff',
 				label: 'nav.equipe',
 				icon: 'users',
+				permission: 'staff.manage'
+			},
+			{
+				href: '/staff/escala',
+				label: 'nav.escala',
+				icon: 'clock',
 				permission: 'staff.manage'
 			},
 			{

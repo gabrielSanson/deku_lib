@@ -36,6 +36,8 @@ export const STAFF_LABEL_TEXTS = {
 	'nav.sistema': { group: g, label: 'Menu da equipe: sistema', default: 'Sistema' },
 	'nav.permissoes': { group: g, label: 'Menu da equipe: permissões', default: 'Permissões' },
 	'nav.entregas': { group: g, label: 'Menu da equipe: entregas', default: 'Entregas' },
+	'nav.escala': { group: g, label: 'Menu da equipe: escala', default: 'Escala' },
+	'nav.ponto': { group: g, label: 'Menu da equipe: ponto', default: 'Ponto' },
 	'nav.divulgar': { group: g, label: 'Menu da equipe: divulgar', default: 'Divulgar' },
 	'nav.plano': { group: g, label: 'Menu da equipe: plano e cobrança', default: 'Plano e cobrança' },
 	'nav.equipe': { group: g, label: 'Menu da equipe: equipe', default: 'Equipe' },

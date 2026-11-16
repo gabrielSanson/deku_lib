@@ -1185,5 +1185,10 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'Permissão: precisa de autorização',
 		default: 'Seu perfil não pode fazer isso. Peça para um gerente digitar o PIN.'
+	},
+	'err.shift.time': {
+		group: 'staffErrors',
+		label: 'Escala: horário inválido',
+		default: 'Confira o dia e os horários (um turno tem no máximo 16 horas).'
 	}
 } satisfies Record<string, TextDef>;

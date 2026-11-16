@@ -37,7 +37,7 @@ describe('navFor', () => {
 		expect(navFor({ permissions: defaultPermissions('admin') })).toEqual(NAV);
 	});
 
-	it('gives attendants the counter, drawer, orders, deliveries, availability and kitchen', () => {
+	it('gives attendants the counter, drawer, orders, deliveries, availability, kitchen and time clock', () => {
 		const hrefs = navFor({ permissions: defaultPermissions('attendant') }).flatMap((g) =>
 			g.links.map((l) => l.href)
 		);
@@ -48,6 +48,7 @@ describe('navFor', () => {
 			'/staff/entregas',
 			'/staff/menu',
 			'/staff/orders',
+			'/staff/ponto',
 			'/staff/pos',
 			'/staff/reconciliation'
 		]);
