@@ -2,6 +2,19 @@
 
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
+## Run of 2026-11-16: stage S2 (delivery apps), merged to main
+
+All 5 S2 items are done. `pnpm verify` is green (166 unit, 153 database tests) and the 28 browser tests pass.
+iFood and Open Delivery (99Food, Keeta) orders share one channel engine; a cancel made in the store waits for
+the app's confirmation.
+
+**Off or unverified (switches stay off):** the iFood app link (shown only with IFOOD_APP_CLIENT_ID/SECRET),
+iFood catalog sync paths, the iFood payout export columns and every Open Delivery path, event and signature are
+TODO(verify). Open Delivery can be turned on per partner only after a passing connection test.
+
+Owner to do: register the platform app with iFood and set IFOOD_APP_CLIENT_ID/SECRET; ask 99Food and Keeta for
+Open Delivery credentials and run one test order with each before turning them on.
+
 ## Run of 2026-11-16: stage S1 (hosted multi-shop), merged to main
 
 All 7 S1 items are done. `pnpm verify` is green (159 unit, 131 database tests), the 28 browser tests pass
