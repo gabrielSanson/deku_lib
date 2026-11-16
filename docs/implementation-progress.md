@@ -82,7 +82,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S2.3: done ([UNVERIFIED] iFood catalog paths/fields in ifood/catalog.ts, TODO(verify); markup lives in channel_settings (not on menu_products); iFood prices apply to iFood manual POS orders and the sync, site/counter untouched; synced items recorded in integration_mappings to tell created from updated)
 - S2.4: done ([UNVERIFIED] export format: columns found by header name with built-in aliases, and the shop can set its own names; page at Relatórios → Repasses iFood (/staff/analytics/repasses-ifood); missing = completed non-test iFood orders in the statement's dates)
 - S2.5: done ([UNVERIFIED] every path, event type, cancel code and the webhook signature (HMAC of the body with the client secret, x-app-signature) are TODO(verify); a partner can only be turned on after a passing connection test, and stays off until the owner does; settings at Configurações → 99Food e Keeta; one poll per shop and partner (advisory lock); the client secret lives in shop_secrets)
-- S3.1: todo
+- S3.1: done ([UNVERIFIED] Graph API version (v21.0 in one constant), template language pt_BR, body parameter order (nome, numero, loja), the webhook payload shape and the hello_world test template are TODO(verify); WhatsApp turns on only after a successful test message; 'saiu_para_entrega' is sent when an own-driver delivery is marked ready (there is no separate dispatched status); staff see who asked for a person on the orders board, with a wa.me link and 'Atendido'; channel-app orders are never messaged; customers.whatsapp_updates_at added here (spec lists it under S3.3))
 - S3.2: todo
 - S3.3: todo
 - S3.4: todo

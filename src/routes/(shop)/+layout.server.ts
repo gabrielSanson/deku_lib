@@ -10,7 +10,11 @@ import { getStoreSettings } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies }) => {
+export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies, url }) => {
+	// The menu link sent by the WhatsApp bot: remembered for this visit's checkout.
+	const wa = url.searchParams.get('wa');
+	if (wa && /^[0-9a-f]{24}$/.test(wa))
+		cookies.set('wa_link', wa, { path: '/', maxAge: 86_400, httpOnly: true, sameSite: 'lax' });
 	const [catalog, settings, soldOut, missing, profile, schedule, pages] = await Promise.all([
 		getCatalog(),
 		getStoreSettings(),

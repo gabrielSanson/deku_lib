@@ -21,7 +21,10 @@ export const QUEUES = {
 	fiscalIssue: 'fiscal-issue',
 	heartbeat: 'heartbeat',
 	billingMonthly: 'billing-monthly',
-	billingDaily: 'billing-daily'
+	billingDaily: 'billing-daily',
+	whatsappInbound: 'whatsapp-inbound',
+	whatsappNotify: 'whatsapp-notify',
+	whatsappSend: 'whatsapp-send'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 

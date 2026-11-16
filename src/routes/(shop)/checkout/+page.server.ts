@@ -19,6 +19,8 @@ import {
 import { db } from '#lib/server/db.ts';
 import { isKiosk } from '#lib/server/kiosk.ts';
 import { createOrder } from '#lib/server/orders/service.ts';
+import { whatsappEnabled } from '#lib/server/whatsapp/settings.ts';
+import { attachWhatsappLink, whatsappLinkPhone } from '#lib/server/whatsapp/service.ts';
 import { startOnlinePayment } from '#lib/server/payments/online.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
@@ -28,13 +30,20 @@ import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, cookies }) => {
 	const provider = await paymentProvider();
-	// Signed-in customers get their details filled in; they can still change them.
+	// Signed-in customers get their details filled in; they can still change them. Coming from
+	// the WhatsApp bot's link, the number they wrote from is filled in.
 	const c = locals.customer;
+	const waPhone = c?.phone ? null : await whatsappLinkPhone(cookies.get('wa_link'));
 	return {
 		onlineMethods: provider?.methods ?? [],
-		prefill: { name: c?.name ?? '', phone: c?.phone ?? '', email: c?.email ?? '' }
+		whatsapp: await whatsappEnabled(),
+		prefill: {
+			name: c?.name ?? '',
+			phone: c?.phone ?? (waPhone ? waPhone.replace(/^\+55/, '') : ''),
+			email: c?.email ?? ''
+		}
 	};
 };
 
@@ -59,6 +68,7 @@ const checkout = z.object({
 	phone: z.string().trim().max(25).default(''),
 	email: z.union([z.literal(''), z.string().trim().email().max(120)]).optional(),
 	marketingConsent: z.boolean().default(false),
+	whatsappUpdates: z.boolean().default(false),
 	payment: z.enum([...WEB_PAYMENT_METHODS, 'counter']),
 	couponCode: z.string().trim().max(30).optional(),
 	idempotencyKey: z.string().uuid()
@@ -196,7 +206,8 @@ export const actions: Actions = {
 								name: input.name,
 								phoneE164: phone,
 								email: input.email || null,
-								marketingConsent: input.marketingConsent
+								marketingConsent: input.marketingConsent,
+								whatsappUpdates: input.whatsappUpdates && !!phone
 							}
 						: undefined,
 				address: input.address
@@ -210,6 +221,7 @@ export const actions: Actions = {
 			})
 		);
 		if (!('id' in result)) return result;
+		await attachWhatsappLink(cookies.get('wa_link'), result.id);
 
 		// Nothing to pay (a full discount): the order is already confirmed.
 		if (result.status !== 'new') redirect(303, `/orders/${result.publicToken}?novo=1`);

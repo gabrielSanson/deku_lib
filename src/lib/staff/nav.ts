@@ -119,6 +119,7 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 			{ href: '/staff/settings/payments', label: 'nav.pagamentos', icon: 'cash' },
 			{ href: '/staff/settings/ifood', label: 'nav.ifood', icon: 'grid' },
 			{ href: '/staff/settings/opendelivery', label: 'nav.opendelivery', icon: 'grid' },
+			{ href: '/staff/settings/whatsapp', label: 'nav.whatsapp', icon: 'mail' },
 			{ href: '/staff/settings/fiscal', label: 'nav.notaFiscal', icon: 'receipt' }
 		]
 	}

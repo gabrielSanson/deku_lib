@@ -121,3 +121,12 @@ export async function syncTenancy() {
 	}
 	tenancySynced = true;
 }
+
+/** The shop's public address for links in messages: its custom domain, its platform address, or ORIGIN. */
+export async function shopOrigin(shopId: string): Promise<string> {
+	const [d] = await platformDb()<{ host: string }[]>`
+		select host from shop_domains where shop_id = ${shopId}
+		order by (kind = 'custom' and verified_at is not null) desc, kind = 'platform' desc, host limit 1`;
+	if (d) return `https://${d.host}`;
+	return (process.env.ORIGIN || 'http://localhost:5173').replace(/\/$/, '');
+}

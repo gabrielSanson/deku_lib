@@ -9,6 +9,12 @@ import { getBoss, QUEUES } from '../jobs';
 import { applyLateStatuses, createMonthlyInvoices } from '../platform/billing';
 import { getShop, openShops, syncTenancy } from '../platform/shops';
 import { sendReadyPush } from '../notifications/push';
+import { sendOutboxMessage } from '../messaging/outbox';
+import {
+	notifyOrderEvent,
+	processWhatsappInbound,
+	type OrderMessageEvent
+} from '../whatsapp/service';
 import { expireUnpaidCheckouts, expireUnpaidOrders, processPaymentEvent } from '../payments/online';
 
 function log(msg: string, extra: Record<string, unknown> = {}) {
@@ -30,6 +36,7 @@ export async function handleOrderPlaced(data: { orderId: string }) {
 		channel: o.channel,
 		status: o.status
 	});
+	await notifyOrderEvent(data.orderId, 'placed');
 }
 
 /** The kitchen marked the order ready, or staff tapped "Chamar": tell the customer's phone. */
@@ -125,6 +132,11 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.heartbeat]: handleHeartbeat as Handler,
 		[QUEUES.billingMonthly]: handleBillingMonthly as Handler,
 		[QUEUES.billingDaily]: handleBillingDaily as Handler,
+		[QUEUES.whatsappInbound]: ((d: { channelEventId: string }) =>
+			processWhatsappInbound(d.channelEventId)) as Handler,
+		[QUEUES.whatsappNotify]: ((d: { orderId: string; event: OrderMessageEvent }) =>
+			notifyOrderEvent(d.orderId, d.event)) as Handler,
+		[QUEUES.whatsappSend]: ((d: { outboxId: string }) => sendOutboxMessage(d.outboxId)) as Handler,
 		...extra
 	};
 	for (const [name, handler] of Object.entries(handlers)) {

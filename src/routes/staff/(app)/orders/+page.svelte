@@ -138,6 +138,29 @@
 
 	<FormError message={form?.error} />
 
+	{#if data.whatsappWaiting.length}
+		<section class="space-y-2 alert-warn text-sm" aria-live="polite">
+			<p class="font-semibold">{t('wa.waiting')}</p>
+			<ul class="flex flex-wrap gap-2">
+				{#each data.whatsappWaiting as w (w.phone)}
+					<li class="flex items-center gap-2 rounded-lg border border-line px-2 py-1">
+						<a
+							class="underline"
+							href={`https://wa.me/${w.phone.replace(/\D/g, '')}`}
+							target="_blank"
+							rel="noopener">{w.phone}</a
+						>
+						<span class="text-muted">{formatTime(w.since)}</span>
+						<form method="POST" action="?/waHandled" use:enhance>
+							<input type="hidden" name="phone" value={w.phone} />
+							<button class="btn-ghost min-h-8 text-xs">{t('wa.handled')}</button>
+						</form>
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
 	{#if data.status === 'active'}
 		<div class="grid gap-4 lg:grid-cols-3">
 			{#each lanes as lane (lane.key)}

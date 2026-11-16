@@ -13,6 +13,7 @@ export type SecretKind =
 	| 'opendelivery_keeta'
 	| 'focusnfe_token'
 	| 'whatsapp'
+	| 'whatsapp_app_secret'
 	| 'psp_pix_cert';
 
 export async function getShopSecret(

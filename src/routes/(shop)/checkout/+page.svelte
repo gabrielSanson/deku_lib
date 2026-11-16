@@ -51,6 +51,7 @@
 	let phone = $state(untrack(() => data.prefill.phone));
 	let email = $state(untrack(() => data.prefill.email));
 	let marketingConsent = $state(false);
+	let whatsappUpdates = $state(false);
 	let couponCode = $state('');
 	let addr = $state({
 		cep: '',
@@ -108,6 +109,7 @@
 		phone,
 		email,
 		marketingConsent,
+		whatsappUpdates,
 		payment,
 		couponCode: couponCode || undefined
 	});
@@ -436,6 +438,9 @@
 						autocomplete="email"
 						bind:value={email}
 					/>
+					{#if data.whatsapp && phone}
+						<Checkbox label={t('wa.optIn')} bind:checked={whatsappUpdates} class="text-sm" />
+					{/if}
 					<Checkbox
 						label={t('checkout.marketing')}
 						bind:checked={marketingConsent}

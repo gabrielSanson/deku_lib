@@ -78,6 +78,8 @@ export interface CreateOrderInput {
 		phoneE164?: string | null;
 		email?: string | null;
 		marketingConsent?: boolean;
+		/** Asked for order updates on WhatsApp. */
+		whatsappUpdates?: boolean;
 	};
 	/**
 	 * The signed-in customer's record. The order is theirs whatever phone they typed; the
@@ -216,19 +218,21 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 					phone_e164 = coalesce(phone_e164, case when ${phone}::text is not null and not exists (
 						select 1 from customers o where o.phone_e164 = ${phone} and o.deleted_at is null
 					) then ${phone}::text end),
-					marketing_consent_at = coalesce(marketing_consent_at, ${c?.marketingConsent ? now : null}::timestamptz)
+					marketing_consent_at = coalesce(marketing_consent_at, ${c?.marketingConsent ? now : null}::timestamptz),
+					whatsapp_updates_at = coalesce(whatsapp_updates_at, ${c?.whatsappUpdates ? now : null}::timestamptz)
 				where id = ${input.customerId} and deleted_at is null
 				returning id`;
 			customerId = mine?.id ?? null;
 		}
 		if (!customerId && input.customer) {
 			const [c] = await tx<{ id: string }[]>`
-				insert into customers (name, phone_e164, email, marketing_consent_at)
+				insert into customers (name, phone_e164, email, marketing_consent_at, whatsapp_updates_at)
 				values (${input.customer.name}, ${input.customer.phoneE164 ?? null}, ${input.customer.email ?? null},
-					${input.customer.marketingConsent ? now : null})
+					${input.customer.marketingConsent ? now : null}, ${input.customer.whatsappUpdates ? now : null})
 				on conflict (shop_id, phone_e164) where phone_e164 is not null and deleted_at is null
 				do update set name = coalesce(customers.name, excluded.name),
-					marketing_consent_at = coalesce(excluded.marketing_consent_at, customers.marketing_consent_at)
+					marketing_consent_at = coalesce(excluded.marketing_consent_at, customers.marketing_consent_at),
+					whatsapp_updates_at = coalesce(excluded.whatsapp_updates_at, customers.whatsapp_updates_at)
 				returning id`;
 			customerId = c.id;
 		}
@@ -525,6 +529,21 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			);
 		}
 		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
+		// The WhatsApp status message (the job checks whether the customer may get one).
+		const waEvent =
+			input.to === 'ready'
+				? 'ready'
+				: input.to === 'cancelled' || input.to === 'rejected'
+					? 'cancelled'
+					: null;
+		if (waEvent && !syncQueue) {
+			await enqueue(
+				t,
+				QUEUES.whatsappNotify,
+				{ orderId: input.orderId, event: waEvent },
+				{ singletonKey: `wa:${input.orderId}:${waEvent}` }
+			);
+		}
 		// Changes made here are mirrored to iFood; changes that came from iFood are not echoed back.
 		if (syncQueue && input.actor.type !== 'integration') {
 			await enqueue(

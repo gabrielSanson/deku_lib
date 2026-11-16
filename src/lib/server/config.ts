@@ -38,6 +38,8 @@ const schema = z.object({
 	IFOOD_APP_CLIENT_SECRET: z.string().optional(),
 	/** Local stand-in for iFood's linking calls; refused in production. */
 	IFOOD_APP_STUB: flag,
+	/** Local stand-in for WhatsApp: messages are logged, not sent; refused in production. */
+	WHATSAPP_STUB: flag,
 	// Shows the Google button on the customer login. Enable it in Supabase Auth first.
 	GOOGLE_LOGIN_ENABLED: flag,
 	// Alert e-mails: smtps://user:password@smtp.gmail.com:465 (an app password for Gmail).
@@ -63,6 +65,9 @@ export function config(): Config {
 	if (!cached) {
 		const parsed = schema.parse(process.env);
 		const production = parsed.NODE_ENV === 'production';
+		if (production && parsed.WHATSAPP_STUB) {
+			throw new Error('The WhatsApp stub cannot run in production');
+		}
 		if (production && parsed.IFOOD_APP_STUB) {
 			throw new Error('The iFood linking stub cannot run in production');
 		}

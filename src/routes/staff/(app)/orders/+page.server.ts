@@ -3,6 +3,7 @@ import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { listOrders, orderStatusCounts } from '#lib/server/orders/queries.ts';
 import { callOrder, transitionOrder } from '#lib/server/orders/service.ts';
 import type { OrderStatus } from '#lib/domain/order-status.ts';
+import { markConversationHandled, waitingConversations } from '#lib/server/whatsapp/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 const FILTERS: Record<string, OrderStatus[] | undefined> = {
@@ -50,10 +51,19 @@ export const load: PageServerLoad = async (event) => {
 		cancelled: count('cancelled', 'rejected'),
 		all: count(...Object.keys(counts))
 	};
-	return { orders, status, channel: channel ?? '', q, tabCounts };
+	// Customers who asked the WhatsApp bot for a person; staff answer from the shop's phone.
+	const whatsappWaiting = await waitingConversations().catch(() => []);
+	return { orders, status, channel: channel ?? '', q, tabCounts, whatsappWaiting };
 };
 
 export const actions: Actions = {
+	/** The WhatsApp customer who asked for a person was answered. */
+	waHandled: async (event) => {
+		requireStaff(event);
+		const phone = formString(await event.request.formData(), 'phone');
+		if (phone) await markConversationHandled(phone);
+		return { ok: true };
+	},
 	/** "Chamar": the attendant called a ready order out loud. */
 	call: async (event) => {
 		const staff = requireStaff(event);
