@@ -3,10 +3,10 @@
 // Every handler is idempotent because pg-boss delivers at least once.
 import { beat } from '../alerts/service';
 import { config } from '../config';
-import { db, DEFAULT_SHOP_ID, platformDb, withShop } from '../db';
+import { db, DEFAULT_SHOP_ID, withShop } from '../db';
 import { issueFiscalForOrder } from '../fiscal/service';
 import { getBoss, QUEUES } from '../jobs';
-import { syncTenancy } from '../platform/shops';
+import { getShop, openShops, syncTenancy } from '../platform/shops';
 import { sendReadyPush } from '../notifications/push';
 import { expireUnpaidCheckouts, expireUnpaidOrders, processPaymentEvent } from '../payments/online';
 
@@ -75,10 +75,11 @@ type Handler = (data: never) => Promise<unknown>;
 
 /** The shops background work runs for: every open shop in multi-shop mode, else the default one. */
 export async function activeShopIds(): Promise<string[]> {
-	if (config().TENANCY !== 'multi') return [DEFAULT_SHOP_ID];
-	const rows = await platformDb()<{ id: string }[]>`
-		select id from shops where status in ('trial', 'active', 'past_due') order by created_at`;
-	return rows.map((r) => r.id);
+	if (config().TENANCY !== 'multi') {
+		await getShop(DEFAULT_SHOP_ID);
+		return [DEFAULT_SHOP_ID];
+	}
+	return (await openShops()).map((s) => s.id);
 }
 
 /** A scheduled job that runs once per shop; one shop failing does not stop the others. */

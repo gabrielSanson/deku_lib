@@ -4,11 +4,18 @@
 	import { useTexts } from '#lib/texts/context.ts';
 	import FormError from '#lib/components/molecules/FormError.svelte';
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
+	import SelectField from '#lib/components/molecules/SelectField.svelte';
 
 	let { data, form } = $props();
+	const t = useTexts();
 	const p = $derived(data.profile);
 	let pixEnabled = $derived(data.profile.pix.enabled);
-	const t = useTexts();
+	let provider = $derived<string>(data.paymentProvider);
+	const providerOptions = $derived([
+		{ value: 'none', label: t('payments.providerNone') },
+		{ value: 'mercadopago', label: 'Mercado Pago' },
+		...(data.allowStub ? [{ value: 'local_stub', label: t('payments.providerStub') }] : [])
+	]);
 </script>
 
 <svelte:head><title>{t('payments.tabTitle')}</title></svelte:head>
@@ -67,21 +74,76 @@
 			{/if}
 		</fieldset>
 	</SettingsSection>
-	<section class="space-y-2 card p-4">
-		<h2 class="text-lg font-bold">{t('integrations.payments')}</h2>
-		{#if data.paymentProvider === 'none'}
-			<p class="text-sm">
-				{t('integrations.noPsp')}
-				{p.pix.enabled ? t('integrations.shopPix') : t('integrations.noPix')}
-			</p>
-		{:else if data.paymentProvider === 'mercadopago'}
-			<p class="text-sm">{t('integrations.mercadopago')}</p>
-			{#if !data.webhookSecretSet}
-				<p class="alert-error" role="alert">{t('integrations.noWebhookSecret')}</p>
+	<SettingsSection
+		title={t('payments.online')}
+		hint={t('payments.onlineHint')}
+		action="?/online"
+		saveLabel={t('payments.onlineSave')}
+		saved={form?.ok === 'online' ? t('payments.onlineSaved') : undefined}
+	>
+		<div class="space-y-4">
+			{#if data.source === 'env'}
+				<p class="alert-warn">{t('payments.fromEnv')}</p>
 			{/if}
-		{:else if data.paymentProvider === 'local_stub'}
-			<p class="alert-warn">{t('integrations.stub')}</p>
-		{/if}
-	</section>
+			<SelectField
+				label={t('payments.provider')}
+				name="provider"
+				options={providerOptions}
+				bind:value={provider}
+			/>
+			{#if provider !== 'none'}
+				<fieldset class="space-y-2">
+					<Checkbox
+						label={t('payments.methodPix')}
+						name="methods"
+						value="pix"
+						checked={data.methods.includes('pix')}
+					/>
+					<Checkbox
+						label={t('payments.methodCard')}
+						name="methods"
+						value="online_card"
+						checked={data.methods.includes('online_card')}
+					/>
+				</fieldset>
+			{/if}
+			{#if provider === 'mercadopago'}
+				{#if !data.canStoreSecrets}
+					<p class="alert-error" role="alert">{t('err.settings.appSecret')}</p>
+				{/if}
+				<TextField
+					label={t('payments.token')}
+					hint={data.tokenSaved ? t('payments.keySaved') : t('payments.tokenHint')}
+					name="accessToken"
+					type="password"
+					autocomplete="off"
+					required={!data.tokenSaved}
+				/>
+				<TextField
+					label={t('payments.secret')}
+					hint={data.webhookSecretSet ? t('payments.keySaved') : undefined}
+					name="webhookSecret"
+					type="password"
+					autocomplete="off"
+				/>
+				<div class="text-sm">
+					<p>{t('payments.webhookUrl')}</p>
+					<code class="mt-1 block rounded border border-line p-2 text-xs break-all"
+						>{data.webhookUrl}</code
+					>
+				</div>
+				{#if data.paymentProvider === 'mercadopago' && !data.webhookSecretSet}
+					<p class="alert-error" role="alert">{t('integrations.noWebhookSecret')}</p>
+				{/if}
+			{:else if provider === 'local_stub'}
+				<p class="alert-warn">{t('integrations.stub')}</p>
+			{:else if provider === 'none'}
+				<p class="text-sm">
+					{t('integrations.noPsp')}
+					{p.pix.enabled ? t('integrations.shopPix') : t('integrations.noPix')}
+				</p>
+			{/if}
+		</div>
+	</SettingsSection>
 	<FormError message={form?.error} />
 </div>

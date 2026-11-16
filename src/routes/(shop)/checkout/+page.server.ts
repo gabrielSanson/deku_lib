@@ -29,7 +29,7 @@ import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const provider = paymentProvider();
+	const provider = await paymentProvider();
 	// Signed-in customers get their details filled in; they can still change them.
 	const c = locals.customer;
 	return {
@@ -165,7 +165,7 @@ export const actions: Actions = {
 		if (input.payment === 'pix_key' && !(await getStoreProfile()).pix.enabled) {
 			return fail(400, { error: texts['checkout.error.pix'] });
 		}
-		const provider = paymentProvider();
+		const provider = await paymentProvider();
 		if (
 			(input.payment === 'pix' || input.payment === 'online_card') &&
 			!provider?.methods.includes(input.payment)

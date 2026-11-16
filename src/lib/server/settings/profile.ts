@@ -1,10 +1,9 @@
 // The shop's own details (name, contact, Pix key) and the setup wizard's state.
 import { normalizePixKey, pixText } from '#lib/domain/pix.ts';
 import { audit, type Actor } from '../audit';
-import { config } from '../config';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
-import { preset } from '../presets';
+import { defaultShopName } from '../presets';
 import { perShop } from '../shop-cache';
 
 export interface StoreProfile {
@@ -43,7 +42,7 @@ export async function getStoreProfile(
 		}[]
 	>`select * from store_profile where shop_id = current_shop_id()`;
 	const value: StoreProfile = {
-		displayName: r.display_name ?? config().SHOP_NAME ?? preset().shopName,
+		displayName: r.display_name ?? defaultShopName(),
 		phone: r.phone,
 		addressLine: r.address_line,
 		city: r.city,

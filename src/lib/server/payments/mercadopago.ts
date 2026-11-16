@@ -5,7 +5,7 @@
 // tender stores: one card checkout can see several attempts (a declined card,
 // then an approved one) and they all map back to the same tender.
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
-import { preset } from '../presets';
+import { defaultShopName } from '../presets';
 import type { PaymentProvider, ProviderPaymentStatus } from './provider';
 
 const API = 'https://api.mercadopago.com';
@@ -248,7 +248,7 @@ export function mercadoPagoProvider(opts: MercadoPagoOptions): PaymentProvider {
 
 /** The shop's name as it shows on the card statement: plain letters, at most 22. */
 function statementName(): string {
-	const name = process.env.SHOP_NAME || preset().shopName;
+	const name = defaultShopName();
 	return name
 		.normalize('NFD')
 		.replace(/[^A-Za-z0-9 ]/g, '')

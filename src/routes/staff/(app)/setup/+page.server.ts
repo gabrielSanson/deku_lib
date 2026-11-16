@@ -48,7 +48,7 @@ export const load: PageServerLoad = async (event) => {
 		profile,
 		settings,
 		counts,
-		onlineProvider: paymentProvider()?.name ?? null,
+		onlineProvider: (await paymentProvider())?.name ?? null,
 		ifood,
 		canStoreSecrets: canStoreSecrets(),
 		webhookUrl: new URL('/api/v1/integrations/ifood/webhook', event.url).toString(),
@@ -118,7 +118,7 @@ export const actions: Actions = {
 			return { ok: true };
 		});
 		if (!('ok' in r)) return r;
-		if (!pixEnabled && !paymentProvider()) {
+		if (!pixEnabled && !(await paymentProvider())) {
 			return {
 				warning:
 					'Sem Pix, o site não tem como receber pagamento e não aceita pedidos. Os pedidos do balcão continuam funcionando.'

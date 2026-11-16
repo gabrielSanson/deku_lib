@@ -20,7 +20,7 @@ export async function startOnlinePayment(input: {
 	idempotencyKey: string;
 	returnUrl: string;
 }) {
-	const provider = paymentProvider();
+	const provider = await paymentProvider();
 	if (!provider || !provider.methods.includes(input.method)) {
 		throw new DomainError('err.pay.onlineOff', { code: 'no_provider', status: 503 });
 	}
@@ -91,7 +91,7 @@ export async function receivePaymentWebhook(
 	headers: Headers,
 	url?: URL
 ) {
-	const provider = providerByName(providerName);
+	const provider = await providerByName(providerName);
 	if (!provider) return { status: 404 };
 	const valid = await provider.verifyWebhook(rawBody, headers, url);
 	if (!valid) {
@@ -169,7 +169,7 @@ export async function expireUnpaidCheckouts() {
 			and o.payment_plan = 'online' and o.status = 'new'
 		limit 50`;
 	for (const t of stale) {
-		const provider = providerByName(t.provider);
+		const provider = await providerByName(t.provider);
 		// Ask the provider before giving up: a missed webhook must not cancel a paid order.
 		const live = provider ? await provider.getStatus(t.provider_reference) : 'pending';
 		await sql.begin(async (tx) => {

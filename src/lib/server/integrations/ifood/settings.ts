@@ -4,7 +4,7 @@
 // app takes effect without a restart.
 import { audit, type Actor } from '../../audit';
 import { config } from '../../config';
-import { db, type Db } from '../../db';
+import { currentShopId, db, DEFAULT_SHOP_ID, type Db } from '../../db';
 import { DomainError } from '../../errors';
 import { decryptSecret, encryptSecret } from '../../secrets';
 import { perShop } from '../../shop-cache';
@@ -69,7 +69,8 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 			apiBase: c.IFOOD_API_BASE,
 			problem
 		};
-	} else if (c.IFOOD_CLIENT_ID) {
+	} else if (c.IFOOD_CLIENT_ID && currentShopId() === DEFAULT_SHOP_ID) {
+		// .env credentials only ever belong to a single-shop install's own shop.
 		value = {
 			source: 'env',
 			enabled: c.IFOOD_ENABLED,
@@ -82,7 +83,7 @@ export async function ifoodSettings({ fresh = false } = {}): Promise<IfoodSettin
 	} else {
 		value = {
 			source: 'none',
-			enabled: c.IFOOD_ENABLED,
+			enabled: c.IFOOD_ENABLED && currentShopId() === DEFAULT_SHOP_ID,
 			clientId: null,
 			clientSecret: null,
 			merchantId: null,

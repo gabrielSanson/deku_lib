@@ -209,6 +209,75 @@ export const STAFF_SETTINGS_TEXTS = {
 		default:
 			'Falta a assinatura secreta do webhook (MERCADOPAGO_WEBHOOK_SECRET). Sem ela os avisos de pagamento são recusados e os pedidos só confirmam na verificação periódica.'
 	},
+	'payments.online': {
+		group: g,
+		label: 'Pagamentos: título online',
+		default: 'Pagamento online (PSP)'
+	},
+	'payments.onlineHint': {
+		group: g,
+		label: 'Pagamentos: explicação online',
+		default:
+			'Com um provedor, o Pix confirma sozinho e o cliente pode pagar com cartão. Sem provedor, o site usa o Pix na chave da loja.'
+	},
+	'payments.provider': { group: g, label: 'Pagamentos: provedor', default: 'Provedor' },
+	'payments.providerNone': { group: g, label: 'Pagamentos: nenhum', default: 'Nenhum' },
+	'payments.providerStub': {
+		group: g,
+		label: 'Pagamentos: simulador',
+		default: 'Simulador (só para testes)'
+	},
+	'payments.methodPix': {
+		group: g,
+		label: 'Pagamentos: Pix online',
+		default: 'Pix com confirmação automática'
+	},
+	'payments.methodCard': {
+		group: g,
+		label: 'Pagamentos: cartão online',
+		default: 'Cartão (página do Mercado Pago)'
+	},
+	'payments.token': {
+		group: g,
+		label: 'Pagamentos: access token',
+		default: 'Access Token de produção'
+	},
+	'payments.tokenHint': {
+		group: g,
+		label: 'Pagamentos: dica do token',
+		default: 'Mercado Pago → Suas integrações → sua aplicação → Credenciais de produção.'
+	},
+	'payments.secret': {
+		group: g,
+		label: 'Pagamentos: segredo webhook',
+		default: 'Assinatura secreta do webhook'
+	},
+	'payments.webhookUrl': {
+		group: g,
+		label: 'Pagamentos: URL do webhook',
+		default: 'Em Webhooks, cadastre esta URL e marque o evento "Pagamentos":'
+	},
+	'payments.keySaved': {
+		group: g,
+		label: 'Pagamentos: chave salva',
+		default: 'Já salvo. Deixe em branco para manter.'
+	},
+	'payments.fromEnv': {
+		group: g,
+		label: 'Pagamentos: vem do .env',
+		default:
+			'Hoje o provedor vem do arquivo .env do servidor. Salvar aqui passa a valer no lugar dele.'
+	},
+	'payments.onlineSave': {
+		group: g,
+		label: 'Pagamentos: salvar online',
+		default: 'Salvar pagamento online'
+	},
+	'payments.onlineSaved': {
+		group: g,
+		label: 'Pagamentos: online salvo',
+		default: 'Pagamento online salvo.'
+	},
 	'integrations.stub': {
 		group: g,
 		label: 'Integrações: simulador',

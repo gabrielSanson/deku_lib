@@ -28,8 +28,16 @@ interface Row {
 	trial_ends_at: Date | null;
 }
 
+// Shops seen by this process, so synchronous code (presets) can know the current shop's look.
+const known = new Map<string, ShopInfo>();
+
+/** The shop's record if this process has loaded it (requests and jobs load it first). */
+export function knownShop(id: string): ShopInfo | undefined {
+	return known.get(id);
+}
+
 function toShop(r: Row): ShopInfo {
-	return {
+	const shop: ShopInfo = {
 		id: r.id,
 		slug: r.slug,
 		name: r.name,
@@ -40,6 +48,16 @@ function toShop(r: Row): ShopInfo {
 		plan: r.plan,
 		trialEndsAt: r.trial_ends_at
 	};
+	known.set(shop.id, shop);
+	return shop;
+}
+
+/** Loads (and remembers) every shop that is open for business. */
+export async function openShops(): Promise<ShopInfo[]> {
+	const rows = await platformDb()<Row[]>`
+		select id, slug, name, status, preset, business_type, timezone, plan, trial_ends_at
+		from shops where status in ('trial', 'active', 'past_due') order by created_at`;
+	return rows.map(toShop);
 }
 
 const TTL_MS = 60_000;

@@ -8,6 +8,8 @@ import type { TextKey } from '#lib/texts/catalog.ts';
 import type { ColorKey, ImageKey } from '../settings/branding';
 import { blank } from './blank';
 import { deku } from './deku';
+import { currentShopId, DEFAULT_SHOP_ID } from '../db';
+import { knownShop } from '../platform/shops';
 
 export interface PresetIcons {
 	favicon: string;
@@ -43,9 +45,23 @@ export const PRESETS = { blank, deku } satisfies Record<string, Preset>;
 export type PresetId = keyof typeof PRESETS;
 export const PRESET_IDS = Object.keys(PRESETS) as PresetId[];
 
+/**
+ * The current shop's look. A single-shop install follows SHOP_PRESET in .env; hosted shops use
+ * the look chosen at sign-up (shops.preset).
+ */
 export function presetId(): PresetId {
-	const v = process.env.SHOP_PRESET;
-	return v && v in PRESETS ? (v as PresetId) : 'blank';
+	const id = currentShopId();
+	const v = id === DEFAULT_SHOP_ID ? process.env.SHOP_PRESET : undefined;
+	const chosen = v || knownShop(id)?.preset;
+	return chosen && chosen in PRESETS ? (chosen as PresetId) : 'blank';
+}
+
+/** The current shop's name before the owner sets one: SHOP_NAME (single shop) or the sign-up name. */
+export function defaultShopName(): string {
+	const id = currentShopId();
+	const env = id === DEFAULT_SHOP_ID ? process.env.SHOP_NAME : undefined;
+	const signup = id === DEFAULT_SHOP_ID ? undefined : knownShop(id)?.name;
+	return env || signup || preset().shopName;
 }
 
 export function preset(): Preset {

@@ -93,6 +93,21 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Pedido mudou durante o envio',
 		default: 'O carrinho mudou enquanto o pedido era enviado. Confira e envie de novo.'
 	},
+	'err.payments.stubInProduction': {
+		group: 'errors',
+		label: 'Simulador em produção',
+		default: 'O simulador de pagamento não pode ser usado em produção.'
+	},
+	'err.payments.noMethod': {
+		group: 'errors',
+		label: 'Pagamento online sem forma',
+		default: 'Escolha pelo menos uma forma de pagamento online (Pix ou cartão).'
+	},
+	'err.payments.noToken': {
+		group: 'errors',
+		label: 'Falta o token do Mercado Pago',
+		default: 'Cole o Access Token de produção do Mercado Pago.'
+	},
 	'err.order.notFound': {
 		group: 'errors',
 		label: 'Pedido não encontrado',

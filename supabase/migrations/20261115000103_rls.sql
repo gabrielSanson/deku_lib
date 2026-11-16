@@ -114,6 +114,8 @@ create policy shop_counters_shop on public.shop_counters for all to app_server
   using (shop_id = public.current_shop_id()) with check (shop_id = public.current_shop_id());
 create policy ui_texts_shop on public.ui_texts for all to app_server
   using (shop_id = public.current_shop_id()) with check (shop_id = public.current_shop_id());
+create policy payment_settings_shop on public.payment_settings for all to app_server
+  using (shop_id = public.current_shop_id()) with check (shop_id = public.current_shop_id());
 
 -- Platform-level tables the app may read or write from a shop's work.
 create policy backup_runs_app on public.backup_runs for all to app_server using (true) with check (true);

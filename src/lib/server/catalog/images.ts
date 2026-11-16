@@ -1,9 +1,12 @@
 // Menu photos live in a private "menu" bucket in (self-hosted) Supabase Storage.
 // Staff upload through the server, and the app serves them from /media/menu/,
 // so the browser never needs a Storage key and the URL is the same everywhere.
+// Each shop's photos are in its own folder (<shop_id>/<hash>); photos the default shop
+// uploaded before many-shops support stay at the bucket's top level and are still found.
 import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseServerUrl } from '../config';
+import { currentShopId, DEFAULT_SHOP_ID } from '../db';
 import { DomainError } from '../errors';
 
 const BUCKET = 'menu';
@@ -56,13 +59,19 @@ export async function uploadMenuImage(file: File): Promise<string> {
 	}
 	const { error } = await s
 		.from(BUCKET)
-		.upload(path, bytes, { contentType: file.type, upsert: true });
+		.upload(`${currentShopId()}/${path}`, bytes, { contentType: file.type, upsert: true });
 	if (error) throw new DomainError('err.image.upload', { vars: { detail: error.message } });
 	return path;
 }
 
+/** A photo of the current shop (never another shop's, even with the same file name). */
 export async function downloadMenuImage(path: string): Promise<Blob | null> {
 	if (!IMAGE_PATH.test(path)) return null;
-	const { data, error } = await storage().from(BUCKET).download(path);
-	return error ? null : data;
+	const bucket = storage().from(BUCKET);
+	const shopId = currentShopId();
+	const own = await bucket.download(`${shopId}/${path}`);
+	if (!own.error) return own.data;
+	if (shopId !== DEFAULT_SHOP_ID) return null;
+	const old = await bucket.download(path);
+	return old.error ? null : old.data;
 }

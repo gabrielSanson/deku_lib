@@ -89,3 +89,14 @@ alter table public.shop_counters enable row level security;
 alter table public.shop_secrets enable row level security;
 alter table public.platform_admins enable row level security;
 alter table public.platform_config enable row level security;
+
+-- How each shop takes online payments (was PAYMENT_PROVIDER in the server's .env). No row: the
+-- default shop follows .env as before; other shops have no online provider. Keys are in shop_secrets.
+create table public.payment_settings (
+  shop_id uuid primary key default public.current_shop_id() references public.shops (id) on delete cascade,
+  provider text not null default 'none' check (provider in ('none', 'mercadopago', 'local_stub')),
+  methods text[] not null default '{pix,online_card}' check (methods <@ '{pix,online_card}'::text[]),
+  updated_by uuid,
+  updated_at timestamptz not null default now()
+);
+alter table public.payment_settings enable row level security;
