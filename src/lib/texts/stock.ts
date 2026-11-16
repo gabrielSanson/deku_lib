@@ -201,6 +201,115 @@ export const STOCK_TEXTS = {
 		label: 'Lucro: custo por entrega',
 		default: 'Custo por entrega própria (R$)'
 	},
+	'nav.despesas': { group: 'staffLabels', label: 'Menu da equipe: despesas', default: 'Despesas' },
+	'expenses.title': { group: s, label: 'Despesas: título', default: 'Despesas' },
+	'expenses.intro': {
+		group: s,
+		label: 'Despesas: texto',
+		default:
+			'Lance as contas do mês (aluguel, salários, energia…). As fixas entram sozinhas todo mês no dia escolhido.'
+	},
+	'expenses.month': { group: s, label: 'Despesas: mês', default: 'Mês' },
+	'expenses.add': { group: s, label: 'Despesas: lançar', default: 'Lançar despesa' },
+	'expenses.category': { group: s, label: 'Despesas: categoria', default: 'Categoria' },
+	'expenses.description': { group: s, label: 'Despesas: descrição', default: 'Descrição' },
+	'expenses.amount': { group: s, label: 'Despesas: valor', default: 'Valor (R$)' },
+	'expenses.paidAt': { group: s, label: 'Despesas: pago em', default: 'Pago em' },
+	'expenses.none': { group: s, label: 'Despesas: vazio', default: 'Nenhuma despesa neste mês.' },
+	'expenses.total': { group: s, label: 'Despesas: total', default: 'Total do mês: {value}' },
+	'expenses.delete': { group: s, label: 'Despesas: excluir', default: 'Excluir' },
+	'expenses.recurringTag': { group: s, label: 'Despesas: fixa', default: 'fixa' },
+	'expenses.recurring': { group: s, label: 'Despesas: fixas', default: 'Despesas fixas' },
+	'expenses.day': { group: s, label: 'Despesas: dia', default: 'Dia do mês' },
+	'expenses.addRecurring': {
+		group: s,
+		label: 'Despesas: nova fixa',
+		default: 'Adicionar despesa fixa'
+	},
+	'expenses.dayLine': { group: s, label: 'Despesas: todo dia', default: 'todo dia {day}' },
+	'expenses.pause': { group: s, label: 'Despesas: pausar', default: 'Pausar' },
+	'expenses.resume': { group: s, label: 'Despesas: retomar', default: 'Retomar' },
+	'dre.title': { group: s, label: 'Resultado: título', default: 'Resultado do mês' },
+	'dre.intro': {
+		group: s,
+		label: 'Resultado: texto',
+		default:
+			'Uma DRE simplificada: vendas, impostos estimados, custo da comida, comissões, taxas e despesas. Não substitui o contador.'
+	},
+	'dre.csv': { group: s, label: 'Resultado: CSV', default: 'Baixar CSV' },
+	'dre.foodReal': {
+		group: s,
+		label: 'Resultado: CMV real',
+		default: 'Custo da comida real (pelas contagens de estoque do mês).'
+	},
+	'dre.foodTheoretical': {
+		group: s,
+		label: 'Resultado: CMV teórico',
+		default: 'Custo da comida teórico (pelas fichas técnicas). Faça uma contagem para ter o real.'
+	},
+	'dre.simples': {
+		group: s,
+		label: 'Resultado: alíquota',
+		default: 'Alíquota do Simples Nacional (%)'
+	},
+	'dre.simplesMissing': {
+		group: s,
+		label: 'Resultado: alíquota não informada',
+		default: 'Informe a alíquota do Simples (pergunte ao contador) para estimar os impostos.'
+	},
+	'dre.line.gross': { group: s, label: 'Resultado: vendas brutas', default: 'Vendas brutas' },
+	'dre.line.discounts': { group: s, label: 'Resultado: descontos', default: '(−) Descontos' },
+	'dre.line.taxes': { group: s, label: 'Resultado: impostos', default: '(−) Impostos estimados' },
+	'dre.line.netRevenue': {
+		group: s,
+		label: 'Resultado: receita líquida',
+		default: 'Receita líquida'
+	},
+	'dre.line.food': { group: s, label: 'Resultado: CMV', default: '(−) Custo da comida (CMV)' },
+	'dre.line.grossProfit': { group: s, label: 'Resultado: lucro bruto', default: 'Lucro bruto' },
+	'dre.line.commissions': {
+		group: s,
+		label: 'Resultado: comissões',
+		default: '(−) Comissões dos apps'
+	},
+	'dre.line.fees': { group: s, label: 'Resultado: taxas', default: '(−) Taxas de pagamento' },
+	'dre.line.delivery': { group: s, label: 'Resultado: entregas', default: '(−) Entregas próprias' },
+	'dre.line.exp.cmv': {
+		group: s,
+		label: 'Resultado: insumos fora do estoque',
+		default: '(−) Insumos e embalagens'
+	},
+	'dre.line.exp.pessoal': { group: s, label: 'Resultado: pessoal', default: '(−) Pessoal' },
+	'dre.line.exp.ocupacao': { group: s, label: 'Resultado: ocupação', default: '(−) Ocupação' },
+	'dre.line.exp.marketing': { group: s, label: 'Resultado: marketing', default: '(−) Marketing' },
+	'dre.line.exp.taxas': {
+		group: s,
+		label: 'Resultado: tarifas',
+		default: '(−) Tarifas e sistemas'
+	},
+	'dre.line.exp.impostos': {
+		group: s,
+		label: 'Resultado: outros impostos',
+		default: '(−) Impostos e contador'
+	},
+	'dre.line.exp.outros': { group: s, label: 'Resultado: outros', default: '(−) Outros' },
+	'dre.line.result': { group: s, label: 'Resultado: resultado', default: 'Resultado do mês' },
+	'err.expense.description': {
+		group: 'staffErrors',
+		label: 'Despesas: descrição',
+		default: 'Escreva uma descrição (até 120 letras).'
+	},
+	'err.expense.amount': {
+		group: 'staffErrors',
+		label: 'Despesas: valor',
+		default: 'Informe um valor maior que zero.'
+	},
+	'err.expense.month': { group: 'staffErrors', label: 'Despesas: mês', default: 'Mês inválido.' },
+	'err.expense.day': {
+		group: 'staffErrors',
+		label: 'Despesas: dia',
+		default: 'Escolha um dia entre 1 e 28.'
+	},
 	'err.profit.settings': {
 		group: 'staffErrors',
 		label: 'Lucro: configuração inválida',

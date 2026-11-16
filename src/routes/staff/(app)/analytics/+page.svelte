@@ -162,6 +162,7 @@
 		</SelectField>
 		<a class="btn-secondary min-h-9 text-sm" href={exportHref}>{t('analytics.exportCsv')}</a>
 		<a class="btn-ghost min-h-9 text-sm" href="/staff/analytics/lucro">{t('profit.title')}</a>
+		<a class="btn-ghost min-h-9 text-sm" href="/staff/analytics/resultado">{t('dre.title')}</a>
 		<a class="btn-ghost min-h-9 text-sm" href="/staff/analytics/repasses-ifood"
 			>{t('payouts.link')}</a
 		>

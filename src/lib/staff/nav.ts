@@ -55,6 +55,7 @@ export const NAV: NavGroup[] = [
 			{ href: '/staff/analytics', label: 'nav.relatorios', icon: 'chart' },
 			{ href: '/staff/clientes', label: 'nav.clientes', icon: 'users' },
 			{ href: '/staff/estoque', label: 'nav.estoque', icon: 'bag' },
+			{ href: '/staff/despesas', label: 'nav.despesas', icon: 'receipt' },
 			{ href: '/staff/campaigns', label: 'nav.campanhas', icon: 'crown' },
 			{
 				href: '/staff/settings/profile',
