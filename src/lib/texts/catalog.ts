@@ -964,6 +964,11 @@ const CORE_TEXTS = {
 		label: 'Etapa: pronto para retirar',
 		default: 'Pronto para retirar'
 	},
+	'order.step.waitingCourier': {
+		group: 'order',
+		label: 'Etapa: pronto, esperando o entregador',
+		default: 'Pronto, esperando o entregador'
+	},
 	'order.step.completed': { group: 'order', label: 'Etapa: concluído', default: 'Concluído' },
 	'order.delivery': { group: 'order', label: 'Entrega', default: 'Entrega' },
 	'order.discount': { group: 'order', label: 'Desconto', default: 'Desconto' },

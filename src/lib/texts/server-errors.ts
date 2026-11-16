@@ -1048,5 +1048,50 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'iFood: conexão funcionando',
 		default: 'Conexão com o iFood funcionando.'
+	},
+	'err.courier.name': {
+		group: 'staffErrors',
+		label: 'Entregador: nome',
+		default: 'Dê um nome ao entregador (até 60 letras).'
+	},
+	'err.courier.pay': {
+		group: 'staffErrors',
+		label: 'Entregador: valor',
+		default: 'Confira o valor por entrega.'
+	},
+	'err.courier.noOrders': {
+		group: 'staffErrors',
+		label: 'Entregas: nenhum pedido',
+		default: 'Escolha pelo menos um pedido.'
+	},
+	'err.courier.notFound': {
+		group: 'staffErrors',
+		label: 'Entregas: não encontrado',
+		default: 'Entrega ou entregador não encontrado.'
+	},
+	'err.courier.badOrder': {
+		group: 'staffErrors',
+		label: 'Entregas: pedido inválido',
+		default: 'Algum pedido não é de entrega ou já foi concluído.'
+	},
+	'err.courier.taken': {
+		group: 'staffErrors',
+		label: 'Entregas: pedido em outra saída',
+		default: 'Algum pedido já está em outra saída.'
+	},
+	'err.courier.alreadyLeft': {
+		group: 'staffErrors',
+		label: 'Entregas: já saiu',
+		default: 'Essa saída já saiu; marque a entrega em vez de tirar o pedido.'
+	},
+	'err.courier.notLeft': {
+		group: 'staffErrors',
+		label: 'Entregas: ainda não saiu',
+		default: 'Marque a saída antes da entrega.'
+	},
+	'err.courier.settled': {
+		group: 'staffErrors',
+		label: 'Entregas: já acertado',
+		default: 'Essa saída já foi acertada.'
 	}
 } satisfies Record<string, TextDef>;

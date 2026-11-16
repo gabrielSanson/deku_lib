@@ -36,12 +36,13 @@ describe('navFor', () => {
 		expect(navFor('admin')).toBe(NAV);
 	});
 
-	it('gives attendants only the counter, drawer, orders and kitchen', () => {
+	it('gives attendants only the counter, drawer, orders, deliveries and kitchen', () => {
 		const hrefs = navFor('attendant').flatMap((g) => g.links.map((l) => l.href));
 		expect(hrefs.sort()).toEqual([
 			'/kitchen',
 			'/staff',
 			'/staff/caixa',
+			'/staff/entregas',
 			'/staff/orders',
 			'/staff/pos'
 		]);

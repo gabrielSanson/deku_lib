@@ -3,6 +3,122 @@
 import type { TextDef } from './catalog';
 
 export const STAFF_OPS_TEXTS = {
+	// Operação → Entregas and the courier link (S5.3)
+	'dispatch.title': { group: 'staff', label: 'Entregas: título', default: 'Entregas' },
+	'dispatch.intro': {
+		group: 'staff',
+		label: 'Entregas: explicação',
+		default:
+			'Junte os pedidos de entrega em uma saída, escolha o entregador e acompanhe até a volta. Ao acertar, o valor entra em Despesas.'
+	},
+	'dispatch.waiting': {
+		group: 'staff',
+		label: 'Entregas: aguardando',
+		default: 'Aguardando entregador'
+	},
+	'dispatch.waitingNone': {
+		group: 'staff',
+		label: 'Entregas: nada aguardando',
+		default: 'Nenhuma entrega aguardando.'
+	},
+	'dispatch.noCouriers': {
+		group: 'staff',
+		label: 'Entregas: sem entregadores',
+		default: 'Cadastre um entregador abaixo para montar as saídas.'
+	},
+	'dispatch.ready': { group: 'staff', label: 'Entregas: pedido pronto', default: 'pronto' },
+	'dispatch.inKitchen': { group: 'staff', label: 'Entregas: na cozinha', default: 'na cozinha' },
+	'dispatch.courier': { group: 'staff', label: 'Entregas: entregador', default: 'Entregador' },
+	'dispatch.createRun': {
+		group: 'staff',
+		label: 'Entregas: montar saída',
+		default: 'Montar saída'
+	},
+	'dispatch.runs': { group: 'staff', label: 'Entregas: saídas', default: 'Saídas de hoje' },
+	'dispatch.runsNone': {
+		group: 'staff',
+		label: 'Entregas: sem saídas',
+		default: 'Nenhuma saída ainda.'
+	},
+	'dispatch.notLeft': {
+		group: 'staff',
+		label: 'Entregas: ainda não saiu',
+		default: 'ainda não saiu'
+	},
+	'dispatch.leftAt': { group: 'staff', label: 'Entregas: saiu às', default: 'Saiu às {time}' },
+	'dispatch.returned': {
+		group: 'staff',
+		label: 'Entregas: voltou',
+		default: 'Tudo entregue às {time}'
+	},
+	'dispatch.settledAt': {
+		group: 'staff',
+		label: 'Entregas: acertado',
+		default: 'Acertado: {value}'
+	},
+	'dispatch.route': { group: 'staff', label: 'Entregas: lista de rota', default: 'Lista de rota' },
+	'dispatch.routeFor': { group: 'staff', label: 'Entregas: rota de', default: 'Rota de {name}' },
+	'dispatch.print': { group: 'staff', label: 'Entregas: imprimir', default: 'Imprimir' },
+	'dispatch.map': { group: 'staff', label: 'Entregas: abrir no mapa', default: 'Abrir no mapa' },
+	'dispatch.delivered': { group: 'staff', label: 'Entregas: entregue', default: 'Entregue' },
+	'dispatch.remove': { group: 'staff', label: 'Entregas: tirar da saída', default: 'Tirar' },
+	'dispatch.left': { group: 'staff', label: 'Entregas: saiu', default: 'Saiu' },
+	'dispatch.settle': { group: 'staff', label: 'Entregas: acertar', default: 'Acertar {value}' },
+	'dispatch.couriers': { group: 'staff', label: 'Entregas: entregadores', default: 'Entregadores' },
+	'dispatch.couriersIntro': {
+		group: 'staff',
+		label: 'Entregas: explicação dos entregadores',
+		default:
+			'Cada entregador recebe um link próprio para marcar saída e entrega no celular. Envie o link pelo WhatsApp; ele aparece uma vez só.'
+	},
+	'dispatch.linkShown': {
+		group: 'staff',
+		label: 'Entregas: link do entregador',
+		default: 'Link do entregador (guarde agora):'
+	},
+	'dispatch.courierName': { group: 'staff', label: 'Entregador: nome', default: 'Nome' },
+	'dispatch.courierPhone': { group: 'staff', label: 'Entregador: telefone', default: 'Telefone' },
+	'dispatch.courierPay': {
+		group: 'staff',
+		label: 'Entregador: valor por entrega',
+		default: 'Valor por entrega (R$)'
+	},
+	'dispatch.courierActive': { group: 'staff', label: 'Entregador: ativo', default: 'Ativo' },
+	'dispatch.save': { group: 'staff', label: 'Entregador: salvar', default: 'Salvar' },
+	'dispatch.newLink': { group: 'staff', label: 'Entregador: novo link', default: 'Novo link' },
+	'dispatch.addCourier': { group: 'staff', label: 'Entregador: adicionar', default: 'Adicionar' },
+	'dispatch.noCash': {
+		group: 'staff',
+		label: 'Entregas: aviso sem dinheiro na entrega',
+		default: 'Os pedidos já estão pagos: o entregador não recebe dinheiro na entrega.'
+	},
+	'courier.title': {
+		group: 'staff',
+		label: 'Entregador: título da aba',
+		default: 'Entregas · {shop}'
+	},
+	'courier.hello': { group: 'staff', label: 'Entregador: saudação', default: 'Olá, {name}' },
+	'courier.intro': {
+		group: 'staff',
+		label: 'Entregador: explicação',
+		default:
+			'Suas entregas de hoje para {shop}. Toque em Saiu ao sair e em Entregue em cada endereço.'
+	},
+	'courier.left': {
+		group: 'staff',
+		label: 'Entregador: botão saiu',
+		default: 'Saí com {n} pedido(s)'
+	},
+	'courier.deliveredAt': {
+		group: 'staff',
+		label: 'Entregador: entregue às',
+		default: 'Entregue às {time}'
+	},
+	'courier.none': {
+		group: 'staff',
+		label: 'Entregador: nada hoje',
+		default: 'Nenhuma entrega para você agora.'
+	},
 	// Order action bar (order detail)
 	'actions.title': { group: 'staff', label: 'Ações do pedido: título', default: 'Ações' },
 	'actions.confirmed': {

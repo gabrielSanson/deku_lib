@@ -157,7 +157,7 @@ export async function processWhatsappInbound(channelEventId: string) {
 	});
 }
 
-export type OrderMessageEvent = 'placed' | 'ready' | 'cancelled';
+export type OrderMessageEvent = 'placed' | 'ready' | 'out' | 'cancelled';
 
 /** Worker: the status message for an order event, when the customer may get one. */
 export async function notifyOrderEvent(orderId: string, event: OrderMessageEvent) {
@@ -181,6 +181,14 @@ export async function notifyOrderEvent(orderId: string, event: OrderMessageEvent
 			where o.id = ${orderId}`;
 		// Delivery apps tell their own customers; their contacts are not ours to message.
 		if (!o?.phone || o.channel === 'ifood' || o.channel === 'opendelivery') return 'skipped';
+		// With own couriers, "saiu para entrega" goes out when the run leaves, not when it is ready.
+		if (
+			event === 'ready' &&
+			o.fulfillment_type === 'delivery' &&
+			o.fulfillment_provider === 'own_driver' &&
+			(await tx`select 1 from couriers where active limit 1`).length > 0
+		)
+			return 'skipped';
 		const [conv] = await tx<{ last_inbound_at: Date }[]>`
 			select last_inbound_at from whatsapp_conversations where phone_e164 = ${o.phone}`;
 		if (!mayMessage(o.whatsapp_updates_at, conv?.last_inbound_at ?? null)) return 'skipped';

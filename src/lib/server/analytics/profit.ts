@@ -73,6 +73,8 @@ interface OrderRow {
 	tender_fees: number;
 	payout_commission: number | null;
 	payout_fee: number | null;
+	/** Delivered by an own courier in a settled run: the payout is already an expense. */
+	courier_paid: boolean;
 }
 
 const APPS = ['ifood', 'opendelivery'];
@@ -97,7 +99,7 @@ function paymentFees(o: OrderRow, terms: PaymentTerm[]) {
 function profitOf(o: OrderRow, s: ProfitSettings, terms: PaymentTerm[], food: number | null) {
 	const fees = paymentFees(o, terms);
 	const delivery =
-		o.fulfillment_type === 'delivery' && o.fulfillment_provider === 'own_driver'
+		o.fulfillment_type === 'delivery' && o.fulfillment_provider === 'own_driver' && !o.courier_paid
 			? s.deliveryCostCents
 			: 0;
 	return {
@@ -122,7 +124,9 @@ async function ordersIn(sql: Db, where: PendingQuery<Row[]>) {
 			o.total_cents, o.subtotal_cents, o.discount_cents, o.delivery_fee_cents,
 			coalesce((select sum(fee_cents) from tenders t where t.order_id = o.id
 				and t.status in ('paid', 'refunded')), 0)::int as tender_fees,
-			p.commission_cents as payout_commission, p.fee_cents as payout_fee
+			p.commission_cents as payout_commission, p.fee_cents as payout_fee,
+			exists (select 1 from deliveries d join delivery_runs r on r.id = d.run_id
+				where d.order_id = o.id and r.settled_at is not null and r.expense_id is not null) as courier_paid
 		from orders o
 		left join lateral (select sum(commission_cents)::int as commission_cents, sum(fee_cents)::int as fee_cents
 			from channel_payouts cp where cp.order_id = o.id having count(*) > 0) p on true

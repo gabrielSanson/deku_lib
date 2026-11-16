@@ -128,7 +128,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S4.5: done (job every 15 min sends once per day 30 min after the last closing (late shifts close next morning), 23:30 without hours; day window 04:00 → summary time; skipped if more than 6 h late; on by default, set in Configurações → Sistema (alerts live there); WhatsApp 'resumo_diario' template [UNVERIFIED] TODO(verify), sent only with WhatsApp on and an owner number)
 - S5.1: done (print_stations/print_jobs; paired screen claims with SKIP LOCKED, 60 s/3 tries; reprint from order page)
 - S5.2: done (estimateMinutes (prep + open orders × per-order + trip); promised_at, menu wait banner, checkout note; settings per_order 2 / delivery 20)
-- S5.3: todo
+- S5.3: done (couriers/delivery_runs/deliveries; Operação → Entregas, route list, /entregador/<token> Saiu/Entregue; 'saiu para entrega' sent when the run leaves; settle books an 'Entregadores' expense and drops the per-delivery estimate for those orders)
 - S5.4: todo
 - S5.5: todo
 - S5.6: todo

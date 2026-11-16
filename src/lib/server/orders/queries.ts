@@ -377,7 +377,17 @@ export async function getPublicOrder(token: string, sql: Db = db()) {
 	if (!row) return null;
 	const d = await getOrderDetail(row.id, sql);
 	if (!d) return null;
+	// Own couriers (S5.3): "saiu para entrega" only once the courier left.
+	const [courier] =
+		d.fulfillmentType === 'delivery'
+			? await sql<{ left_at: Date | null; dispatching: boolean }[]>`
+				select (select r.left_at from deliveries x join delivery_runs r on r.id = x.run_id
+						where x.order_id = ${row.id}) as left_at,
+					exists (select 1 from couriers where active) as dispatching`
+			: [];
 	return {
+		outAt: courier?.left_at ?? null,
+		awaitingCourier: !!courier?.dispatching && !courier.left_at,
 		orderNumber: d.orderNumber,
 		status: d.status,
 		paymentStatus: d.paymentStatus,

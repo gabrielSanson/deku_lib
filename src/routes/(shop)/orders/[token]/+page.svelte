@@ -152,7 +152,7 @@
 	const waitingPayment = $derived(o.status === 'new' && o.paymentStatus !== 'paid');
 	const statusLabel = $derived(
 		o.status === 'ready' && o.fulfillmentType === 'delivery'
-			? t('order.step.out')
+			? t(o.awaitingCourier ? 'order.step.waitingCourier' : 'order.step.out')
 			: t(
 					(
 						{
@@ -180,7 +180,11 @@
 		},
 		{
 			label: o.fulfillmentType === 'delivery' ? t('order.step.out') : t('order.step.ready'),
-			time: o.readyAt ? formatTime(o.readyAt) : null,
+			time: o.outAt
+				? formatTime(o.outAt)
+				: o.readyAt && !o.awaitingCourier
+					? formatTime(o.readyAt)
+					: null,
 			hint: t('order.track.hintReady'),
 			state: stepState(3, 4)
 		}

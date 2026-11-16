@@ -45,6 +45,7 @@ describe('whatsapp bot', () => {
 		expect(statusTemplate('placed', pickup)).toBe('pedido_recebido');
 		expect(statusTemplate('ready', pickup)).toBe('pedido_pronto');
 		expect(statusTemplate('ready', delivery)).toBe('saiu_para_entrega');
+		expect(statusTemplate('out', delivery)).toBe('saiu_para_entrega');
 		expect(statusTemplate('cancelled', delivery)).toBe('pedido_cancelado');
 	});
 

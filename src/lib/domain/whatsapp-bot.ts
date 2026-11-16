@@ -77,10 +77,11 @@ export type StatusTemplate =
 
 /** The utility template for an order event, if one is sent. */
 export function statusTemplate(
-	event: 'placed' | 'ready' | 'cancelled',
+	event: 'placed' | 'ready' | 'out' | 'cancelled',
 	fulfillment: { type: string; provider: string }
 ): StatusTemplate {
 	if (event === 'placed') return 'pedido_recebido';
+	if (event === 'out') return 'saiu_para_entrega';
 	if (event === 'cancelled') return 'pedido_cancelado';
 	return fulfillment.type === 'delivery' && fulfillment.provider === 'own_driver'
 		? 'saiu_para_entrega'

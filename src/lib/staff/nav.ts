@@ -33,6 +33,7 @@ export const NAV: NavGroup[] = [
 			{ href: '/staff/caixa', label: 'nav.gaveta', icon: 'cash' },
 			{ href: '/staff/orders', label: 'nav.pedidos', icon: 'list' },
 			{ href: '/kitchen', label: 'nav.cozinha', icon: 'chef' },
+			{ href: '/staff/entregas', label: 'nav.entregas', icon: 'bag' },
 			{ href: '/staff/reconciliation', label: 'nav.caixaDoDia', icon: 'receipt' }
 		]
 	},
@@ -73,6 +74,7 @@ const ATTENDANT_HREFS = new Set([
 	'/staff/pos',
 	'/staff/caixa',
 	'/staff/orders',
+	'/staff/entregas',
 	'/kitchen'
 ]);
 
