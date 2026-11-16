@@ -107,7 +107,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S3.8: done (off by default (Configurações → Tipos de pedido); slots every 15 min from now + prep to the end of the next opening day; while closed with scheduling on, the site takes orders for later only (dine-in off); kitchen hides the order until scheduled_for − prep; 'Agendados' lane on the board; max orders per slot setting; scheduled orders do not count against the open-order cap until due)
 - S3.9: done (link is the admin's own address + /cardapio; QR PNG 1024 px; Google 'Links de pedidos' and Instagram 'Pedir comida' steps are editable texts, menu names TODO(verify); no API calls)
 - S4.1: done (Gestão → Estoque (itens, compras, contagem, perdas, fichas técnicas); ficha editor is a page linked from the product editor, add-on fichas too; quantities are whole g/ml/un; stock moves only for shops that set up recipes; removed ingredients now stored on order_item_modifiers.ingredient_id; low stock on the staff home)
-- S4.2: todo
+- S4.2: done (defaults in domain/payment-fees.ts, shop rows override (Configurações → Pagamentos → Taxas); card machine is one rate (300 bps credit default, the owner sets debit-heavy rates); MP and Efí prices and the iFood payment fee [UNVERIFIED] TODO(verify); provider-reported fee (MP fee_details) left as a TODO(verify) hook; daily backfill job)
 - S4.3: todo
 - S4.4: todo
 - S4.5: todo

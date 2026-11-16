@@ -29,7 +29,8 @@ export const QUEUES = {
 	campaignBirthdays: 'campaign-birthdays',
 	ratingRequest: 'rating-request',
 	stockDeduct: 'stock-deduct',
-	stockReverse: 'stock-reverse'
+	stockReverse: 'stock-reverse',
+	tenderFees: 'tender-fees'
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 

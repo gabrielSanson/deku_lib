@@ -1,6 +1,7 @@
 // Records how an order was paid. In-person methods (cash, counter Pix checked
 // by staff, an external card terminal or the PSP's Tap to Pay app) are manual
 // tenders: staff confirm them and we store the provider reference.
+import { setTenderFee } from './fees';
 import type { PaymentStatus, StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
 import { recordCashRefund, recordCashSale } from '../cash/service';
@@ -65,6 +66,7 @@ export async function recordManualTender(input: ManualTenderInput) {
 			on conflict (shop_id, idempotency_key) do nothing
 			returning id`;
 		if (inserted.length === 0) return { duplicate: true, changeCents: change };
+		await setTenderFee(tx, inserted[0].id);
 		// Cash kept from the sale goes into the open drawer; without one the sale is refused.
 		if (input.method === 'cash')
 			await recordCashSale(tx, inserted[0].id, input.amountCents, input.actor);

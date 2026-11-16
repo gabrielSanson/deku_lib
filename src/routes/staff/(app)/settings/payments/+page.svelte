@@ -6,6 +6,7 @@
 	import SettingsSection from '#lib/components/organisms/SettingsSection.svelte';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import { formatDateTime } from '#lib/domain/time.ts';
+	import type { TextKey } from '#lib/texts/catalog.ts';
 
 	let { data, form } = $props();
 	const t = useTexts();
@@ -209,6 +210,70 @@
 					{p.pix.enabled ? t('integrations.shopPix') : t('integrations.noPix')}
 				</p>
 			{/if}
+		</div>
+	</SettingsSection>
+	<SettingsSection
+		title={t('fees.title')}
+		hint={t('fees.hint')}
+		action="?/fees"
+		saveLabel={t('settings.save')}
+		saved={form?.ok === 'fees' ? t('settings.saved') : undefined}
+	>
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead class="text-left text-muted">
+					<tr>
+						<th class="p-2">{t('fees.method')}</th>
+						<th class="p-2">{t('fees.percent')}</th>
+						<th class="p-2">{t('fees.fixed')}</th>
+						<th class="p-2">{t('fees.days')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each data.terms as term (`${term.method}:${term.provider}`)}
+						{@const k = `${term.method}:${term.provider}`}
+						<tr class="border-t border-line">
+							<td class="p-2"
+								>{t(`fees.m.${term.method}` as TextKey)}{term.provider !== 'manual' &&
+								term.provider !== 'ifood'
+									? ` · ${term.provider === 'mercadopago' ? 'Mercado Pago' : 'Efí'}`
+									: ''}</td
+							>
+							<td class="p-2"
+								><input
+									class="field w-20"
+									name="bps:{k}"
+									inputmode="decimal"
+									aria-label="{t('fees.percent')} {k}"
+									value={(term.feeBps / 100).toLocaleString('pt-BR')}
+								/></td
+							>
+							<td class="p-2"
+								><input
+									class="field w-24"
+									name="fixed:{k}"
+									inputmode="decimal"
+									aria-label="{t('fees.fixed')} {k}"
+									value={(term.feeFixedCents / 100).toLocaleString('pt-BR', {
+										minimumFractionDigits: 2
+									})}
+								/></td
+							>
+							<td class="p-2"
+								><input
+									class="field w-16"
+									name="days:{k}"
+									type="number"
+									min="0"
+									max="365"
+									aria-label="{t('fees.days')} {k}"
+									value={term.settleDays}
+								/></td
+							>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</div>
 	</SettingsSection>
 	<FormError message={form?.error} />

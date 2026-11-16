@@ -3,6 +3,7 @@
 // Every handler is idempotent because pg-boss delivers at least once.
 import { requestRating } from '../customers/ratings';
 import { deductStock, reverseStock } from '../stock/service';
+import { backfillTenderFees } from '../payments/fees';
 import { beat } from '../alerts/service';
 import { config } from '../config';
 import { db, DEFAULT_SHOP_ID, withShop } from '../db';
@@ -144,6 +145,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 		[QUEUES.campaignMilestones]: ((d: { orderId: string }) =>
 			processMilestones(d.orderId)) as Handler,
 		[QUEUES.campaignBirthdays]: forEachShop(() => issueBirthdayCoupons()) as Handler,
+		[QUEUES.tenderFees]: forEachShop(() => backfillTenderFees()) as Handler,
 		[QUEUES.stockDeduct]: ((d: { orderId: string }) => deductStock(d.orderId)) as Handler,
 		[QUEUES.stockReverse]: ((d: { orderId: string }) => reverseStock(d.orderId)) as Handler,
 		[QUEUES.ratingRequest]: ((d: { orderId: string }) => requestRating(d.orderId)) as Handler,
@@ -174,6 +176,7 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 	await boss.schedule(QUEUES.billingMonthly, '0 6 1 * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.billingDaily, '0 7 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await boss.schedule(QUEUES.campaignBirthdays, '0 8 * * *', {}, { tz: 'America/Sao_Paulo' });
+	await boss.schedule(QUEUES.tenderFees, '30 4 * * *', {}, { tz: 'America/Sao_Paulo' });
 	await handleHeartbeat();
 	log('worker started', { queues: Object.keys(handlers) });
 	return boss;

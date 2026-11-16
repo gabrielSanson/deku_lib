@@ -1,5 +1,6 @@
 // Online checkout lifecycle: start a payment, ingest provider webhooks,
 // apply them idempotently, and expire checkouts that were never paid.
+import { setTenderFee } from './fees';
 import { audit, SYSTEM } from '../audit';
 import { db, type Tx } from '../db';
 import { DomainError } from '../errors';
@@ -149,6 +150,7 @@ export async function applyProviderStatus(
 			confirmed_at = case when ${status} = 'paid' then now() else confirmed_at end,
 			refunded_at = case when ${status} = 'refunded' then now() else refunded_at end
 		where id = ${tender.id}`;
+	if (status === 'paid') await setTenderFee(tx, tender.id);
 	await audit(tx, { type: 'integration', id: null }, `tender.${status}`, 'order', tender.order_id, {
 		provider,
 		providerPaymentId

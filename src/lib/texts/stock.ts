@@ -107,6 +107,41 @@ export const STOCK_TEXTS = {
 		label: 'Fichas: custo da ficha',
 		default: 'Custo da ficha: {value}'
 	},
+	'fees.title': { group: s, label: 'Taxas: título', default: 'Taxas' },
+	'fees.hint': {
+		group: s,
+		label: 'Taxas: ajuda',
+		default:
+			'Quanto cada forma de pagamento custa. Entra no lucro de cada pedido. Confira com o seu contrato (maquininha, Mercado Pago, Efí, iFood).'
+	},
+	'fees.method': { group: s, label: 'Taxas: forma', default: 'Forma de pagamento' },
+	'fees.percent': { group: s, label: 'Taxas: percentual', default: 'Taxa (%)' },
+	'fees.fixed': { group: s, label: 'Taxas: fixa', default: 'Fixa (R$)' },
+	'fees.days': { group: s, label: 'Taxas: prazo', default: 'Recebe em (dias)' },
+	'fees.m.cash': { group: s, label: 'Taxas: dinheiro', default: 'Dinheiro' },
+	'fees.m.external_pix': {
+		group: s,
+		label: 'Taxas: Pix na chave',
+		default: 'Pix na chave da loja'
+	},
+	'fees.m.terminal_card': { group: s, label: 'Taxas: maquininha', default: 'Cartão na maquininha' },
+	'fees.m.softpos_nfc': {
+		group: s,
+		label: 'Taxas: celular',
+		default: 'Cartão por aproximação no celular'
+	},
+	'fees.m.pix': { group: s, label: 'Taxas: Pix online', default: 'Pix online' },
+	'fees.m.online_card': { group: s, label: 'Taxas: cartão online', default: 'Cartão online' },
+	'fees.m.ifood_collected': {
+		group: s,
+		label: 'Taxas: pago no iFood',
+		default: 'Pago no app do iFood'
+	},
+	'err.fees.invalid': {
+		group: 'staffErrors',
+		label: 'Taxas: valor inválido',
+		default: 'Confira as taxas: percentual até 50%, valores e prazos não negativos.'
+	},
 	'err.stock.name': {
 		group: 'staffErrors',
 		label: 'Estoque: nome',

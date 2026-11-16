@@ -14,6 +14,8 @@ import {
 	type ProviderName
 } from '#lib/server/payments/provider.ts';
 import { canStoreSecrets } from '#lib/server/secrets.ts';
+import { paymentTerms, savePaymentTerms } from '#lib/server/payments/fees.ts';
+import { parseBRL } from '#lib/domain/money.ts';
 import { getStoreProfile, savePixSettings } from '#lib/server/settings/profile.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -30,11 +32,31 @@ export const load: PageServerLoad = async (event) => {
 		canStoreSecrets: canStoreSecrets(),
 		allowStub: config().NODE_ENV !== 'production',
 		webhookUrl: `${event.url.origin}/api/v1/payments/webhooks/mercadopago/${currentShopId()}`,
-		psp: s.psp ?? null
+		psp: s.psp ?? null,
+		terms: await paymentTerms()
 	};
 };
 
 export const actions: Actions = {
+	/** Taxas: the fee per way of being paid. */
+	fees: async (event) => {
+		const staff = requireStaff(event, ADMIN);
+		const d = await event.request.formData();
+		const terms = (await paymentTerms()).map((term) => {
+			const k = `${term.method}:${term.provider}`;
+			const pct = Number(formString(d, `bps:${k}`).replace(',', '.'));
+			return {
+				...term,
+				feeBps: Math.round(pct * 100),
+				feeFixedCents: parseBRL(formString(d, `fixed:${k}`) || '0') ?? -1,
+				settleDays: Number(formString(d, `days:${k}`) || '0')
+			};
+		});
+		return attempt(async () => {
+			await savePaymentTerms(terms, staffActor(staff));
+			return { ok: 'fees' as const };
+		});
+	},
 	payments: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const d = await event.request.formData();
