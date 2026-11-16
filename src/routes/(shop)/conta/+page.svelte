@@ -127,6 +127,8 @@
 		</section>
 	{/if}
 
+	<p class="text-sm"><a class="underline" href="/conta/dados">{t('privacy.link')}</a></p>
+
 	<section class="space-y-3">
 		<h2 class="section-label">{t('account.mine.orders')}</h2>
 		{#if data.orders.length === 0}

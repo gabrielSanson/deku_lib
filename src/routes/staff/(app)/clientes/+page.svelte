@@ -70,6 +70,7 @@
 		<a class="btn-ghost" href={exportHref('marketing')} download>{t('customers.exportMarketing')}</a
 		>
 		<a class="btn-ghost" href={exportHref('delivery')} download>{t('customers.exportDelivery')}</a>
+		<a class="btn-ghost" href="/staff/clientes/solicitacoes">{t('privacy.staffLink')}</a>
 	</div>
 
 	{#if data.customers.length === 0}

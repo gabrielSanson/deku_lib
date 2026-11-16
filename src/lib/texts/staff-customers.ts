@@ -191,5 +191,129 @@ export const STAFF_CUSTOMER_TEXTS = {
 		label: 'Mensagens: ninguém',
 		default: 'Nenhum contato desta lista aceita receber por este canal.'
 	},
+	'privacy.mail.subject': {
+		group: 'account',
+		label: 'Meus dados: assunto do código',
+		default: 'Seu código para o pedido sobre seus dados'
+	},
+	'privacy.mail.body': {
+		group: 'account',
+		label: 'Meus dados: texto do código',
+		default: 'Seu código é {code}. Digite no site para confirmar o pedido. Se não foi você, ignore.'
+	},
+	'privacy.title': { group: 'account', label: 'Meus dados: título', default: 'Meus dados' },
+	'privacy.intro': {
+		group: 'account',
+		label: 'Meus dados: introdução',
+		default:
+			'Você pode pedir uma cópia dos dados que a loja guarda sobre você, ou pedir para apagá-los. Os pedidos continuam nos registros fiscais, sem o seu nome.'
+	},
+	'privacy.access': {
+		group: 'account',
+		label: 'Meus dados: pedir cópia',
+		default: 'Pedir uma cópia dos meus dados'
+	},
+	'privacy.delete': {
+		group: 'account',
+		label: 'Meus dados: pedir para apagar',
+		default: 'Pedir para apagar meus dados'
+	},
+	'privacy.requested': {
+		group: 'account',
+		label: 'Meus dados: pedido recebido',
+		default: 'Pedido recebido. A loja responde em até {days} dias.'
+	},
+	'privacy.email': { group: 'account', label: 'Meus dados: e-mail', default: 'Seu e-mail' },
+	'privacy.kind': {
+		group: 'account',
+		label: 'Meus dados: o que você quer',
+		default: 'O que você quer'
+	},
+	'privacy.sendCode': {
+		group: 'account',
+		label: 'Meus dados: enviar código',
+		default: 'Enviar código'
+	},
+	'privacy.code': {
+		group: 'account',
+		label: 'Meus dados: código',
+		default: 'Código recebido por e-mail'
+	},
+	'privacy.confirm': {
+		group: 'account',
+		label: 'Meus dados: confirmar',
+		default: 'Confirmar pedido'
+	},
+	'privacy.codeSent': {
+		group: 'account',
+		label: 'Meus dados: código enviado',
+		default: 'Enviamos um código para o seu e-mail.'
+	},
+	'privacy.link': {
+		group: 'account',
+		label: 'Meus dados: link na conta',
+		default: 'Meus dados (LGPD)'
+	},
+	'privacy.staffTitle': {
+		group: g,
+		label: 'Solicitações: título',
+		default: 'Solicitações sobre dados'
+	},
+	'privacy.staffIntro': {
+		group: g,
+		label: 'Solicitações: introdução',
+		default:
+			'Pedidos de cópia ou exclusão de dados feitos pelos clientes. Responda até o prazo. Apagar remove nome, telefone, e-mail e endereço; os pedidos continuam nos relatórios como "Cliente removido".'
+	},
+	'privacy.kind.access': { group: g, label: 'Solicitações: cópia', default: 'Cópia dos dados' },
+	'privacy.kind.delete': { group: g, label: 'Solicitações: exclusão', default: 'Apagar dados' },
+	'privacy.status.pending': { group: g, label: 'Solicitações: aberta', default: 'Aberta' },
+	'privacy.status.done': { group: g, label: 'Solicitações: atendida', default: 'Atendida' },
+	'privacy.status.refused': { group: g, label: 'Solicitações: recusada', default: 'Recusada' },
+	'privacy.due': { group: g, label: 'Solicitações: prazo', default: 'Prazo: {date}' },
+	'privacy.export': {
+		group: g,
+		label: 'Solicitações: baixar dados',
+		default: 'Baixar dados (JSON)'
+	},
+	'privacy.markDone': {
+		group: g,
+		label: 'Solicitações: marcar atendida',
+		default: 'Marcar como atendida'
+	},
+	'privacy.doDelete': {
+		group: g,
+		label: 'Solicitações: apagar agora',
+		default: 'Apagar os dados agora'
+	},
+	'privacy.refuse': { group: g, label: 'Solicitações: recusar', default: 'Recusar' },
+	'privacy.note': { group: g, label: 'Solicitações: observação', default: 'Motivo ou observação' },
+	'privacy.noCustomer': {
+		group: g,
+		label: 'Solicitações: sem cadastro',
+		default: 'Nenhum cadastro com este e-mail.'
+	},
+	'privacy.none': { group: g, label: 'Solicitações: nenhuma', default: 'Nenhuma solicitação.' },
+	'privacy.staffLink': { group: g, label: 'Solicitações: link', default: 'Solicitações (LGPD)' },
+	'err.privacy.email': {
+		group: 'errors',
+		label: 'Meus dados: e-mail inválido',
+		default: 'Informe um e-mail válido.'
+	},
+	'err.privacy.code': {
+		group: 'errors',
+		label: 'Meus dados: código errado',
+		default: 'Código inválido ou vencido. Peça um novo.'
+	},
+	'err.privacy.noCustomer': {
+		group: 'staffErrors',
+		label: 'Solicitações: sem cliente',
+		default: 'Não há cadastro ligado a esta solicitação.'
+	},
+	'err.privacy.notPending': {
+		group: 'staffErrors',
+		label: 'Solicitações: já respondida',
+		default: 'Esta solicitação já foi respondida.'
+	},
 	'nav.clientes': { group: 'staffLabels', label: 'Menu da equipe: Clientes', default: 'Clientes' }
 } as const satisfies Record<string, TextDef>;
