@@ -39,7 +39,7 @@ import { orderRequestHash } from '#lib/domain/request-hash.ts';
 import { OWN_SOURCES, sourceForChannel } from '#lib/domain/consent.ts';
 import { knownShop } from '../platform/shops';
 import { getSchedule, inHoursNow } from '../settings/hours';
-import { getStoreSettings } from '../settings/service';
+import { currentEstimate, getStoreSettings } from '../settings/service';
 import { getTexts } from '../settings/texts';
 
 export type SourceMode =
@@ -229,7 +229,14 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 		}
 		const now = new Date();
 		const scheduledFor = input.channel === 'web' ? (input.scheduledFor ?? null) : null;
-		const promisedAt = scheduledFor ?? new Date(now.getTime() + settings.prepTimeMinutes * 60_000);
+		// The promise grows with the kitchen queue (S5.2); deliveries add the usual trip.
+		const estimate = scheduledFor ? null : await currentEstimate(settings, tx);
+		const promisedAt =
+			scheduledFor ??
+			new Date(
+				now.getTime() +
+					(input.fulfillmentType === 'delivery' ? estimate!.delivery : estimate!.pickup) * 60_000
+			);
 
 		let customerId: string | null = null;
 		if (input.customerId) {

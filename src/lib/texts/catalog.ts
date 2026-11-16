@@ -578,13 +578,13 @@ const CORE_TEXTS = {
 	'checkout.delivery': { group: 'checkout', label: 'Entrega', default: 'Entrega' },
 	'checkout.eta': {
 		group: 'checkout',
-		label: 'Previsão (retirada)',
+		label: 'Previsão (retirada ou entrega)',
 		default: 'Previsão: cerca de {minutes} min.'
 	},
-	'checkout.etaDelivery': {
+	'header.wait': {
 		group: 'checkout',
-		label: 'Previsão (entrega)',
-		default: 'Previsão: cerca de {minutes} min + deslocamento.'
+		label: 'Cardápio: tempo de espera agora',
+		default: 'Tempo de espera agora: cerca de {minutes} min'
 	},
 	'checkout.address': { group: 'checkout', label: 'Endereço', default: 'Endereço' },
 	'checkout.cep': { group: 'checkout', label: 'CEP', default: 'CEP' },

@@ -17,7 +17,19 @@ export const actions: Actions = {
 		const prep = Number(formString(d, 'prepTimeMinutes'));
 		const maxRaw = formString(d, 'maxOpenOrders');
 		const max = maxRaw ? Number(maxRaw) : null;
-		if (!Number.isInteger(prep) || prep < 1 || prep > 240)
+		const perOrder = Number(formString(d, 'perOrderMinutes') || 2);
+		const deliveryMinutes = Number(formString(d, 'deliveryMinutes') || 20);
+		if (
+			!Number.isInteger(prep) ||
+			prep < 1 ||
+			prep > 240 ||
+			!Number.isInteger(perOrder) ||
+			perOrder < 0 ||
+			perOrder > 30 ||
+			!Number.isInteger(deliveryMinutes) ||
+			deliveryMinutes < 0 ||
+			deliveryMinutes > 180
+		)
 			return failText(400, 'err.settings.prepTime');
 		if (max !== null && (!Number.isInteger(max) || max < 1))
 			return failText(400, 'err.settings.capacity');
@@ -38,6 +50,8 @@ export const actions: Actions = {
 					deliveryEnabled: d.get('deliveryEnabled') === 'on',
 					webOrderingEnabled: d.get('webOrderingEnabled') === 'on',
 					prepTimeMinutes: prep,
+					perOrderMinutes: perOrder,
+					deliveryMinutes,
 					maxOpenOrders: max,
 					unpaidPixMinutes: unpaidPix,
 					unpaidCounterMinutes: unpaidCounter,

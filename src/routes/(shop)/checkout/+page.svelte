@@ -384,8 +384,11 @@
 						{#if later}
 							{t('checkout.slotNote')}
 						{:else}
-							{t(fulfillmentType === 'delivery' ? 'checkout.etaDelivery' : 'checkout.eta', {
-								minutes: data.store.prepTimeMinutes
+							{t('checkout.eta', {
+								minutes:
+									fulfillmentType === 'delivery'
+										? data.store.estimate.delivery
+										: data.store.estimate.pickup
 							})}
 						{/if}
 					</p>

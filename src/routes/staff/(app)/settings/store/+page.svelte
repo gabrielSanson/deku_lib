@@ -44,6 +44,26 @@
 				required
 			/>
 			<TextField
+				label={t('store.perOrder')}
+				id="perOrder"
+				name="perOrderMinutes"
+				type="number"
+				min={0}
+				max={30}
+				value={s.perOrderMinutes}
+				required
+			/>
+			<TextField
+				label={t('store.deliveryMinutes')}
+				id="deliveryMinutes"
+				name="deliveryMinutes"
+				type="number"
+				min={0}
+				max={180}
+				value={s.deliveryMinutes}
+				required
+			/>
+			<TextField
 				label={t('store.maxOpen')}
 				id="max"
 				name="maxOpenOrders"

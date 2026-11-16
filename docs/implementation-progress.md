@@ -127,7 +127,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S4.4: done (Gestão → Despesas (month list, fixed expenses entered daily job on/after their day, once per month) and Relatórios → Resultado do mês with CSV; categories seeded on first use; Simples rate is a setting that starts at 0 with a warning (no rate guessed); food cost is real when the month has a stock count, else from the fichas)
 - S4.5: done (job every 15 min sends once per day 30 min after the last closing (late shifts close next morning), 23:30 without hours; day window 04:00 → summary time; skipped if more than 6 h late; on by default, set in Configurações → Sistema (alerts live there); WhatsApp 'resumo_diario' template [UNVERIFIED] TODO(verify), sent only with WhatsApp on and an owner number)
 - S5.1: done (print_stations/print_jobs; paired screen claims with SKIP LOCKED, 60 s/3 tries; reprint from order page)
-- S5.2: todo
+- S5.2: done (estimateMinutes (prep + open orders × per-order + trip); promised_at, menu wait banner, checkout note; settings per_order 2 / delivery 20)
 - S5.3: todo
 - S5.4: todo
 - S5.5: todo

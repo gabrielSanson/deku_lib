@@ -1,5 +1,6 @@
 // Live store operations. Owned by the app (not the CMS) so staff can pause
 // ordering or change fees mid-shift. Every change is audited.
+import { estimateMinutes } from '#lib/domain/estimate.ts';
 import type { DeliveryRule } from '#lib/domain/pricing.ts';
 import { scheduleAvailability } from '../integrations/menu-sync';
 import { audit, type Actor } from '../audit';
@@ -23,6 +24,10 @@ export interface StoreSettings {
 	schedulingEnabled: boolean;
 	/** Orders accepted per 15-minute slot; null = no limit. */
 	maxOrdersPerSlot: number | null;
+	/** Extra minutes per order already in the kitchen (S5.2). */
+	perOrderMinutes: number;
+	/** The usual delivery trip, added to the estimate for deliveries. */
+	deliveryMinutes: number;
 	updatedAt: Date;
 	version: number;
 }
@@ -42,6 +47,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 			unpaid_counter_minutes: number;
 			scheduling_enabled: boolean;
 			max_orders_per_slot: number | null;
+			per_order_minutes: number;
+			delivery_minutes: number;
 			updated_at: Date;
 			version: number;
 		}[]
@@ -59,6 +66,8 @@ export async function getStoreSettings(sql: Db = db()): Promise<StoreSettings> {
 		unpaidCounterMinutes: r.unpaid_counter_minutes,
 		schedulingEnabled: r.scheduling_enabled,
 		maxOrdersPerSlot: r.max_orders_per_slot,
+		perOrderMinutes: r.per_order_minutes,
+		deliveryMinutes: r.delivery_minutes,
 		updatedAt: r.updated_at,
 		version: r.version
 	};
@@ -90,7 +99,9 @@ export async function updateStoreSettings(
 				unpaid_pix_minutes = ${next.unpaidPixMinutes},
 				unpaid_counter_minutes = ${next.unpaidCounterMinutes},
 				scheduling_enabled = ${next.schedulingEnabled},
-				max_orders_per_slot = ${next.maxOrdersPerSlot}, updated_by = ${actor.id}, updated_at = now(),
+				max_orders_per_slot = ${next.maxOrdersPerSlot},
+				per_order_minutes = ${next.perOrderMinutes}, delivery_minutes = ${next.deliveryMinutes},
+				updated_by = ${actor.id}, updated_at = now(),
 				version = version + 1
 			where shop_id = current_shop_id()`;
 		await audit(tx, actor, 'store.settings_updated', 'store_runtime_settings', '1', {
@@ -99,6 +110,30 @@ export async function updateStoreSettings(
 		});
 		return getStoreSettings(tx);
 	});
+}
+
+/** Orders the kitchen is working on now; orders for later count once they are due. */
+export async function openKitchenOrders(sql: Db = db()) {
+	const [r] = await sql<{ n: number }[]>`
+		select count(*)::int as n from orders o
+		where o.status in ('confirmed', 'preparing') and not o.is_test
+			and (o.scheduled_for is null or o.scheduled_for - make_interval(mins => (
+				select prep_time_minutes from store_runtime_settings s where s.shop_id = o.shop_id)) <= now())`;
+	return r?.n ?? 0;
+}
+
+/** Minutes for an order placed now, for pickup and for delivery. */
+export async function currentEstimate(settings: StoreSettings, sql: Db = db()) {
+	const open = await openKitchenOrders(sql);
+	const base = {
+		prepMinutes: settings.prepTimeMinutes,
+		openKitchenOrders: open,
+		perOrderMinutes: settings.perOrderMinutes
+	};
+	return {
+		pickup: estimateMinutes({ ...base, deliveryMinutes: 0 }),
+		delivery: estimateMinutes({ ...base, deliveryMinutes: settings.deliveryMinutes })
+	};
 }
 
 export async function listDeliveryRules(sql: Db = db()): Promise<DeliveryRule[]> {

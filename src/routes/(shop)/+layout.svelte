@@ -199,6 +199,10 @@
 								})
 							: t('header.closed'))}
 				</p>
+			{:else if isMenu && !data.kiosk}
+				<p class="bg-night-2 px-4 py-1.5 text-center text-sm text-stone-300" role="status">
+					{t('header.wait', { minutes: data.store.estimate.pickup })}
+				</p>
 			{/if}
 		</header>
 

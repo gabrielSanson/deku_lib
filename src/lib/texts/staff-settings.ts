@@ -108,6 +108,16 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Loja: tempo de preparo',
 		default: 'Tempo de preparo prometido (min)'
 	},
+	'store.perOrder': {
+		group: g,
+		label: 'Loja: minutos a mais por pedido na cozinha',
+		default: 'Minutos a mais por pedido na fila da cozinha'
+	},
+	'store.deliveryMinutes': {
+		group: g,
+		label: 'Loja: tempo médio de entrega',
+		default: 'Tempo médio da entrega (min)'
+	},
 	'store.unpaidPix': {
 		group: g,
 		label: 'Loja: prazo do Pix não pago',

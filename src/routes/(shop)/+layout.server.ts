@@ -6,7 +6,7 @@ import { listPages } from '#lib/server/catalog/pages.ts';
 import { db } from '#lib/server/db.ts';
 import { getSchedule } from '#lib/server/settings/hours.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
-import { getStoreSettings } from '#lib/server/settings/service.ts';
+import { currentEstimate, getStoreSettings } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import type { LayoutServerLoad } from './$types';
 
@@ -70,7 +70,9 @@ export const load: LayoutServerLoad = async ({ setHeaders, locals, cookies, url 
 			pickup: settings.pickupEnabled,
 			delivery: settings.deliveryEnabled,
 			pixKey: profile.pix.enabled,
-			prepTimeMinutes: settings.prepTimeMinutes
+			prepTimeMinutes: settings.prepTimeMinutes,
+			/** Minutes for an order placed now (grows with the kitchen queue). */
+			estimate: await currentEstimate(settings)
 		}
 	};
 };
