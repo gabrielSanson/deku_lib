@@ -132,7 +132,11 @@ export interface ChannelAdapter {
 	sendStatus(order: OrderRef, call: OutboundCall): Promise<unknown>;
 	/** Homologation: keep full payloads of orders and calls for the app's review. */
 	keepPayloads?(): Promise<boolean>;
-	syncMenu?(menu: ChannelMenu): Promise<SyncReport>;
+	/** `known` tells items already on the app (updated) from new ones (created). */
+	syncMenu?(
+		menu: ChannelMenu,
+		known: (sku: string) => boolean
+	): Promise<SyncReport & { synced: string[] }>;
 	setAvailability?(items: { externalId: string; available: boolean }[]): Promise<void>;
 	/** Readable text for an error thrown by this adapter. */
 	describeError?(err: unknown): string;

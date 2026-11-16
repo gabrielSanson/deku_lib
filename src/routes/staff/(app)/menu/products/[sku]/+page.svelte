@@ -114,6 +114,16 @@
 				placeholder="29,90"
 				required
 			/>
+			<TextField
+				label={t('prices.colIfood')}
+				name="ifoodPrice"
+				inputmode="decimal"
+				value={data.ifoodPrice.ownCents === null
+					? ''
+					: formatBRL(data.ifoodPrice.ownCents).replace(/[R$\s]/g, '')}
+				placeholder={formatBRL(data.ifoodPrice.suggestedCents).replace(/[R$\s]/g, '')}
+				hint={t('prices.suggested', { price: formatBRL(data.ifoodPrice.suggestedCents) })}
+			/>
 			<SelectField label={t('product.category')} name="categoryId" value={p.categoryId}>
 				{#each data.categories as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
 			</SelectField>

@@ -185,6 +185,16 @@ export function ifoodClient(
 		async order(id: string): Promise<unknown> {
 			return JSON.parse((await call(f, await creds(), IFOOD_PATHS.order(id))).body);
 		},
+		/** Any other call (catalog). Returns the parsed answer, or null when empty. */
+		async request(method: string, path: string, body?: unknown): Promise<unknown> {
+			const c = await creds();
+			const res = await call(f, c, path.replace('{merchantId}', encodeURIComponent(c.merchantId)), {
+				method,
+				headers: body ? { 'content-type': 'application/json' } : {},
+				body: body ? JSON.stringify(body) : undefined
+			});
+			return res.body ? JSON.parse(res.body) : null;
+		},
 		async action(path: string, body?: unknown): Promise<unknown> {
 			return call(f, await creds(), path, {
 				method: 'POST',

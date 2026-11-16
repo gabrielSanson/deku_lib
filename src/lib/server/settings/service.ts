@@ -1,6 +1,7 @@
 // Live store operations. Owned by the app (not the CMS) so staff can pause
 // ordering or change fees mid-shift. Every change is audited.
 import type { DeliveryRule } from '#lib/domain/pricing.ts';
+import { scheduleAvailability } from '../integrations/menu-sync';
 import { audit, type Actor } from '../audit';
 import { db, type Db } from '../db';
 import { DomainError } from '../errors';
@@ -167,5 +168,6 @@ export async function setSoldOut(sku: string, soldOut: boolean, actor: Actor, re
 		await audit(tx, actor, soldOut ? 'product.sold_out' : 'product.back_in_stock', 'product', sku, {
 			reason
 		});
+		await scheduleAvailability(tx, [sku], !soldOut);
 	});
 }

@@ -12,6 +12,8 @@ import {
 	replayChannelEvent,
 	retryOutbound
 } from '#lib/server/integrations/ifood/service.ts';
+import { db } from '#lib/server/db.ts';
+import { recentSyncReports, scheduleMenuSync } from '#lib/server/integrations/menu-sync.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -22,6 +24,7 @@ export const load: PageServerLoad = async (event) => {
 		currentIfoodAlerts()
 	]);
 	return {
+		syncReports: await recentSyncReports('ifood'),
 		appAvailable: ifoodAppAvailable(),
 		homologation: connection.homologation ? await ifoodHomologationProgress() : [],
 		ifood,
@@ -35,6 +38,11 @@ export const load: PageServerLoad = async (event) => {
 // iFood credentials, test and on/off live here too, not only in the setup wizard.
 export const actions: Actions = {
 	...ifoodActions,
+	menuSync: async (event) => {
+		requireStaff(event, ADMIN);
+		await scheduleMenuSync(db(), { now: true });
+		return { ok: await shopText('ok.menuSyncQueued') };
+	},
 	replay: async (event) => {
 		const staff = requireStaff(event, ADMIN);
 		const id = formString(await event.request.formData(), 'id');

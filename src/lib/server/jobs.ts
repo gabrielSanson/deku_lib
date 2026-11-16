@@ -13,6 +13,8 @@ export const QUEUES = {
 	ifoodPoll: 'ifood-poll',
 	ifoodEvent: 'ifood-event',
 	ifoodSync: 'ifood-sync',
+	ifoodMenuSync: 'ifood-menu-sync',
+	channelAvailability: 'channel-availability',
 	paymentEvent: 'payment-event',
 	fiscalIssue: 'fiscal-issue',
 	heartbeat: 'heartbeat',

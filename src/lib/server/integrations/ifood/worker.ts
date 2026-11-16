@@ -6,6 +6,8 @@ import { db, withShop } from '../../db';
 import { activeShopIds } from '../../worker/handlers';
 import { QUEUES } from '../../jobs';
 import { explainIfoodError } from './check';
+import { runAvailability, runMenuSync } from '../menu-sync';
+import { ifoodAdapter } from './adapter';
 import { pollIfoodOnce, processIfoodEvent, syncOrderToIfood } from './service';
 import { ifoodSettings, recordIfoodPoll } from './settings';
 
@@ -16,7 +18,10 @@ export async function ifoodHandlers() {
 	const handlers = {
 		[QUEUES.ifoodEvent]: (d: { channelEventId: string }) => processIfoodEvent(d.channelEventId),
 		// While iFood is off, sync jobs are recorded as skipped and iFood is never called.
-		[QUEUES.ifoodSync]: (d: { orderId: string; to: never; reason?: string }) => syncOrderToIfood(d)
+		[QUEUES.ifoodSync]: (d: { orderId: string; to: never; reason?: string }) => syncOrderToIfood(d),
+		[QUEUES.ifoodMenuSync]: () => runMenuSync(ifoodAdapter()),
+		[QUEUES.channelAvailability]: (d: { channel: string; skus: string[]; available: boolean }) =>
+			d.channel === 'ifood' ? runAvailability(ifoodAdapter(), d) : Promise.resolve('skipped')
 	};
 	let running = false;
 	const tick = async () => {

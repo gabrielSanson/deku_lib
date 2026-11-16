@@ -514,6 +514,27 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Pedido: cancelamento pedido ao app',
 		default: 'Cancelamento pedido. O pedido sai da fila quando o app de entrega confirmar.'
 	},
+	'err.prices.markup': {
+		group: 'staffErrors',
+		label: 'Preços: acréscimo inválido',
+		default: 'Informe um acréscimo de 0% a 100%.'
+	},
+	'err.prices.round': {
+		group: 'staffErrors',
+		label: 'Preços: arredondamento inválido',
+		default: 'Informe os centavos finais de 0 a 99, ou deixe em branco.'
+	},
+	'err.prices.bad': {
+		group: 'staffErrors',
+		label: 'Preços: preço inválido',
+		default: 'Um dos preços está inválido (use 25,90).'
+	},
+	'ok.pricesSaved': { group: 'staffErrors', label: 'Preços: salvos', default: 'Preços salvos.' },
+	'ok.menuSyncQueued': {
+		group: 'staffErrors',
+		label: 'iFood: envio do cardápio na fila',
+		default: 'O cardápio vai ser enviado ao iFood em instantes. O resultado aparece abaixo.'
+	},
 	'err.menu.csvInvalid': {
 		group: 'staffErrors',
 		label: 'Cardápio: planilha com erros',

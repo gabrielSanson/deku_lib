@@ -10,6 +10,8 @@ import {
 } from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { db } from '#lib/server/db.ts';
+import { applyMarkup } from '#lib/domain/pricing.ts';
+import { listIfoodPrices, saveIfoodPrices } from '#lib/server/catalog/channel-prices.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -57,8 +59,16 @@ export const load: PageServerLoad = async (event) => {
 	if (!categories.length) redirect(303, '/staff/menu/edit');
 	const p = rows[0];
 	if (!isNew && !p) error(404, 'Produto não encontrado.');
+	const ifood = await listIfoodPrices();
+	const ifoodRow = p ? ifood.products.find((x) => x.sku === p.sku) : undefined;
 	return {
 		isNew,
+		ifoodPrice: {
+			ownCents: ifoodRow?.ifoodCents ?? null,
+			suggestedCents:
+				ifoodRow?.suggestedCents ??
+				applyMarkup(p?.price_cents ?? 0, ifood.settings.markupBps, ifood.settings.roundTo)
+		},
 		categories,
 		groups,
 		stations: PREP_STATIONS,
@@ -105,6 +115,9 @@ export const actions: Actions = {
 		const d = await event.request.formData();
 		const price = parseBRL(formString(d, 'price'));
 		if (price === null) return failText(400, 'err.menu.price');
+		const ifoodText = formString(d, 'ifoodPrice');
+		const ifoodPrice = ifoodText ? parseBRL(ifoodText) : null;
+		if (ifoodText && ifoodPrice === null) return failText(400, 'err.prices.bad');
 		const isNew = event.params.sku === 'novo';
 		const result = await attempt(async () => {
 			const photo = d.get('photo');
@@ -139,6 +152,10 @@ export const actions: Actions = {
 				staffActor(staff),
 				isNew ? undefined : event.params.sku
 			);
+			const current = isNew ? null : (await listIfoodPrices()).products.find((x) => x.sku === sku);
+			if (d.has('ifoodPrice') && (current?.ifoodCents ?? null) !== ifoodPrice) {
+				await saveIfoodPrices([{ sku, priceCents: ifoodPrice }], staffActor(staff));
+			}
 			return { sku };
 		});
 		if (!('sku' in result)) return result;

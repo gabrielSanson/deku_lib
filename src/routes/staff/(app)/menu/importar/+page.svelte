@@ -55,6 +55,11 @@
 		/>
 		<button class="btn-secondary" disabled={busy}>{t('menuImport.preview')}</button>
 	</form>
+	{#if data.ifoodOn}
+		<form method="POST" action="?/ifood" use:enhance={submit}>
+			<button class="btn-secondary" disabled={busy}>{t('menuImport.fromIfood')}</button>
+		</form>
+	{/if}
 
 	{#if form && 'rows' in form && form.rows}
 		<div class="overflow-x-auto card">

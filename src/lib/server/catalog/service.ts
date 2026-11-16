@@ -13,7 +13,18 @@ export class CatalogUnavailableError extends Error {}
 
 /** Reads the active menu from the database. */
 export async function loadCatalog(sql: Db = db(), { includeInactive = false } = {}) {
-	const [[rev], categories, products, groups, options, links, ingredients] = await Promise.all([
+	const [
+		[rev],
+		categories,
+		products,
+		groups,
+		options,
+		links,
+		ingredients,
+		channelPrices,
+		optionChannelPrices,
+		[markup]
+	] = await Promise.all([
 		sql<
 			{ revision: string }[]
 		>`select revision::text from menu_revision where shop_id = current_shop_id()`,
@@ -65,8 +76,21 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 			}[]
 		>`select pi.product_sku, i.id, i.name, i.allergens, pi.removable, i.image_path
 			from menu_product_ingredients pi join menu_ingredients i on i.id = pi.ingredient_id
-			order by pi.position, i.name`
+			order by pi.position, i.name`,
+		sql<{ sku: string; channel: Channel; price_cents: number }[]>`
+			select sku, channel, price_cents from menu_channel_prices`,
+		sql<{ sku: string; channel: Channel; price_cents: number }[]>`
+			select sku, channel, price_cents from menu_channel_option_prices`,
+		sql<{ ifood_markup_bps: number; round_to_cents: number | null }[]>`
+			select ifood_markup_bps, round_to_cents from channel_settings where shop_id = current_shop_id()`
 	]);
+	const pricesBy = (rows: { sku: string; channel: Channel; price_cents: number }[]) => {
+		const m = new Map<string, Partial<Record<Channel, number>>>();
+		for (const r of rows) m.set(r.sku, { ...m.get(r.sku), [r.channel]: r.price_cents });
+		return m;
+	};
+	const productPrices = pricesBy(channelPrices);
+	const optionPrices = pricesBy(optionChannelPrices);
 	const ingredientsOf = (sku: string) => ingredients.filter((i) => i.product_sku === sku);
 	const groupById = new Map<string, ModifierGroup>(
 		groups.map((g) => [
@@ -83,7 +107,8 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 						name: o.name,
 						priceCents: o.price_cents,
 						maxQuantity: o.max_quantity,
-						imageUrl: menuImageUrl(o.image_path)
+						imageUrl: menuImageUrl(o.image_path),
+						...(optionPrices.has(o.sku) ? { channelPrices: optionPrices.get(o.sku) } : {})
 					}))
 			}
 		])
@@ -93,6 +118,13 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 	);
 	const catalog: Catalog = {
 		version: `menu-${rev?.revision ?? '0'}`,
+		...(markup?.ifood_markup_bps
+			? {
+					channelMarkup: {
+						ifood: { markupBps: markup.ifood_markup_bps, roundTo: markup.round_to_cents }
+					}
+				}
+			: {}),
 		categories: categories
 			.filter((c) => activeCategories.has(c.id))
 			.map((c) => ({
@@ -126,7 +158,8 @@ export async function loadCatalog(sql: Db = db(), { includeInactive = false } = 
 				modifierGroups: links
 					.filter((l) => l.product_sku === p.sku)
 					.map((l) => groupById.get(l.group_id))
-					.filter((g): g is ModifierGroup => Boolean(g))
+					.filter((g): g is ModifierGroup => Boolean(g)),
+				...(productPrices.has(p.sku) ? { channelPrices: productPrices.get(p.sku) } : {})
 			}))
 	};
 	return catalog;

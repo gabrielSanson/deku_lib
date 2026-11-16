@@ -7,6 +7,7 @@ import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
 import { IMAGE_PATH, menuImageUrl } from './images';
+import { scheduleMenuSync } from '../integrations/menu-sync';
 import { invalidateCatalog } from './service';
 
 const CHANNELS = ['counter', 'web', 'ifood'] as const;
@@ -33,6 +34,8 @@ async function changed(
 ) {
 	await tx`update menu_revision set revision = revision + 1, updated_at = now() where shop_id = current_shop_id()`;
 	await audit(tx, actor, action, type, objectId, summary);
+	// The delivery app's copy of the menu follows two minutes later.
+	await scheduleMenuSync(tx);
 }
 
 function done<T>(value: T) {

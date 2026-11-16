@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { fixtureCatalog } from '#lib/server/catalog/fixture.ts';
 import { REMOVE_GROUP, unavailableReason } from './catalog';
-import { matchDeliveryRule, priceCart, PricingError, type DeliveryRule } from './pricing';
+import {
+	applyMarkup,
+	matchDeliveryRule,
+	priceCart,
+	PricingError,
+	type DeliveryRule
+} from './pricing';
 
 const ctx = { channel: 'counter' as const, soldOut: new Set<string>() };
 
@@ -218,5 +224,41 @@ describe('matchDeliveryRule', () => {
 		expect(matchDeliveryRule(rules, { cep: '01310100', neighborhood: '' })?.feeCents).toBe(600);
 		rules.push(rule({ matchValue: '01', feeCents: 50, priority: 1 }));
 		expect(matchDeliveryRule(rules, { cep: '01310100', neighborhood: '' })?.feeCents).toBe(50);
+	});
+});
+
+describe('channel prices', () => {
+	it('adds a markup and rounds up to the chosen cents', () => {
+		expect(applyMarkup(2990, 1500, 90)).toBe(3490);
+		expect(applyMarkup(2990, 1500, null)).toBe(3439);
+		expect(applyMarkup(3400, 1000, 90)).toBe(3790);
+		expect(applyMarkup(2990, 0, 90)).toBe(2990);
+		expect(applyMarkup(1000, 900, 0)).toBe(1100);
+	});
+
+	it('prices iFood orders with the iFood price or the markup, and leaves other channels alone', () => {
+		const product = fixtureCatalog.products.find((p) => p.channels.includes('ifood'))!;
+		const catalog = {
+			...fixtureCatalog,
+			channelMarkup: { ifood: { markupBps: 1500, roundTo: 90 } }
+		};
+		const line = { sku: product.sku, quantity: 1, options: [] as never[] };
+		const needed = product.modifierGroups
+			.filter((g) => g.minSelections > 0)
+			.map((g) => ({ groupId: g.id, sku: g.options[0].sku }));
+		const lines = [{ ...line, options: needed }];
+		const ifood = priceCart(catalog, lines, { channel: 'ifood', soldOut: new Set() });
+		expect(ifood.lines[0].unitPriceCents).toBe(applyMarkup(product.priceCents, 1500, 90));
+		const counter = priceCart(catalog, lines, ctx);
+		expect(counter.lines[0].unitPriceCents).toBe(product.priceCents);
+		const own = {
+			...catalog,
+			products: catalog.products.map((p) =>
+				p.sku === product.sku ? { ...p, channelPrices: { ifood: 4000 } } : p
+			)
+		};
+		expect(
+			priceCart(own, lines, { channel: 'ifood', soldOut: new Set() }).lines[0].unitPriceCents
+		).toBe(4000);
 	});
 });

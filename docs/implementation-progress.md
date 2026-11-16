@@ -66,7 +66,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S1.7: done 4a4d2ce (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
 - S2.1: done (the shop comes from the request scope instead of a ShopRef argument; pushStatus is split into planStatus (recorded once in channel_outbound) and sendStatus; channel_events/outbound name the adapter (opendelivery_99food), orders use channel opendelivery + channel_partner)
 - S2.2: done ([UNVERIFIED] flow shown only when IFOOD_APP_CLIENT_ID/SECRET are set (or IFOOD_APP_STUB locally), every path TODO(verify); the owner pastes iFood's authorization code instead of us polling for it; refresh token in shop_secrets ifood_refresh; payloads kept only while homologation is on; CARF/CANCELLATION_REQUEST_FAILED clears a pending cancel (TODO(verify) codes))
-- S2.3: todo
+- S2.3: done ([UNVERIFIED] iFood catalog paths/fields in ifood/catalog.ts, TODO(verify); markup lives in channel_settings (not on menu_products); iFood prices apply to iFood manual POS orders and the sync, site/counter untouched; synced items recorded in integration_mappings to tell created from updated)
 - S2.4: todo
 - S2.5: todo
 - S3.1: todo

@@ -68,6 +68,31 @@ export class PricingError extends Error {
 	}
 }
 
+/**
+ * The base price plus a markup in basis points, rounded up to the next price ending in
+ * `roundTo` cents (R$ 29,90 + 15% with roundTo 90 → R$ 34,90). roundTo null only rounds to cents.
+ */
+export function applyMarkup(priceCents: number, markupBps: number, roundTo: number | null) {
+	if (markupBps <= 0) return priceCents;
+	const raised = Math.round((priceCents * (10_000 + markupBps)) / 10_000);
+	if (roundTo === null) return raised;
+	let candidate = Math.floor(raised / 100) * 100 + roundTo;
+	if (candidate < raised) candidate += 100;
+	return candidate;
+}
+
+/** What one item costs on a channel: its own channel price, else the channel markup, else base. */
+export function priceOnChannel(
+	catalog: Pick<Catalog, 'channelMarkup'>,
+	item: { priceCents: number; channelPrices?: Partial<Record<Channel, number>> },
+	channel: Channel
+) {
+	const own = item.channelPrices?.[channel];
+	if (own !== undefined) return own;
+	const markup = catalog.channelMarkup?.[channel];
+	return markup ? applyMarkup(item.priceCents, markup.markupBps, markup.roundTo) : item.priceCents;
+}
+
 export interface PricingContext {
 	channel: Channel;
 	/** SKUs currently sold out for this channel (app-owned overrides). */
@@ -133,7 +158,7 @@ export function priceCart(
 					optionSku: option.sku,
 					optionName: option.name,
 					quantity: choice.quantity,
-					unitPriceCents: option.priceCents,
+					unitPriceCents: priceOnChannel(catalog, option, ctx.channel),
 					kind: 'add'
 				});
 			}
@@ -168,6 +193,7 @@ export function priceCart(
 		if (unknownGroup) throw new PricingError('err.cart.badOption', { sku: product.sku });
 
 		const modifiersUnitCents = modifiers.reduce((n, m) => n + m.unitPriceCents * m.quantity, 0);
+		const unitPriceCents = priceOnChannel(catalog, product, ctx.channel);
 		const category = catalog.categories.find((c) => c.id === product.categoryId);
 		return {
 			position: index + 1,
@@ -175,9 +201,9 @@ export function priceCart(
 			productName: product.name,
 			categoryName: category?.name ?? null,
 			quantity: input.quantity,
-			unitPriceCents: product.priceCents,
+			unitPriceCents,
 			modifiersUnitCents,
-			lineTotalCents: input.quantity * (product.priceCents + modifiersUnitCents),
+			lineTotalCents: input.quantity * (unitPriceCents + modifiersUnitCents),
 			note: input.note || null,
 			allergyFlag: input.allergy ?? false,
 			prepStation: product.prepStation,

@@ -11,6 +11,8 @@ export interface ModifierOption {
 	maxQuantity: number;
 	/** Small photo shown next to the option in the product sheet. */
 	imageUrl?: string | null;
+	/** Prices set for one channel (iFood); missing channels use the markup or the base price. */
+	channelPrices?: Partial<Record<Channel, number>>;
 }
 
 export interface ModifierGroup {
@@ -50,6 +52,7 @@ export interface Product {
 	allergens: string[];
 	ingredients: ProductIngredient[];
 	modifierGroups: ModifierGroup[];
+	channelPrices?: Partial<Record<Channel, number>>;
 }
 
 export interface Category {
@@ -60,10 +63,17 @@ export interface Category {
 	imageUrl: string | null;
 }
 
+/** A channel's shop-wide markup: +bps on the base price, rounded up to end in roundTo cents. */
+export interface ChannelMarkup {
+	markupBps: number;
+	roundTo: number | null;
+}
+
 export interface Catalog {
 	version: string;
 	categories: Category[];
 	products: Product[];
+	channelMarkup?: Partial<Record<Channel, ChannelMarkup>>;
 }
 
 export function productBySku(catalog: Catalog, sku: string): Product | undefined {

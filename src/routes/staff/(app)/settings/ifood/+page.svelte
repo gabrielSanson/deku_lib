@@ -108,6 +108,39 @@
 		{/if}
 	</section>
 
+	{#if data.ifood.enabled}
+		<section class="space-y-3 card p-4">
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<h2 class="text-lg font-bold">{t('ifoodSync.title')}</h2>
+				<form method="POST" action="?/menuSync" use:enhance>
+					<button class="btn-secondary">{t('ifoodSync.now')}</button>
+				</form>
+			</div>
+			<p class="text-sm text-muted">{t('ifoodSync.intro')}</p>
+			<ul class="space-y-2 text-sm">
+				{#each data.syncReports as r (r.id)}
+					<li>
+						<span class="text-muted">{formatDateTime(r.started_at)}</span>
+						{#if !r.finished_at}
+							{t('ifoodSync.running')}
+						{:else if r.error}
+							<span class="text-bad">{r.error}</span>
+						{:else}
+							{t('ifoodSync.report', {
+								created: r.created,
+								updated: r.updated,
+								failed: r.failed.length
+							})}
+						{/if}
+						{#each r.failed.slice(0, 5) as f (f.sku)}
+							<div class="text-xs text-bad">{f.sku}: {f.reason}</div>
+						{/each}
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
 	<section class="space-y-3 card p-4">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h2 class="text-lg font-bold">{t('ifoodHomolog.title')}</h2>

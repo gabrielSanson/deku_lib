@@ -10,6 +10,7 @@ import {
 	statusForEvent,
 	type IfoodOrder
 } from './mapping';
+import { pushIfoodMenu, setIfoodItemStatus } from './catalog';
 import { ifoodSettings } from './settings';
 
 export function toChannelEvent(e: IfoodEvent): ChannelEvent {
@@ -55,6 +56,10 @@ export function ifoodAdapter(client: IfoodClient = ifoodClient()): ChannelAdapte
 			if (typeof path !== 'function') throw new Error(`unknown iFood action ${call.action}`);
 			return client.action(path(order.channelOrderId), call.body);
 		},
+		async syncMenu(menu, known) {
+			return pushIfoodMenu(client, menu, known);
+		},
+		setAvailability: (items) => setIfoodItemStatus(client, items),
 		describeError: (err) =>
 			err instanceof IfoodApiError ? `${err.message} (${err.status})` : String(err)
 	};

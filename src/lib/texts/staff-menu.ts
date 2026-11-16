@@ -527,5 +527,58 @@ export const STAFF_MENU_TEXTS = {
 		group: g,
 		label: 'Configuração: importar planilha',
 		default: 'Tenho o cardápio numa planilha'
-	}
+	},
+	'menuEdit.prices': {
+		group: g,
+		label: 'Editar cardápio: preços por canal',
+		default: 'Preços por canal'
+	},
+	'prices.tabTitle': {
+		group: g,
+		label: 'Preços: título da aba',
+		default: 'Preços por canal · Equipe'
+	},
+	'prices.title': { group: g, label: 'Preços: título', default: 'Preços por canal' },
+	'prices.intro': {
+		group: g,
+		label: 'Preços: explicação',
+		default:
+			'O iFood cobra comissão, então muitas lojas cobram um pouco mais lá. Defina um acréscimo para todo o cardápio ou um preço próprio por produto. Os preços do site e do balcão não mudam.'
+	},
+	'prices.markup': { group: g, label: 'Preços: acréscimo', default: 'Acréscimo no iFood (%)' },
+	'prices.round': {
+		group: g,
+		label: 'Preços: arredondar',
+		default: 'Arredondar para terminar em (centavos)'
+	},
+	'prices.saveMarkup': { group: g, label: 'Preços: salvar acréscimo', default: 'Salvar acréscimo' },
+	'prices.colProduct': { group: g, label: 'Preços: coluna produto', default: 'Produto' },
+	'prices.colSite': { group: g, label: 'Preços: coluna site', default: 'Site e balcão' },
+	'prices.colIfood': { group: g, label: 'Preços: coluna iFood', default: 'iFood' },
+	'prices.suggested': { group: g, label: 'Preços: sugerido', default: 'Sugerido: {price}' },
+	'prices.save': { group: g, label: 'Preços: salvar', default: 'Salvar preços' },
+	'prices.onIfood': {
+		group: g,
+		label: 'Produto: preço no iFood',
+		default: 'Preço no iFood: {price}'
+	},
+	'menuImport.fromIfood': {
+		group: g,
+		label: 'Importar: do iFood',
+		default: 'Importar cardápio do iFood'
+	},
+	'ifoodSync.title': { group: g, label: 'iFood: envio do cardápio', default: 'Cardápio no iFood' },
+	'ifoodSync.intro': {
+		group: g,
+		label: 'iFood: envio do cardápio (explicação)',
+		default:
+			'O cardápio vai para o iFood dois minutos depois de cada mudança, com os preços do iFood. Produtos esgotados saem na hora.'
+	},
+	'ifoodSync.now': { group: g, label: 'iFood: enviar agora', default: 'Enviar cardápio agora' },
+	'ifoodSync.report': {
+		group: g,
+		label: 'iFood: resultado do envio',
+		default: '{created} novos, {updated} atualizados, {failed} com erro'
+	},
+	'ifoodSync.running': { group: g, label: 'iFood: enviando', default: 'Enviando…' }
 } as const satisfies Record<string, TextDef>;
