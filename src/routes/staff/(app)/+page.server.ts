@@ -3,6 +3,7 @@ import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
 import { overview, salesByHour, todayLocal } from '#lib/server/analytics/queries.ts';
 import { attempt } from '#lib/server/actions.ts';
 import { markRatingSeen, ratingSummary } from '#lib/server/customers/ratings.ts';
+import { lowStock } from '#lib/server/stock/service.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
@@ -51,7 +52,8 @@ export const load: PageServerLoad = async (event) => {
 	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
 	const systemAlerts = (await openAlerts()).map((a) => ({ kind: a.kind, detail: a.detail }));
 	const ratings = staff.role === 'kitchen' ? null : await ratingSummary();
-	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts, ratings };
+	const stockLow = ADMIN.includes(staff.role) ? await lowStock() : [];
+	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts, ratings, stockLow };
 };
 
 export const actions: Actions = {

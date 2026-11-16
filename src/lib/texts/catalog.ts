@@ -12,6 +12,7 @@ import { PLATFORM_TEXTS } from './platform';
 import { WHATSAPP_TEXTS } from './whatsapp';
 import { STAFF_CUSTOMER_TEXTS } from './staff-customers';
 import { LOYALTY_TEXTS } from './loyalty';
+import { STOCK_TEXTS } from './stock';
 
 export interface TextDef {
 	group: TextGroup;
@@ -37,7 +38,8 @@ export const TEXT_GROUPS = {
 	staffLabels: 'Equipe: menu, tipos e situações',
 	staffErrors: 'Equipe: avisos e erros',
 	platform: 'Plataforma: lojas, cadastro e plano',
-	whatsapp: 'WhatsApp'
+	whatsapp: 'WhatsApp',
+	staffMoney: 'Equipe: estoque, lucro e despesas'
 } as const;
 export type TextGroup = keyof typeof TEXT_GROUPS;
 
@@ -2591,7 +2593,8 @@ export const TEXT_MODULES = [
 	PLATFORM_TEXTS,
 	WHATSAPP_TEXTS,
 	STAFF_CUSTOMER_TEXTS,
-	LOYALTY_TEXTS
+	LOYALTY_TEXTS,
+	STOCK_TEXTS
 ] as const;
 
 export const TEXTS = {
@@ -2605,7 +2608,8 @@ export const TEXTS = {
 	...PLATFORM_TEXTS,
 	...WHATSAPP_TEXTS,
 	...STAFF_CUSTOMER_TEXTS,
-	...LOYALTY_TEXTS
+	...LOYALTY_TEXTS,
+	...STOCK_TEXTS
 };
 
 export type TextKey = keyof typeof TEXTS;

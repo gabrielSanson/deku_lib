@@ -28,7 +28,8 @@ describe('ingredients', () => {
 				optionName: 'Sem picles',
 				quantity: 1,
 				unitPriceCents: 0,
-				kind: 'remove'
+				kind: 'remove',
+				ingredientId: 'picles'
 			},
 			{
 				groupName: 'Retirar',
@@ -36,7 +37,8 @@ describe('ingredients', () => {
 				optionName: 'Sem tomate',
 				quantity: 1,
 				unitPriceCents: 0,
-				kind: 'remove'
+				kind: 'remove',
+				ingredientId: 'tomate'
 			}
 		]);
 		expect(cart.subtotalCents).toBe(2890);

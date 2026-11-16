@@ -221,6 +221,26 @@
 		</div>
 
 		<aside class="space-y-6">
+			{#if data.stockLow.length}
+				<section class="card p-4" aria-labelledby="estoque-baixo">
+					<h2 id="estoque-baixo" class="mb-2 text-xs font-bold tracking-wide text-bad uppercase">
+						{t('stock.low')}
+					</h2>
+					<ul class="space-y-1 text-sm">
+						{#each data.stockLow as s (s.id)}
+							<li>
+								<a class="underline" href="/staff/estoque"
+									>{t('stock.lowLine', {
+										name: s.name,
+										qty: `${s.onHand.toLocaleString('pt-BR')} ${s.baseUnit}`,
+										min: s.min.toLocaleString('pt-BR')
+									})}</a
+								>
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
 			{#if data.ratings && data.ratings.count}
 				<section class="space-y-3" aria-labelledby="avaliacao">
 					<h2 id="avaliacao" class="sr-only">{t('dash.tile.rating')}</h2>

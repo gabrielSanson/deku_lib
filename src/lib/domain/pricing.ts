@@ -30,6 +30,8 @@ export interface PricedModifier {
 	unitPriceCents: number;
 	/** 'remove' for a removed ingredient; everything else is something added. */
 	kind: 'add' | 'remove';
+	/** The ingredient left out, for a 'remove' line (the recipe skips it). */
+	ingredientId?: string | null;
 }
 
 export interface PricedLine {
@@ -175,7 +177,8 @@ export function priceCart(
 				optionName: `Sem ${ingredient.name.toLowerCase()}`,
 				quantity: 1,
 				unitPriceCents: 0,
-				kind: 'remove'
+				kind: 'remove',
+				ingredientId: ingredient.id
 			});
 		}
 		for (const ingredient of product.ingredients) {

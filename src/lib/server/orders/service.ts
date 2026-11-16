@@ -346,9 +346,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			for (const m of line.modifiers) {
 				await tx`
 					insert into order_item_modifiers (order_item_id, group_name, option_sku, option_name, quantity,
-						unit_price_cents, kind)
+						unit_price_cents, kind, ingredient_id)
 					values (${item.id}, ${m.groupName}, ${m.optionSku}, ${m.optionName}, ${m.quantity},
-						${m.unitPriceCents}, ${m.kind ?? 'add'})`;
+						${m.unitPriceCents}, ${m.kind ?? 'add'}, ${m.ingredientId ?? null})`;
 			}
 		}
 
@@ -381,6 +381,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			{ orderId: order.id },
 			{ singletonKey: `placed:${order.id}` }
 		);
+		if (status === 'confirmed')
+			await enqueue(
+				tx,
+				QUEUES.stockDeduct,
+				{ orderId: order.id },
+				{ singletonKey: `stock:${order.id}` }
+			);
 
 		return {
 			id: order.id,
@@ -570,6 +577,21 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 			);
 		}
 		if (TERMINAL_STATUSES.includes(input.to)) await dropPushSubscriptions(t, input.orderId);
+		// Stock: a confirmed order takes its recipe; a cancel gives it back or books waste.
+		if (input.to === 'confirmed')
+			await enqueue(
+				t,
+				QUEUES.stockDeduct,
+				{ orderId: input.orderId },
+				{ singletonKey: `stock:${input.orderId}` }
+			);
+		if (input.to === 'cancelled' || input.to === 'rejected')
+			await enqueue(
+				t,
+				QUEUES.stockReverse,
+				{ orderId: input.orderId },
+				{ singletonKey: `stock-rev:${input.orderId}` }
+			);
 		// "Como foi?" an hour later (the job skips delivery-app and test orders).
 		if (input.to === 'completed' && !syncQueue) {
 			await enqueue(

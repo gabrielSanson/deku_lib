@@ -64,6 +64,9 @@
 <main class="mx-auto max-w-2xl space-y-4 p-4">
 	<a class="btn-ghost min-h-9" href="/staff/menu/edit">{t('menuEdit.back')}</a>
 	<h1 class="page-title">{data.isNew ? t('product.new') : p.name}</h1>
+	{#if !data.isNew}<a class="text-sm underline" href="/staff/estoque/fichas/produto/{p.sku}"
+			>{t('stock.recipes.edit')}</a
+		>{/if}
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('product.saved')}</p>{/if}
 
