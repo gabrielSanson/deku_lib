@@ -141,8 +141,9 @@ export async function listDeliveryRules(sql: Db = db()): Promise<DeliveryRule[]>
 		{
 			id: string;
 			name: string;
-			match_kind: 'cep_prefix' | 'neighborhood';
+			match_kind: 'cep_prefix' | 'neighborhood' | 'radius_km';
 			match_value: string;
+			radius_m: number | null;
 			fee_cents: number;
 			min_order_cents: number;
 			enabled: boolean;
@@ -154,6 +155,7 @@ export async function listDeliveryRules(sql: Db = db()): Promise<DeliveryRule[]>
 		name: r.name,
 		matchKind: r.match_kind,
 		matchValue: r.match_value,
+		radiusM: r.radius_m,
 		feeCents: r.fee_cents,
 		minOrderCents: r.min_order_cents,
 		enabled: r.enabled,
@@ -169,13 +171,14 @@ export async function saveDeliveryRule(
 		const [row] = rule.id
 			? await tx<{ id: string }[]>`
 				update delivery_rules set name = ${rule.name}, match_kind = ${rule.matchKind},
-					match_value = ${rule.matchValue}, fee_cents = ${rule.feeCents},
+					match_value = ${rule.matchValue}, radius_m = ${rule.radiusM ?? null},
+					fee_cents = ${rule.feeCents},
 					min_order_cents = ${rule.minOrderCents}, enabled = ${rule.enabled},
 					priority = ${rule.priority}, updated_by = ${actor.id}
 				where id = ${rule.id} returning id`
 			: await tx<{ id: string }[]>`
-				insert into delivery_rules (name, match_kind, match_value, fee_cents, min_order_cents, enabled, priority, updated_by)
-				values (${rule.name}, ${rule.matchKind}, ${rule.matchValue}, ${rule.feeCents},
+				insert into delivery_rules (name, match_kind, match_value, radius_m, fee_cents, min_order_cents, enabled, priority, updated_by)
+				values (${rule.name}, ${rule.matchKind}, ${rule.matchValue}, ${rule.radiusM ?? null}, ${rule.feeCents},
 					${rule.minOrderCents}, ${rule.enabled}, ${rule.priority}, ${actor.id})
 				returning id`;
 		if (!row)

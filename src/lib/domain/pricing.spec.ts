@@ -227,6 +227,24 @@ describe('matchDeliveryRule', () => {
 		rules.push(rule({ matchValue: '01', feeCents: 50, priority: 1 }));
 		expect(matchDeliveryRule(rules, { cep: '01310100', neighborhood: '' })?.feeCents).toBe(50);
 	});
+
+	it('matches radius rules by distance, smallest radius first, after CEP and neighbourhood', () => {
+		const rules = [
+			rule({ matchKind: 'radius_km', matchValue: '5', radiusM: 5000, feeCents: 1200 }),
+			rule({ matchKind: 'radius_km', matchValue: '2', radiusM: 2000, feeCents: 600 })
+		];
+		const at = (distanceM: number | null, neighborhood = '') =>
+			matchDeliveryRule(rules, { cep: '99999000', neighborhood, distanceM })?.feeCents ?? null;
+		expect(at(1500)).toBe(600);
+		expect(at(2000)).toBe(600);
+		expect(at(4000)).toBe(1200);
+		expect(at(5001)).toBeNull();
+		// Without coordinates the radius rules don't match; other rules still do.
+		expect(at(null)).toBeNull();
+		rules.push(rule({ matchKind: 'neighborhood', matchValue: 'Centro', feeCents: 300 }));
+		expect(at(null, 'centro')).toBe(300);
+		expect(at(1500, 'centro')).toBe(300);
+	});
 });
 
 describe('channel prices', () => {

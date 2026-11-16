@@ -69,6 +69,28 @@
 		state: 'SP',
 		instructions: ''
 	});
+	// Fills the address from the CEP (only empty fields, so nothing typed is overwritten).
+	let cepLooked = '';
+	$effect(() => {
+		const digits = addr.cep.replace(/\D/g, '');
+		if (digits.length !== 8 || digits === cepLooked) return;
+		cepLooked = digits;
+		fetch(`/api/v1/cep/${digits}`)
+			.then((r) => (r.ok ? r.json() : null))
+			.then(
+				(j: { address: Record<'street' | 'neighborhood' | 'city' | 'state', string> | null }) => {
+					const a = j?.address;
+					if (!a || cepLooked !== digits) return;
+					if (!addr.street.trim() && a.street) addr.street = a.street;
+					if (!addr.neighborhood.trim() && a.neighborhood) addr.neighborhood = a.neighborhood;
+					if (a.city && (!addr.city.trim() || addr.city === 'São Paulo')) addr.city = a.city;
+					if (a.state && (!addr.state.trim() || addr.state === 'SP')) addr.state = a.state;
+				}
+			)
+			.catch(() => {
+				/* offline or ViaCEP down: the customer types the address */
+			});
+	});
 	let payment = $state<CheckoutPaymentMethod>('pix_key');
 	let quote = $state<Quote | null>(null);
 	let quoteError = $state<string | null>(null);

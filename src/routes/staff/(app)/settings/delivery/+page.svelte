@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import SelectField from '#lib/components/molecules/SelectField.svelte';
 	import Checkbox from '#lib/components/atoms/Checkbox.svelte';
 	import TextField from '#lib/components/molecules/TextField.svelte';
@@ -48,12 +49,14 @@
 			<SelectField label={t('delivery.kind')} id="kind" name="matchKind" value={editing.matchKind}>
 				<option value="neighborhood">{t('delivery.neighborhood')}</option>
 				<option value="cep_prefix">{t('delivery.cepPrefix')}</option>
+				<option value="radius_km">{t('delivery.radius')}</option>
 			</SelectField>
 			<TextField
 				label={t('delivery.value')}
 				id="value"
 				name="matchValue"
 				value={editing.matchValue ?? ''}
+				hint={t('delivery.valueHint')}
 				required
 			/>
 			<TextField
@@ -104,7 +107,9 @@
 						<td class="p-3"
 							>{r.matchKind === 'cep_prefix'
 								? t('delivery.cep', { value: r.matchValue })
-								: r.matchValue}</td
+								: r.matchKind === 'radius_km'
+									? t('delivery.radiusCell', { km: r.matchValue })
+									: r.matchValue}</td
 						>
 						<td class="p-3"><Money cents={r.feeCents} /></td>
 						<td class="p-3"><Money cents={r.minOrderCents} /></td>
@@ -129,6 +134,30 @@
 			</tbody>
 		</table>
 	</div>
+
+	<section class="space-y-2 card p-4">
+		<h2 class="font-semibold">{t('delivery.location')}</h2>
+		<p class="text-sm text-muted">{t('delivery.locationIntro')}</p>
+		<form method="POST" action="?/location" use:enhance class="flex flex-wrap items-end gap-2">
+			<TextField
+				label={t('delivery.lat')}
+				id="lat"
+				name="lat"
+				inputmode="decimal"
+				value={data.location ? String(data.location.lat) : ''}
+			/>
+			<TextField
+				label={t('delivery.lng')}
+				id="lng"
+				name="lng"
+				inputmode="decimal"
+				value={data.location ? String(data.location.lng) : ''}
+			/>
+			<button class="btn-secondary">{t('settings.save')}</button>
+			<button class="btn-ghost" formaction="?/locate">{t('delivery.locate')}</button>
+		</form>
+		{#if !data.location}<p class="text-sm text-muted">{t('delivery.locationNone')}</p>{/if}
+	</section>
 
 	<form class="flex flex-wrap items-end gap-2 card p-4" method="GET">
 		<TextField label={t('delivery.testCep')} id="pcep" name="cep" value={data.preview?.cep ?? ''} />

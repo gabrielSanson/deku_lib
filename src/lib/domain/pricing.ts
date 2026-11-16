@@ -224,8 +224,10 @@ export function priceCart(
 export interface DeliveryRule {
 	id: string;
 	name: string;
-	matchKind: 'cep_prefix' | 'neighborhood';
+	matchKind: 'cep_prefix' | 'neighborhood' | 'radius_km';
 	matchValue: string;
+	/** For 'radius_km': addresses up to this many metres from the shop. */
+	radiusM?: number | null;
 	feeCents: number;
 	minOrderCents: number;
 	enabled: boolean;
@@ -240,24 +242,32 @@ function normalizeText(s: string): string {
 	return s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 }
 
-/** Picks the delivery rule for an address: lowest priority number wins, CEP prefix before neighborhood. */
+/**
+ * Picks the delivery rule for an address: lowest priority number wins, then CEP prefix, then
+ * neighbourhood, then the smallest radius. Radius rules need the address's distance from the shop;
+ * without it (no coordinates, geocoding failed) they simply don't match.
+ */
 export function matchDeliveryRule(
 	rules: DeliveryRule[],
-	address: { cep: string; neighborhood: string }
+	address: { cep: string; neighborhood: string; distanceM?: number | null }
 ): DeliveryRule | null {
 	const cep = normalizeCep(address.cep);
 	const hood = normalizeText(address.neighborhood);
+	const kindRank = { cep_prefix: 0, neighborhood: 1, radius_km: 2 };
 	const candidates = rules
 		.filter((r) => r.enabled)
 		.filter((r) =>
 			r.matchKind === 'cep_prefix'
 				? cep.startsWith(normalizeCep(r.matchValue))
-				: normalizeText(r.matchValue) === hood
+				: r.matchKind === 'neighborhood'
+					? normalizeText(r.matchValue) === hood
+					: address.distanceM != null && r.radiusM != null && address.distanceM <= r.radiusM
 		)
 		.sort(
 			(a, b) =>
 				a.priority - b.priority ||
-				(a.matchKind === b.matchKind ? 0 : a.matchKind === 'cep_prefix' ? -1 : 1) ||
+				kindRank[a.matchKind] - kindRank[b.matchKind] ||
+				(a.radiusM ?? 0) - (b.radiusM ?? 0) ||
 				b.matchValue.length - a.matchValue.length
 		);
 	return candidates[0] ?? null;

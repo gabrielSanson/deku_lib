@@ -1093,5 +1093,20 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'Entregas: já acertado',
 		default: 'Essa saída já foi acertada.'
+	},
+	'err.delivery.radius': {
+		group: 'staffErrors',
+		label: 'Entrega: raio inválido',
+		default: 'Informe o raio em km, entre 0,1 e 100.'
+	},
+	'err.delivery.location': {
+		group: 'staffErrors',
+		label: 'Entrega: localização inválida',
+		default: 'Confira a latitude e a longitude (números como -23,5614 e -46,6559).'
+	},
+	'err.delivery.locateFailed': {
+		group: 'staffErrors',
+		label: 'Entrega: endereço não encontrado',
+		default: 'Não encontramos o endereço da loja. Confira o Perfil ou cole as coordenadas.'
 	}
 } satisfies Record<string, TextDef>;

@@ -5,7 +5,8 @@ import { formatBRL } from '#lib/domain/money.ts';
 import { SHOP_TZ } from '#lib/domain/time.ts';
 import { WEB_PAYMENT_METHODS, webPaymentPlan } from '#lib/domain/payment-rules.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
-import { cartLineInput, matchDeliveryRule, priceCart } from '#lib/domain/pricing.ts';
+import { cartLineInput, priceCart } from '#lib/domain/pricing.ts';
+import { deliveryRuleFor } from '#lib/server/delivery/geo.ts';
 import { attempt } from '#lib/server/actions.ts';
 import {
 	customerIdByPhone,
@@ -28,7 +29,7 @@ import { paymentProvider } from '#lib/server/payments/provider.ts';
 import { clientKey, rateLimit } from '#lib/server/rate-limit.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getSchedule } from '#lib/server/settings/hours.ts';
-import { getStoreSettings, listDeliveryRules } from '#lib/server/settings/service.ts';
+import { getStoreSettings } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -132,9 +133,7 @@ export const actions: Actions = {
 			let deliveryFeeCents = 0;
 			let deliveryError: string | null = null;
 			if (input.fulfillmentType === 'delivery') {
-				const rule = input.address
-					? matchDeliveryRule(await listDeliveryRules(sql), input.address)
-					: null;
+				const rule = input.address ? (await deliveryRuleFor(input.address, sql)).rule : null;
 				if (!rule) deliveryError = texts['checkout.error.noDelivery'];
 				else if (cart.subtotalCents < rule.minOrderCents)
 					deliveryError = fill(texts['checkout.error.minOrder'], {
@@ -213,7 +212,7 @@ export const actions: Actions = {
 
 		const rule =
 			input.fulfillmentType === 'delivery' && input.address
-				? matchDeliveryRule(await listDeliveryRules(), input.address)
+				? (await deliveryRuleFor(input.address)).rule
 				: null;
 
 		const result = await attempt(() =>

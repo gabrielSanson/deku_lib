@@ -27,7 +27,8 @@ const PLATFORM_TABLES = new Set([
 	'system_heartbeats',
 	'web_push_keys',
 	'plans',
-	'platform_settings'
+	'platform_settings',
+	'geocode_cache'
 ]);
 /** Shop tables only platform code may touch (no policy for the app role on purpose). */
 const PLATFORM_ONLY = new Set(['shop_secrets']);

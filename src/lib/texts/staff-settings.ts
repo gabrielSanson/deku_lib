@@ -996,6 +996,40 @@ export const STAFF_SETTINGS_TEXTS = {
 	'delivery.col.min': { group: g, label: 'Entrega: coluna mínimo', default: 'Mínimo' },
 	'delivery.col.status': { group: g, label: 'Entrega: coluna status', default: 'Status' },
 	'delivery.cep': { group: g, label: 'Entrega: CEP na tabela', default: 'CEP {value}…' },
+	'delivery.radius': {
+		group: g,
+		label: 'Entrega: raio (tipo de regra)',
+		default: 'Distância da loja (km)'
+	},
+	'delivery.radiusCell': { group: g, label: 'Entrega: raio na tabela', default: 'Até {km} km' },
+	'delivery.valueHint': {
+		group: g,
+		label: 'Entrega: dica do campo valor',
+		default: 'Bairro, prefixo de CEP ou, para distância, o raio em km (ex.: 2,5).'
+	},
+	'delivery.location': {
+		group: g,
+		label: 'Entrega: localização da loja',
+		default: 'Localização da loja'
+	},
+	'delivery.locationIntro': {
+		group: g,
+		label: 'Entrega: explicação da localização',
+		default:
+			'Para cobrar por distância, a loja precisa das suas coordenadas. Busque pelo endereço do Perfil ou cole a latitude e a longitude do Google Maps. O endereço do cliente é localizado pelo OpenStreetMap; se não for encontrado, valem as regras de bairro e CEP.'
+	},
+	'delivery.lat': { group: g, label: 'Entrega: latitude', default: 'Latitude' },
+	'delivery.lng': { group: g, label: 'Entrega: longitude', default: 'Longitude' },
+	'delivery.locate': {
+		group: g,
+		label: 'Entrega: buscar pelo endereço',
+		default: 'Buscar pelo endereço da loja'
+	},
+	'delivery.locationNone': {
+		group: g,
+		label: 'Entrega: sem localização',
+		default: 'Sem localização: regras por distância não valem.'
+	},
 	'delivery.edit': { group: g, label: 'Entrega: editar', default: 'Editar' },
 	'delivery.delete': { group: g, label: 'Entrega: excluir', default: 'Excluir' },
 	'delivery.deleteConfirm': {
