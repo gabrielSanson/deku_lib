@@ -535,6 +535,17 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'iFood: envio do cardápio na fila',
 		default: 'O cardápio vai ser enviado ao iFood em instantes. O resultado aparece abaixo.'
 	},
+	'err.payouts.columns': {
+		group: 'staffErrors',
+		label: 'Repasses: colunas não encontradas',
+		default:
+			'Não achei as colunas do extrato ({missing}). Confira o arquivo ou informe os nomes das colunas abaixo.'
+	},
+	'ok.payoutsImported': {
+		group: 'staffErrors',
+		label: 'Repasses: extrato importado',
+		default: '{rows} linhas lidas, {matched} ligadas a pedidos.'
+	},
 	'err.menu.csvInvalid': {
 		group: 'staffErrors',
 		label: 'Cardápio: planilha com erros',

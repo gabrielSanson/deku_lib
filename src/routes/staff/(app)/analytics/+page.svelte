@@ -161,6 +161,9 @@
 			>
 		</SelectField>
 		<a class="btn-secondary min-h-9 text-sm" href={exportHref}>{t('analytics.exportCsv')}</a>
+		<a class="btn-ghost min-h-9 text-sm" href="/staff/analytics/repasses-ifood"
+			>{t('payouts.link')}</a
+		>
 	</div>
 	<p class="text-sm text-muted">
 		{t('analytics.rangeNote', {

@@ -766,5 +766,52 @@ export const STAFF_OPS_TEXTS = {
 		group: 'account',
 		label: 'Entrar: título da aba',
 		default: 'Entrar · Conta'
+	},
+	'payouts.tabTitle': {
+		group: 'staff',
+		label: 'Repasses: título da aba',
+		default: 'Repasses iFood · Equipe'
+	},
+	'payouts.title': { group: 'staff', label: 'Repasses: título', default: 'Repasses iFood' },
+	'payouts.link': { group: 'staff', label: 'Relatórios: repasses', default: 'Repasses iFood' },
+	'payouts.intro': {
+		group: 'staff',
+		label: 'Repasses: explicação',
+		default:
+			'Baixe o extrato financeiro no Portal do Parceiro do iFood (Financeiro), envie aqui e confira pedido a pedido quanto o iFood cobrou e quanto repassou.'
+	},
+	'payouts.file': { group: 'staff', label: 'Repasses: arquivo', default: 'Extrato do iFood (CSV)' },
+	'payouts.upload': { group: 'staff', label: 'Repasses: enviar', default: 'Conferir extrato' },
+	'payouts.uploads': { group: 'staff', label: 'Repasses: extratos', default: 'Extratos enviados' },
+	'payouts.expected': { group: 'staff', label: 'Repasses: esperado', default: 'Total dos pedidos' },
+	'payouts.gross': { group: 'staff', label: 'Repasses: bruto', default: 'Bruto no extrato' },
+	'payouts.commission': { group: 'staff', label: 'Repasses: comissão', default: 'Comissão' },
+	'payouts.fee': { group: 'staff', label: 'Repasses: taxas', default: 'Taxas' },
+	'payouts.net': { group: 'staff', label: 'Repasses: líquido', default: 'Recebido' },
+	'payouts.matched': {
+		group: 'staff',
+		label: 'Repasses: pedidos conferidos',
+		default: 'Pedidos no extrato'
+	},
+	'payouts.missing': {
+		group: 'staff',
+		label: 'Repasses: faltando',
+		default: 'Pedidos do período que não estão no extrato'
+	},
+	'payouts.unknown': {
+		group: 'staff',
+		label: 'Repasses: sem pedido',
+		default: 'Linhas do extrato sem pedido no sistema'
+	},
+	'payouts.none': { group: 'staff', label: 'Repasses: nada', default: 'Nada aqui.' },
+	'payouts.columns': {
+		group: 'staff',
+		label: 'Repasses: nomes das colunas',
+		default: 'Nomes das colunas do extrato (só se o arquivo não for reconhecido)'
+	},
+	'payouts.saveColumns': {
+		group: 'staff',
+		label: 'Repasses: salvar colunas',
+		default: 'Salvar nomes'
 	}
 } as const satisfies Record<string, TextDef>;
