@@ -97,6 +97,9 @@
 				<form method="POST" action="?passo={data.step}&/sampleMenu" use:enhance>
 					<button class="btn-secondary w-full">{t('setup.menu.sample')}</button>
 				</form>
+				<a class="btn-secondary w-full" href="/staff/menu/importar?configuracao"
+					>{t('setup.importMenu')}</a
+				>
 			{/if}
 			<a class="btn-primary w-full" href="/staff/menu/edit">{t('setup.menu.editor')}</a>
 			<p class="text-xs text-muted">{t('setup.menu.tip')}</p>

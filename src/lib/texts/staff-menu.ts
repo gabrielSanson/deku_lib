@@ -459,5 +459,73 @@ export const STAFF_MENU_TEXTS = {
 	},
 	'product.delete': { group: g, label: 'Produto: apagar', default: 'Apagar produto' },
 	'product.deleteAsk': { group: g, label: 'Produto: apagar…', default: 'Apagar produto…' },
-	'product.cancel': { group: g, label: 'Produto: cancelar', default: 'Cancelar' }
+	'product.cancel': { group: g, label: 'Produto: cancelar', default: 'Cancelar' },
+	'menuEdit.import': { group: g, label: 'Editar cardápio: importar', default: 'Importar planilha' },
+	'menuImport.tabTitle': {
+		group: g,
+		label: 'Importar: título da aba',
+		default: 'Importar cardápio · Equipe'
+	},
+	'menuImport.title': { group: g, label: 'Importar: título', default: 'Importar cardápio' },
+	'menuImport.intro': {
+		group: g,
+		label: 'Importar: explicação',
+		default:
+			'Monte o cardápio numa planilha (Excel ou Google Planilhas), salve como CSV e envie aqui. Colunas: categoria, nome, descricao, preco, adicionais. Adicionais: "Tamanho grande +4,00 | Embalagem +1,00". Produtos com o mesmo nome são atualizados.'
+	},
+	'menuImport.template': {
+		group: g,
+		label: 'Importar: baixar modelo',
+		default: 'Baixar planilha modelo'
+	},
+	'menuImport.file': { group: g, label: 'Importar: arquivo', default: 'Arquivo CSV' },
+	'menuImport.preview': { group: g, label: 'Importar: conferir', default: 'Conferir' },
+	'menuImport.confirm': {
+		group: g,
+		label: 'Importar: confirmar',
+		default: 'Importar {count} produtos'
+	},
+	'menuImport.line': { group: g, label: 'Importar: linha', default: 'Linha' },
+	'menuImport.ok': { group: g, label: 'Importar: linha certa', default: 'Ok' },
+	'menuImport.problem.columns': {
+		group: g,
+		label: 'Importar: colunas erradas',
+		default: 'A primeira linha precisa ter as colunas categoria, nome e preco.'
+	},
+	'menuImport.problem.empty': {
+		group: g,
+		label: 'Importar: sem produtos',
+		default: 'A planilha não tem produtos.'
+	},
+	'menuImport.problem.tooMany': {
+		group: g,
+		label: 'Importar: produtos demais',
+		default: 'Envie no máximo 1000 produtos por vez.'
+	},
+	'menuImport.problem.noCategory': {
+		group: g,
+		label: 'Importar: sem categoria',
+		default: 'Falta a categoria.'
+	},
+	'menuImport.problem.noName': { group: g, label: 'Importar: sem nome', default: 'Falta o nome.' },
+	'menuImport.problem.badPrice': {
+		group: g,
+		label: 'Importar: preço inválido',
+		default: 'Preço inválido (use 25,90).'
+	},
+	'menuImport.problem.badExtra': {
+		group: g,
+		label: 'Importar: adicional inválido',
+		default: 'Adicional inválido (use "Embalagem +1,00").'
+	},
+	'menuImport.problem.duplicate': {
+		group: g,
+		label: 'Importar: repetido',
+		default: 'Produto repetido na mesma categoria.'
+	},
+	'setup.importMenu': {
+		group: g,
+		label: 'Configuração: importar planilha',
+		default: 'Tenho o cardápio numa planilha'
+	}
 } as const satisfies Record<string, TextDef>;

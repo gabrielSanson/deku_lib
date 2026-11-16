@@ -48,7 +48,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S1.3: done (the account is created first (members need its id) and removed if the shop cannot be saved; a half-made shop is closed and frees its address; platform pages (landing, sign-up, legal) use fixed Portuguese text instead of the per-shop text catalog; legal drafts in src/lib/platform/legal marked for a lawyer)
 - S1.4: done (view link is a signed 30-minute token, not a bare shop id cookie; console text is fixed Portuguese)
 - S1.5: done (manual_pix only (PSP adapter later); shop #1 never pays; first invoice on the 1st after the trial ends; due on the 10th; audit_log.shop_id may be null for platform-level entries)
-- S1.6: todo
+- S1.6: done (accepts ; or , CSV; re-importing updates products with the same name; also linked from the setup wizard's menu step)
 - S1.7: done (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
 - S2.1: todo
 - S2.2: todo

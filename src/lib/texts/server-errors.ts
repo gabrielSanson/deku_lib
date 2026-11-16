@@ -488,6 +488,16 @@ export const SERVER_ERROR_TEXTS = {
 		default: 'Revise as regras da promoção.'
 	},
 	'err.date.invalid': { group: 'staffErrors', label: 'Data inválida', default: 'Data inválida.' },
+	'err.menu.csvInvalid': {
+		group: 'staffErrors',
+		label: 'Cardápio: planilha com erros',
+		default: 'A planilha tem erros. Corrija as linhas indicadas e envie de novo.'
+	},
+	'ok.menuImported': {
+		group: 'staffErrors',
+		label: 'Cardápio: planilha importada',
+		default: '{products} produtos em {categories} categorias importados.'
+	},
 	'err.menu.categoryNotFound': {
 		group: 'staffErrors',
 		label: 'Cardápio: categoria não encontrada',

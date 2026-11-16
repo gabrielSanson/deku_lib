@@ -24,6 +24,7 @@
 		<h1 class="page-title">{t('menuEdit.title')}</h1>
 		<div class="flex flex-wrap gap-2">
 			<a class="btn-ghost" href="/staff/menu">{t('menuEdit.availability')}</a>
+			<a class="btn-ghost" href="/staff/menu/importar">{t('menuEdit.import')}</a>
 			{#if data.categories.length}
 				<a class="btn-primary" href="/staff/menu/products/novo">{t('menuEdit.newProduct')}</a>
 			{/if}
