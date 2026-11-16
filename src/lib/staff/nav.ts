@@ -111,7 +111,8 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 			{ href: '/staff/settings/home', label: 'nav.paginaInicial', icon: 'home' },
 			{ href: '/staff/settings/appearance', label: 'nav.aparencia', icon: 'settings' },
 			{ href: '/staff/settings/texts', label: 'nav.textosDoSite', icon: 'book' },
-			{ href: '/staff/settings/pages', label: 'nav.paginasDoSite', icon: 'book' }
+			{ href: '/staff/settings/pages', label: 'nav.paginasDoSite', icon: 'book' },
+			{ href: '/staff/settings/divulgar', label: 'nav.divulgar', icon: 'tag' }
 		]
 	},
 	{

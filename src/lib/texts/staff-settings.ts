@@ -5,6 +5,48 @@ import type { TextDef } from './catalog';
 const g = 'staffSettings' as const;
 
 export const STAFF_SETTINGS_TEXTS = {
+	// Configurações → Divulgar. The Google and Instagram menu names are [UNVERIFIED]
+	// TODO(verify) against the current apps; the owner can edit the texts.
+	'share.tabTitle': { group: g, label: 'Divulgar: título da aba', default: 'Divulgar' },
+	'share.linkTitle': { group: g, label: 'Divulgar: link', default: 'Link para pedir on-line' },
+	'share.linkIntro': {
+		group: g,
+		label: 'Divulgar: texto do link',
+		default:
+			'Use este link na bio do Instagram, no Google, no WhatsApp e em panfletos. Pedidos por aqui não pagam comissão.'
+	},
+	'share.copy': { group: g, label: 'Divulgar: copiar', default: 'Copiar' },
+	'share.copied': { group: g, label: 'Divulgar: copiado', default: 'Copiado' },
+	'share.qrTitle': { group: g, label: 'Divulgar: QR code', default: 'QR code' },
+	'share.qrIntro': {
+		group: g,
+		label: 'Divulgar: texto do QR',
+		default:
+			'Imprima para mesas, balcão, sacolas e panfletos. O cliente aponta a câmera e cai no cardápio.'
+	},
+	'share.qrDownload': {
+		group: g,
+		label: 'Divulgar: baixar QR',
+		default: 'Baixar QR code (PNG)'
+	},
+	'share.googleTitle': {
+		group: g,
+		label: 'Divulgar: Google',
+		default: 'Google (Perfil da Empresa)'
+	},
+	'share.googleSteps': {
+		group: g,
+		label: 'Divulgar: passos do Google',
+		default:
+			'1. Entre em business.google.com com a conta dona do perfil da loja.\n2. Abra "Editar perfil" e procure "Links de pedidos" (ou "Pedir on-line").\n3. Adicione o link: {link}\n4. Marque como preferido, se aparecer a opção. O Google pode levar alguns dias para mostrar o botão.'
+	},
+	'share.instagramTitle': { group: g, label: 'Divulgar: Instagram', default: 'Instagram' },
+	'share.instagramSteps': {
+		group: g,
+		label: 'Divulgar: passos do Instagram',
+		default:
+			'1. No perfil profissional da loja, toque em "Editar perfil".\n2. Em "Botões de ação", escolha "Pedir comida" e cole o link: {link}\n3. Coloque o mesmo link na bio e nos destaques.'
+	},
 	'settings.tabs': { group: g, label: 'Configurações: menu', default: 'Configurações' },
 	'settings.adminOnly': { group: g, label: 'Configurações: só admins', default: 'Apenas admins.' },
 	'settings.save': { group: g, label: 'Botão salvar', default: 'Salvar' },
