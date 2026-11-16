@@ -6,7 +6,10 @@ export function categoryIcon(name: string, fallback: IconName = 'grid'): IconNam
 	if (/combo/.test(n)) return 'combo';
 	if (/bebida|drink|refri|suco|cerveja/.test(n)) return 'drink';
 	if (/acompanh|batata|fritas|porç|petisc/.test(n)) return 'fries';
-	if (/sobremesa|doce|shake|sorvete/.test(n)) return 'dessert';
+	if (/sobremesa|doce|shake|sorvete|açaí|acai|bolo/.test(n)) return 'dessert';
+	if (/lanche|burger|hamb|sanduí|sandui/.test(n)) return 'burger';
+	if (/pizza|prato|refeiç|almoço|executivo/.test(n)) return 'chef';
+	if (/café|cafe|cafés/.test(n)) return 'drink';
 	if (/destaque|mais pedidos|popular/.test(n)) return 'crown';
 	return fallback;
 }

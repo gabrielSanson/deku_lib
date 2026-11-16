@@ -49,7 +49,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S1.4: todo
 - S1.5: todo
 - S1.6: todo
-- S1.7: todo
+- S1.7: done (applied at sign-up (src/lib/server/presets/business-types.ts); shops.preset keeps the blank/deku looks)
 - S2.1: todo
 - S2.2: todo
 - S2.3: todo
