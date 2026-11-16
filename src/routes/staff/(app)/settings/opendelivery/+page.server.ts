@@ -2,7 +2,8 @@
 // [UNVERIFIED] TODO(verify): nothing here has been tried against a partner yet.
 import { fail } from '@sveltejs/kit';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { currentShopId } from '#lib/server/db.ts';
 import { OD_PARTNER_LABEL, OD_PARTNERS } from '#lib/server/integrations/opendelivery/mapping.ts';
 import { checkOdConnection, isOdPartner } from '#lib/server/integrations/opendelivery/service.ts';
@@ -15,7 +16,7 @@ import { canStoreSecrets } from '#lib/server/secrets.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const shopId = currentShopId();
 	const partners = await Promise.all(
 		OD_PARTNERS.map(async (p) => ({
@@ -34,7 +35,7 @@ async function partnerOf(data: FormData) {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const data = await event.request.formData();
 		const partner = await partnerOf(data);
 		if (!partner) return fail(400, { error: await shopText('err.od.missing') });
@@ -53,7 +54,7 @@ export const actions: Actions = {
 		});
 	},
 	test: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const partner = await partnerOf(await event.request.formData());
 		if (!partner) return fail(400, { error: await shopText('err.od.missing') });
 		const r = await checkOdConnection(partner);
@@ -62,7 +63,7 @@ export const actions: Actions = {
 			: fail(400, { error: r.error, partner });
 	},
 	toggle: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const data = await event.request.formData();
 		const partner = await partnerOf(data);
 		if (!partner) return fail(400, { error: await shopText('err.od.missing') });

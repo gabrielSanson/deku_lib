@@ -1,5 +1,6 @@
 import { error, redirect, type RequestEvent } from '@sveltejs/kit';
 import type { StaffRole } from '#lib/domain/order-status.ts';
+import { defaultPermissions, isPermission, type Permission } from '#lib/domain/permissions.ts';
 import { currentShopId, db, type Db } from '../db';
 
 export interface StaffSession {
@@ -7,16 +8,32 @@ export interface StaffSession {
 	displayName: string;
 	role: StaffRole;
 	email: string | null;
+	/** What this member may do (from their role; S5.7). */
+	permissions: Permission[];
 }
 
 export async function loadStaff(
 	userId: string,
 	email: string | null
 ): Promise<StaffSession | null> {
-	const [row] = await db()<{ id: string; display_name: string; role: StaffRole }[]>`
-		select user_id as id, display_name, role from shop_members
-		where shop_id = ${currentShopId()} and user_id = ${userId} and active`;
-	return row ? { id: row.id, displayName: row.display_name, role: row.role, email } : null;
+	const [row] = await db()<
+		{
+			id: string;
+			display_name: string;
+			role: StaffRole;
+			role_id: string | null;
+			perms: string[] | null;
+		}[]
+	>`
+		select m.user_id as id, m.display_name, m.role, m.role_id,
+			(select array_agg(p.permission) from role_permissions p where p.role_id = m.role_id) as perms
+		from shop_members m
+		where m.shop_id = ${currentShopId()} and m.user_id = ${userId} and m.active`;
+	if (!row) return null;
+	const permissions = row.role_id
+		? (row.perms ?? []).filter(isPermission)
+		: defaultPermissions(row.role);
+	return { id: row.id, displayName: row.display_name, role: row.role, email, permissions };
 }
 
 /**

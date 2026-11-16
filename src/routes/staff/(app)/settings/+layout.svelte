@@ -2,21 +2,31 @@
 	import { page } from '$app/state';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import SegmentedTabs from '#lib/components/molecules/SegmentedTabs.svelte';
-	import { activeHref, navIcon, SETTINGS_GROUPS, SETUP_HREF } from '#lib/staff/nav.ts';
+	import {
+		activeHref,
+		filterGroups,
+		navIcon,
+		SETTINGS_GROUPS as ALL_GROUPS,
+		SETUP_HREF
+	} from '#lib/staff/nav.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	// Configurações: four groups (Loja, Pedidos, Site, Pagamentos e integrações), each
 	// with its own pages. The setup wizard is a link at the top, not a tab.
 	let { data, children } = $props();
 	const t = useTexts();
+	// Only the pages this member's permissions open (S5.7).
+	const SETTINGS_GROUPS = $derived(filterGroups(ALL_GROUPS, data.staff.permissions));
 	const current = $derived(activeHref(SETTINGS_GROUPS, page.url.pathname));
 	const group = $derived(
-		SETTINGS_GROUPS.find((g) => g.links.some((l) => l.href === current)) ?? SETTINGS_GROUPS[0]
+		SETTINGS_GROUPS.find((g) => g.links.some((l) => l.href === current)) ??
+			SETTINGS_GROUPS[0] ??
+			null
 	);
 </script>
 
 <div class="mx-auto max-w-4xl space-y-5 p-4">
-	{#if data.staff.role !== 'admin'}
+	{#if !group}
 		<p class="alert-error">{t('settings.adminOnly')}</p>
 	{:else}
 		<div class="space-y-2">

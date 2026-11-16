@@ -1,9 +1,9 @@
 import * as a from '#lib/server/analytics/queries.ts';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'reports.view');
 	const q = event.url.searchParams;
 	const preset = q.get('range') ?? '7d';
 	const range = a.resolveRange(preset, q.get('from'), q.get('to'));

@@ -1,6 +1,7 @@
 // Configurações → iFood: the connection (credentials, test, on/off) and its health.
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
 import { ifoodStatus } from '#lib/server/integrations/ifood/settings.ts';
 import { ifoodAppAvailable } from '#lib/server/integrations/ifood/auth.ts';
@@ -17,7 +18,7 @@ import { recentSyncReports, scheduleMenuSync } from '#lib/server/integrations/me
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const [ifood, connection, ifoodAlerts] = await Promise.all([
 		integrationHealth(),
 		ifoodStatus(),
@@ -39,12 +40,12 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	...ifoodActions,
 	menuSync: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		await scheduleMenuSync(db(), { now: true });
 		return { ok: await shopText('ok.menuSyncQueued') };
 	},
 	replay: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const id = formString(await event.request.formData(), 'id');
 		if (!id) return failText(400, 'err.integrations.event');
 		return attempt(async () => {
@@ -53,7 +54,7 @@ export const actions: Actions = {
 		});
 	},
 	retry: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const id = formString(await event.request.formData(), 'id');
 		if (!id) return failText(400, 'err.integrations.delivery');
 		return attempt(async () => {

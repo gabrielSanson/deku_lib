@@ -34,9 +34,11 @@ export async function cancelAndRefund(
 	reason: string,
 	actor: Actor & { role: StaffRole },
 	refunder: Refunder = providerRefund,
-	fiscalCancel: typeof cancelFiscal = cancelFiscal
+	fiscalCancel: typeof cancelFiscal = cancelFiscal,
+	/** A manager approved it with their PIN (S5.7). */
+	approvedBy: string | null = null
 ): Promise<RefundOutcome> {
-	if (actor.role !== 'admin')
+	if (actor.role !== 'admin' && !approvedBy)
 		throw new DomainError('err.tender.refundAdmin', { code: 'forbidden', status: 403 });
 	const why = reason.trim();
 	if (why.length < 15) throw new DomainError('err.fiscal.justification');

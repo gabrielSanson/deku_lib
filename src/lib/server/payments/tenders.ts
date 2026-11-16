@@ -85,9 +85,11 @@ export async function recordManualTender(input: ManualTenderInput) {
 export async function refundTender(
 	tenderId: string,
 	reason: string,
-	actor: Actor & { role: StaffRole }
+	actor: Actor & { role: StaffRole },
+	/** A manager approved it with their PIN (S5.7). */
+	approvedBy: string | null = null
 ) {
-	if (actor.role !== 'admin') {
+	if (actor.role !== 'admin' && !approvedBy) {
 		throw new DomainError('err.tender.refundAdmin', { code: 'forbidden', status: 403 });
 	}
 	if (!reason.trim()) throw new DomainError('err.tender.refundReason', { code: 'reason_required' });

@@ -2,6 +2,7 @@
 // menu, the shop itself and the back office. Kitchen accounts never see it;
 // they are sent to the kitchen screen.
 import type { IconName } from '#lib/components/atoms/Icon.svelte';
+import type { Permission } from '#lib/domain/permissions.ts';
 import type { TextKey } from '#lib/texts/catalog.ts';
 
 export interface NavLink {
@@ -12,6 +13,8 @@ export interface NavLink {
 	icon: IconName | 'product';
 	/** Other paths that light up this link. */
 	match?: string[];
+	/** Shown only to members with this permission (S5.7); absent = every staff member. */
+	permission?: Permission;
 }
 
 /** The icon to draw for a link, given the preset's product icon from the page data. */
@@ -29,62 +32,94 @@ export const NAV: NavGroup[] = [
 		label: 'nav.operacao',
 		links: [
 			{ href: '/staff', label: 'nav.inicio', icon: 'home' },
-			{ href: '/staff/pos', label: 'nav.caixa', icon: 'cart' },
-			{ href: '/staff/caixa', label: 'nav.gaveta', icon: 'cash' },
+			{ href: '/staff/pos', label: 'nav.caixa', icon: 'cart', permission: 'pos.sell' },
+			{ href: '/staff/caixa', label: 'nav.gaveta', icon: 'cash', permission: 'cash.open_close' },
 			{ href: '/staff/orders', label: 'nav.pedidos', icon: 'list' },
 			{ href: '/kitchen', label: 'nav.cozinha', icon: 'chef' },
-			{ href: '/staff/entregas', label: 'nav.entregas', icon: 'bag' },
-			{ href: '/staff/reconciliation', label: 'nav.caixaDoDia', icon: 'receipt' }
+			{ href: '/staff/entregas', label: 'nav.entregas', icon: 'bag', permission: 'pos.sell' },
+			{
+				href: '/staff/reconciliation',
+				label: 'nav.caixaDoDia',
+				icon: 'receipt',
+				permission: 'cash.open_close'
+			}
 		]
 	},
 	{
 		label: 'nav.cardapio',
 		links: [
-			{ href: '/staff/menu', label: 'nav.disponibilidade', icon: 'check' },
+			{
+				href: '/staff/menu',
+				label: 'nav.disponibilidade',
+				icon: 'check',
+				permission: 'menu.availability'
+			},
 			{
 				href: '/staff/menu/edit',
 				label: 'nav.produtosEAdicionais',
 				icon: 'product',
-				match: ['/staff/menu/products', '/staff/menu/groups']
+				match: ['/staff/menu/products', '/staff/menu/groups'],
+				permission: 'menu.edit'
 			},
-			{ href: '/staff/menu/ingredients', label: 'nav.ingredientes', icon: 'list' }
+			{
+				href: '/staff/menu/ingredients',
+				label: 'nav.ingredientes',
+				icon: 'list',
+				permission: 'menu.edit'
+			}
 		]
 	},
 	{
 		label: 'nav.gestao',
 		links: [
-			{ href: '/staff/analytics', label: 'nav.relatorios', icon: 'chart' },
-			{ href: '/staff/clientes', label: 'nav.clientes', icon: 'users' },
-			{ href: '/staff/estoque', label: 'nav.estoque', icon: 'bag' },
-			{ href: '/staff/despesas', label: 'nav.despesas', icon: 'receipt' },
-			{ href: '/staff/campaigns', label: 'nav.campanhas', icon: 'crown' },
+			{
+				href: '/staff/analytics',
+				label: 'nav.relatorios',
+				icon: 'chart',
+				permission: 'reports.view'
+			},
+			{
+				href: '/staff/clientes',
+				label: 'nav.clientes',
+				icon: 'users',
+				permission: 'customers.view'
+			},
+			{ href: '/staff/estoque', label: 'nav.estoque', icon: 'bag', permission: 'menu.edit' },
+			{
+				href: '/staff/despesas',
+				label: 'nav.despesas',
+				icon: 'receipt',
+				permission: 'finance.edit'
+			},
+			{
+				href: '/staff/campaigns',
+				label: 'nav.campanhas',
+				icon: 'crown',
+				permission: 'settings.edit'
+			},
 			{
 				href: '/staff/settings/profile',
 				label: 'nav.configuracoes',
 				icon: 'settings',
-				match: ['/staff/settings', '/staff/setup']
+				match: ['/staff/settings', '/staff/setup'],
+				permission: 'settings.edit'
 			}
 		]
 	}
 ];
 
-/** What an attendant sees in the menu: the counter, the drawer, the orders and the kitchen screen. */
-const ATTENDANT_HREFS = new Set([
-	'/staff',
-	'/staff/pos',
-	'/staff/caixa',
-	'/staff/orders',
-	'/staff/entregas',
-	'/kitchen'
-]);
+/** The menu for a member: only the links their permissions open (S5.7). */
+export function navFor(staff: { permissions: readonly Permission[] }): NavGroup[] {
+	return filterGroups(NAV, staff.permissions);
+}
 
-/** The menu for a role. Admins see everything; attendants only the counter and orders. */
-export function navFor(role: 'admin' | 'attendant' | 'kitchen'): NavGroup[] {
-	if (role === 'admin') return NAV;
-	return NAV.map((g) => ({
-		...g,
-		links: g.links.filter((l) => ATTENDANT_HREFS.has(l.href))
-	})).filter((g) => g.links.length);
+export function filterGroups(groups: NavGroup[], permissions: readonly Permission[]): NavGroup[] {
+	return groups
+		.map((g) => ({
+			...g,
+			links: g.links.filter((l) => !l.permission || permissions.includes(l.permission))
+		}))
+		.filter((g) => g.links.length);
 }
 
 /**
@@ -95,38 +130,129 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 	{
 		label: 'nav.grupoLoja',
 		links: [
-			{ href: '/staff/settings/profile', label: 'nav.dadosDaLoja', icon: 'store' },
-			{ href: '/staff/settings/hours', label: 'nav.horariosEPausa', icon: 'clock' },
-			{ href: '/staff/settings/staff', label: 'nav.equipe', icon: 'users' },
-			{ href: '/staff/settings/system', label: 'nav.sistema', icon: 'settings' },
-			{ href: '/staff/settings/plano', label: 'nav.plano', icon: 'card' }
+			{
+				href: '/staff/settings/profile',
+				label: 'nav.dadosDaLoja',
+				icon: 'store',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/hours',
+				label: 'nav.horariosEPausa',
+				icon: 'clock',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/staff',
+				label: 'nav.equipe',
+				icon: 'users',
+				permission: 'staff.manage'
+			},
+			{
+				href: '/staff/settings/permissoes',
+				label: 'nav.permissoes',
+				icon: 'check',
+				permission: 'staff.manage'
+			},
+			{
+				href: '/staff/settings/system',
+				label: 'nav.sistema',
+				icon: 'settings',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/plano',
+				label: 'nav.plano',
+				icon: 'card',
+				permission: 'finance.edit'
+			}
 		]
 	},
 	{
 		label: 'nav.grupoPedidos',
 		links: [
-			{ href: '/staff/settings/store', label: 'nav.tiposDePedido', icon: 'receipt' },
-			{ href: '/staff/settings/delivery', label: 'nav.entrega', icon: 'truck' }
+			{
+				href: '/staff/settings/store',
+				label: 'nav.tiposDePedido',
+				icon: 'receipt',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/delivery',
+				label: 'nav.entrega',
+				icon: 'truck',
+				permission: 'settings.edit'
+			}
 		]
 	},
 	{
 		label: 'nav.grupoSite',
 		links: [
-			{ href: '/staff/settings/home', label: 'nav.paginaInicial', icon: 'home' },
-			{ href: '/staff/settings/appearance', label: 'nav.aparencia', icon: 'settings' },
-			{ href: '/staff/settings/texts', label: 'nav.textosDoSite', icon: 'book' },
-			{ href: '/staff/settings/pages', label: 'nav.paginasDoSite', icon: 'book' },
-			{ href: '/staff/settings/divulgar', label: 'nav.divulgar', icon: 'tag' }
+			{
+				href: '/staff/settings/home',
+				label: 'nav.paginaInicial',
+				icon: 'home',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/appearance',
+				label: 'nav.aparencia',
+				icon: 'settings',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/texts',
+				label: 'nav.textosDoSite',
+				icon: 'book',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/pages',
+				label: 'nav.paginasDoSite',
+				icon: 'book',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/divulgar',
+				label: 'nav.divulgar',
+				icon: 'tag',
+				permission: 'settings.edit'
+			}
 		]
 	},
 	{
 		label: 'nav.grupoPagamentos',
 		links: [
-			{ href: '/staff/settings/payments', label: 'nav.pagamentos', icon: 'cash' },
-			{ href: '/staff/settings/ifood', label: 'nav.ifood', icon: 'grid' },
-			{ href: '/staff/settings/opendelivery', label: 'nav.opendelivery', icon: 'grid' },
-			{ href: '/staff/settings/whatsapp', label: 'nav.whatsapp', icon: 'mail' },
-			{ href: '/staff/settings/fiscal', label: 'nav.notaFiscal', icon: 'receipt' }
+			{
+				href: '/staff/settings/payments',
+				label: 'nav.pagamentos',
+				icon: 'cash',
+				permission: 'finance.edit'
+			},
+			{
+				href: '/staff/settings/ifood',
+				label: 'nav.ifood',
+				icon: 'grid',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/opendelivery',
+				label: 'nav.opendelivery',
+				icon: 'grid',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/whatsapp',
+				label: 'nav.whatsapp',
+				icon: 'mail',
+				permission: 'settings.edit'
+			},
+			{
+				href: '/staff/settings/fiscal',
+				label: 'nav.notaFiscal',
+				icon: 'receipt',
+				permission: 'fiscal.manage'
+			}
 		]
 	}
 ];

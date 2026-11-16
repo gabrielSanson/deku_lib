@@ -1,5 +1,6 @@
 import { openAlerts } from '#lib/server/alerts/service.ts';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requireStaff } from '#lib/server/auth/staff.ts';
+import { can } from '#lib/server/auth/permissions.ts';
 import { overview, salesByHour, todayLocal } from '#lib/server/analytics/queries.ts';
 import { attempt } from '#lib/server/actions.ts';
 import { markRatingSeen, ratingSummary } from '#lib/server/customers/ratings.ts';
@@ -49,10 +50,10 @@ export const load: PageServerLoad = async (event) => {
 		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
 		return [] as string[];
 	});
-	const sales = ADMIN.includes(staff.role) ? await salesToday() : null;
+	const sales = can(staff, 'reports.view') ? await salesToday() : null;
 	const systemAlerts = (await openAlerts()).map((a) => ({ kind: a.kind, detail: a.detail }));
 	const ratings = staff.role === 'kitchen' ? null : await ratingSummary();
-	const stockLow = ADMIN.includes(staff.role) ? await lowStock() : [];
+	const stockLow = can(staff, 'menu.edit') ? await lowStock() : [];
 	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts, ratings, stockLow };
 };
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { activeHref, NAV, navFor, SETTINGS_GROUPS } from './nav';
+import { defaultPermissions } from '#lib/domain/permissions.ts';
+import { activeHref, filterGroups, NAV, navFor, SETTINGS_GROUPS } from './nav';
 
 describe('admin navigation', () => {
 	it('marks the most specific link as active', () => {
@@ -32,19 +33,31 @@ describe('settings groups', () => {
 });
 
 describe('navFor', () => {
-	it('gives admins the whole menu', () => {
-		expect(navFor('admin')).toBe(NAV);
+	it('gives the owner the whole menu', () => {
+		expect(navFor({ permissions: defaultPermissions('admin') })).toEqual(NAV);
 	});
 
-	it('gives attendants only the counter, drawer, orders, deliveries and kitchen', () => {
-		const hrefs = navFor('attendant').flatMap((g) => g.links.map((l) => l.href));
+	it('gives attendants the counter, drawer, orders, deliveries, availability and kitchen', () => {
+		const hrefs = navFor({ permissions: defaultPermissions('attendant') }).flatMap((g) =>
+			g.links.map((l) => l.href)
+		);
 		expect(hrefs.sort()).toEqual([
 			'/kitchen',
 			'/staff',
 			'/staff/caixa',
 			'/staff/entregas',
+			'/staff/menu',
 			'/staff/orders',
-			'/staff/pos'
+			'/staff/pos',
+			'/staff/reconciliation'
 		]);
+	});
+
+	it('hides settings pages a member cannot open', () => {
+		const groups = filterGroups(SETTINGS_GROUPS, ['settings.edit']);
+		const hrefs = groups.flatMap((g) => g.links.map((l) => l.href));
+		expect(hrefs).toContain('/staff/settings/hours');
+		expect(hrefs).not.toContain('/staff/settings/staff');
+		expect(hrefs).not.toContain('/staff/settings/fiscal');
 	});
 });

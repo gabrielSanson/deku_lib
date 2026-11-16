@@ -27,7 +27,9 @@
 				(s !== 'confirmed' || mayConfirm(o.paymentPlan, o.paymentStatus))
 		)
 	);
-	const manager = $derived(data.staff.role === 'admin');
+	const canFiscal = $derived(data.staff.permissions.includes('fiscal.manage'));
+	const canRefund = $derived(data.staff.permissions.includes('orders.refund'));
+	const canAskRefund = $derived(canRefund || data.staff.permissions.includes('pos.sell'));
 	let refunding = $state<string | null>(null);
 	let cancellingNote = $state(false);
 	let cancellingRefund = $state(false);
@@ -188,7 +190,7 @@
 				{t('orderDetail.cancelRefund.fiscal', { reason: form.fiscalProblem })}
 			</p>
 		{/if}
-		{#if manager && o.tenders.some((x) => x.status === 'paid')}
+		{#if canAskRefund && o.tenders.some((x) => x.status === 'paid')}
 			<div class="space-y-2 card p-3 text-sm">
 				{#if cancellingRefund}
 					<form
@@ -209,6 +211,17 @@
 							minlength={15}
 							required
 						/>
+						{#if !canRefund}
+							<TextField
+								label={t('orderDetail.managerPin')}
+								id="cancel-refund-pin"
+								name="managerPin"
+								type="password"
+								inputmode="numeric"
+								autocomplete="off"
+								required
+							/>
+						{/if}
 						<div class="flex gap-2">
 							<button type="button" class="btn-secondary" onclick={() => (cancellingRefund = false)}
 								>{t('delivery.cancel')}</button
@@ -238,7 +251,7 @@
 						>
 						<PaymentBadge status={tender.status} />
 					</div>
-					{#if manager && tender.status === 'paid' && tender.provider === 'manual'}
+					{#if canAskRefund && tender.status === 'paid' && tender.provider === 'manual'}
 						{#if refunding === tender.id}
 							<form
 								method="POST"
@@ -259,6 +272,17 @@
 									placeholder={t('orderDetail.refundReason')}
 									required
 								/>
+								{#if !canRefund}
+									<TextField
+										label={t('orderDetail.managerPin')}
+										id="refund-pin"
+										name="managerPin"
+										type="password"
+										inputmode="numeric"
+										autocomplete="off"
+										required
+									/>
+								{/if}
 								<button class="btn-danger min-h-9 w-full text-sm"
 									>{t('orderDetail.refundConfirm')}</button
 								>
@@ -351,12 +375,12 @@
 							>{t('orderDetail.danfe')}</a
 						>{/if}
 				{/if}
-				{#if manager && o.paymentStatus === 'paid' && (!note || ['rejected', 'error', 'cancelled'].includes(note.status))}
+				{#if canFiscal && o.paymentStatus === 'paid' && (!note || ['rejected', 'error', 'cancelled'].includes(note.status))}
 					<form method="POST" action="?/fiscalRetry" use:enhance>
 						<button class="btn-secondary w-full">{t('orderDetail.fiscalRetry')}</button>
 					</form>
 				{/if}
-				{#if manager && note?.status === 'authorized'}
+				{#if canFiscal && note?.status === 'authorized'}
 					{#if cancellingNote}
 						<form
 							method="POST"

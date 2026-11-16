@@ -6,19 +6,40 @@ import {
 	listStaff,
 	updateStaff
 } from '#lib/server/auth/admin.ts';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { assignRole, listRoles, requirePermission, setPin } from '#lib/server/auth/permissions.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 const ROLES: StaffRole[] = ['admin', 'attendant', 'kitchen'];
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
-	return { people: await listStaff(), canCreate: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) };
+	requirePermission(event, 'staff.manage');
+	const roles = await listRoles(); // also gives older members their standard role
+	return {
+		people: await listStaff(),
+		roles: roles.map((r) => ({ id: r.id, name: r.name, baseRole: r.baseRole })),
+		canCreate: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+	};
 };
 
 export const actions: Actions = {
+	assign: async (event) => {
+		const staff = requirePermission(event, 'staff.manage');
+		const d = await event.request.formData();
+		return attempt(async () => {
+			await assignRole(formString(d, 'id'), formString(d, 'roleId'), staff);
+			return { ok: true };
+		});
+	},
+	pin: async (event) => {
+		const staff = requirePermission(event, 'staff.manage');
+		const d = await event.request.formData();
+		return attempt(async () => {
+			await setPin(formString(d, 'id'), formString(d, 'pin'), staff);
+			return { pinSaved: true };
+		});
+	},
 	update: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'staff.manage');
 		const d = await event.request.formData();
 		const role = formString(d, 'role') as StaffRole;
 		const active = formString(d, 'active');
@@ -32,7 +53,7 @@ export const actions: Actions = {
 		});
 	},
 	add: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'staff.manage');
 		const d = await event.request.formData();
 		const role = formString(d, 'role') as StaffRole;
 		if (!ROLES.includes(role)) return failText(400, 'err.staff.role');

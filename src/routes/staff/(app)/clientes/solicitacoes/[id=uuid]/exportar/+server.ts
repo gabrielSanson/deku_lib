@@ -1,13 +1,14 @@
 // The customer's data for an access request, as a JSON download.
 import { error, json } from '@sveltejs/kit';
 import { audit } from '#lib/server/audit.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { exportCustomerData } from '#lib/server/customers/privacy.ts';
 import { db } from '#lib/server/db.ts';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async (event) => {
-	const staff = requireStaff(event, ADMIN);
+	const staff = requirePermission(event, 'customers.export');
 	const [r] = await db()<{ customer_id: string | null }[]>`
 		select customer_id from privacy_requests where id = ${event.params.id}`;
 	if (!r?.customer_id) error(404, { message: 'Sem cadastro' });

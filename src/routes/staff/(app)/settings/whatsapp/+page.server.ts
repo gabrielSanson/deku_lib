@@ -3,7 +3,8 @@
 import { fail } from '@sveltejs/kit';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { currentShopId } from '#lib/server/db.ts';
 import { providerFor } from '#lib/server/messaging/outbox.ts';
 import { fetchTemplateStatus } from '#lib/server/messaging/whatsapp-cloud.ts';
@@ -20,7 +21,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	return {
 		settings: await whatsappSettings(),
 		statusTemplates: [...STATUS_TEMPLATES],
@@ -31,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const data = await event.request.formData();
 		return attempt(async () => {
 			await saveWhatsappSettings(
@@ -48,7 +49,7 @@ export const actions: Actions = {
 		});
 	},
 	test: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const to = normalizeBrPhone(formString(await event.request.formData(), 'to'));
 		if (!to) return fail(400, { error: await shopText('err.wa.testTo') });
 		try {
@@ -64,7 +65,7 @@ export const actions: Actions = {
 		}
 	},
 	templates: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const s = await whatsappSettings();
 		const token = await getShopSecret('whatsapp');
 		if (!s.wabaId || !token) return fail(400, { error: await shopText('err.wa.missing') });
@@ -77,7 +78,7 @@ export const actions: Actions = {
 		}
 	},
 	toggle: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const on = formString(await event.request.formData(), 'enabled') === 'true';
 		return attempt(async () => {
 			await setWhatsappEnabled(on, staffActor(staff));

@@ -1,13 +1,13 @@
 // The shop's plan with the platform: status, the open invoice (Pix code) and past invoices.
 import QRCode from 'qrcode';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { config } from '#lib/server/config.ts';
 import { currentShopId, DEFAULT_SHOP_ID, platformDb } from '#lib/server/db.ts';
 import { invoicesOfShop } from '#lib/server/platform/billing.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'finance.edit');
 	const shopId = currentShopId();
 	const hosted = config().TENANCY === 'multi' && shopId !== DEFAULT_SHOP_ID;
 	if (!hosted) return { hosted: false as const };

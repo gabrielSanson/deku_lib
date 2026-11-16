@@ -1,5 +1,6 @@
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	deleteCategory,
 	importCatalog,
@@ -13,7 +14,7 @@ import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { preset } from '#lib/server/presets/index.ts';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.edit');
 	const sql = db();
 	const [catalog, categories, products, groups] = await Promise.all([
 		loadCatalog(sql, { includeInactive: true }),
@@ -60,7 +61,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	category: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			const photo = d.get('photo');
@@ -84,7 +85,7 @@ export const actions: Actions = {
 		});
 	},
 	deleteCategory: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const id = formString(await event.request.formData(), 'id');
 		if (!id) return failText(400, 'err.menu.badCategory');
 		return attempt(async () => {
@@ -93,7 +94,7 @@ export const actions: Actions = {
 		});
 	},
 	sample: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		return attempt(async () => {
 			if (!(await menuIsEmpty())) return failText(400, 'err.menu.notEmpty');
 			await importCatalog(preset().catalog, staffActor(staff));

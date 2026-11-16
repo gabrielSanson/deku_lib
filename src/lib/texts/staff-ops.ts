@@ -832,6 +832,11 @@ export const STAFF_OPS_TEXTS = {
 		label: 'Recibo: nota em contingência',
 		default: 'NFC-e emitida em contingência – pendente de autorização'
 	},
+	'orderDetail.managerPin': {
+		group: 'staff',
+		label: 'Pedido: PIN do gerente',
+		default: 'PIN do gerente'
+	},
 	'orderDetail.cancelRefund': {
 		group: 'staff',
 		label: 'Pedido: botão cancelar e devolver',

@@ -2,12 +2,13 @@
 import { attempt, formString } from '#lib/server/actions.ts';
 import { profitReport, profitSettings, saveProfitSettings } from '#lib/server/analytics/profit.ts';
 import { resolveRange } from '#lib/server/analytics/queries.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { parseBRL } from '#lib/domain/money.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'reports.view');
 	const q = event.url.searchParams;
 	const preset = q.get('range') ?? 'month';
 	const range = resolveRange(preset, q.get('from'), q.get('to'));
@@ -18,7 +19,7 @@ const pct = (v: string) => Math.round(Number(v.replace(',', '.')) * 100);
 
 export const actions: Actions = {
 	settings: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'reports.view');
 		const d = await event.request.formData();
 		const current = await profitSettings();
 		return attempt(async () => {

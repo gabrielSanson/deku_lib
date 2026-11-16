@@ -1,7 +1,8 @@
 // How the site gets paid: the shop's own Pix key, plus the online payment provider (PSP).
 import { fail } from '@sveltejs/kit';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { config } from '#lib/server/config.ts';
 import { currentShopId } from '#lib/server/db.ts';
 import { hasShopSecret } from '#lib/server/platform/secrets.ts';
@@ -20,7 +21,7 @@ import { getStoreProfile, savePixSettings } from '#lib/server/settings/profile.t
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'finance.edit');
 	const s = await paymentSettings();
 	return {
 		profile: await getStoreProfile(undefined, { fresh: true }),
@@ -40,7 +41,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	/** Taxas: the fee per way of being paid. */
 	fees: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		const terms = (await paymentTerms()).map((term) => {
 			const k = `${term.method}:${term.provider}`;
@@ -58,7 +59,7 @@ export const actions: Actions = {
 		});
 	},
 	payments: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		const pixEnabled = d.get('pixEnabled') === 'on';
 		return attempt(async () => {
@@ -81,7 +82,7 @@ export const actions: Actions = {
 		});
 	},
 	online: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		const provider = String(d.get('provider') ?? 'none') as ProviderName;
 		const methods = d.getAll('methods').map(String) as OnlineMethod[];
@@ -114,7 +115,7 @@ export const actions: Actions = {
 		});
 	},
 	pspWebhook: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'finance.edit');
 		const url = `${event.url.origin}/api/v1/payments/webhooks/efi/${currentShopId()}`;
 		try {
 			await registerPspWebhook(url);

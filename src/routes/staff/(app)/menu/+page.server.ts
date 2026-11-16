@@ -1,5 +1,6 @@
 import { attempt, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { listIngredients, setIngredientAvailable } from '#lib/server/catalog/editor.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
 import { db } from '#lib/server/db.ts';
@@ -7,7 +8,7 @@ import { setSoldOut } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.availability');
 	const catalog = await getCatalog();
 	const overrides = await db()<{ sku: string; reason: string | null; updated_at: Date }[]>`
 		select sku, reason, updated_at from product_availability_overrides where sold_out and channel = 'all'`;
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	ingredient: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.availability');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await setIngredientAvailable(
@@ -28,7 +29,7 @@ export const actions: Actions = {
 		});
 	},
 	toggle: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.availability');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await setSoldOut(

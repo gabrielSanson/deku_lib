@@ -1,5 +1,6 @@
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { listPages } from '#lib/server/catalog/pages.ts';
@@ -33,7 +34,7 @@ function imageKey(d: FormData): HomeImage | null {
 }
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const [look, catalog, groups, pages] = await Promise.all([
 		getBranding(undefined, { fresh: true }),
 		getCatalog({ fresh: true }),
@@ -57,7 +58,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const on = (k: string) => d.get(k) === 'on';
 		const texts = Object.fromEntries(
@@ -83,7 +84,7 @@ export const actions: Actions = {
 		});
 	},
 	upload: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const key = imageKey(d);
 		const file = d.get('file');
@@ -95,7 +96,7 @@ export const actions: Actions = {
 		});
 	},
 	resetImage: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const key = imageKey(await event.request.formData());
 		if (!key) return failText(400, 'err.image.unknown');
 		return attempt(async () => {

@@ -1,5 +1,6 @@
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { listKitchenOrders } from '#lib/server/orders/queries.ts';
 import { callOrder, markKitchenSeen, transitionOrder } from '#lib/server/orders/service.ts';
 import {
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	// "Esta tela imprime": an admin pairs this device once; the cookie lasts a year.
 	pair: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const name = formString(await event.request.formData(), 'name');
 		return attempt(async () => {
 			const { token } = await pairStation(name, ['kitchen'], staffActor(staff));
@@ -39,7 +40,7 @@ export const actions: Actions = {
 		});
 	},
 	unpair: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const station = await stationByToken(event.cookies.get(STATION_COOKIE));
 		if (station) await unpairStation(station.id, staffActor(staff));
 		event.cookies.delete(STATION_COOKIE, { path: '/' });

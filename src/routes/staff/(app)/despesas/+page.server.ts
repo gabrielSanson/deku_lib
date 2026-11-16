@@ -1,6 +1,7 @@
 // Gestão → Despesas: the month's bills and the fixed ones entered every month.
 import { attempt, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { parseBRL } from '#lib/domain/money.ts';
 import {
 	addExpense,
@@ -15,7 +16,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'finance.edit');
 	const month = validMonth(event.url.searchParams.get('mes'));
 	return {
 		month,
@@ -27,7 +28,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	add: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await addExpense(
@@ -44,7 +45,7 @@ export const actions: Actions = {
 		});
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const id = formString(await event.request.formData(), 'id');
 		return attempt(async () => {
 			await deleteExpense(id, staffActor(staff));
@@ -52,7 +53,7 @@ export const actions: Actions = {
 		});
 	},
 	recurring: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await addRecurring(
@@ -68,7 +69,7 @@ export const actions: Actions = {
 		});
 	},
 	toggle: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'finance.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await setRecurringActive(formString(d, 'id'), d.get('active') === 'true', staffActor(staff));

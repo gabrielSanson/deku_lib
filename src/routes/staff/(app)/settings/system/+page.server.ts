@@ -10,14 +10,14 @@ import {
 	saveStaffPushSubscription
 } from '#lib/server/alerts/service.ts';
 import { defaultNotifier } from '#lib/server/alerts/notify.ts';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { config } from '#lib/server/config.ts';
 import { pushPublicKey } from '#lib/server/notifications/push.ts';
 import { backupStatus } from '#lib/server/settings/system.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const [backups, alerts, open, pushKey] = await Promise.all([
 		backupStatus(),
 		getAlertSettings(),
@@ -36,7 +36,7 @@ const subscription = z.object({
 
 export const actions: Actions = {
 	save: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const emails = formString(d, 'emailTo')
 			.split(/[,;\s]+/)
@@ -63,7 +63,7 @@ export const actions: Actions = {
 		});
 	},
 	subscribe: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const parsed = subscription.safeParse({
 			endpoint: d.get('endpoint'),
@@ -75,7 +75,7 @@ export const actions: Actions = {
 		return { subscribed: true };
 	},
 	test: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		try {
 			const sent = await defaultNotifier.send({ kind: 'test', state: 'test', detail: {} });
 			return { tested: sent };

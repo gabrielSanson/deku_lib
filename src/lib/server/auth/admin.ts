@@ -13,6 +13,8 @@ export interface StaffRow {
 	id: string;
 	displayName: string;
 	role: StaffRole;
+	roleId: string | null;
+	hasPin: boolean;
 	active: boolean;
 	email: string | null;
 }
@@ -21,9 +23,18 @@ export interface StaffRow {
 // platform connection, filtered to this shop by hand.
 export async function listStaff(): Promise<StaffRow[]> {
 	const rows = await platformDb()<
-		{ id: string; display_name: string; role: StaffRole; active: boolean; email: string | null }[]
+		{
+			id: string;
+			display_name: string;
+			role: StaffRole;
+			role_id: string | null;
+			has_pin: boolean;
+			active: boolean;
+			email: string | null;
+		}[]
 	>`
-		select m.user_id as id, m.display_name, m.role, m.active, u.email
+		select m.user_id as id, m.display_name, m.role, m.role_id, m.pin_hash is not null as has_pin,
+			m.active, u.email
 		from shop_members m left join auth.users u on u.id = m.user_id
 		where m.shop_id = ${currentShopId()}
 		order by m.active desc, m.role, m.display_name`;
@@ -31,14 +42,16 @@ export async function listStaff(): Promise<StaffRow[]> {
 		id: r.id,
 		displayName: r.display_name,
 		role: r.role,
+		roleId: r.role_id,
+		hasPin: r.has_pin,
 		active: r.active,
 		email: r.email
 	}));
 }
 
-/** Only admins manage accounts. */
+/** Members with "staff.manage" manage accounts (S5.7). */
 export function canManage(actor: StaffSession) {
-	return actor.role === 'admin';
+	return actor.permissions.includes('staff.manage');
 }
 
 export async function updateStaff(
@@ -69,6 +82,9 @@ export async function updateStaff(
 		await tx`
 			update shop_members set
 				role = coalesce(${patch.role ?? null}, role),
+				-- A new base role takes that base's standard role (Permissões can refine it).
+				role_id = case when ${patch.role ?? null}::text is not null and ${patch.role ?? null}::text <> role
+					then null else role_id end,
 				active = coalesce(${patch.active ?? null}, active),
 				display_name = coalesce(${patch.displayName ?? null}, display_name)
 			where shop_id = ${currentShopId()} and user_id = ${id}`;

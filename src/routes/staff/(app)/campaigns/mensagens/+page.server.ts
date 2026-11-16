@@ -3,7 +3,8 @@ import { fail } from '@sveltejs/kit';
 import type { CustomerSource } from '#lib/domain/consent.ts';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	marketingAudience,
 	recentSends,
@@ -29,7 +30,7 @@ function audienceFrom(get: (k: string) => string | null): {
 const channelOf = (v: string | null): MarketingChannel => (v === 'whatsapp' ? 'whatsapp' : 'email');
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const p = event.url.searchParams;
 	const channel = channelOf(p.get('canal'));
 	const audience = audienceFrom((k) => p.get(k));
@@ -45,7 +46,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	send: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		if (d.get('confirm') !== 'on') return fail(400, { error: await shopText('marketing.confirm') });
 		return attempt(async () => {
@@ -64,7 +65,7 @@ export const actions: Actions = {
 		});
 	},
 	price: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const cents = parseBRL(formString(await event.request.formData(), 'price'));
 		if (cents === null || cents < 0 || cents > 1000) return fail(400, { error: 'Valor inválido' });
 		await setMarketingPrice(cents);

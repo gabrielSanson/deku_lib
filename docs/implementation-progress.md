@@ -132,7 +132,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S5.4: done (radius_km rules + store_profile lat/lng; Nominatim geocode cached in geocode_cache (1 req/s), ViaCEP autofill at checkout; falls back to bairro/CEP rules; external services TODO(verify))
 - S5.5: done (status 'contingency' from Focus offline flags (TODO(verify) field names), followed every 15 min; receipt notice; Exportar mês zip (XMLs cached + CSV) via node:zlib writer; accountant e-mail with signed 45-day link on the 1st)
 - S5.6: done (cancelAndRefund: provider refunds first (marked one by one, safe retry), manual/cash via drawer, cancels open orders (stock reversal job), NFC-e cancel attempted and reported without blocking; admin-only until S5.7)
-- S5.7: todo
+- S5.7: done (roles/role_permissions, system roles Dono/Gerente/Atendente/Cozinha; 58 route checks moved to requirePermission; nav and settings filtered by permission; Permissões page; scrypt PIN (unique per shop), approve() with audit for refunds)
 - S5.8: todo
 - S5.9: todo
 - S5.10: todo

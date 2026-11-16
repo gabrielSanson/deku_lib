@@ -1,7 +1,8 @@
 import { redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { COUNTER, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	closeSession,
 	getOpenSession,
@@ -14,7 +15,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	const staff = requireStaff(event, COUNTER);
+	const staff = requirePermission(event, 'cash.open_close');
 	const session = await getOpenSession();
 	// Blind count: only admins see what the drawer should hold before it is closed.
 	const balance = session && staff.role === 'admin' ? await sessionBalance(session) : null;
@@ -28,7 +29,7 @@ const money = (data: FormData, key: string) => parseBRL(formString(data, key));
 
 export const actions: Actions = {
 	open: async (event) => {
-		const staff = requireStaff(event, COUNTER);
+		const staff = requirePermission(event, 'cash.open_close');
 		const data = await event.request.formData();
 		const floatCents = money(data, 'float');
 		if (floatCents === null) return failText(400, 'err.cash.floatZero');
@@ -37,7 +38,7 @@ export const actions: Actions = {
 		return result;
 	},
 	movement: async (event) => {
-		const staff = requireStaff(event, COUNTER);
+		const staff = requirePermission(event, 'cash.open_close');
 		const data = await event.request.formData();
 		const kind = formString(data, 'kind');
 		if (kind !== 'sangria' && kind !== 'suprimento') return failText(400, 'err.cash.movement');
@@ -54,7 +55,7 @@ export const actions: Actions = {
 		return result ?? { recorded: kind };
 	},
 	close: async (event) => {
-		const staff = requireStaff(event, COUNTER);
+		const staff = requirePermission(event, 'cash.open_close');
 		const data = await event.request.formData();
 		const countedCents = money(data, 'counted');
 		if (countedCents === null) return failText(400, 'err.cash.countedZero');

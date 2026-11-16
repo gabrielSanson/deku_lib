@@ -1,5 +1,6 @@
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { campaignResults, setCampaignStatus } from '#lib/server/campaigns/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -10,7 +11,7 @@ const TABS = ['todas', 'ativas', 'rascunhos', 'encerradas'] as const;
 type Tab = (typeof TABS)[number];
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const period = (event.url.searchParams.get('dias') ?? '30') as keyof typeof PERIODS;
 	const days = PERIODS[period] ?? 30;
 	const tabParam = event.url.searchParams.get('status') ?? 'todas';
@@ -44,7 +45,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	status: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const status = formString(d, 'status');
 		if (status !== 'active' && status !== 'paused' && status !== 'ended')

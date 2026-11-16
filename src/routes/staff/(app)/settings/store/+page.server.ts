@@ -1,18 +1,19 @@
 // Tipos de pedido: which channels take orders (site, dine-in, pickup, delivery),
 // prep time and the open-order cap. Open/pause lives in Horários e pausa.
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { updateStoreSettings } from '#lib/server/settings/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	return {};
 };
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const prep = Number(formString(d, 'prepTimeMinutes'));
 		const maxRaw = formString(d, 'maxOpenOrders');

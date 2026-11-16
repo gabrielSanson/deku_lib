@@ -1,7 +1,8 @@
 import { parseBRL } from '#lib/domain/money.ts';
 import { matchDeliveryRule } from '#lib/domain/pricing.ts';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	deleteDeliveryRule,
 	listDeliveryRules,
@@ -13,7 +14,7 @@ import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const rules = await listDeliveryRules();
 	const cep = event.url.searchParams.get('cep') ?? '';
 	const hood = event.url.searchParams.get('bairro') ?? '';
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const kind = formString(d, 'matchKind');
 		if (kind !== 'cep_prefix' && kind !== 'neighborhood' && kind !== 'radius_km')
@@ -61,7 +62,7 @@ export const actions: Actions = {
 		});
 	},
 	location: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const num = (k: string) => Number(formString(d, k).replace(',', '.'));
 		if (!formString(d, 'lat') && !formString(d, 'lng')) {
@@ -76,7 +77,7 @@ export const actions: Actions = {
 		return { ok: true };
 	},
 	locate: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'settings.edit');
 		const p = await getStoreProfile();
 		const point = p.addressLine
 			? await geocode({ cep: '', street: p.addressLine, neighborhood: '', city: p.city ?? '' })
@@ -86,7 +87,7 @@ export const actions: Actions = {
 		return { ok: true };
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		await deleteDeliveryRule(formString(await event.request.formData(), 'id'), staffActor(staff));
 		return { ok: true };
 	}

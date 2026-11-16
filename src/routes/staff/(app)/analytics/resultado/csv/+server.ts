@@ -1,12 +1,12 @@
 // The month's result as CSV (semicolon, as Brazilian spreadsheets expect).
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { monthlyResult, validMonth } from '#lib/server/expenses/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import type { TextKey } from '#lib/texts/catalog.ts';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'reports.view');
 	const r = await monthlyResult(validMonth(event.url.searchParams.get('mes')));
 	const texts = await getTexts();
 	const rows = [

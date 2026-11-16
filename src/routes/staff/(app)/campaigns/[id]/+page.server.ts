@@ -2,7 +2,8 @@ import { error, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { fromShopInput } from '#lib/domain/time.ts';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { getCampaign, saveCampaign } from '#lib/server/campaigns/service.ts';
 import { getCatalog } from '#lib/server/catalog/service.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
@@ -10,7 +11,7 @@ import { isUuid } from '#lib/domain/ids.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const id = event.params.id;
 	if (id !== 'new' && !isUuid(id)) error(404, 'Campanha não encontrada');
 	const campaign = id === 'new' ? null : await getCampaign(id);
@@ -28,7 +29,7 @@ const dates = z.object({ startsAt: z.string().default(''), endsAt: z.string().de
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const form = await event.request.formData();
 		let raw: Record<string, unknown>;
 		try {

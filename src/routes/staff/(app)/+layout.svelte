@@ -10,7 +10,7 @@
 
 	let { data, children } = $props();
 	const t = useTexts();
-	const groups = $derived(navFor(data.staff.role));
+	const groups = $derived(navFor(data.staff));
 	const current = $derived(activeHref(groups, page.url.pathname));
 	let drawerOpen = $state(false);
 	afterNavigate(() => (drawerOpen = false));

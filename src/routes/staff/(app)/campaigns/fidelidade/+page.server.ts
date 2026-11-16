@@ -3,12 +3,13 @@ import { fail } from '@sveltejs/kit';
 import { isMilestoneTemplate, type CouponBenefit } from '#lib/domain/campaigns.ts';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { milestoneSettings, saveMilestone } from '#lib/server/campaigns/milestones.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	return { programmes: await milestoneSettings() };
 };
 
@@ -22,7 +23,7 @@ function benefitFrom(d: FormData, prefix: string): CouponBenefit {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		const template = formString(d, 'template');
 		if (!isMilestoneTemplate(template)) return fail(400, { error: 'Programa inválido' });

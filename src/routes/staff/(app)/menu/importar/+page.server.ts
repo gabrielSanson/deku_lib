@@ -1,7 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import { parseMenuCsv } from '#lib/domain/menu-csv.ts';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { importMenuCsv } from '#lib/server/catalog/csv-import.ts';
 import { ifoodClient } from '#lib/server/integrations/ifood/api.ts';
 import { readIfoodMenuAsCsv } from '#lib/server/integrations/ifood/catalog.ts';
@@ -12,7 +13,7 @@ import type { Actions, PageServerLoad } from './$types';
 const MAX_BYTES = 1_000_000;
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.edit');
 	return {
 		fromSetup: event.url.searchParams.has('configuracao'),
 		ifoodOn: (await ifoodSettings()).enabled
@@ -32,7 +33,7 @@ function previewOf(csv: string) {
 
 export const actions: Actions = {
 	preview: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'menu.edit');
 		const file = (await event.request.formData()).get('file');
 		if (!(file instanceof File) || !file.size || file.size > MAX_BYTES) {
 			return fail(400, { problem: 'empty' as const });
@@ -41,7 +42,7 @@ export const actions: Actions = {
 	},
 	/** iFood's menu, read back into the same preview (S2.3). */
 	ifood: async (event) => {
-		requireStaff(event, ADMIN);
+		requirePermission(event, 'menu.edit');
 		if (!(await ifoodSettings()).enabled) return fail(400, { problem: 'empty' as const });
 		let csv: string;
 		try {
@@ -52,7 +53,7 @@ export const actions: Actions = {
 		return previewOf(csv);
 	},
 	import: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const csv = formString(await event.request.formData(), 'csv');
 		if (!csv || csv.length > MAX_BYTES) return fail(400, { problem: 'empty' as const });
 		return attempt(async () => {

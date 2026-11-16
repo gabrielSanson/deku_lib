@@ -1,11 +1,12 @@
 import { attempt, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { deleteIngredient, listIngredients, saveIngredient } from '#lib/server/catalog/editor.ts';
 import { uploadMenuImage } from '#lib/server/catalog/images.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.edit');
 	return { ingredients: await listIngredients() };
 };
 
@@ -17,7 +18,7 @@ const allergens = (d: FormData) =>
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			const photo = d.get('photo');
@@ -40,7 +41,7 @@ export const actions: Actions = {
 		});
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await deleteIngredient(formString(d, 'id'), staffActor(staff));

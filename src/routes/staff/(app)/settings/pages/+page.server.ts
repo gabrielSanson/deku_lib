@@ -1,5 +1,6 @@
 import { attempt, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	blocksToText,
 	createPage,
@@ -10,7 +11,7 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'settings.edit');
 	const pages = await listPages();
 	return {
 		pages: pages.map((p) => ({
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await savePage(
@@ -41,14 +42,14 @@ export const actions: Actions = {
 		});
 	},
 	create: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		return attempt(async () => ({
 			created: await createPage(formString(d, 'title'), staffActor(staff))
 		}));
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'settings.edit');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await deletePage(formString(d, 'slug'), staffActor(staff));

@@ -2,7 +2,8 @@
 import { error, fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import { attempt } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { listStockItems, recipeFor, saveRecipe } from '#lib/server/stock/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -28,7 +29,7 @@ const lines = z
 
 export const actions: Actions = {
 	default: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const kind = KIND[event.params.kind as keyof typeof KIND];
 		if (!kind) error(404, 'Não encontrado.');
 		let parsed;

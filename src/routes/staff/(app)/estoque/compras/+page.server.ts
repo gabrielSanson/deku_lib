@@ -2,7 +2,8 @@
 import { fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import { attempt, failText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { listStockItems, recentPurchases, recordPurchase } from '#lib/server/stock/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -31,7 +32,7 @@ const purchase = z.object({
 
 export const actions: Actions = {
 	default: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		let raw: unknown;
 		try {
 			raw = JSON.parse(String((await event.request.formData()).get('payload') ?? ''));

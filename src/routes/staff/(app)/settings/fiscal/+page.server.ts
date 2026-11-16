@@ -1,6 +1,7 @@
 // NFC-e settings: off until the shop's fiscal data and the provider token are in.
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	accountantEmail,
 	failedNotes,
@@ -21,7 +22,7 @@ import { monthOf } from '#lib/server/expenses/service.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'fiscal.manage');
 	const rates = await listIbsCbsRates();
 	return {
 		settings: await getFiscalSettings(),
@@ -42,7 +43,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	accountant: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const email = formString(await event.request.formData(), 'email');
 		return attempt(async () => {
 			await saveAccountantEmail(email, staffActor(staff));
@@ -50,7 +51,7 @@ export const actions: Actions = {
 		});
 	},
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			await saveFiscalSettings(
@@ -70,14 +71,14 @@ export const actions: Actions = {
 	},
 	/** "Emitir nota de teste": R$ 1,00 in homologação. */
 	test: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		return attempt(async () => {
 			const doc = await issueTestNote(staffActor(staff));
 			return { test: { status: doc?.status ?? 'error', message: doc?.errorMessage ?? null } };
 		});
 	},
 	retry: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const orderId = formString(await event.request.formData(), 'orderId');
 		if (!/^[0-9a-f-]{36}$/.test(orderId)) return failText(400, 'err.order.notFound');
 		return attempt(async () => {
@@ -87,7 +88,7 @@ export const actions: Actions = {
 	},
 	/** Reforma tributária: regime, the IBS/CBS switch and default codes. */
 	saveTax: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const d = await event.request.formData();
 		return attempt(async () => {
 			const s = await getFiscalSettings();
@@ -112,7 +113,7 @@ export const actions: Actions = {
 	},
 	/** The rates table; saving it is the owner confirming the rates with the accountant. */
 	saveRates: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const d = await event.request.formData();
 		const years = d.getAll('year').map(String);
 		const rows = years

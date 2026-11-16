@@ -1,3 +1,4 @@
+import { PERMISSIONS } from '#lib/domain/permissions.ts';
 import { createServerClient } from '@supabase/ssr';
 import { error, redirect } from '@sveltejs/kit';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
@@ -111,7 +112,8 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 				id: adminId,
 				displayName: 'Plataforma (somente leitura)',
 				role: 'admin',
-				email: null
+				email: null,
+				permissions: [...PERMISSIONS]
 			};
 			if (event.request.method !== 'GET' && event.request.method !== 'HEAD') {
 				error(403, 'Visualização da plataforma: somente leitura.');

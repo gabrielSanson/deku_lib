@@ -953,6 +953,106 @@ export const STAFF_SETTINGS_TEXTS = {
 	'hours.saved': { group: g, label: 'Horários: salvos', default: 'Horários salvos.' },
 	'hours.save': { group: g, label: 'Horários: salvar', default: 'Salvar horários' },
 	'team.tabTitle': { group: g, label: 'Equipe: título da aba', default: 'Equipe · Configurações' },
+	'team.pin': { group: g, label: 'Equipe: PIN (campo)', default: 'PIN' },
+	'team.pinOf': { group: g, label: 'Equipe: PIN de', default: 'PIN de {name}' },
+	'team.pinSave': { group: g, label: 'Equipe: salvar PIN', default: 'Salvar PIN' },
+	'team.pinSaved': { group: g, label: 'Equipe: PIN salvo', default: 'PIN salvo.' },
+	'team.pinHint': {
+		group: g,
+		label: 'Equipe: explicação do PIN',
+		default:
+			'O PIN (4 a 6 números) autoriza no balcão o que o perfil da pessoa que está operando não permite, como devolver um pagamento. Deixe em branco e salve para apagar.'
+	},
+	'perm.pos_sell': {
+		group: g,
+		label: 'Permissões: Vender no caixa (PDV)',
+		default: 'Vender no caixa (PDV)'
+	},
+	'perm.pos_discount': {
+		group: g,
+		label: 'Permissões: Dar desconto no caixa',
+		default: 'Dar desconto no caixa'
+	},
+	'perm.orders_cancel_paid': {
+		group: g,
+		label: 'Permissões: Cancelar pedido já pago',
+		default: 'Cancelar pedido já pago'
+	},
+	'perm.orders_refund': {
+		group: g,
+		label: 'Permissões: Devolver pagamentos',
+		default: 'Devolver pagamentos'
+	},
+	'perm.cash_open_close': {
+		group: g,
+		label: 'Permissões: Abrir e fechar a gaveta',
+		default: 'Abrir e fechar a gaveta'
+	},
+	'perm.cash_adjust': {
+		group: g,
+		label: 'Permissões: Sangria e suprimento',
+		default: 'Sangria e suprimento'
+	},
+	'perm.menu_edit': {
+		group: g,
+		label: 'Permissões: Editar cardápio, estoque e fichas',
+		default: 'Editar cardápio, estoque e fichas'
+	},
+	'perm.menu_availability': {
+		group: g,
+		label: 'Permissões: Marcar esgotado/disponível',
+		default: 'Marcar esgotado/disponível'
+	},
+	'perm.reports_view': {
+		group: g,
+		label: 'Permissões: Ver relatórios e lucro',
+		default: 'Ver relatórios e lucro'
+	},
+	'perm.finance_edit': {
+		group: g,
+		label: 'Permissões: Despesas, pagamentos e plano',
+		default: 'Despesas, pagamentos e plano'
+	},
+	'perm.fiscal_manage': { group: g, label: 'Permissões: Nota fiscal', default: 'Nota fiscal' },
+	'perm.staff_manage': {
+		group: g,
+		label: 'Permissões: Equipe e permissões',
+		default: 'Equipe e permissões'
+	},
+	'perm.settings_edit': {
+		group: g,
+		label: 'Permissões: Configurações da loja',
+		default: 'Configurações da loja'
+	},
+	'perm.customers_view': { group: g, label: 'Permissões: Ver clientes', default: 'Ver clientes' },
+	'perm.customers_export': {
+		group: g,
+		label: 'Permissões: Exportar clientes',
+		default: 'Exportar clientes'
+	},
+	'perm.title': { group: g, label: 'Permissões: título', default: 'Permissões' },
+	'perm.intro': {
+		group: g,
+		label: 'Permissões: explicação',
+		default:
+			'Cada pessoa da equipe tem um perfil. Marque o que cada perfil pode fazer; o que não pode, um gerente autoriza com o PIN.'
+	},
+	'perm.saved': { group: g, label: 'Permissões: salvo', default: 'Permissões salvas.' },
+	'perm.base': { group: g, label: 'Permissões: telas', default: 'Telas de {base}' },
+	'perm.members': { group: g, label: 'Permissões: pessoas', default: '{n} pessoa(s)' },
+	'perm.delete': { group: g, label: 'Permissões: excluir perfil', default: 'Excluir perfil' },
+	'perm.ownerFixed': {
+		group: g,
+		label: 'Permissões: dono fixo',
+		default: 'O Dono sempre pode tudo.'
+	},
+	'perm.newName': { group: g, label: 'Permissões: nome do novo perfil', default: 'Novo perfil' },
+	'perm.newBase': {
+		group: g,
+		label: 'Permissões: telas do novo perfil',
+		default: 'Usa as telas de'
+	},
+	'perm.create': { group: g, label: 'Permissões: criar perfil', default: 'Criar perfil' },
 	'team.title': { group: g, label: 'Equipe: título', default: 'Equipe' },
 	'team.added': { group: g, label: 'Equipe: adicionado', default: '{name} adicionado(a).' },
 	'team.you': { group: g, label: 'Equipe: você', default: '(você)' },

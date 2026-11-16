@@ -2,7 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { cartLineInput, priceCart } from '#lib/domain/pricing.ts';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
-import { COUNTER, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { unavailableReason } from '#lib/domain/catalog.ts';
 import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import {
@@ -23,7 +24,7 @@ import { getTexts } from '#lib/server/settings/texts.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, COUNTER);
+	requirePermission(event, 'pos.sell');
 	const [catalog, soldOut, missing] = await Promise.all([
 		getCatalog(),
 		soldOutSkus(db(), 'counter'),
@@ -62,7 +63,7 @@ const quoteForm = z.object({
 export const actions: Actions = {
 	/** Which promotion the cart gets, so staff charge the right amount. The phone is optional. */
 	quote: async (event) => {
-		requireStaff(event, COUNTER);
+		requirePermission(event, 'pos.sell');
 		const data = await event.request.formData();
 		let raw: unknown = null;
 		try {
@@ -100,7 +101,7 @@ export const actions: Actions = {
 	},
 
 	create: async (event) => {
-		const staff = requireStaff(event, COUNTER);
+		const staff = requirePermission(event, 'pos.sell');
 		const data = await event.request.formData();
 		let parsed: z.infer<typeof orderForm>;
 		try {

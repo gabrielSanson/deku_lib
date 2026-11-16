@@ -30,22 +30,37 @@
 					<p class="font-semibold">{p.displayName} {p.id === data.staff.id ? t('team.you') : ''}</p>
 					<p class="text-sm text-muted">{p.email}</p>
 				</div>
-				<form method="POST" action="?/update" use:enhance class="flex items-center gap-2">
+				<form method="POST" action="?/assign" use:enhance class="flex items-center gap-2">
 					<input type="hidden" name="id" value={p.id} />
 					<SelectField
 						label={t('team.roleOf', { name: p.displayName })}
 						hideLabel
 						id="role-{p.id}"
-						class="w-36"
-						name="role"
-						value={p.role}
-						disabled={!assignable.includes(p.role)}
+						class="w-40"
+						name="roleId"
+						value={p.roleId ?? ''}
+						disabled={p.id === data.staff.id}
 						onchange={(e) => e.currentTarget.form?.requestSubmit()}
 					>
-						{#each Object.entries(roleLabel) as [value, label] (value)}
-							<option {value} disabled={!assignable.includes(value)}>{label}</option>
+						{#each data.roles as r (r.id)}
+							<option value={r.id}>{r.name}</option>
 						{/each}
 					</SelectField>
+				</form>
+				<form method="POST" action="?/pin" use:enhance class="flex items-center gap-1">
+					<input type="hidden" name="id" value={p.id} />
+					<TextField
+						label={t('team.pinOf', { name: p.displayName })}
+						hideLabel
+						id="pin-{p.id}"
+						name="pin"
+						inputmode="numeric"
+						autocomplete="off"
+						maxlength={6}
+						class="w-24"
+						placeholder={p.hasPin ? '••••' : t('team.pin')}
+					/>
+					<button class="btn-ghost min-h-9 text-sm">{t('team.pinSave')}</button>
 				</form>
 				{#if p.id !== data.staff.id && assignable.includes(p.role)}
 					<form method="POST" action="?/update" use:enhance>
@@ -62,6 +77,8 @@
 	<p class="text-sm text-muted">
 		{t('team.deactivateHint')}
 	</p>
+	<p class="text-sm text-muted">{t('team.pinHint')}</p>
+	{#if form && 'pinSaved' in form}<p class="alert-ok" role="status">{t('team.pinSaved')}</p>{/if}
 
 	<GuardedForm action="?/add" class="grid gap-3 card p-4 sm:grid-cols-2" reset>
 		<h2 class="font-semibold sm:col-span-2">{t('team.add')}</h2>

@@ -1,10 +1,10 @@
 import { reconciliation, SHOP_TZ, todayLocal } from '#lib/server/analytics/queries.ts';
-import { ADMIN, requireStaff } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { listSessionsForDay } from '#lib/server/cash/service.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'cash.open_close');
 	const raw = event.url.searchParams.get('day');
 	const day = raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : todayLocal();
 	const [rec, sessions] = await Promise.all([

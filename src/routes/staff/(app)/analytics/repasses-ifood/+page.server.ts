@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import type { PayoutField } from '#lib/server/integrations/ifood/payout-csv.ts';
 import {
 	importIfoodPayouts,
@@ -14,7 +15,7 @@ import type { Actions, PageServerLoad } from './$types';
 const FIELDS: PayoutField[] = ['order', 'date', 'gross', 'commission', 'fee', 'net'];
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'reports.view');
 	const uploads = await payoutUploads();
 	const chosen = event.url.searchParams.get('extrato') ?? uploads[0]?.id ?? null;
 	return {
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	upload: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'reports.view');
 		const file = (await event.request.formData()).get('file');
 		if (!(file instanceof File) || !file.size || file.size > 5_000_000) {
 			return fail(400, { error: await shopText('err.payouts.columns', { missing: '-' }) });
@@ -39,7 +40,7 @@ export const actions: Actions = {
 		});
 	},
 	columns: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'reports.view');
 		const f = await event.request.formData();
 		const columns: Partial<Record<PayoutField, string[]>> = {};
 		for (const field of FIELDS) {

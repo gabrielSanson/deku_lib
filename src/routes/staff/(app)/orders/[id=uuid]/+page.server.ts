@@ -1,7 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { ORDER_STATUSES, type OrderStatus } from '#lib/domain/order-status.ts';
 import { attempt, failText, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { approve, can, requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	cancelFiscal,
 	getFiscalSettings,
@@ -31,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
 					enabled: (await getFiscalSettings()).enabled,
 					documents: await listFiscalDocuments(order.id)
 				};
-	const profit = ADMIN.includes(staff.role) ? await orderProfitDetail(order.id) : null;
+	const profit = can(staff, 'reports.view') ? await orderProfitDetail(order.id) : null;
 	const print = (await printStatus(order.id)).find((j) => j.kind === 'kitchen') ?? null;
 	return { order, fiscal, profit, print };
 };
@@ -67,22 +68,38 @@ export const actions: Actions = {
 		const staff = requireStaff(event);
 		const data = await event.request.formData();
 		return attempt(async () => {
+			const { approvedBy } = await approve(
+				staff,
+				'orders.refund',
+				formString(data, 'managerPin'),
+				`refund:${formString(data, 'tenderId')}`
+			);
 			await refundTender(
 				formString(data, 'tenderId'),
 				formString(data, 'reason'),
-				staffActor(staff)
+				staffActor(staff),
+				approvedBy
 			);
 			return { ok: true };
 		});
 	},
 	cancelRefund: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requireStaff(event);
 		const data = await event.request.formData();
 		return attempt(async () => {
+			const { approvedBy } = await approve(
+				staff,
+				'orders.refund',
+				formString(data, 'managerPin'),
+				`cancelRefund:${event.params.id}`
+			);
 			const r = await cancelAndRefund(
 				event.params.id,
 				formString(data, 'reason'),
-				staffActor(staff)
+				staffActor(staff),
+				undefined,
+				undefined,
+				approvedBy
 			);
 			return {
 				ok: true,
@@ -92,14 +109,14 @@ export const actions: Actions = {
 		});
 	},
 	fiscalRetry: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		return attempt(async () => {
 			await retryFiscal(event.params.id, staffActor(staff));
 			return { ok: true };
 		});
 	},
 	fiscalCancel: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'fiscal.manage');
 		const data = await event.request.formData();
 		return attempt(async () => {
 			await cancelFiscal(event.params.id, formString(data, 'reason'), staffActor(staff));

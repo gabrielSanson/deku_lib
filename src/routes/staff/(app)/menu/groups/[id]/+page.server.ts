@@ -1,14 +1,15 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import { deleteGroup, saveGroup } from '#lib/server/catalog/editor.ts';
 import { menuImageUrl, uploadMenuImage } from '#lib/server/catalog/images.ts';
 import { db } from '#lib/server/db.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.edit');
 	if (event.params.id === 'novo') {
 		return {
 			isNew: true,
@@ -71,7 +72,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	save: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const d = await event.request.formData();
 		const names = d.getAll('optionName').map(String);
 		const skus = d.getAll('optionSku').map(String);
@@ -131,7 +132,7 @@ export const actions: Actions = {
 		redirect(303, `/staff/menu/groups/${result.id}?salvo=1`);
 	},
 	delete: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		await deleteGroup(event.params.id, staffActor(staff));
 		redirect(303, '/staff/menu/edit');
 	}

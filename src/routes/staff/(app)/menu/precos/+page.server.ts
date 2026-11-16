@@ -1,7 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import { parseBRL } from '#lib/domain/money.ts';
 import { attempt, formString, shopText } from '#lib/server/actions.ts';
-import { ADMIN, requireStaff, staffActor } from '#lib/server/auth/staff.ts';
+import { staffActor } from '#lib/server/auth/staff.ts';
+import { requirePermission } from '#lib/server/auth/permissions.ts';
 import {
 	listIfoodPrices,
 	saveChannelSettings,
@@ -10,13 +11,13 @@ import {
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	requireStaff(event, ADMIN);
+	requirePermission(event, 'menu.edit');
 	return await listIfoodPrices();
 };
 
 export const actions: Actions = {
 	markup: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const f = await event.request.formData();
 		const pct = Number(formString(f, 'markup').replace(',', '.') || '0');
 		const round = formString(f, 'roundTo');
@@ -32,7 +33,7 @@ export const actions: Actions = {
 		});
 	},
 	prices: async (event) => {
-		const staff = requireStaff(event, ADMIN);
+		const staff = requirePermission(event, 'menu.edit');
 		const f = await event.request.formData();
 		const entries: { sku: string; priceCents: number | null }[] = [];
 		for (const [key, value] of f.entries()) {

@@ -1130,5 +1130,60 @@ export const SERVER_ERROR_TEXTS = {
 		label: 'Devolução: pagamento sem referência',
 		default:
 			'Esse pagamento online não tem a referência do provedor. Devolva pelo painel do provedor.'
+	},
+	'err.role.name': {
+		group: 'staffErrors',
+		label: 'Perfis: nome',
+		default: 'Dê um nome ao perfil (até 40 letras).'
+	},
+	'err.role.duplicate': {
+		group: 'staffErrors',
+		label: 'Perfis: nome repetido',
+		default: 'Já existe um perfil com esse nome.'
+	},
+	'err.role.notFound': {
+		group: 'staffErrors',
+		label: 'Perfis: não encontrado',
+		default: 'Perfil não encontrado.'
+	},
+	'err.role.owner': {
+		group: 'staffErrors',
+		label: 'Perfis: dono',
+		default: 'O perfil Dono sempre pode tudo.'
+	},
+	'err.role.system': {
+		group: 'staffErrors',
+		label: 'Perfis: perfil padrão',
+		default: 'Os perfis padrão não podem ser excluídos.'
+	},
+	'err.role.inUse': {
+		group: 'staffErrors',
+		label: 'Perfis: em uso',
+		default: 'Há pessoas com esse perfil. Mude o perfil delas antes de excluir.'
+	},
+	'err.pin.format': {
+		group: 'staffErrors',
+		label: 'PIN: formato',
+		default: 'O PIN tem de 4 a 6 números.'
+	},
+	'err.pin.taken': {
+		group: 'staffErrors',
+		label: 'PIN: repetido',
+		default: 'Esse PIN já é de outra pessoa da equipe. Escolha outro.'
+	},
+	'err.pin.tooMany': {
+		group: 'staffErrors',
+		label: 'PIN: muitas tentativas',
+		default: 'Muitas tentativas de PIN. Espere alguns minutos.'
+	},
+	'err.pin.wrong': {
+		group: 'staffErrors',
+		label: 'PIN: errado',
+		default: 'PIN não confere ou essa pessoa não pode autorizar isso.'
+	},
+	'err.permission.needsManager': {
+		group: 'staffErrors',
+		label: 'Permissão: precisa de autorização',
+		default: 'Seu perfil não pode fazer isso. Peça para um gerente digitar o PIN.'
 	}
 } satisfies Record<string, TextDef>;
