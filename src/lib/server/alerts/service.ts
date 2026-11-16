@@ -37,6 +37,10 @@ export interface AlertSettings {
 	pushEnabled: boolean;
 	noOrdersEnabled: boolean;
 	noOrdersMinutes: number;
+	/** The owner's daily summary after closing. */
+	dailySummaryEnabled?: boolean;
+	/** E.164 number for the summary on WhatsApp; null = e-mail only. */
+	ownerWhatsapp?: string | null;
 }
 
 export async function getAlertSettings(sql: Db = db()): Promise<AlertSettings> {
@@ -46,13 +50,17 @@ export async function getAlertSettings(sql: Db = db()): Promise<AlertSettings> {
 			push_enabled: boolean;
 			no_orders_enabled: boolean;
 			no_orders_minutes: number;
+			daily_summary_enabled: boolean;
+			owner_whatsapp: string | null;
 		}[]
 	>`select * from alert_settings where shop_id = current_shop_id()`;
 	return {
 		emailTo: r.email_to,
 		pushEnabled: r.push_enabled,
 		noOrdersEnabled: r.no_orders_enabled,
-		noOrdersMinutes: r.no_orders_minutes
+		noOrdersMinutes: r.no_orders_minutes,
+		dailySummaryEnabled: r.daily_summary_enabled,
+		ownerWhatsapp: r.owner_whatsapp
 	};
 }
 
@@ -60,6 +68,9 @@ export async function saveAlertSettings(input: AlertSettings, sql: Db = db()) {
 	await sql`
 		update alert_settings set email_to = ${input.emailTo}, push_enabled = ${input.pushEnabled},
 			no_orders_enabled = ${input.noOrdersEnabled}, no_orders_minutes = ${input.noOrdersMinutes},
+			daily_summary_enabled = coalesce(${input.dailySummaryEnabled ?? null}::boolean, daily_summary_enabled),
+			owner_whatsapp = case when ${input.ownerWhatsapp === undefined} then owner_whatsapp
+				else ${input.ownerWhatsapp ?? null} end,
 			updated_at = now()
 		where shop_id = current_shop_id()`;
 }

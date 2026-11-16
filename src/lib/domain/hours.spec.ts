@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { describeOpening, isOpenAt, isSlot, nextOpening, slots, type Schedule } from './hours';
+import {
+	describeOpening,
+	isOpenAt,
+	isSlot,
+	nextOpening,
+	slots,
+	summaryDueAt,
+	type Schedule
+} from './hours';
 
 // São Paulo is UTC-3 all year.
 const at = (local: string) => new Date(`${local}:00-03:00`);
@@ -99,5 +107,17 @@ describe('scheduling slots', () => {
 		const s = slots({ enabled: false, days: [], closedDates: [] }, at('2026-10-20T22:00'), 30);
 		expect(s[0]).toEqual(at('2026-10-20T22:30'));
 		expect(s[s.length - 1]).toEqual(at('2026-10-21T23:45'));
+	});
+});
+
+describe('daily summary time', () => {
+	it('is 30 min after the last closing, or 23:30', () => {
+		expect(summaryDueAt(schedule, '2026-10-20')).toEqual(at('2026-10-20T23:30'));
+		// Friday's shift closes at 02:00 on Saturday.
+		expect(summaryDueAt(schedule, '2026-10-23')).toEqual(at('2026-10-24T02:30'));
+		// Monday: closed all day.
+		expect(summaryDueAt(schedule, '2026-10-19')).toEqual(at('2026-10-19T23:30'));
+		const early = { ...schedule, days: [{ weekday: 2, opens: '11:00', closes: '15:00' }] };
+		expect(summaryDueAt(early, '2026-10-20')).toEqual(at('2026-10-20T15:30'));
 	});
 });

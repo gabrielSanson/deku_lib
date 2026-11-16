@@ -134,6 +134,18 @@
 			value={a.noOrdersMinutes}
 			required
 		/>
+		<Checkbox
+			label={t('summary.enabled')}
+			name="dailySummaryEnabled"
+			checked={a.dailySummaryEnabled ?? true}
+		/>
+		<TextField
+			label={t('summary.whatsapp')}
+			name="ownerWhatsapp"
+			type="tel"
+			autocomplete="off"
+			value={a.ownerWhatsapp ?? ''}
+		/>
 		<FormError message={form && 'error' in form ? form.error : undefined} />
 	</SettingsSection>
 

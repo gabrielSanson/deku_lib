@@ -1,4 +1,5 @@
 // Sistema: is the shop's server looking after itself? Backups, open alerts and who gets them.
+import { normalizeBrPhone } from '#lib/domain/phone.ts';
 import { fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import { attempt, failText, formString } from '#lib/server/actions.ts';
@@ -46,12 +47,17 @@ export const actions: Actions = {
 		const minutes = Number(formString(d, 'noOrdersMinutes'));
 		if (!Number.isInteger(minutes) || minutes < 15 || minutes > 240)
 			return failText(400, 'err.alerts.minutes');
+		const phoneRaw = formString(d, 'ownerWhatsapp');
+		const ownerWhatsapp = phoneRaw ? normalizeBrPhone(phoneRaw) : null;
+		if (phoneRaw && !ownerWhatsapp) return failText(400, 'checkout.error.phone');
 		return attempt(async () => {
 			await saveAlertSettings({
 				emailTo: [...new Set(emails)].slice(0, 10),
 				pushEnabled: d.get('pushEnabled') === 'on',
 				noOrdersEnabled: d.get('noOrdersEnabled') === 'on',
-				noOrdersMinutes: minutes
+				noOrdersMinutes: minutes,
+				dailySummaryEnabled: d.get('dailySummaryEnabled') === 'on',
+				ownerWhatsapp
 			});
 			return { saved: true };
 		});

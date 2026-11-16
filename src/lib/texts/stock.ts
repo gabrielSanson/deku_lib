@@ -310,6 +310,41 @@ export const STOCK_TEXTS = {
 		label: 'Despesas: dia',
 		default: 'Escolha um dia entre 1 e 28.'
 	},
+	'summary.subject': {
+		group: s,
+		label: 'Resumo do dia: assunto',
+		default: 'Resumo do dia {data} · {loja}'
+	},
+	'summary.line.sales': {
+		group: s,
+		label: 'Resumo do dia: vendas',
+		default: 'Vendas: {value} em {n} pedidos (ticket médio {avg})'
+	},
+	'summary.line.top': {
+		group: s,
+		label: 'Resumo do dia: mais vendidos',
+		default: 'Mais vendidos: {list}'
+	},
+	'summary.line.cash': {
+		group: s,
+		label: 'Resumo do dia: diferença de caixa',
+		default: 'Diferença no fechamento do caixa: {value}'
+	},
+	'summary.line.problems': {
+		group: s,
+		label: 'Resumo do dia: pendências',
+		default: 'Sem pagamento: {unpaid} · Cancelados: {cancelled} · Alertas abertos: {alerts}'
+	},
+	'summary.enabled': {
+		group: s,
+		label: 'Resumo do dia: ligar',
+		default: 'Enviar o resumo do dia 30 min depois de fechar'
+	},
+	'summary.whatsapp': {
+		group: s,
+		label: 'Resumo do dia: WhatsApp do dono',
+		default: 'WhatsApp do dono para o resumo (opcional)'
+	},
 	'err.profit.settings': {
 		group: 'staffErrors',
 		label: 'Lucro: configuração inválida',

@@ -149,3 +149,27 @@ function openingDayOf(schedule: Schedule, at: Date): string {
 export function isSlot(schedule: Schedule, now: Date, prepMinutes: number, at: Date): boolean {
 	return slots(schedule, now, prepMinutes).some((s) => s.getTime() === at.getTime());
 }
+
+/** "YYYY-MM-DD" + "HH:MM" in shop time as a Date (São Paulo is UTC−3, no daylight saving). */
+export function shopTime(date: string, hhmm: string): Date {
+	return new Date(`${date}T${hhmm}:00-03:00`);
+}
+
+/**
+ * When the owner's daily summary for an opening day goes out: 30 minutes after that day's last
+ * closing (a late shift closes the next morning), else 23:30.
+ */
+export function summaryDueAt(schedule: Schedule, day: string): Date {
+	const shifts =
+		schedule.enabled && !schedule.closedDates.includes(day)
+			? schedule.days.filter((d) => d.weekday === weekdayOf(day))
+			: [];
+	if (shifts.length === 0) return shopTime(day, '23:30');
+	const closes = shifts.map((d) =>
+		shopTime(crossesMidnight(d) ? shiftDate(day, 1) : day, d.closes).getTime()
+	);
+	return new Date(Math.max(...closes) + 30 * 60_000);
+}
+
+/** The local date before a "YYYY-MM-DD". */
+export const dayBefore = (day: string) => shiftDate(day, -1);
