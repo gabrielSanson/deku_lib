@@ -53,6 +53,7 @@ export const NAV: NavGroup[] = [
 		label: 'nav.gestao',
 		links: [
 			{ href: '/staff/analytics', label: 'nav.relatorios', icon: 'chart' },
+			{ href: '/staff/clientes', label: 'nav.clientes', icon: 'users' },
 			{ href: '/staff/campaigns', label: 'nav.campanhas', icon: 'crown' },
 			{
 				href: '/staff/settings/profile',

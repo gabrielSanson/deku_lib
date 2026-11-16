@@ -10,6 +10,7 @@ import { STAFF_LABEL_TEXTS } from './staff-labels';
 import { SERVER_ERROR_TEXTS } from './server-errors';
 import { PLATFORM_TEXTS } from './platform';
 import { WHATSAPP_TEXTS } from './whatsapp';
+import { STAFF_CUSTOMER_TEXTS } from './staff-customers';
 
 export interface TextDef {
 	group: TextGroup;
@@ -2553,7 +2554,8 @@ export const TEXT_MODULES = [
 	STAFF_LABEL_TEXTS,
 	SERVER_ERROR_TEXTS,
 	PLATFORM_TEXTS,
-	WHATSAPP_TEXTS
+	WHATSAPP_TEXTS,
+	STAFF_CUSTOMER_TEXTS
 ] as const;
 
 export const TEXTS = {
@@ -2565,7 +2567,8 @@ export const TEXTS = {
 	...STAFF_LABEL_TEXTS,
 	...SERVER_ERROR_TEXTS,
 	...PLATFORM_TEXTS,
-	...WHATSAPP_TEXTS
+	...WHATSAPP_TEXTS,
+	...STAFF_CUSTOMER_TEXTS
 };
 
 export type TextKey = keyof typeof TEXTS;

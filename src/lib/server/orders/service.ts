@@ -34,6 +34,7 @@ import { ifoodSettings } from '../integrations/ifood/settings';
 import { odSettings } from '../integrations/opendelivery/settings';
 import { dropPushSubscriptions } from '../notifications/push';
 import { orderRequestHash } from '#lib/domain/request-hash.ts';
+import { OWN_SOURCES, sourceForChannel } from '#lib/domain/consent.ts';
 import { knownShop } from '../platform/shops';
 import { inHoursNow } from '../settings/hours';
 import { getStoreSettings } from '../settings/service';
@@ -225,13 +226,19 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			customerId = mine?.id ?? null;
 		}
 		if (!customerId && input.customer) {
+			// Delivery-app contacts are recorded with their source and never get marketing consent.
+			const source = sourceForChannel(input.channel, input.sourceMode);
+			const consent = OWN_SOURCES.includes(source) && input.customer.marketingConsent;
 			const [c] = await tx<{ id: string }[]>`
-				insert into customers (name, phone_e164, email, marketing_consent_at, whatsapp_updates_at)
+				insert into customers (name, phone_e164, email, marketing_consent_at, whatsapp_updates_at, source)
 				values (${input.customer.name}, ${input.customer.phoneE164 ?? null}, ${input.customer.email ?? null},
-					${input.customer.marketingConsent ? now : null}, ${input.customer.whatsappUpdates ? now : null})
+					${consent ? now : null}, ${input.customer.whatsappUpdates ? now : null}, ${source})
 				on conflict (shop_id, phone_e164) where phone_e164 is not null and deleted_at is null
 				do update set name = coalesce(customers.name, excluded.name),
 					marketing_consent_at = coalesce(excluded.marketing_consent_at, customers.marketing_consent_at),
+					-- A delivery-app contact who orders on the shop's own channel becomes the shop's contact.
+					source = case when customers.source in ('ifood', 'opendelivery')
+						and excluded.source in ('own', 'whatsapp', 'pos') then excluded.source else customers.source end,
 					whatsapp_updates_at = coalesce(excluded.whatsapp_updates_at, customers.whatsapp_updates_at)
 				returning id`;
 			customerId = c.id;
@@ -297,6 +304,12 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
 			return again;
 		}
 		const order = inserted[0];
+		if (customerId && !input.isTest) {
+			await tx`update customers set orders_count = orders_count + 1,
+				total_spent_cents = total_spent_cents + ${total},
+				first_order_at = coalesce(first_order_at, now()), last_order_at = now()
+				where id = ${customerId}`;
+		}
 
 		for (const line of cart.lines) {
 			const [item] = await tx<{ id: string }[]>`
@@ -511,6 +524,12 @@ export async function transitionOrder(input: TransitionInput, tx?: Tx): Promise<
 				version = version + 1
 			where id = ${input.orderId}
 			returning version`;
+		if (input.to === 'cancelled' || input.to === 'rejected') {
+			// A cancelled order no longer counts in the customer's totals.
+			await t`update customers c set orders_count = greatest(c.orders_count - 1, 0),
+				total_spent_cents = greatest(c.total_spent_cents - o.total_cents, 0)
+				from orders o where o.id = ${input.orderId} and o.customer_id = c.id and o.is_test = false`;
+		}
 		await t`
 			insert into order_status_history (order_id, from_status, to_status, actor_type, actor_id, reason, source_event_id)
 			values (${input.orderId}, ${order.status}, ${input.to}, ${input.actor.type}, ${input.actor.id},
