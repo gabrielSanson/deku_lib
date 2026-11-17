@@ -26,3 +26,12 @@ do $$ begin
     create publication supabase_realtime;
   end if;
 end $$;
+
+-- Supabase Auth's MFA factors (S5.9); only the columns the app reads.
+create table if not exists auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  status text not null default 'unverified',
+  factor_type text not null default 'totp',
+  created_at timestamptz not null default now()
+);

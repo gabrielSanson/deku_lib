@@ -156,6 +156,12 @@ export const SETTINGS_GROUPS: NavGroup[] = [
 				permission: 'staff.manage'
 			},
 			{
+				href: '/staff/seguranca',
+				label: 'nav.seguranca',
+				icon: 'lock',
+				permission: 'settings.edit'
+			},
+			{
 				href: '/staff/settings/permissoes',
 				label: 'nav.permissoes',
 				icon: 'check',

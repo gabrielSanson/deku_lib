@@ -1030,6 +1030,85 @@ export const STAFF_SETTINGS_TEXTS = {
 		label: 'Permissões: Exportar clientes',
 		default: 'Exportar clientes'
 	},
+	// Minha conta → Segurança (S5.9)
+	'mfa.title': { group: g, label: 'Segurança: título', default: 'Segurança da conta' },
+	'mfa.intro': {
+		group: g,
+		label: 'Segurança: explicação',
+		default:
+			'Com a verificação em duas etapas, além da senha você digita um código do aplicativo autenticador (Google Authenticator, Authy…) antes de mexer em pagamentos, fiscal, equipe e preços.'
+	},
+	'mfa.mustEnrol': {
+		group: g,
+		label: 'Segurança: obrigatório',
+		default:
+			'A loja exige verificação em duas etapas para administradores. Ative abaixo para continuar.'
+	},
+	'mfa.unavailable': {
+		group: g,
+		label: 'Segurança: indisponível',
+		default: 'A verificação em duas etapas não está disponível neste acesso.'
+	},
+	'mfa.factors': { group: g, label: 'Segurança: aplicativos', default: 'Aplicativo autenticador' },
+	'mfa.factorSince': { group: g, label: 'Segurança: ativo desde', default: 'Ativo desde {date}' },
+	'mfa.none': { group: g, label: 'Segurança: nenhum', default: 'Nenhum aplicativo ligado.' },
+	'mfa.remove': { group: g, label: 'Segurança: remover', default: 'Remover' },
+	'mfa.removed': { group: g, label: 'Segurança: removido', default: 'Aplicativo removido.' },
+	'mfa.enrol': {
+		group: g,
+		label: 'Segurança: ativar',
+		default: 'Ativar verificação em duas etapas'
+	},
+	'mfa.scan': {
+		group: g,
+		label: 'Segurança: escanear',
+		default: 'Abra o aplicativo autenticador, escaneie o código e digite os 6 números que aparecem.'
+	},
+	'mfa.qrAlt': {
+		group: g,
+		label: 'Segurança: QR',
+		default: 'QR code para o aplicativo autenticador'
+	},
+	'mfa.secret': {
+		group: g,
+		label: 'Segurança: chave manual',
+		default: 'Sem câmera? Digite esta chave no aplicativo:'
+	},
+	'mfa.code': { group: g, label: 'Segurança: código', default: 'Código do aplicativo' },
+	'mfa.confirm': { group: g, label: 'Segurança: confirmar', default: 'Confirmar' },
+	'mfa.confirmed': {
+		group: g,
+		label: 'Segurança: ativado',
+		default: 'Verificação em duas etapas ativada.'
+	},
+	'mfa.requireTitle': {
+		group: g,
+		label: 'Segurança: exigir',
+		default: 'Exigir verificação em duas etapas para administradores'
+	},
+	'mfa.requireHelp': {
+		group: g,
+		label: 'Segurança: exigir ajuda',
+		default: 'Quem pode mudar configurações ou a equipe terá de ativar antes de usar o painel.'
+	},
+	'mfa.requireOn': { group: g, label: 'Segurança: ligar exigência', default: 'Exigir' },
+	'mfa.requireOff': {
+		group: g,
+		label: 'Segurança: desligar exigência',
+		default: 'Deixar de exigir'
+	},
+	'mfa.verifyTitle': {
+		group: g,
+		label: 'Verificação: título',
+		default: 'Verificação em duas etapas'
+	},
+	'mfa.verifyIntro': {
+		group: g,
+		label: 'Verificação: explicação',
+		default:
+			'Esta tela mexe em pagamentos, fiscal, equipe ou preços. Digite o código do seu aplicativo autenticador.'
+	},
+	'mfa.verify': { group: g, label: 'Verificação: continuar', default: 'Continuar' },
 	'perm.title': { group: g, label: 'Permissões: título', default: 'Permissões' },
 	'perm.intro': {
 		group: g,

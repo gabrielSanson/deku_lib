@@ -1190,5 +1190,20 @@ export const SERVER_ERROR_TEXTS = {
 		group: 'staffErrors',
 		label: 'Escala: horário inválido',
 		default: 'Confira o dia e os horários (um turno tem no máximo 16 horas).'
+	},
+	'err.mfa.unavailable': {
+		group: 'staffErrors',
+		label: 'Duas etapas: indisponível',
+		default: 'A verificação em duas etapas não está disponível agora. Tente de novo em instantes.'
+	},
+	'err.mfa.code': {
+		group: 'staffErrors',
+		label: 'Duas etapas: código errado',
+		default: 'Código não confere. Veja o código atual no aplicativo e digite de novo.'
+	},
+	'err.mfa.removeNeedsCode': {
+		group: 'staffErrors',
+		label: 'Duas etapas: remover exige código',
+		default: 'Para remover, confirme antes com o código do aplicativo (Segurança → Verificar).'
 	}
 } satisfies Record<string, TextDef>;

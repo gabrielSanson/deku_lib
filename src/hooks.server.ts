@@ -1,4 +1,6 @@
 import { PERMISSIONS } from '#lib/domain/permissions.ts';
+import { mfaApplies, mfaGate } from '#lib/domain/mfa.ts';
+import { adminMfaRequired, hasVerifiedFactor } from '#lib/server/auth/mfa.ts';
 import { createServerClient } from '@supabase/ssr';
 import { error, redirect } from '@sveltejs/kit';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
@@ -62,6 +64,7 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 	const isStaff = isStaffPath(path);
 	// Shop pages read the customer's sign-in too (the account button, /conta).
 	const withSession = !NO_SESSION.test(path);
+	let aal: string | null = null;
 
 	if (withSession && PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY) {
 		const supabase = createServerClient(
@@ -83,6 +86,7 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 		// getClaims verifies the JWT signature; never trust an unverified session cookie.
 		const { data } = await supabase.auth.getClaims();
 		const claims = data?.claims;
+		aal = typeof claims?.aal === 'string' ? claims.aal : null;
 		if (claims?.sub) {
 			event.locals.authUserId = claims.sub;
 			if (isPlatformPath(path)) {
@@ -121,6 +125,23 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 			await audit(db(), { type: 'platform', id: adminId }, 'platform.view', 'page', null, {
 				path
 			});
+		}
+	}
+
+	// Two-step sign-in for the people who manage the shop (S5.9).
+	const staff = event.locals.staff;
+	if (staff && !event.locals.platformView && mfaApplies(staff.permissions)) {
+		const [hasFactor, required] = await Promise.all([
+			hasVerifiedFactor(staff.id),
+			adminMfaRequired()
+		]);
+		const gate = mfaGate({ path, permissions: staff.permissions, aal, hasFactor, required });
+		if (gate !== 'ok') {
+			const next = encodeURIComponent(path + event.url.search);
+			redirect(
+				303,
+				gate === 'verify' ? `/staff/seguranca/verificar?next=${next}` : '/staff/seguranca'
+			);
 		}
 	}
 

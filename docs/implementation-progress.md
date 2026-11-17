@@ -134,7 +134,7 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S5.6: done (cancelAndRefund: provider refunds first (marked one by one, safe retry), manual/cash via drawer, cancels open orders (stock reversal job), NFC-e cancel attempted and reported without blocking; admin-only until S5.7)
 - S5.7: done (roles/role_permissions, system roles Dono/Gerente/Atendente/Cozinha; 58 route checks moved to requirePermission; nav and settings filtered by permission; Permissões page; scrypt PIN (unique per shop), approve() with audit for refunds)
 - S5.8: done (Escala (week plan, publish, weekly hours, fix forgotten clock-outs) and Ponto (PIN clock in/out); internal control, not a certified REP)
-- S5.9: todo
+- S5.9: done (Supabase Auth TOTP (GoTrue v2.197.0 supports it, on by default in the compose stack; enabled in config.toml). Segurança page enrol/confirm/remove, verify screen before payments/fiscal/team/price screens when the member has a factor, shop switch forces enrolment for settings.edit/staff.manage. Factor check reads auth.mfa_factors server-side. TODO(verify) live enrol against the self-hosted stack)
 - S5.10: todo
 - S5.11: todo
 - S5.12: todo
