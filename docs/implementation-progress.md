@@ -2,6 +2,26 @@
 
 One line per item of `docs/implementation-spec.md`. A later run continues from the first item that is not done.
 
+## Run of 2026-11-17: stage S5 (operations and hardening), merged to main
+
+All 13 S5 items are done; card machine SDKs, on-demand couriers and the iFood financial API are deferred (need
+partner contracts). `pnpm verify` is green (225 unit, 242 database tests) and the 29 browser tests pass,
+including the new offline counter test. Load test passed: 1,000 orders/hour for 30 min, checkout p95 50 ms,
+0 errors, no job backlog (`docs/load-test.md`).
+
+Kitchen print queue, a wait time that grows with the queue, own couriers (Operação → Entregas), delivery fee by
+distance, NFC-e contingency and the monthly export to the accountant, cancel-and-refund in one step, roles with
+permissions and a manager PIN, staff schedule and time clock, two-step sign-in for administrators, the counter
+selling without internet, error tracking in the platform console, and the help centre at /ajuda.
+
+**To check on the live server (TODO(verify)):** Nominatim/ViaCEP lookups, Focus NFe contingency field names,
+two-step sign-in enrolment against the self-hosted Auth, and the time clock is an internal record, not a
+certified REP.
+
+Owner to do: pair the kitchen screen (🖨 Esta tela imprime), set each person's role and PIN, set the shop
+location for distance fees, the accountant's e-mail, the support WhatsApp in the platform console, and turn on
+two-step sign-in in Segurança.
+
 ## Run of 2026-11-16: stage S4 (profit view), merged to main
 
 All 5 S4 items are done. `pnpm verify` is green (200 unit, 204 database tests) and the 28 browser tests pass.
