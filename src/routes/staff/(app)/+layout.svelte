@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { helpFor } from '#lib/platform/help/index.ts';
 	import Icon from '#lib/components/atoms/Icon.svelte';
 	import ThemeToggle from '#lib/components/molecules/ThemeToggle.svelte';
 	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
@@ -10,6 +11,7 @@
 
 	let { data, children } = $props();
 	const t = useTexts();
+	const help = $derived(helpFor(page.url.pathname));
 	const groups = $derived(navFor(data.staff));
 	const current = $derived(activeHref(groups, page.url.pathname));
 	let drawerOpen = $state(false);
@@ -135,6 +137,13 @@
 			</p>
 		{/if}
 		{@render children()}
+		{#if help}
+			<p class="mx-auto max-w-4xl px-4 pb-6 text-sm">
+				<a class="underline" href="/ajuda/{help.slug}" target="_blank" rel="noopener">
+					{t('help.howTo')}
+				</a>
+			</p>
+		{/if}
 	</div>
 </div>
 

@@ -3,6 +3,7 @@
 import type { TextDef } from './catalog';
 
 export const STAFF_OPS_TEXTS = {
+	'help.howTo': { group: 'staff', label: 'Ajuda: link nas telas', default: 'Como fazer isso?' },
 	// Caixa sem internet (S5.10)
 	'pos.offline.banner': {
 		group: 'staff',

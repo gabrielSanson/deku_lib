@@ -138,4 +138,4 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S5.10: done (IndexedDB queue (OFF-n numbers, own idempotency keys), cash/card-machine only offline, browser receipt, banner, /staff/pos/sync with offline price winning (gap as discount or audited), conflicts listed with open/dismiss; SW keeps last good /staff/pos copy. e2e uses context.setOffline)
 - S5.11: done (error_events grouped by fingerprint with count; handleError, worker job failures and a rate-limited browser reporter write it; Plataforma → Erros lists and clears. SENTRY_DSN forwarding not built (TODO))
 - S5.12: todo
-- S5.13: todo
+- S5.13: done (8 Portuguese articles at /ajuda, 'Como fazer isso?' link on settings, menu, setup and kitchen screens; support WhatsApp set in the platform console)

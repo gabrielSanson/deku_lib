@@ -5,13 +5,14 @@ import { platformDb } from '#lib/server/db.ts';
 import { requirePlatformAdmin } from '#lib/server/platform/admins.ts';
 import { getPlatformSettings, savePlatformSettings } from '#lib/server/platform/billing.ts';
 import { setPlanPrice } from '#lib/server/platform/console.ts';
+import { saveSupportWhatsapp, supportWhatsapp } from '#lib/server/platform/support.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	requirePlatformAdmin(event);
 	const plans = await platformDb()<{ code: string; name: string; price_cents: number }[]>`
 		select code, name, price_cents from plans order by price_cents`;
-	return { settings: await getPlatformSettings(), plans };
+	return { settings: await getPlatformSettings(), plans, support: await supportWhatsapp() };
 };
 
 const actor = (id: string) => ({ type: 'platform' as const, id });
@@ -33,6 +34,14 @@ export const actions: Actions = {
 			actor(admin.id)
 		);
 		return { done: 'Configurações salvas.' };
+	},
+	support: async (event) => {
+		const admin = requirePlatformAdmin(event);
+		const f = await event.request.formData();
+		return attempt(async () => {
+			await saveSupportWhatsapp(formString(f, 'whatsapp'), actor(admin.id));
+			return { done: 'WhatsApp do suporte salvo.' };
+		});
 	},
 	price: async (event) => {
 		const admin = requirePlatformAdmin(event);

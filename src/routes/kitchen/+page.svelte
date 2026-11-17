@@ -244,6 +244,9 @@
 			}}>{muted ? t('kitchen.sound.off') : t('kitchen.sound.on')}</button
 		>
 		{#if data.staff.role === 'admin'}
+			<a class="text-sm underline" href="/ajuda/impressora" target="_blank" rel="noopener">
+				{t('help.howTo')}
+			</a>
 			<form method="POST" action={data.station ? '?/unpair' : '?/pair'} use:enhance>
 				<input type="hidden" name="name" value="Cozinha" />
 				<button

@@ -37,6 +37,17 @@
 		<button class="btn-primary">Salvar</button>
 	</form>
 
+	<form method="post" action="?/support" class="space-y-3 card p-4">
+		<h2 class="font-semibold">Suporte</h2>
+		<TextField
+			label="WhatsApp do suporte (aparece na Ajuda)"
+			name="whatsapp"
+			type="tel"
+			value={data.support ?? ''}
+		/>
+		<button class="btn-primary">Salvar</button>
+	</form>
+
 	<section class="space-y-3 card p-4">
 		<h2 class="text-lg font-bold">Planos</h2>
 		{#each data.plans as p (p.code)}
