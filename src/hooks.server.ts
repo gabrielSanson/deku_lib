@@ -13,6 +13,7 @@ import { resolveShop, syncTenancy } from '#lib/server/platform/shops.ts';
 import { loadPlatformAdmin } from '#lib/server/platform/admins.ts';
 import { PLATFORM_VIEW_COOKIE, readViewToken } from '#lib/server/platform/console.ts';
 import { audit } from '#lib/server/audit.ts';
+import { recordError } from '#lib/server/monitoring/errors.ts';
 import { db } from '#lib/server/db.ts';
 import { isPlatformPath, isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
@@ -168,6 +169,23 @@ export const handleError: HandleServerError = (caught) => {
 	// App and framework errors keep their own status/message (e.g. 403, 404).
 	if (caught.kind !== 'unknown') return;
 	const requestId = caught.event.locals.requestId;
+	const err = caught.error;
+	const locals = caught.event.locals;
+	void recordError({
+		where: 'web',
+		message: err instanceof Error ? err.message : String(err),
+		stack: err instanceof Error ? (err.stack ?? null) : null,
+		route: caught.event.route.id ?? caught.event.url.pathname,
+		requestId,
+		userKind: locals.platformAdmin
+			? 'platform'
+			: locals.staff
+				? 'staff'
+				: locals.customer
+					? 'customer'
+					: 'anonymous',
+		shopId: locals.shop?.id ?? null
+	});
 	console.error(
 		JSON.stringify({
 			level: 'error',

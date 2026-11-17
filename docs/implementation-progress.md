@@ -136,6 +136,6 @@ order key with a different cart is refused (H3); checkout and the till renew the
 - S5.8: done (Escala (week plan, publish, weekly hours, fix forgotten clock-outs) and Ponto (PIN clock in/out); internal control, not a certified REP)
 - S5.9: done (Supabase Auth TOTP (GoTrue v2.197.0 supports it, on by default in the compose stack; enabled in config.toml). Segurança page enrol/confirm/remove, verify screen before payments/fiscal/team/price screens when the member has a factor, shop switch forces enrolment for settings.edit/staff.manage. Factor check reads auth.mfa_factors server-side. TODO(verify) live enrol against the self-hosted stack)
 - S5.10: done (IndexedDB queue (OFF-n numbers, own idempotency keys), cash/card-machine only offline, browser receipt, banner, /staff/pos/sync with offline price winning (gap as discount or audited), conflicts listed with open/dismiss; SW keeps last good /staff/pos copy. e2e uses context.setOffline)
-- S5.11: todo
+- S5.11: done (error_events grouped by fingerprint with count; handleError, worker job failures and a rate-limited browser reporter write it; Plataforma → Erros lists and clears. SENTRY_DSN forwarding not built (TODO))
 - S5.12: todo
 - S5.13: todo

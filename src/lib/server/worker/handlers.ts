@@ -1,6 +1,7 @@
 // Background job handlers. The worker process (scripts/worker.ts) registers
 // these with pg-boss; they are plain functions so tests can call them directly.
 // Every handler is idempotent because pg-boss delivers at least once.
+import { recordError } from '../monitoring/errors';
 import { requestRating } from '../customers/ratings';
 import { deductStock, reverseStock } from '../stock/service';
 import { backfillTenderFees } from '../payments/fees';
@@ -122,6 +123,13 @@ function forEachShop(fn: () => Promise<unknown>) {
 				await withShop(shopId, () => fn());
 			} catch (err) {
 				log('scheduled job failed for a shop', { shopId, err: String(err) });
+				await recordError({
+					where: 'worker',
+					message: err instanceof Error ? err.message : String(err),
+					stack: err instanceof Error ? (err.stack ?? null) : null,
+					route: 'scheduled',
+					shopId
+				});
 				failed ??= err;
 			}
 		}
@@ -172,6 +180,14 @@ export async function startWorker(extra: Partial<Record<string, Handler>> = {}) 
 						await withShop(shopId, () => handler(job.data as never));
 					} catch (err) {
 						log('job failed', { queue: name, jobId: job.id, err: String(err) });
+						await recordError({
+							where: 'worker',
+							message: err instanceof Error ? err.message : String(err),
+							stack: err instanceof Error ? (err.stack ?? null) : null,
+							route: name,
+							requestId: job.id,
+							shopId: typeof job.data?.shopId === 'string' ? job.data.shopId : null
+						});
 						throw err;
 					}
 				}

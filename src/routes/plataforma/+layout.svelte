@@ -8,6 +8,7 @@
 		{#if data.admin}
 			<nav class="flex items-center gap-3 text-sm">
 				<a class="underline" href="/plataforma">Lojas</a>
+				<a class="underline" href="/plataforma/erros">Erros</a>
 				<a class="underline" href="/plataforma/configuracoes">Configurações</a>
 				<form method="post" action="/plataforma/sair">
 					<button class="underline">Sair</button>
