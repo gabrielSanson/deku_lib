@@ -1,6 +1,8 @@
 // Caches only the app's static build files and icons. Menus, prices, orders,
 // payments and staff screens always come from the network, so nobody ever
-// sees a stale price or order. A failed page load shows the offline notice,
+// sees a stale price or order. The one exception is the counter (S5.10): the
+// last good copy of /staff/pos and its data is kept so the POS opens without
+// internet; online it is always fetched fresh. A failed page load shows the offline notice,
 // which is cached at install and refreshed now and then so the owner's edits
 // to its text reach it.
 import { version } from '$app/env';
@@ -10,6 +12,8 @@ import { self as sw } from '$app/service-worker';
 const CACHE = `static-${version}`;
 const ASSETS = [...immutable, ...assets].map((a) => `/${a.path.replace(/^\//, '')}`);
 const OFFLINE = '/offline';
+const POS_CACHE = `pos-${version}`;
+const POS_PATHS = ['/staff/pos', '/staff/pos/__data.json'];
 const OFFLINE_REFRESH_MS = 10 * 60_000;
 let offlineCachedAt = 0;
 
@@ -33,17 +37,42 @@ sw.addEventListener('activate', (event) => {
 	event.waitUntil(
 		caches
 			.keys()
-			.then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+			.then((keys) =>
+				Promise.all(keys.filter((k) => k !== CACHE && k !== POS_CACHE).map((k) => caches.delete(k)))
+			)
 			.then(() => sw.clients.claim())
 	);
 });
 
 sw.addEventListener('fetch', (event) => {
 	const { request } = event;
-	if (request.method !== 'GET') return;
 	const url = new URL(request.url);
 	if (url.origin !== sw.location.origin) return;
+	// Signing out forgets the counter's copy.
+	if (url.pathname === '/staff/logout') {
+		event.waitUntil(caches.delete(POS_CACHE));
+		return;
+	}
+	if (request.method !== 'GET') return;
 
+	if (POS_PATHS.includes(url.pathname)) {
+		event.respondWith(
+			fetch(request).then(
+				(res) => {
+					if (res.ok && !res.redirected) {
+						const copy = res.clone();
+						event.waitUntil(caches.open(POS_CACHE).then((c) => c.put(url.pathname, copy)));
+					}
+					return res;
+				},
+				async () =>
+					(await caches.match(url.pathname, { cacheName: POS_CACHE })) ??
+					(request.mode === 'navigate' ? await caches.match(OFFLINE) : undefined) ??
+					Response.error()
+			)
+		);
+		return;
+	}
 	if (ASSETS.includes(url.pathname)) {
 		event.respondWith(caches.match(url.pathname).then((hit) => hit ?? fetch(request)));
 		return;

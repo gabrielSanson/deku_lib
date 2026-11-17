@@ -15,6 +15,16 @@
 	import ProductSheet from './ProductSheet.svelte';
 	import { lineUnitCents, toPayload, type CartLine } from './cart.svelte.ts';
 	import { OrderKey } from '#lib/client/order-key.ts';
+	import {
+		nextOfflineNumber,
+		putSale,
+		queuedSales,
+		removeSale,
+		syncQueuedSales,
+		type QueuedSale
+	} from '#lib/client/offline-pos.ts';
+	import { invalidateAll } from '$app/navigation';
+	import { onMount, tick } from 'svelte';
 
 	let { data, form } = $props();
 	const t = useTexts();
@@ -48,6 +58,60 @@
 	// One key per request: a double tap or a retry after a timeout cannot create two orders,
 	// and any change to the order gets a new key (see OrderKey).
 	const orderKey = new OrderKey();
+
+	// Offline POS (S5.10): without internet, cash and card-machine sales queue on this device and are
+	// sent when the connection is back.
+	let online = $state(true);
+	let queue = $state<QueuedSale[]>([]);
+	let offlinePay = $state(false);
+	let offlineMethod = $state<'cash' | 'terminal_card'>('cash');
+	let receivedText = $state('');
+	let offlineError = $state<string | null>(null);
+	let receipt = $state<{
+		number: string;
+		items: { name: string; quantity: number; cents: number }[];
+		totalCents: number;
+		changeCents: number | null;
+	} | null>(null);
+	let syncing = false;
+	const waiting = $derived(queue.filter((s) => !s.problem).length);
+	const conflicts = $derived(queue.filter((s) => s.problem));
+
+	async function refreshQueue() {
+		try {
+			queue = await queuedSales();
+		} catch {
+			queue = [];
+		}
+	}
+
+	async function sync() {
+		if (syncing || !navigator.onLine) return;
+		syncing = true;
+		try {
+			const r = await syncQueuedSales();
+			await refreshQueue();
+			if (r?.synced) await invalidateAll();
+		} finally {
+			syncing = false;
+		}
+	}
+
+	onMount(() => {
+		online = navigator.onLine;
+		void refreshQueue().then(sync);
+		const on = () => {
+			online = true;
+			void sync();
+		};
+		const off = () => (online = false);
+		window.addEventListener('online', on);
+		window.addEventListener('offline', off);
+		return () => {
+			window.removeEventListener('online', on);
+			window.removeEventListener('offline', off);
+		};
+	});
 
 	const products = $derived(
 		data.catalog.products.filter(
@@ -152,6 +216,60 @@
 		discountCents: manualDiscount,
 		couponCode: couponCode || undefined
 	});
+	async function saveOffline() {
+		if (fulfillmentType === 'ifood' || !lines.length) return;
+		offlineError = null;
+		const received = receivedText.trim() ? parseBRL(receivedText) : total;
+		if (offlineMethod === 'cash' && (received === null || received < total)) {
+			offlineError = t('pos.offline.short');
+			return;
+		}
+		const sale: QueuedSale = {
+			key: crypto.randomUUID(),
+			number: nextOfflineNumber(),
+			createdAt: new Date().toISOString(),
+			catalogVersion: data.catalog.version ?? null,
+			lines: toPayload(lines),
+			fulfillmentType,
+			customerLabel: customerLabel.trim() || undefined,
+			tableLabel: fulfillmentType === 'dine_in' ? tableLabel.trim() || undefined : undefined,
+			notes: notes.trim() || undefined,
+			discountCents: manualDiscount,
+			totalCents: total,
+			tender:
+				offlineMethod === 'cash'
+					? { method: 'cash', receivedCents: received ?? total }
+					: { method: 'terminal_card' }
+		};
+		await putSale($state.snapshot(sale) as QueuedSale);
+		receipt = {
+			number: sale.number,
+			items: lines.map((l) => ({
+				name: l.product.name,
+				quantity: l.quantity,
+				cents: lineUnitCents(l) * l.quantity
+			})),
+			totalCents: total,
+			changeCents: offlineMethod === 'cash' ? (received ?? total) - total : null
+		};
+		lines = [];
+		customerLabel = '';
+		tableLabel = '';
+		notes = '';
+		discountText = '';
+		receivedText = '';
+		offlinePay = false;
+		orderKey.reset();
+		await refreshQueue();
+		await tick();
+		window.print();
+	}
+
+	async function dropSale(key: string) {
+		await removeSale(key);
+		await refreshQueue();
+	}
+
 	const payload = $derived.by(() => {
 		const body = JSON.stringify(request);
 		return JSON.stringify({ ...request, idempotencyKey: orderKey.for(body) });
@@ -161,9 +279,38 @@
 <svelte:head><title>{t('pos.tabTitle')}</title></svelte:head>
 <svelte:window onkeydown={onKey} />
 
-<div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_380px]">
+<div class="grid h-[calc(100dvh-57px)] grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_380px] print:hidden">
 	<section class="flex min-h-0 flex-col">
 		<header class="space-y-3 border-b border-line bg-surface p-4">
+			{#if !online || waiting}
+				<div class="flex flex-wrap items-center gap-2 alert-warn" role="status">
+					<span class="flex-1">
+						{online
+							? t('pos.offline.pending', { n: waiting })
+							: t('pos.offline.banner', { n: waiting })}
+					</span>
+					{#if online}
+						<button type="button" class="btn-ghost min-h-9 px-2" onclick={sync}>
+							{t('pos.offline.sendNow')}
+						</button>
+					{/if}
+				</div>
+			{/if}
+			{#each conflicts as c (c.key)}
+				<div class="flex flex-wrap items-center gap-2 alert-error" role="alert">
+					<span class="flex-1">
+						{t('pos.offline.conflict', { number: c.number, error: c.problem?.error ?? '' })}
+					</span>
+					{#if c.problem?.orderId}
+						<a class="btn-ghost min-h-9 px-2" href="/staff/pos/{c.problem.orderId}/payment">
+							{t('pos.offline.openOrder')}
+						</a>
+					{/if}
+					<button type="button" class="btn-ghost min-h-9 px-2" onclick={() => dropSale(c.key)}>
+						{t('pos.offline.dismiss')}
+					</button>
+				</div>
+			{/each}
 			<div>
 				<h1 class="page-title">{t('pos.title')}</h1>
 				<p class="text-sm text-muted">{t('pos.subtitle')}</p>
@@ -178,6 +325,7 @@
 						type.value
 							? 'border-brand-500 bg-brand-500 text-black'
 							: 'border-line bg-surface hover:bg-quiet'}"
+						disabled={!online && type.value === 'ifood'}
 						onclick={() => (fulfillmentType = type.value)}
 					>
 						<Icon name={type.icon} class="size-5" />{type.label}
@@ -356,6 +504,38 @@
 					<dd><Money cents={total} class="font-display text-3xl font-black" /></dd>
 				</div>
 			</dl>
+			{#if !online && offlinePay}
+				<div class="space-y-2 rounded-(--radius-control) border border-line p-3">
+					<p class="text-sm font-semibold">{t('pos.offline.payTitle')}</p>
+					<div
+						class="grid grid-cols-2 gap-2"
+						role="radiogroup"
+						aria-label={t('pos.offline.method')}
+					>
+						{#each [['cash', t('pos.offline.cash')], ['terminal_card', t('pos.offline.card')]] as const as [m, label] (m)}
+							<button
+								type="button"
+								role="radio"
+								aria-checked={offlineMethod === m}
+								class="chip justify-center {offlineMethod === m ? 'chip-active' : ''}"
+								onclick={() => (offlineMethod = m)}>{label}</button
+							>
+						{/each}
+					</div>
+					{#if offlineMethod === 'cash'}
+						<TextField
+							label={t('pos.offline.received')}
+							inputmode="decimal"
+							placeholder={t('pos.offline.received')}
+							bind:value={receivedText}
+						/>
+					{/if}
+					<FormError message={offlineError ?? undefined} />
+					<button type="button" class="btn-primary w-full" onclick={saveOffline}>
+						{t('pos.offline.confirm')}
+					</button>
+				</div>
+			{/if}
 			<div class="flex gap-2">
 				<button
 					type="button"
@@ -370,9 +550,16 @@
 				</button>
 				<button
 					bind:this={payEl}
+					type={online ? 'submit' : 'button'}
+					onclick={(e) => {
+						if (online) return;
+						e.preventDefault();
+						offlinePay = true;
+					}}
 					class="btn-primary btn-lg flex-1"
 					disabled={!lines.length ||
 						busy ||
+						(!online && fulfillmentType === 'ifood') ||
 						(!!couponCode &&
 							!manualDiscount &&
 							fulfillmentType !== 'ifood' &&
@@ -400,4 +587,18 @@
 		onclose={() => (sheet = null)}
 		onadd={(l) => sheet && addLine(sheet, l)}
 	/>
+{/if}
+
+{#if receipt}
+	<section class="hidden font-mono text-sm print:block" aria-hidden="true">
+		<p class="text-lg font-bold">{receipt.number}</p>
+		<p>{t('pos.offline.receiptNote')}</p>
+		{#each receipt.items as i, n (n)}
+			<p>{i.quantity}× {i.name} — <Money cents={i.cents} /></p>
+		{/each}
+		<p class="font-bold">{t('pos.total')}: <Money cents={receipt.totalCents} /></p>
+		{#if receipt.changeCents}<p>
+				{t('pos.offline.change')}: <Money cents={receipt.changeCents} />
+			</p>{/if}
+	</section>
 {/if}

@@ -96,3 +96,31 @@ test('kitchen staff only get the kitchen screen', async ({ page }) => {
 	await page.goto('/staff/pos');
 	await expect(page).toHaveURL(/\/kitchen$/);
 });
+
+test('the counter keeps selling without internet and sends the sales once it is back', async ({
+	page,
+	context
+}) => {
+	await login(page, 'admin@burger.local', '/staff/caixa');
+	await openDrawer(page);
+	await page.goto('/staff/pos');
+	await page.waitForLoadState('networkidle');
+	// window.print() would block in a headed browser; the receipt itself is not under test.
+	await page.evaluate(() => (window.print = () => {}));
+
+	await context.setOffline(true);
+	await expect(page.getByText(/Sem internet: 0 pedidos/)).toBeVisible();
+	const names = ['Offline A', 'Offline B'];
+	for (const [i, name] of names.entries()) {
+		await page.getByRole('button', { name: /^Batata frita Porção/ }).click();
+		await page.getByLabel('Nome', { exact: true }).fill(name);
+		await page.getByRole('button', { name: 'Cobrar' }).click();
+		await page.getByRole('button', { name: 'Registrar venda e imprimir' }).click();
+		await expect(page.getByText(`Sem internet: ${i + 1} pedidos`, { exact: false })).toBeVisible();
+	}
+
+	await context.setOffline(false);
+	await expect(page.getByText(/aguardando envio/)).toBeHidden({ timeout: 15_000 });
+	await page.goto('/staff/orders');
+	for (const name of names) await expect(page.getByText(name)).toHaveCount(1);
+});

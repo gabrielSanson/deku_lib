@@ -3,6 +3,75 @@
 import type { TextDef } from './catalog';
 
 export const STAFF_OPS_TEXTS = {
+	// Caixa sem internet (S5.10)
+	'pos.offline.banner': {
+		group: 'staff',
+		label: 'Caixa offline: aviso',
+		default:
+			'Sem internet: {n} pedidos aguardando envio. Dinheiro e maquininha continuam funcionando.'
+	},
+	'pos.offline.pending': {
+		group: 'staff',
+		label: 'Caixa offline: fila',
+		default: '{n} pedidos feitos sem internet aguardando envio.'
+	},
+	'pos.offline.sendNow': {
+		group: 'staff',
+		label: 'Caixa offline: enviar',
+		default: 'Enviar agora'
+	},
+	'pos.offline.conflict': {
+		group: 'staff',
+		label: 'Caixa offline: problema',
+		default: '{number} não entrou: {error}'
+	},
+	'pos.offline.openOrder': {
+		group: 'staff',
+		label: 'Caixa offline: abrir pedido',
+		default: 'Abrir pedido'
+	},
+	'pos.offline.dismiss': {
+		group: 'staff',
+		label: 'Caixa offline: remover',
+		default: 'Remover da fila'
+	},
+	'pos.offline.payTitle': {
+		group: 'staff',
+		label: 'Caixa offline: pagamento',
+		default: 'Sem internet: receba em dinheiro ou na maquininha'
+	},
+	'pos.offline.method': {
+		group: 'staff',
+		label: 'Caixa offline: forma',
+		default: 'Forma de pagamento'
+	},
+	'pos.offline.cash': { group: 'staff', label: 'Caixa offline: dinheiro', default: 'Dinheiro' },
+	'pos.offline.card': {
+		group: 'staff',
+		label: 'Caixa offline: maquininha',
+		default: 'Cartão na maquininha'
+	},
+	'pos.offline.received': {
+		group: 'staff',
+		label: 'Caixa offline: recebido',
+		default: 'Valor recebido (R$)'
+	},
+	'pos.offline.short': {
+		group: 'staff',
+		label: 'Caixa offline: valor baixo',
+		default: 'O valor recebido é menor que o total.'
+	},
+	'pos.offline.confirm': {
+		group: 'staff',
+		label: 'Caixa offline: registrar',
+		default: 'Registrar venda e imprimir'
+	},
+	'pos.offline.receiptNote': {
+		group: 'staff',
+		label: 'Caixa offline: nota do ticket',
+		default: 'Pedido feito sem internet. O número definitivo sai quando a conexão voltar.'
+	},
+	'pos.offline.change': { group: 'staff', label: 'Caixa offline: troco', default: 'Troco' },
 	// Equipe → Escala and Ponto (S5.8)
 	'shift.title': { group: 'staff', label: 'Escala: título', default: 'Escala da equipe' },
 	'shift.intro': {
