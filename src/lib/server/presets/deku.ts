@@ -59,5 +59,6 @@ export const deku: Preset = {
 	},
 	catalog: fixtureCatalog,
 	productIcon: 'burger',
-	css: ''
+	css: '',
+	adminMode: 'full'
 };

@@ -17,7 +17,12 @@ const schema = z.object({
 	// Unset: the preset's name until the owner sets one in Configurações → Loja.
 	SHOP_NAME: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
 	// The built-in look and wording (src/lib/server/presets): blank or deku.
-	SHOP_PRESET: z.enum(['blank', 'deku']).default('blank'),
+	SHOP_PRESET: z.enum(['blank', 'deku', 'cookie']).default('blank'),
+	// full (whole back office) or simple (orders, menu, site); empty follows the preset.
+	ADMIN_MODE: z.preprocess(
+		(v) => (v === '' ? undefined : v),
+		z.enum(['full', 'simple']).optional()
+	),
 	SHOP_TIMEZONE: z.string().default('America/Sao_Paulo'),
 	// Encrypts secrets the owner saves in the app (the iFood client secret).
 	APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),

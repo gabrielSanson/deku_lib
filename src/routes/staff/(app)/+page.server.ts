@@ -8,6 +8,7 @@ import { lowStock } from '#lib/server/stock/service.ts';
 import { db } from '#lib/server/db.ts';
 import { currentIfoodAlerts } from '#lib/server/integrations/ifood/service.ts';
 import { listOrders } from '#lib/server/orders/queries.ts';
+import { adminMode } from '#lib/server/presets/index.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 const shift = (day: string, days: number) =>
@@ -46,14 +47,17 @@ export const load: PageServerLoad = async (event) => {
 	const now = Date.now();
 	// Orders past their promised time, latest first, for the "Agora" panel.
 	const late = inProgress.filter((o) => o.promisedAt && o.promisedAt.getTime() < now).slice(0, 10);
-	const ifoodAlerts = await currentIfoodAlerts().catch((err) => {
-		console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
-		return [] as string[];
-	});
+	const simple = adminMode() === 'simple';
+	const ifoodAlerts = simple
+		? []
+		: await currentIfoodAlerts().catch((err) => {
+				console.error(JSON.stringify({ msg: 'ifood alerts failed', err: String(err) }));
+				return [] as string[];
+			});
 	const sales = can(staff, 'reports.view') ? await salesToday() : null;
 	const systemAlerts = (await openAlerts()).map((a) => ({ kind: a.kind, detail: a.detail }));
 	const ratings = staff.role === 'kitchen' ? null : await ratingSummary();
-	const stockLow = can(staff, 'menu.edit') ? await lowStock() : [];
+	const stockLow = !simple && can(staff, 'menu.edit') ? await lowStock() : [];
 	return { counts, urgent, late, ifoodAlerts, sales, systemAlerts, ratings, stockLow };
 };
 

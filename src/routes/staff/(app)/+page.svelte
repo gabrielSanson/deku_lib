@@ -11,11 +11,14 @@
 	import UrgentAlertStrip from '#lib/components/organisms/UrgentAlertStrip.svelte';
 	import { useLiveOrders } from '#lib/client/live.svelte.ts';
 	import { formatBRL } from '#lib/domain/money.ts';
+	import { pathAllowed } from '#lib/staff/admin-mode.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data } = $props();
 	const live = useLiveOrders(() => data.live);
 	const t = useTexts();
+	const simple = $derived(data.adminMode === 'simple');
+	const allowed = (href: string) => pathAllowed(data.adminMode, href);
 
 	// The clock and the "late" checks refresh every 15 seconds.
 	let now = $state(Date.now());
@@ -80,7 +83,7 @@
 			value: sales ? formatBRL(sales.now.grossCents) : '—',
 			hint: sales ? t('dash.tile.net', { value: formatBRL(sales.now.netCents) }) : undefined,
 			delta: sales ? delta(sales.now.grossCents, sales.before.grossCents) : null,
-			href: '/staff/analytics'
+			href: allowed('/staff/analytics') ? '/staff/analytics' : '/staff/orders'
 		},
 		{
 			icon: 'chef' as const,
@@ -97,7 +100,7 @@
 				sales?.now.prep.medianMin == null ? '—' : `${Math.round(sales.now.prep.medianMin)} min`,
 			hint: t('dash.tile.timeHint'),
 			delta: null,
-			href: '/staff/analytics'
+			href: allowed('/staff/analytics') ? '/staff/analytics' : '/staff/orders'
 		}
 	]);
 
@@ -127,7 +130,7 @@
 				label: t('dash.shortcut.team'),
 				show: true
 			}
-		].filter((s) => s.show)
+		].filter((s) => s.show && allowed(s.href))
 	);
 
 	const isAdmin = $derived(data.staff.role === 'admin');
@@ -155,6 +158,7 @@
 		unpaid={data.counts.unpaid}
 		dead={data.counts.dead}
 		systemAlerts={data.systemAlerts}
+		{simple}
 	/>
 
 	<header class="flex flex-wrap items-end justify-between gap-3">
@@ -187,21 +191,23 @@
 				{/each}
 			</section>
 
-			<section class="card p-5">
-				<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-					<h2 class="font-semibold">{t('dash.hourly')}</h2>
-					<a
-						href="/staff/analytics"
-						class="text-sm font-semibold underline decoration-brand-500 decoration-2 underline-offset-4"
-						>{t('dash.shortcut.reports')}</a
-					>
-				</div>
-				{#if sales}
-					<HourlyChart points={sales.hours} />
-				{:else}
-					<p class="text-sm text-muted">{t('dash.adminOnly')}</p>
-				{/if}
-			</section>
+			{#if !simple}
+				<section class="card p-5">
+					<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+						<h2 class="font-semibold">{t('dash.hourly')}</h2>
+						<a
+							href="/staff/analytics"
+							class="text-sm font-semibold underline decoration-brand-500 decoration-2 underline-offset-4"
+							>{t('dash.shortcut.reports')}</a
+						>
+					</div>
+					{#if sales}
+						<HourlyChart points={sales.hours} />
+					{:else}
+						<p class="text-sm text-muted">{t('dash.adminOnly')}</p>
+					{/if}
+				</section>
+			{/if}
 
 			<section class="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label={t('dash.shortcuts')}>
 				{#each shortcuts as s (s.href)}

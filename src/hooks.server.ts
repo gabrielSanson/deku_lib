@@ -15,6 +15,8 @@ import { PLATFORM_VIEW_COOKIE, readViewToken } from '#lib/server/platform/consol
 import { audit } from '#lib/server/audit.ts';
 import { recordError } from '#lib/server/monitoring/errors.ts';
 import { db } from '#lib/server/db.ts';
+import { adminMode } from '#lib/server/presets/index.ts';
+import { pathAllowed } from '#lib/staff/admin-mode.ts';
 import { isPlatformPath, isStaffPath, sessionCookieName } from '#lib/supabase-cookie.ts';
 
 // Assets and health checks never need the sign-in state.
@@ -62,6 +64,12 @@ const handleForShop: Handle = async ({ event, resolve }) => {
 
 	const { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } = config();
 	const path = event.url.pathname;
+	// The simple staff area (ADMIN_MODE / the cookie preset) switches the back office off.
+	if (!pathAllowed(adminMode(), path)) {
+		// The order payment screen returns to the till; a simple shop goes back to its orders.
+		if (path === '/staff/pos') redirect(303, '/staff/orders');
+		error(404, 'Página não encontrada.');
+	}
 	const isStaff = isStaffPath(path);
 	// Shop pages read the customer's sign-in too (the account button, /conta).
 	const withSession = !NO_SESSION.test(path);

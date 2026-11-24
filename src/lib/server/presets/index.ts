@@ -5,8 +5,10 @@
 import type { IconName } from '#lib/components/atoms/Icon.svelte';
 import type { Catalog } from '#lib/domain/catalog.ts';
 import type { TextKey } from '#lib/texts/catalog.ts';
+import { ADMIN_MODES, type AdminMode } from '#lib/staff/admin-mode.ts';
 import type { ColorKey, ImageKey } from '../settings/branding';
 import { blank } from './blank';
+import { cookie } from './cookie';
 import { deku } from './deku';
 import { currentShopId, DEFAULT_SHOP_ID } from '../db';
 import { knownShop } from '../platform/shops';
@@ -39,9 +41,11 @@ export interface Preset {
 	productIcon: IconName;
 	/** Extra CSS variables for the neutral tokens layout.css does not take from the brand colours. */
 	css: string;
+	/** How much of the staff area the shop starts with; ADMIN_MODE in .env overrides it. */
+	adminMode: AdminMode;
 }
 
-export const PRESETS = { blank, deku } satisfies Record<string, Preset>;
+export const PRESETS = { blank, deku, cookie } satisfies Record<string, Preset>;
 export type PresetId = keyof typeof PRESETS;
 export const PRESET_IDS = Object.keys(PRESETS) as PresetId[];
 
@@ -66,4 +70,13 @@ export function defaultShopName(): string {
 
 export function preset(): Preset {
 	return PRESETS[presetId()];
+}
+
+/**
+ * Full back office or the simple one (orders, menu, site). A single-shop install can set
+ * ADMIN_MODE=full|simple in .env; otherwise the preset decides.
+ */
+export function adminMode(): AdminMode {
+	const env = currentShopId() === DEFAULT_SHOP_ID ? process.env.ADMIN_MODE : undefined;
+	return ADMIN_MODES.includes(env as AdminMode) ? (env as AdminMode) : preset().adminMode;
 }

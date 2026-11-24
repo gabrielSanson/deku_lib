@@ -26,7 +26,17 @@ const TYPES: Record<string, { ext: string; magic: (b: Uint8Array) => boolean }> 
 };
 export const IMAGE_PATH = /^[a-f0-9]{32}\.(jpg|png|webp)$/;
 
+/** Built-in sample photos of a shop preset (static/presets/<name>/...), set only by the sample menu. */
+export const PRESET_IMAGE_PATH = /^presets\/[a-z0-9-]+\/[a-z0-9/-]+\.(svg|webp|png|jpg)$/;
+
+/** The sample menu's photo for the database: "/presets/x/y.svg" → "presets/x/y.svg". */
+export function presetImagePath(url: string | null | undefined): string | null {
+	const path = url?.replace(/^\//, '') ?? null;
+	return path && PRESET_IMAGE_PATH.test(path) ? path : null;
+}
+
 export function menuImageUrl(path: string | null): string | null {
+	if (path && PRESET_IMAGE_PATH.test(path)) return `/${path}`;
 	return path && IMAGE_PATH.test(path) ? `/media/menu/${path}` : null;
 }
 

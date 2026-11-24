@@ -11,6 +11,7 @@ import {
 } from '#lib/server/fiscal/service.ts';
 import { getOrderDetail } from '#lib/server/orders/queries.ts';
 import { orderProfitDetail } from '#lib/server/analytics/profit.ts';
+import { adminMode } from '#lib/server/presets/index.ts';
 import { transitionOrder } from '#lib/server/orders/service.ts';
 import { refundTender } from '#lib/server/payments/tenders.ts';
 import { printStatus, reprint } from '#lib/server/printing/queue.ts';
@@ -32,7 +33,10 @@ export const load: PageServerLoad = async (event) => {
 					enabled: (await getFiscalSettings()).enabled,
 					documents: await listFiscalDocuments(order.id)
 				};
-	const profit = can(staff, 'reports.view') ? await orderProfitDetail(order.id) : null;
+	const profit =
+		adminMode() !== 'simple' && can(staff, 'reports.view')
+			? await orderProfitDetail(order.id)
+			: null;
 	const print = (await printStatus(order.id)).find((j) => j.kind === 'kitchen') ?? null;
 	return { order, fiscal, profit, print };
 };

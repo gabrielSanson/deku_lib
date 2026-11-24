@@ -6,7 +6,7 @@ import { skuFrom, slugify } from '#lib/domain/slug.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
-import { IMAGE_PATH, menuImageUrl } from './images';
+import { IMAGE_PATH, menuImageUrl, presetImagePath } from './images';
 import { scheduleMenuSync } from '../integrations/menu-sync';
 import { invalidateCatalog } from './service';
 
@@ -434,8 +434,11 @@ export async function menuIsEmpty(sql: Db = db()) {
 export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db()) {
 	const run = async (tx: Tx) => {
 		for (const c of catalog.categories) {
-			await tx`insert into menu_categories (id, name, position) values (${c.id}, ${c.name}, ${c.position})
-				on conflict (shop_id, id) do update set name = excluded.name, position = excluded.position`;
+			// Sample photos only fill an empty slot; a photo the owner uploaded stays.
+			await tx`insert into menu_categories (id, name, position, image_path)
+				values (${c.id}, ${c.name}, ${c.position}, ${presetImagePath(c.imageUrl)})
+				on conflict (shop_id, id) do update set name = excluded.name, position = excluded.position,
+					image_path = coalesce(menu_categories.image_path, excluded.image_path)`;
 		}
 		const groups = new Map(catalog.products.flatMap((p) => p.modifierGroups).map((g) => [g.id, g]));
 		for (const g of groups.values()) {
@@ -444,10 +447,11 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 				on conflict (shop_id, id) do update set name = excluded.name, min_selections = excluded.min_selections,
 					max_selections = excluded.max_selections`;
 			for (const [i, o] of g.options.entries()) {
-				await tx`insert into menu_modifier_options (sku, group_id, name, price_cents, max_quantity, position)
-					values (${o.sku}, ${g.id}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i})
+				await tx`insert into menu_modifier_options (sku, group_id, name, price_cents, max_quantity, position, image_path)
+					values (${o.sku}, ${g.id}, ${o.name}, ${o.priceCents}, ${o.maxQuantity}, ${i}, ${presetImagePath(o.imageUrl)})
 					on conflict (shop_id, sku) do update set group_id = excluded.group_id, name = excluded.name,
-						price_cents = excluded.price_cents, max_quantity = excluded.max_quantity, position = excluded.position`;
+						price_cents = excluded.price_cents, max_quantity = excluded.max_quantity, position = excluded.position,
+						image_path = coalesce(menu_modifier_options.image_path, excluded.image_path)`;
 			}
 		}
 		const ingredients = new Map(
@@ -461,13 +465,14 @@ export async function importCatalog(catalog: Catalog, actor: Actor, sql: Db = db
 		}
 		for (const [i, p] of catalog.products.entries()) {
 			await tx`insert into menu_products (sku, slug, name, description, category_id, price_cents, prep_station,
-					channels, allergens, position)
+					channels, allergens, position, image_path)
 				values (${p.sku}, ${p.slug}, ${p.name}, ${p.description}, ${p.categoryId}, ${p.priceCents},
-					${p.prepStation}, ${p.channels}, ${p.allergens}, ${i})
+					${p.prepStation}, ${p.channels}, ${p.allergens}, ${i}, ${presetImagePath(p.imageUrl)})
 				on conflict (shop_id, sku) do update set slug = excluded.slug, name = excluded.name,
 					description = excluded.description, category_id = excluded.category_id,
 					price_cents = excluded.price_cents, prep_station = excluded.prep_station,
-					channels = excluded.channels, allergens = excluded.allergens, position = excluded.position`;
+					channels = excluded.channels, allergens = excluded.allergens, position = excluded.position,
+					image_path = coalesce(menu_products.image_path, excluded.image_path)`;
 			await tx`delete from menu_product_groups where product_sku = ${p.sku}`;
 			for (const [j, g] of p.modifierGroups.entries()) {
 				await tx`insert into menu_product_groups (product_sku, group_id, position) values (${p.sku}, ${g.id}, ${j})`;

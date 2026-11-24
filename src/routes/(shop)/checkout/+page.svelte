@@ -546,18 +546,18 @@
 					{/each}
 				</fieldset>
 
-				<div class="card p-4">
-					<CouponField
-						id="coupon"
-						label={t('checkout.coupon')}
-						bind:code={couponCode}
-						applyLabel={t('checkout.coupon.apply')}
-						removeLabel={t('checkout.coupon.remove')}
-						problem={quote?.couponError}
-						blocks={quote?.couponBlocks}
-						errorClass="alert-error"
-					/>
-				</div>
+				{#if data.coupons}<div class="card p-4">
+						<CouponField
+							id="coupon"
+							label={t('checkout.coupon')}
+							bind:code={couponCode}
+							applyLabel={t('checkout.coupon.apply')}
+							removeLabel={t('checkout.coupon.remove')}
+							problem={quote?.couponError}
+							blocks={quote?.couponBlocks}
+							errorClass="alert-error"
+						/>
+					</div>{/if}
 			{:else}
 				<section class="space-y-1 card p-4" aria-live="polite">
 					<h2 class="mb-2 font-semibold">{t('checkout.summary')}</h2>

@@ -39,5 +39,6 @@ export const blank: Preset = {
 		'--color-stone-50:#fafafa;--color-stone-100:#f4f4f5;--color-stone-200:#e4e4e7;--color-stone-300:#d4d4d8;--color-stone-400:#a1a1aa;' +
 		'--color-stone-500:#71717a;--color-stone-600:#52525b;--color-stone-700:#3f3f46;--color-stone-800:#27272a;--color-stone-900:#18181b;--color-stone-950:#09090b}' +
 		":root:root[data-theme='dark']{--color-ink:#fafafa;--color-muted:#a1a1aa;--color-line:#27272a;" +
-		'--color-surface:#18181b;--color-quiet:#27272a;--color-canvas:#09090b}'
+		'--color-surface:#18181b;--color-quiet:#27272a;--color-canvas:#09090b}',
+	adminMode: 'full'
 };

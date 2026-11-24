@@ -7,6 +7,8 @@ import { requireStaff, staffActor } from '#lib/server/auth/staff.ts';
 import { importCatalog, menuIsEmpty } from '#lib/server/catalog/editor.ts';
 import { config } from '#lib/server/config.ts';
 import { db } from '#lib/server/db.ts';
+import { adminMode } from '#lib/server/presets/index.ts';
+import { SIMPLE_SKIPPED_STEPS } from '#lib/staff/admin-mode.ts';
 import { ifoodActions } from '#lib/server/integrations/ifood/actions.ts';
 import { ifoodStatus } from '#lib/server/integrations/ifood/settings.ts';
 import { paymentProvider } from '#lib/server/payments/provider.ts';
@@ -23,11 +25,19 @@ import { preset } from '#lib/server/presets/index.ts';
 
 const OWNER = ['admin'] as const;
 const STEPS = ['loja', 'cardapio', 'entrega', 'equipe', 'pagamentos', 'ifood', 'concluir'] as const;
+type Step = (typeof STEPS)[number];
+
+/** The simple staff area has no iFood step. */
+function steps(): Step[] {
+	const skip: readonly string[] = adminMode() === 'simple' ? SIMPLE_SKIPPED_STEPS : [];
+	return STEPS.filter((s) => !skip.includes(s));
+}
 
 export const load: PageServerLoad = async (event) => {
 	requireStaff(event, [...OWNER]);
-	const step = STEPS.includes(event.url.searchParams.get('passo') as never)
-		? (event.url.searchParams.get('passo') as (typeof STEPS)[number])
+	const list = steps();
+	const step = list.includes(event.url.searchParams.get('passo') as never)
+		? (event.url.searchParams.get('passo') as Step)
 		: 'loja';
 	const sql = db();
 	const [profile, settings, ifood, [counts]] = await Promise.all([
@@ -44,7 +54,8 @@ export const load: PageServerLoad = async (event) => {
 	const c = config();
 	return {
 		step,
-		steps: STEPS,
+		steps: list,
+		simple: adminMode() === 'simple',
 		profile,
 		settings,
 		counts,
@@ -124,7 +135,7 @@ export const actions: Actions = {
 					'Sem Pix, o site não tem como receber pagamento e não aceita pedidos. Os pedidos do balcão continuam funcionando.'
 			};
 		}
-		next('ifood');
+		next(steps().includes('ifood') ? 'ifood' : 'concluir');
 	},
 	...ifoodActions,
 	finish: async (event) => {

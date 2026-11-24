@@ -9,7 +9,8 @@
 		ifoodLate,
 		unpaid,
 		dead,
-		systemAlerts = []
+		systemAlerts = [],
+		simple = false
 	}: {
 		setupPending: boolean;
 		isAdmin: boolean;
@@ -19,6 +20,8 @@
 		dead: number;
 		/** Open watchdog alerts (worker stopped, no orders, backups…). */
 		systemAlerts?: { kind: string; detail: Record<string, unknown> }[];
+		/** The simple staff area has no Caixa do dia; unpaid orders are found in Pedidos. */
+		simple?: boolean;
 	} = $props();
 	const t = useTexts();
 	const ALERT_TITLE: Record<string, TextKey> = {
@@ -62,7 +65,7 @@
 	</p>
 {/if}
 {#if unpaid > 0}
-	<a href="/staff/reconciliation" class="block alert-warn">
+	<a href={simple ? '/staff/orders' : '/staff/reconciliation'} class="block alert-warn">
 		{t('alerts.unpaid', { n: unpaid })}
 	</a>
 {/if}

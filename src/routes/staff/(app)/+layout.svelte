@@ -6,13 +6,14 @@
 	import ThemeToggle from '#lib/components/molecules/ThemeToggle.svelte';
 	import StaffNav from '#lib/components/organisms/StaffNav.svelte';
 	import StaffTopbar from '#lib/components/organisms/StaffTopbar.svelte';
+	import { groupsForMode } from '#lib/staff/admin-mode.ts';
 	import { activeHref, navFor } from '#lib/staff/nav.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	let { data, children } = $props();
 	const t = useTexts();
 	const help = $derived(helpFor(page.url.pathname));
-	const groups = $derived(navFor(data.staff));
+	const groups = $derived(groupsForMode(navFor(data.staff), data.adminMode));
 	const current = $derived(activeHref(groups, page.url.pathname));
 	let drawerOpen = $state(false);
 	afterNavigate(() => (drawerOpen = false));

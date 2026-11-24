@@ -9,6 +9,7 @@
 		SETTINGS_GROUPS as ALL_GROUPS,
 		SETUP_HREF
 	} from '#lib/staff/nav.ts';
+	import { groupsForMode } from '#lib/staff/admin-mode.ts';
 	import { useTexts } from '#lib/texts/context.ts';
 
 	// Configurações: four groups (Loja, Pedidos, Site, Pagamentos e integrações), each
@@ -16,7 +17,9 @@
 	let { data, children } = $props();
 	const t = useTexts();
 	// Only the pages this member's permissions open (S5.7).
-	const SETTINGS_GROUPS = $derived(filterGroups(ALL_GROUPS, data.staff.permissions));
+	const SETTINGS_GROUPS = $derived(
+		groupsForMode(filterGroups(ALL_GROUPS, data.staff.permissions), data.adminMode)
+	);
 	const current = $derived(activeHref(SETTINGS_GROUPS, page.url.pathname));
 	const group = $derived(
 		SETTINGS_GROUPS.find((g) => g.links.some((l) => l.href === current)) ??

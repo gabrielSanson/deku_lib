@@ -7,7 +7,7 @@ set -e
 DOMAIN="$1"
 NAME="${2:-}"
 PRESET="${3:-blank}"
-[ -n "$DOMAIN" ] || { echo "Usage: sh deploy/setup.sh <domain> [shop name] [blank|deku]"; exit 1; }
+[ -n "$DOMAIN" ] || { echo "Usage: sh deploy/setup.sh <domain> [shop name] [blank|deku|cookie]"; exit 1; }
 cd "$(dirname "$0")/supabase"
 [ ! -f .env ] || { echo "deploy/supabase/.env already exists; not overwriting it."; exit 1; }
 
@@ -32,7 +32,7 @@ cat >> .env <<ENV
 ############
 SHOP_DOMAIN=$DOMAIN
 SHOP_NAME=$NAME
-# Built-in look and wording: blank (no brand) or deku (Deku Burger). See README.
+# Built-in look and wording: blank (no brand), deku (Deku Burger) or cookie (cookie shop). See README.
 SHOP_PRESET=$PRESET
 # Encrypts secrets saved in the app (the iFood client secret). Keep it with the backups:
 # without it, saved secrets must be typed in again.

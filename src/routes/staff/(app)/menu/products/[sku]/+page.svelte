@@ -64,8 +64,9 @@
 <main class="mx-auto max-w-2xl space-y-4 p-4">
 	<a class="btn-ghost min-h-9" href="/staff/menu/edit">{t('menuEdit.back')}</a>
 	<h1 class="page-title">{data.isNew ? t('product.new') : p.name}</h1>
-	{#if !data.isNew}<a class="text-sm underline" href="/staff/estoque/fichas/produto/{p.sku}"
-			>{t('stock.recipes.edit')}</a
+	{#if !data.isNew && data.adminMode !== 'simple'}<a
+			class="text-sm underline"
+			href="/staff/estoque/fichas/produto/{p.sku}">{t('stock.recipes.edit')}</a
 		>{/if}
 	<FormError message={form?.error} />
 	{#if page.url.searchParams.has('salvo') && !form}<p class="alert-ok">{t('product.saved')}</p>{/if}
@@ -187,41 +188,45 @@
 			</fieldset>
 		{/if}
 
-		<fieldset>
-			<legend class="label">{t('product.ingredients')}</legend>
-			{#if data.ingredients.length}
-				<p class="mb-2 text-xs text-muted">
-					{t('product.ingredientsHint')}
-				</p>
-				<ul class="divide-y divide-line rounded-lg border border-line">
-					{#each data.ingredients as ing (ing.id)}
-						{@const current = p.ingredients.find((i) => i.id === ing.id)}
-						<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
-							<Checkbox
-								label={ing.name}
-								hint={ing.allergens.length ? ing.allergens.join(', ') : undefined}
-								class="flex-1"
-								name="ingredientIds"
-								value={ing.id}
-								checked={Boolean(current)}
-							/>
-							<Checkbox
-								label={t('product.removable')}
-								name="removable"
-								value={ing.id}
-								checked={current?.removable ?? true}
-								class="text-sm"
-							/>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<p class="text-sm text-muted">
-					{t('product.noIngredients')}
-					<a class="underline" href="/staff/menu/ingredients">{t('product.ingredientsLink')}</a>.
-				</p>
-			{/if}
-		</fieldset>
+		{#if data.adminMode !== 'simple' || data.ingredients.length}
+			<fieldset>
+				<legend class="label">{t('product.ingredients')}</legend>
+				{#if data.ingredients.length}
+					<p class="mb-2 text-xs text-muted">
+						{t('product.ingredientsHint')}
+					</p>
+					<ul class="divide-y divide-line rounded-lg border border-line">
+						{#each data.ingredients as ing (ing.id)}
+							{@const current = p.ingredients.find((i) => i.id === ing.id)}
+							<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
+								<Checkbox
+									label={ing.name}
+									hint={ing.allergens.length ? ing.allergens.join(', ') : undefined}
+									class="flex-1"
+									name="ingredientIds"
+									value={ing.id}
+									checked={Boolean(current)}
+								/>
+								<Checkbox
+									label={t('product.removable')}
+									name="removable"
+									value={ing.id}
+									checked={current?.removable ?? true}
+									class="text-sm"
+								/>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="text-sm text-muted">
+						{t('product.noIngredients')}
+						{#if data.adminMode !== 'simple'}<a class="underline" href="/staff/menu/ingredients"
+								>{t('product.ingredientsLink')}</a
+							>.{/if}
+					</p>
+				{/if}
+			</fieldset>
+		{/if}
 
 		<TextField
 			label={t('product.allergens')}

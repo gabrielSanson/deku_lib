@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { requireStaff } from '#lib/server/auth/staff.ts';
 import { config } from '#lib/server/config.ts';
+import { adminMode } from '#lib/server/presets/index.ts';
 import { inHoursNow } from '#lib/server/settings/hours.ts';
 import { getStoreProfile } from '#lib/server/settings/profile.ts';
 import { getStoreSettings } from '#lib/server/settings/service.ts';
@@ -19,6 +20,7 @@ export const load: LayoutServerLoad = async (event) => {
 		shopStatus: event.locals.shop?.status ?? 'active',
 		shopName: profile.displayName,
 		setupDone: Boolean(profile.setupCompletedAt),
+		adminMode: adminMode(),
 		settings: await getStoreSettings(),
 		inHours: await inHoursNow(),
 		live: {

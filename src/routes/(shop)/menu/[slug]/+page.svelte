@@ -27,6 +27,16 @@
 		else g[sku] = current + 1;
 		picks[groupId] = g;
 	}
+	/** +1 or −1 of one option, for groups that take repeats (a box of 6 with 3 of one flavour). */
+	function step(groupId: string, sku: string, delta: 1 | -1, max: number, groupMax: number) {
+		const current = picks[groupId]?.[sku] ?? 0;
+		const next = current + delta;
+		if (next < 0 || next > max || (delta > 0 && count(groupId) >= groupMax)) return;
+		const g = { ...(picks[groupId] ?? {}) };
+		if (next) g[sku] = next;
+		else delete g[sku];
+		picks[groupId] = g;
+	}
 	const missingIngredients = $derived(new Set(data.missingIngredients));
 	const removable = $derived(p.ingredients.filter((i) => i.removable));
 	let removedPicks = $state<string[]>([]);
@@ -109,42 +119,92 @@
 								? 'bg-bad-tint text-bad'
 								: 'bg-brand-tint text-brand-700'}"
 				>
-					{g.minSelections ? t('product.required') : t('product.upTo', { max: g.maxSelections })}
+					{g.minSelections > 1
+						? `${count(g.id)}/${g.maxSelections}`
+						: g.minSelections
+							? t('product.required')
+							: t('product.upTo', { max: g.maxSelections })}
 				</span>
 			</legend>
 			<div class="divide-y divide-line card">
 				{#each g.options as o (o.sku)}
 					{@const q = picks[g.id]?.[o.sku] ?? 0}
 					{@const oOut = soldOut.has(o.sku)}
-					<button
-						type="button"
-						disabled={oOut}
-						class="flex min-h-12 w-full items-center justify-between px-3 text-left {oOut
-							? 'opacity-50'
-							: ''}"
-						aria-pressed={q > 0}
-						onclick={() => toggle(g.id, o.sku, o.maxQuantity, g.maxSelections)}
-					>
-						<span class="flex items-center gap-3">
-							<span
-								class="grid size-6 place-items-center {g.maxSelections === 1
-									? 'rounded-full'
-									: 'rounded-md'} border-2 {q
-									? 'border-brand-500 bg-brand-500 text-black'
-									: 'border-line'}">{q > 1 ? q : q ? '✓' : ''}</span
-							>
-							{#if o.imageUrl}
-								<img
-									src={o.imageUrl}
-									alt=""
-									loading="lazy"
-									class="size-10 rounded-md object-cover"
-								/>
-							{/if}
-							{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
-						</span>
-						{#if o.priceCents}<span class="text-sm">+ <Money cents={o.priceCents} /></span>{/if}
-					</button>
+					{#if g.maxSelections > 1 && o.maxQuantity > 1}
+						<div
+							class="flex min-h-12 w-full items-center justify-between gap-3 px-3 {oOut
+								? 'opacity-50'
+								: ''}"
+						>
+							<span class="flex items-center gap-3">
+								{#if o.imageUrl}
+									<img
+										src={o.imageUrl}
+										alt=""
+										loading="lazy"
+										class="size-10 rounded-md object-cover"
+									/>
+								{/if}
+								<span>
+									{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
+									{#if o.priceCents}<span class="block text-sm text-muted"
+											>+ <Money cents={o.priceCents} /></span
+										>{/if}
+								</span>
+							</span>
+							<span class="flex shrink-0 items-center gap-1">
+								<button
+									type="button"
+									class="grid size-9 place-items-center rounded-full border border-line text-lg disabled:opacity-40"
+									disabled={!q}
+									aria-label={t('cart.removeOne', { item: o.name })}
+									onclick={() => step(g.id, o.sku, -1, o.maxQuantity, g.maxSelections)}>−</button
+								>
+								<span class="w-6 text-center font-semibold tabular-nums" aria-live="polite"
+									>{q}</span
+								>
+								<button
+									type="button"
+									class="grid size-9 place-items-center rounded-full text-lg disabled:opacity-40 {q
+										? 'bg-brand-500 text-black'
+										: 'border border-line'}"
+									disabled={oOut || q >= o.maxQuantity || count(g.id) >= g.maxSelections}
+									aria-label={t('cart.addOne', { item: o.name })}
+									onclick={() => step(g.id, o.sku, 1, o.maxQuantity, g.maxSelections)}>+</button
+								>
+							</span>
+						</div>
+					{:else}
+						<button
+							type="button"
+							disabled={oOut}
+							class="flex min-h-12 w-full items-center justify-between px-3 text-left {oOut
+								? 'opacity-50'
+								: ''}"
+							aria-pressed={q > 0}
+							onclick={() => toggle(g.id, o.sku, o.maxQuantity, g.maxSelections)}
+						>
+							<span class="flex items-center gap-3">
+								<span
+									class="grid size-6 place-items-center {g.maxSelections === 1
+										? 'rounded-full'
+										: 'rounded-md'} border-2 {q
+										? 'border-brand-500 bg-brand-500 text-black'
+										: 'border-line'}">{q > 1 ? q : q ? '✓' : ''}</span
+								>
+								{#if o.imageUrl}
+									<img
+										src={o.imageUrl}
+										alt=""
+										loading="lazy"
+										class="size-10 rounded-md object-cover"
+									/>
+								{/if}
+								{o.name}{oOut ? ` ${t('product.optionSoldOut')}` : ''}
+							</span>
+							{#if o.priceCents}<span class="text-sm">+ <Money cents={o.priceCents} /></span>{/if}
+						</button>
+					{/if}
 				{/each}
 			</div>
 		</fieldset>

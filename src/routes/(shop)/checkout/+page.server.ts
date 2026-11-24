@@ -33,6 +33,7 @@ import { getStoreSettings } from '#lib/server/settings/service.ts';
 import { getTexts } from '#lib/server/settings/texts.ts';
 import { fill } from '#lib/texts/catalog.ts';
 import type { Actions, PageServerLoad } from './$types';
+import { adminMode } from '#lib/server/presets/index.ts';
 
 const slotLabel = new Intl.DateTimeFormat('pt-BR', {
 	timeZone: SHOP_TZ,
@@ -63,6 +64,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		onlineMethods: provider?.methods ?? [],
 		whatsapp: await whatsappEnabled(),
 		refCode: cookies.get('ref_code') ?? '',
+		// The simple staff area has no Campanhas, so there are no coupons to type in.
+		coupons: adminMode() !== 'simple',
 		slots: await scheduleSlots(isKiosk(cookies)),
 		prefill: {
 			name: c?.name ?? '',

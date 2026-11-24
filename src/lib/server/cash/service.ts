@@ -11,6 +11,7 @@ import type { StaffRole } from '#lib/domain/order-status.ts';
 import { audit, type Actor } from '../audit';
 import { db, type Db, type Tx } from '../db';
 import { DomainError } from '../errors';
+import { adminMode } from '../presets/index';
 
 type StaffActor = Actor & { role: StaffRole };
 
@@ -256,6 +257,8 @@ async function lockOpenSession(tx: Tx) {
 export async function recordCashSale(tx: Tx, tenderId: string, amountCents: number, actor: Actor) {
 	const [row] = await tx<{ id: string }[]>`
 		select id from cash_sessions where status = 'open' for share`;
+	// The simple staff area has no cash drawer: cash is recorded on the order only.
+	if (!row && adminMode() === 'simple') return;
 	if (!row) throw new DomainError('err.cash.closedCash', { code: 'cash_closed', status: 409 });
 	await tx`
 		insert into cash_movements (session_id, kind, amount_cents, tender_id, recorded_by)
@@ -272,6 +275,7 @@ export async function recordCashRefund(
 ) {
 	const [row] = await tx<{ id: string }[]>`
 		select id from cash_sessions where status = 'open' for share`;
+	if (!row && adminMode() === 'simple') return;
 	if (!row) throw new DomainError('err.cash.closedRefund', { code: 'cash_closed', status: 409 });
 	await tx`
 		insert into cash_movements (session_id, kind, amount_cents, tender_id, recorded_by)

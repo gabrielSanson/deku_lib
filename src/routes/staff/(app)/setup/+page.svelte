@@ -247,9 +247,11 @@
 					{t('setup.done.pay')}
 					{p.pix.enabled ? t('setup.done.payOn') : t('setup.done.payOff')}
 				</li>
-				<li>
-					{ifood.enabled ? `✓ ${t('setup.done.ifoodOn')}` : `• ${t('setup.done.ifoodOff')}`}
-				</li>
+				{#if !data.simple}
+					<li>
+						{ifood.enabled ? `✓ ${t('setup.done.ifoodOn')}` : `• ${t('setup.done.ifoodOff')}`}
+					</li>
+				{/if}
 			</ul>
 			{#if data.counts.products === 0}
 				<p class="alert-warn text-sm">{t('setup.done.noProducts')}</p>
